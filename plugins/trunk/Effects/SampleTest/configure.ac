@@ -1,3 +1,12 @@
+#
+# autoheader
+# libtoolize
+# automake –add-missing –foreign
+# autoconf
+# ./configure
+# make
+# make install
+#
 AC_INIT([SimpleTest], [0.7], [info@moldeointeractive.com.ar], [simpletest])
 
 AM_INIT_AUTOMAKE
