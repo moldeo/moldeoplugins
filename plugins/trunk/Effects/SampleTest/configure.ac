@@ -10,6 +10,7 @@
 AC_INIT([SimpleTest], [0.7], [info@moldeointeractive.com.ar], [simpletest])
 
 AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)
 
