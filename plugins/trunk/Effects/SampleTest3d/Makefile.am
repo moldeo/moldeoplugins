@@ -1,9 +1,9 @@
 lib_LTLIBRARIES = libmod_sampletest3d.la
-libmod_sampletest_la_SOURCES = moEffectSampleTest3d.cpp
-libmod_sampletest_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_sampletest_la_LDFLAGS =
-libmod_sampletest_la_LIBADD = 
-libmod_sampletest_la_LIBS = ${LIBMOLDEO_LIBS}
+libmod_sampletest3d_la_SOURCES = moEffectSampleTest3d.cpp
+libmod_sampletest3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmod_sampletest3d_la_LDFLAGS =
+libmod_sampletest3d_la_LIBADD = 
+libmod_sampletest3d_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo
