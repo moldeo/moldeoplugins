@@ -35,7 +35,7 @@ for file in $FILES; do
 done
 
 pushd $TARGETPATH
-PLUGINSOURCES=$(echo *.cpp *.c)
+PLUGINSOURCES=$(echo *.cpp)
 popd
 
 for file in $M4FILES; do
@@ -50,7 +50,7 @@ done
 pushd $TARGETPATH
 $SVN rm *.cbp
 $SVN rm *.dsp
-$SVN rm *.cvproj
+$SVN rm *.vcproj
 popd
 
 
