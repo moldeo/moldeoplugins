@@ -31,6 +31,8 @@
 
 #include "moEffectDemocube.h"
 
+#include "SDL.h"
+
 //========================
 //  Factory
 //========================
