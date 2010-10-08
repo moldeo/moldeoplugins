@@ -50,6 +50,7 @@ done
 pushd $TARGETPATH
 $SVN rm *.cbp
 $SVN rm *.dsp
+$SVN rm *.cvproj
 popd
 
 

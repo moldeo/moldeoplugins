@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_cubemap.la
-libmod_cubemap_la_SOURCES = moEffectCubeMap.cpp *.c
+libmod_cubemap_la_SOURCES = moEffectCubeMap.cpp
 libmod_cubemap_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_cubemap_la_LDFLAGS =
 libmod_cubemap_la_LIBADD = 
