@@ -10,6 +10,7 @@
 AC_INIT([Erase], [0.7], [info@moldeointeractive.com.ar], [erase])
 
 AM_INIT_AUTOMAKE
+AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)
 
@@ -24,7 +25,6 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CXX_C_O
 
-dnl check for libmoldeo
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
 
 AC_OUTPUT(Makefile)

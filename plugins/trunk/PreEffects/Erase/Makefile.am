@@ -5,11 +5,12 @@ libmod_erase_la_LDFLAGS =
 libmod_erase_la_LIBADD = 
 libmod_erase_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = preeffect
+moduletype = PreEffects
 datadir = ${prefix}/share/moldeo
-libdir = ${exec_prefix}/lib/moldeo/${moduletype}
-modulesdir = ${libdir}
+modulesdir = ${exec_prefix}/lib/moldeo
+libdir = ${modulesdir}/${moduletype}
 docdir = ${prefix}/share/doc/moldeo
 
 AM_CPPFLAGS = -DDATADIR=\"$(datadir)\" -DMODULESDIR=\"$(modulesdir)\"
 ACLOCAL_AMFLAGS=-I m4
+
