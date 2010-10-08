@@ -51,6 +51,8 @@ pushd $TARGETPATH
 $SVN rm *.cbp
 $SVN rm *.dsp
 $SVN rm *.vcproj
+$SVN rm *.depend
+$SVN rm *.layout
 popd
 
 
