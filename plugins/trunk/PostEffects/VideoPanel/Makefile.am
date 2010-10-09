@@ -5,7 +5,7 @@ libmod_videopanel_la_LDFLAGS =
 libmod_videopanel_la_LIBADD = 
 libmod_videopanel_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = PostEffects
+moduletype = posteffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

@@ -5,7 +5,7 @@ libmod_trackerklt_la_LDFLAGS =
 libmod_trackerklt_la_LIBADD = 
 libmod_trackerklt_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = Resources
+moduletype = resources
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

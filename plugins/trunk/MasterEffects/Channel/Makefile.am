@@ -5,7 +5,7 @@ libmod_channel_la_LDFLAGS =
 libmod_channel_la_LIBADD = 
 libmod_channel_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = MasterEffects
+moduletype = mastereffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

@@ -5,7 +5,7 @@ libmod_mirror_la_LDFLAGS =
 libmod_mirror_la_LIBADD = 
 libmod_mirror_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = PreEffects
+moduletype = preeffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

@@ -336,7 +336,7 @@ void moSerial::enumerateDevices(){
 			while ((entry = readdir(dir)) != NULL){
 				str = (char *)entry->d_name;
 				if( str.substr(0,3) == "cu." ){
-					MODebug2->Message(moText("device") + IntToStr(deviceCount) + motext("-") + moText(str.c_str()));
+					MODebug2->Message(moText("device") + IntToStr(deviceCount) + moText("-") + moText(str.c_str()));
 					deviceCount++;
 				}
 			}
@@ -499,15 +499,19 @@ bool moSerial::setup(string portName, int baud){
 		   case 9600: 	cfsetispeed(&options,B9600);
 						cfsetospeed(&options,B9600);
 						break;
+/* No existe la constante B14400
 		   case 14400: 	cfsetispeed(&options,B14400);
 						cfsetospeed(&options,B14400);
 						break;
+						*/
 		   case 19200: 	cfsetispeed(&options,B19200);
 						cfsetospeed(&options,B19200);
 						break;
+/* No existe la constante B28800
 		   case 28800: 	cfsetispeed(&options,B28800);
 						cfsetospeed(&options,B28800);
 						break;
+						*/
 		   case 38400: 	cfsetispeed(&options,B38400);
 						cfsetospeed(&options,B38400);
 						break;
@@ -662,7 +666,7 @@ string moSerial::readBytes(int length){
 	//---------------------------------------------
 	#if defined( TARGET_OSX ) || defined( TARGET_LINUX )
 		int nRead = read(fd, tmpBuff,length);
-		if(nRead == 0) MODebug2->Error(moText("moSerial: trouble reading from port"?);
+		if(nRead == 0) MODebug2->Error(moText("moSerial: trouble reading from port"));
 
     #endif
     //---------------------------------------------

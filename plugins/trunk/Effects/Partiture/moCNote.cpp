@@ -1,6 +1,6 @@
 #include "moCNote.h"
 
-#include "moArray.cpp"
+#include "moArray.h"
 moDefineDynamicArray( moCNotes )
 
 moCNote::moCNote() {

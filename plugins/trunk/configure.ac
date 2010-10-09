@@ -17,20 +17,20 @@ AC_CONFIG_SUBDIRS(
 	IODevices/Midi 
 	IODevices/Mixer 
 	IODevices/Mouse 
-	IODevices/NetOscIn 
-	IODevices/NetOscOut 
-	IODevices/NetTUIOIn 
        	IODevices/Serial 
-	IODevices/Tablet 
-	IODevices/TabletAsync
 	)
+#	IODevices/NetOscIn 
+#	IODevices/NetOscOut 
+#	IODevices/NetTUIOIn 
+#	IODevices/Tablet 
+#	IODevices/TabletAsync
 AC_CONFIG_SUBDIRS(
-	Resources/OpenCV
-	Resources/Tracker
-	Resources/TrackerGpuKLT
-	Resources/TrackerGpuKLT2
-	Resources/TrackerKLT
 	)
+#	Resources/OpenCV
+#	Resources/Tracker
+#	Resources/TrackerGpuKLT
+#	Resources/TrackerGpuKLT2
+#	Resources/TrackerKLT
 AC_CONFIG_SUBDIRS(
 	MasterEffects/Channel
 	MasterEffects/Ligia
@@ -40,47 +40,47 @@ AC_CONFIG_SUBDIRS(
 	)
 AC_CONFIG_SUBDIRS(
 	PostEffects/CalibrationGrid
-	PostEffects/ColorFilter
 	PostEffects/Debug
 	PostEffects/DeformationGrid
-	PostEffects/PostProcess2d
-	PostEffects/VideoPanel
 	PostEffects/VideoWall
 	PostEffects/VideoWallMorphing
 	)
+#	PostEffects/ColorFilter
+#	PostEffects/PostProcess2d
+#	PostEffects/VideoPanel
 AC_CONFIG_SUBDIRS(
 	Effects/CubeMap
 	Effects/Democube
 	Effects/Draw
-	Effects/Grid
 	Effects/Icon
 	Effects/Icon3D
 	Effects/Image
 	Effects/ImageFlow
-	Effects/IScreens
-	Effects/LightPercussion
-	Effects/Lights
-	Effects/LiveDrawing2
-	Effects/Movie
 	Effects/Painter
-	Effects/ParticlesSimple
 	Effects/Partiture
 	Effects/Plane
-	Effects/Protein
-	Effects/RegularSolid
 	Effects/SampleTest
 	Effects/SampleTest3d
-	Effects/Scene3D
 	Effects/Sound
 	Effects/Text
 	Effects/Text3D
 	Effects/Tunel
 	)
+#	Effects/Grid
+#	Effects/IScreens
+#	Effects/LightPercussion
+#	Effects/Lights
+#	Effects/LiveDrawing2
+#	Effects/Movie
+#	Effects/ParticlesSimple
+#	Effects/Protein
+#	Effects/RegularSolid
+#	Effects/Scene3D
 AC_CONFIG_SUBDIRS(
 	PreEffects/Erase
 	PreEffects/Mirror
 	PreEffects/MirrorG
-	PreEffects/MirrorMorphing
 	)
+#	PreEffects/MirrorMorphing
 
 AC_OUTPUT(Makefile)

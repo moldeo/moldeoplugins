@@ -5,7 +5,7 @@ libmod_opencv_la_LDFLAGS =
 libmod_opencv_la_LIBADD = 
 libmod_opencv_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = Resources
+moduletype = resources
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

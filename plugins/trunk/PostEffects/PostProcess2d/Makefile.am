@@ -5,7 +5,7 @@ libmod_postprocess2d_la_LDFLAGS =
 libmod_postprocess2d_la_LIBADD = 
 libmod_postprocess2d_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = PostEffects
+moduletype = posteffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
