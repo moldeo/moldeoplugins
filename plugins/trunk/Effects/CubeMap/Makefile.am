@@ -5,7 +5,7 @@ libmod_cubemap_la_LDFLAGS =
 libmod_cubemap_la_LIBADD = 
 libmod_cubemap_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = Effects
+moduletype = effects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

@@ -5,7 +5,7 @@ libmod_presetpanel_la_LDFLAGS =
 libmod_presetpanel_la_LIBADD = 
 libmod_presetpanel_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = MasterEffects
+moduletype = mastereffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

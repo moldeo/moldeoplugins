@@ -76,8 +76,6 @@
 
 #define MESH 4
 
-#include "port/strconst.h"
-
 enum moMirrorgIndex {
     MIRRORG_ALPHA,
 	MIRRORG_COLOR,

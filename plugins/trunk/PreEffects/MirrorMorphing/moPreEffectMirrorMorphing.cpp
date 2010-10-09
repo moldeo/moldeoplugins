@@ -30,6 +30,7 @@
 *******************************************************************************/
 
 #include "moPreEffectMirrorMorphing.h"
+#include <moResourceManager.h>
 
 //========================
 //  Factory

@@ -5,7 +5,7 @@ libmod_serial_la_LDFLAGS =
 libmod_serial_la_LIBADD = 
 libmod_serial_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = IODevices
+moduletype = iodevices
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

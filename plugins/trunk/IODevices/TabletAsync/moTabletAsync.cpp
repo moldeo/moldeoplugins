@@ -30,6 +30,7 @@
 *******************************************************************************/
 
 #include "moTabletAsync.h"
+#include "moGUIManager.h"
 
 #define MO_TABLET_CFG_STRCOD 0
 #define MO_TABLET_CFG_TYPE 1
@@ -461,7 +462,7 @@ MOboolean moTablet::Init()
 
     MO_HANDLE hWnd = m_pResourceManager->GetGuiMan()->GetOpWindowHandle();
     MO_DISPLAY pDisp = m_pResourceManager->GetGuiMan()->GetDisplay();
-    if (hWnd != NULL) {
+    if (hWnd != 0) {
         if (IsTabletInstalled())
         {
             // Getting tablet context.
@@ -889,16 +890,16 @@ Display* moTablet::InitTablet(MO_HANDLE hWnd, MO_DISPLAY pDisp) {
     t_XStylusDevice = NULL;
     t_XEraserDevice = NULL;
 
-    GetTabletDevices(pDisp, hWnd);
+    GetTabletDevices((Display *)pDisp, hWnd);
 
     //if (t_XStylusDevice != NULL)
-    m_Listener.RegisterEvents(pDisp, hWnd, t_XStylusDevice, "stylus");
+    m_Listener.RegisterEvents((Display *)pDisp, hWnd, t_XStylusDevice, "stylus");
 
 
     //if (t_XEraserDevice != NULL)
     //    m_Listener.RegisterEvents(pDisp, hWnd, t_XEraserDevice, "eraser");
 
-    return pDisp;
+    return (Display *)pDisp;
 }
 
 bool moTablet::IsTabletInstalled() {

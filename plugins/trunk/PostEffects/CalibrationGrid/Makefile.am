@@ -5,7 +5,7 @@ libmod_calibrationgrid_la_LDFLAGS =
 libmod_calibrationgrid_la_LIBADD = 
 libmod_calibrationgrid_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = PostEffects
+moduletype = posteffects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}

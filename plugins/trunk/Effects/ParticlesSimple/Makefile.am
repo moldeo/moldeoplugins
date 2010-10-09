@@ -5,7 +5,7 @@ libmod_particlessimple_la_LDFLAGS =
 libmod_particlessimple_la_LIBADD = 
 libmod_particlessimple_la_LIBS = ${LIBMOLDEO_LIBS}
 
-moduletype = Effects
+moduletype = effects
 datadir = ${prefix}/share/moldeo
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
