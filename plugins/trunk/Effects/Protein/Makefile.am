@@ -1,0 +1,16 @@
+lib_LTLIBRARIES = libmod_protein.la
+libmod_protein_la_SOURCES = moEffectProtein.cpp
+libmod_protein_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmod_protein_la_LDFLAGS =
+libmod_protein_la_LIBADD = 
+libmod_protein_la_LIBS = ${LIBMOLDEO_LIBS}
+
+moduletype = Effects
+datadir = ${prefix}/share/moldeo
+modulesdir = ${exec_prefix}/lib/moldeo
+libdir = ${modulesdir}/${moduletype}
+docdir = ${prefix}/share/doc/moldeo
+
+AM_CPPFLAGS = -DDATADIR=\"$(datadir)\" -DMODULESDIR=\"$(modulesdir)\"
+ACLOCAL_AMFLAGS=-I m4
+

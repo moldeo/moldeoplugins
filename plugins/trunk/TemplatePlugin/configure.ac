@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([PLUGINTITLE], [0.7], [info@moldeointeractive.com.ar], [PLUGINNAME])
+AC_INIT([PLUGINNAME], [0.7], [info@moldeointeractive.com.ar], [PLUGINID])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

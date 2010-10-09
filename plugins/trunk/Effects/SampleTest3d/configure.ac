@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([SimpleTest3d], [0.7], [info@moldeointeractive.com.ar], [simpletest3d])
+AC_INIT([SampleTest3d], [0.7], [info@moldeointeractive.com.ar], [sampletest3d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -25,7 +25,6 @@ AC_PROG_CXX
 AC_PROG_CXXCPP
 AC_PROG_CXX_C_O
 
-dnl check for libmoldeo
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
 
 AC_OUTPUT(Makefile)

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_`'PLUGINNAME`'.la
-libmod_`'PLUGINNAME`'_la_SOURCES = PLUGINSOURCES
-libmod_`'PLUGINNAME`'_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_`'PLUGINNAME`'_la_LDFLAGS =
-libmod_`'PLUGINNAME`'_la_LIBADD = 
-libmod_`'PLUGINNAME`'_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmod_`'PLUGINID`'.la
+libmod_`'PLUGINID`'_la_SOURCES = PLUGINSOURCES
+libmod_`'PLUGINID`'_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmod_`'PLUGINID`'_la_LDFLAGS =
+libmod_`'PLUGINID`'_la_LIBADD = 
+libmod_`'PLUGINID`'_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = PLUGINTYPE
 datadir = ${prefix}/share/moldeo
