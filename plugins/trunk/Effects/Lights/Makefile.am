@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_lights.la
-libmod_lights_la_SOURCES = moEffectLights.cpp
+libmod_lights_la_SOURCES = moEffectLights.cpp moEffectLights.h
 libmod_lights_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_lights_la_LDFLAGS =
 libmod_lights_la_LIBADD = 

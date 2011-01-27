@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_trackergpuklt2.la
-libmod_trackergpuklt2_la_SOURCES = moTrackerGpuKLT2.cpp
+libmod_trackergpuklt2_la_SOURCES = moTrackerGpuKLT2.cpp moTrackerGpuKLT2.h
 libmod_trackergpuklt2_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_trackergpuklt2_la_LDFLAGS =
 libmod_trackergpuklt2_la_LIBADD = 

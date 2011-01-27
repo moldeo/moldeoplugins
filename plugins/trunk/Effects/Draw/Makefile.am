@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_draw.la
-libmod_draw_la_SOURCES = moEffectDraw.cpp
+libmod_draw_la_SOURCES = moEffectDraw.cpp moEffectDraw.h
 libmod_draw_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_draw_la_LDFLAGS =
 libmod_draw_la_LIBADD = 

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_midi.la
-libmod_midi_la_SOURCES = moMidi.cpp
+libmod_midi_la_SOURCES = moMidi.cpp moMidi.h
 libmod_midi_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_midi_la_LDFLAGS =
 libmod_midi_la_LIBADD = 

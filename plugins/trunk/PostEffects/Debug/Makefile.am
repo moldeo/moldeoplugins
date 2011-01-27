@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_debug.la
-libmod_debug_la_SOURCES = moPostEffectDebug.cpp
+libmod_debug_la_SOURCES = moPostEffectDebug.cpp moPostEffectDebug.h
 libmod_debug_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_debug_la_LDFLAGS =
 libmod_debug_la_LIBADD = 

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_calibrationgrid.la
-libmod_calibrationgrid_la_SOURCES = moCalibrationGrid.cpp
+libmod_calibrationgrid_la_SOURCES = moCalibrationGrid.cpp moCalibrationGrid.h
 libmod_calibrationgrid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_calibrationgrid_la_LDFLAGS =
 libmod_calibrationgrid_la_LIBADD = 

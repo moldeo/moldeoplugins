@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_painter.la
-libmod_painter_la_SOURCES = moEffectPainter.cpp
+libmod_painter_la_SOURCES = moEffectPainter.cpp moEffectPainter.h
 libmod_painter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_painter_la_LDFLAGS =
 libmod_painter_la_LIBADD = 

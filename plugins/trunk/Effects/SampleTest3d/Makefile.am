@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_sampletest3d.la
-libmod_sampletest3d_la_SOURCES = moEffectSampleTest3d.cpp
+libmod_sampletest3d_la_SOURCES = moEffectSampleTest3d.cpp moEffectSampleTest3d.h
 libmod_sampletest3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_sampletest3d_la_LDFLAGS =
 libmod_sampletest3d_la_LIBADD = 

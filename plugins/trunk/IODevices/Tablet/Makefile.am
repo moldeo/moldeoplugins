@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_tablet.la
-libmod_tablet_la_SOURCES = moTablet.cpp
+libmod_tablet_la_SOURCES = moTablet.cpp moTablet.h
 libmod_tablet_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_tablet_la_LDFLAGS =
 libmod_tablet_la_LIBADD = 

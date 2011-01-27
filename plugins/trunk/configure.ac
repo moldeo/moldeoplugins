@@ -7,30 +7,33 @@
 # make
 # make install
 #
-AC_INIT([MoldeoPlugins], [0.7], [info@moldeointeractive.com.ar], [moldeoplugins])
+AC_INIT([MoldeoPlugins], [0.7.9], [info@moldeointeractive.com.ar], [moldeoplugins])
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_SUBDIRS(
 	IODevices/Keyboard 
-	IODevices/Midi 
 	IODevices/Mixer 
 	IODevices/Mouse 
-       	IODevices/Serial 
+	IODevices/NetOscIn 
+	IODevices/NetOscOut
+	IODevices/Serial
 	)
-#	IODevices/NetOscIn 
-#	IODevices/NetOscOut 
-#	IODevices/NetTUIOIn 
+#	 
+#	IODevices/Midi 
+#	
+#	IODevices/NetTUIOIn
 #	IODevices/Tablet 
 #	IODevices/TabletAsync
 AC_CONFIG_SUBDIRS(
-	)
+	Resources/TrackerKLT
+)
 #	Resources/OpenCV
 #	Resources/Tracker
 #	Resources/TrackerGpuKLT
 #	Resources/TrackerGpuKLT2
-#	Resources/TrackerKLT
+#	
 AC_CONFIG_SUBDIRS(
 	MasterEffects/Channel
 	MasterEffects/Ligia
@@ -44,20 +47,18 @@ AC_CONFIG_SUBDIRS(
 	PostEffects/DeformationGrid
 	PostEffects/VideoWall
 	PostEffects/VideoWallMorphing
+	PostEffects/PostProcess2d
 	)
 #	PostEffects/ColorFilter
-#	PostEffects/PostProcess2d
+#	
 #	PostEffects/VideoPanel
 AC_CONFIG_SUBDIRS(
 	Effects/CubeMap
-	Effects/Democube
 	Effects/Draw
 	Effects/Icon
 	Effects/Icon3D
 	Effects/Image
 	Effects/ImageFlow
-	Effects/Painter
-	Effects/Partiture
 	Effects/Plane
 	Effects/SampleTest
 	Effects/SampleTest3d
@@ -65,14 +66,19 @@ AC_CONFIG_SUBDIRS(
 	Effects/Text
 	Effects/Text3D
 	Effects/Tunel
+	Effects/ParticlesSimple
 	)
+
 #	Effects/Grid
+#	Effects/Democube
+#	Effects/Painter
+#	Effects/Partiture
 #	Effects/IScreens
 #	Effects/LightPercussion
 #	Effects/Lights
 #	Effects/LiveDrawing2
 #	Effects/Movie
-#	Effects/ParticlesSimple
+#	
 #	Effects/Protein
 #	Effects/RegularSolid
 #	Effects/Scene3D

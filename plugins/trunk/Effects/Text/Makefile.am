@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_text.la
-libmod_text_la_SOURCES = moEffectText.cpp
+libmod_text_la_SOURCES = moEffectText.cpp moEffectText.h
 libmod_text_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_text_la_LDFLAGS =
 libmod_text_la_LIBADD = 

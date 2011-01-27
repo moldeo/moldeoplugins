@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_tunel.la
-libmod_tunel_la_SOURCES = moEffectTunel.cpp
+libmod_tunel_la_SOURCES = moEffectTunel.cpp moEffectTunel.h
 libmod_tunel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_tunel_la_LDFLAGS =
 libmod_tunel_la_LIBADD = 

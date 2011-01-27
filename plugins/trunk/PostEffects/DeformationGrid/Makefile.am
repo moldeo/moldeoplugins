@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_deformationgrid.la
-libmod_deformationgrid_la_SOURCES = moDeformationGrid.cpp
+libmod_deformationgrid_la_SOURCES = moDeformationGrid.cpp moDeformationGrid.h
 libmod_deformationgrid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_deformationgrid_la_LDFLAGS =
 libmod_deformationgrid_la_LIBADD = 

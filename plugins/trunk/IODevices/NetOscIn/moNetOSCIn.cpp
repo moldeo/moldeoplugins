@@ -30,7 +30,7 @@
 
 #include "moNetOSCIn.h"
 
-#include "moArray.cpp"
+#include "moArray.h"
 
 moDefineDynamicArray( moOscPacketListeners )
 

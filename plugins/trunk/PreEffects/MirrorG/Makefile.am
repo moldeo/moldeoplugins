@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_mirrorg.la
-libmod_mirrorg_la_SOURCES = moPreEffectMirrorG.cpp
+libmod_mirrorg_la_SOURCES = moPreEffectMirrorG.cpp moPreEffectMirrorG.h
 libmod_mirrorg_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_mirrorg_la_LDFLAGS =
 libmod_mirrorg_la_LIBADD = 

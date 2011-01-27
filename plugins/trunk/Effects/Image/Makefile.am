@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_image.la
-libmod_image_la_SOURCES = moEffectImage.cpp
+libmod_image_la_SOURCES = moEffectImage.cpp moEffectImage.h
 libmod_image_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_image_la_LDFLAGS =
 libmod_image_la_LIBADD = 

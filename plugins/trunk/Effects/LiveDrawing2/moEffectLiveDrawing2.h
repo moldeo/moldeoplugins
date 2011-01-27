@@ -32,6 +32,8 @@
 #include "moPlugin.h"
 #include "moMathFunction.h"
 #include "moScript.h"
+#include "moTimeManager.h"
+#include "moFilterManager.h"
 
 #ifndef __MO_EFFECT_LIVE_DRAWING_H__
 #define __MO_EFFECT_LIVE_DRAWING_H__

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_lightpercussion.la
-libmod_lightpercussion_la_SOURCES = moEffectLightPercussion.cpp
+libmod_lightpercussion_la_SOURCES = moEffectLightPercussion.cpp moEffectLightPercussion.h
 libmod_lightpercussion_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_lightpercussion_la_LDFLAGS =
 libmod_lightpercussion_la_LIBADD = 

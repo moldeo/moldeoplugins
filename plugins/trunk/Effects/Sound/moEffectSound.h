@@ -33,6 +33,8 @@
 #define __MO_EFFECT_SOUND_H__
 
 #include "moPlugin.h"
+#include "moTimeManager.h"
+#include "moSoundManager.h"
 
 #define MO_SOUND_TRANSLATE_X 0
 #define MO_SOUND_TRANSLATE_Y 1

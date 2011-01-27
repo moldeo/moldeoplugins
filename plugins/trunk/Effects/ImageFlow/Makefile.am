@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_imageflow.la
-libmod_imageflow_la_SOURCES = moEffectImageFlow.cpp
+libmod_imageflow_la_SOURCES = moEffectImageFlow.cpp moEffectImageFlow.h
 libmod_imageflow_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_imageflow_la_LDFLAGS =
 libmod_imageflow_la_LIBADD = 

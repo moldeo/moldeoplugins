@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_presetpanel.la
-libmod_presetpanel_la_SOURCES = moMasterEffectPresetPanel.cpp
+libmod_presetpanel_la_SOURCES = moMasterEffectPresetPanel.cpp moMasterEffectPresetPanel.h
 libmod_presetpanel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_presetpanel_la_LDFLAGS =
 libmod_presetpanel_la_LIBADD = 

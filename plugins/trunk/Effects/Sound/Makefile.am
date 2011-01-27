@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_sound.la
-libmod_sound_la_SOURCES = moEffectSound.cpp
+libmod_sound_la_SOURCES = moEffectSound.cpp moEffectSound.h
 libmod_sound_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_sound_la_LDFLAGS =
 libmod_sound_la_LIBADD = 
