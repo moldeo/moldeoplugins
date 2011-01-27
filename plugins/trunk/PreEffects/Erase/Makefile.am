@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_erase.la
-libmod_erase_la_SOURCES = moPreEffectErase.cpp
+libmod_erase_la_SOURCES = moPreEffectErase.cpp moPreEffectErase.h
 libmod_erase_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_erase_la_LDFLAGS =
 libmod_erase_la_LIBADD = 

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_nettuioin.la
-libmod_nettuioin_la_SOURCES = moNetTUIOIn.cpp
+libmod_nettuioin_la_SOURCES = moNetTUIOIn.cpp moNetTUIOIn.h
 libmod_nettuioin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_nettuioin_la_LDFLAGS =
 libmod_nettuioin_la_LIBADD = 

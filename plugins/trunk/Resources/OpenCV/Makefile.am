@@ -1,5 +1,6 @@
 lib_LTLIBRARIES = libmod_opencv.la
-libmod_opencv_la_SOURCES = moOpenCV.cpp
+libmod_opencv_la_SOURCES = moOpenCV.cpp moOpenCV.h
+
 libmod_opencv_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_opencv_la_LDFLAGS =
 libmod_opencv_la_LIBADD = 

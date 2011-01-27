@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_text3d.la
-libmod_text3d_la_SOURCES = moEffectText3D.cpp
+libmod_text3d_la_SOURCES = moEffectText3D.cpp moEffectText3D.h
 libmod_text3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_text3d_la_LDFLAGS =
 libmod_text3d_la_LIBADD = 

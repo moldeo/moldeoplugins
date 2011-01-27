@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_videopanel.la
-libmod_videopanel_la_SOURCES = moPostEffectVideoPanel.cpp
+libmod_videopanel_la_SOURCES = moPostEffectVideoPanel.cpp moPostEffectVideoPanel.h
 libmod_videopanel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_videopanel_la_LDFLAGS =
 libmod_videopanel_la_LIBADD = 

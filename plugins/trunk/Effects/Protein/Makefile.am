@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_protein.la
-libmod_protein_la_SOURCES = moEffectProtein.cpp
+libmod_protein_la_SOURCES = moEffectProtein.cpp moEffectProtein.h
 libmod_protein_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_protein_la_LDFLAGS =
 libmod_protein_la_LIBADD = 

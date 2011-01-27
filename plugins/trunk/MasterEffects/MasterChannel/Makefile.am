@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_masterchannel.la
-libmod_masterchannel_la_SOURCES = moMasterEffectMasterChannel.cpp
+libmod_masterchannel_la_SOURCES = moMasterEffectMasterChannel.cpp moMasterEffectMasterChannel.h
 libmod_masterchannel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_masterchannel_la_LDFLAGS =
 libmod_masterchannel_la_LIBADD = 

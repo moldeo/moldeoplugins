@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_particlessimple.la
-libmod_particlessimple_la_SOURCES = moEffectParticlesSimple.cpp
+libmod_particlessimple_la_SOURCES = moEffectParticlesSimple.cpp moEffectParticlesSimple.h
 libmod_particlessimple_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_particlessimple_la_LDFLAGS =
 libmod_particlessimple_la_LIBADD = 

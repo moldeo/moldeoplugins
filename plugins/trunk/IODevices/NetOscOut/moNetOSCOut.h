@@ -38,7 +38,7 @@
 #include "moDeviceCode.h"
 #include "moEventList.h"
 #include "moIODeviceManager.h"
-#include "moTypes.h"
+#include "moFilterManager.h"
 
 #include "OscOutboundPacketStream.h"
 #include "UdpSocket.h"

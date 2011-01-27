@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_ligia.la
-libmod_ligia_la_SOURCES = moMasterEffectLigia.cpp
+libmod_ligia_la_SOURCES = moMasterEffectLigia.cpp moMasterEffectLigia.h
 libmod_ligia_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_ligia_la_LDFLAGS =
 libmod_ligia_la_LIBADD = 

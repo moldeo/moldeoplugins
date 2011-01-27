@@ -499,19 +499,15 @@ bool moSerial::setup(string portName, int baud){
 		   case 9600: 	cfsetispeed(&options,B9600);
 						cfsetospeed(&options,B9600);
 						break;
-/* No existe la constante B14400
-		   case 14400: 	cfsetispeed(&options,B14400);
+		   /*case 14400: 	cfsetispeed(&options,B14400);
 						cfsetospeed(&options,B14400);
-						break;
-						*/
+						break;*/
 		   case 19200: 	cfsetispeed(&options,B19200);
 						cfsetospeed(&options,B19200);
 						break;
-/* No existe la constante B28800
-		   case 28800: 	cfsetispeed(&options,B28800);
+/*		   case 28800: 	cfsetispeed(&options,B28800);
 						cfsetospeed(&options,B28800);
-						break;
-						*/
+						break;*/
 		   case 38400: 	cfsetispeed(&options,B38400);
 						cfsetospeed(&options,B38400);
 						break;

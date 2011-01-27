@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_panel.la
-libmod_panel_la_SOURCES = moMasterEffectPanel.cpp
+libmod_panel_la_SOURCES = moMasterEffectPanel.cpp moMasterEffectPanel.h
 libmod_panel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_panel_la_LDFLAGS =
 libmod_panel_la_LIBADD = 

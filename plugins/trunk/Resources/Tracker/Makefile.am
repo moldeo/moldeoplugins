@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_tracker.la
-libmod_tracker_la_SOURCES = moTracker.cpp
+libmod_tracker_la_SOURCES = moTracker.cpp moTracker.h
 libmod_tracker_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_tracker_la_LDFLAGS =
 libmod_tracker_la_LIBADD = 

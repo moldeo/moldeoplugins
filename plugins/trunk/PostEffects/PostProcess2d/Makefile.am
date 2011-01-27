@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_postprocess2d.la
-libmod_postprocess2d_la_SOURCES = moPostEffectPostProcess2d.cpp
+libmod_postprocess2d_la_SOURCES = moPostEffectPostProcess2d.cpp moPostEffectPostProcess2d.h
 libmod_postprocess2d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_postprocess2d_la_LDFLAGS =
 libmod_postprocess2d_la_LIBADD = 

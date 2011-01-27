@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_movie.la
-libmod_movie_la_SOURCES = moEffectMovie.cpp
+libmod_movie_la_SOURCES = moEffectMovie.cpp moEffectMovie.h
 libmod_movie_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_movie_la_LDFLAGS =
 libmod_movie_la_LIBADD = 

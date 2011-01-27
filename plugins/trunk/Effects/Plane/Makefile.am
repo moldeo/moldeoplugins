@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_plane.la
-libmod_plane_la_SOURCES = moEffectPlane.cpp
+libmod_plane_la_SOURCES = moEffectPlane.cpp moEffectPlane.h
 libmod_plane_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_plane_la_LDFLAGS =
 libmod_plane_la_LIBADD = 

@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_keyboard.la
-libmod_keyboard_la_SOURCES = moKeyboard.cpp
+libmod_keyboard_la_SOURCES = moKeyboard.cpp moKeyboard.h
 libmod_keyboard_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_keyboard_la_LDFLAGS =
 libmod_keyboard_la_LIBADD = 

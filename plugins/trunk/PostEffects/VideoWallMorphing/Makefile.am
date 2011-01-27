@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_videowallmorphing.la
-libmod_videowallmorphing_la_SOURCES = moPostEffectVideoWallMorphing.cpp
+libmod_videowallmorphing_la_SOURCES = moPostEffectVideoWallMorphing.cpp moPostEffectVideoWallMorphing.h
 libmod_videowallmorphing_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_videowallmorphing_la_LDFLAGS =
 libmod_videowallmorphing_la_LIBADD = 

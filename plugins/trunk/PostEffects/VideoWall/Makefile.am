@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_videowall.la
-libmod_videowall_la_SOURCES = moPostEffectVideoWall.cpp
+libmod_videowall_la_SOURCES = moPostEffectVideoWall.cpp moPostEffectVideoWall.h
 libmod_videowall_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_videowall_la_LDFLAGS =
 libmod_videowall_la_LIBADD = 

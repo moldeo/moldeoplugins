@@ -52,7 +52,6 @@
 	#include <sys/ioctl.h>
 	#include <getopt.h>
 	#include <dirent.h>
-	#include <unistd.h>
 #else
 	#include <Winbase.h>
 	#include <tchar.h>

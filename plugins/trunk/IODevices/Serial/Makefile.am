@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_serial.la
-libmod_serial_la_SOURCES = moSerial.cpp
+libmod_serial_la_SOURCES = moSerial.cpp moSerial.h
 libmod_serial_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_serial_la_LDFLAGS =
 libmod_serial_la_LIBADD = 

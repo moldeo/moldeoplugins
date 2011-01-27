@@ -37,16 +37,16 @@
 
 moEffectGridFactory *m_EffectGridFactory = NULL;
 
-MO_PLG_API moEffectFactory* CreateEffectFactory(){ 
+MO_PLG_API moEffectFactory* CreateEffectFactory(){
 	if(m_EffectGridFactory==NULL)
 		m_EffectGridFactory = new moEffectGridFactory();
 	return(moEffectFactory*) m_EffectGridFactory;
-} 
+}
 
-MO_PLG_API void DestroyEffectFactory(){ 
+MO_PLG_API void DestroyEffectFactory(){
 	delete m_EffectGridFactory;
 	m_EffectGridFactory = NULL;
-} 
+}
 
 moEffect*  moEffectGridFactory::Create() {
 	return new moEffectGrid();
@@ -60,27 +60,27 @@ void moEffectGridFactory::Destroy(moEffect* fx) {
 //  Efecto
 //========================
 
-moEffectGrid::moEffectGrid() 
+moEffectGrid::moEffectGrid()
 {
 	devicecode = NULL;
 	ncodes = 0;
-	m_Name = "grid";
-	
+	SetName("grid");
+
 	glActiveTextureARB = NULL;
 	glMultiTexCoord2fARB = NULL;
 	//Funciones de multitexture
         // wglGetProcAddress reemplazado por glutGetProcAddress(by Andres)
 	#ifdef _WIN32
-	glActiveTextureARB		=(PFNGLACTIVETEXTUREARBPROC) wglGetProcAddress("glActiveTextureARB");
-	glMultiTexCoord2fARB	=(PFNGLMULTITEXCOORD2FARBPROC) wglGetProcAddress("glMultiTexCoord2fARB");
+	//glActiveTextureARB		=(PFNGLACTIVETEXTUREARBPROC) wglGetProcAddress("glActiveTextureARB");
+	//glMultiTexCoord2fARB	=(PFNGLMULTITEXCOORD2FARBPROC) wglGetProcAddress("glMultiTexCoord2fARB");
 	#else
-	glActiveTextureARB		=(PFNGLACTIVETEXTUREARBPROC) glutGetProcAddress("glActiveTextureARB");
-	glMultiTexCoord2fARB	=(PFNGLMULTITEXCOORD2FARBPROC) glutGetProcAddress("glMultiTexCoord2fARB");
+	//glActiveTextureARB		=(PFNGLACTIVETEXTUREARBPROC) glutGetProcAddress("glActiveTextureARB");
+	//glMultiTexCoord2fARB	=(PFNGLMULTITEXCOORD2FARBPROC) glutGetProcAddress("glMultiTexCoord2fARB");
 	#endif
 	Grid = new TEngine_Utility();
 }
 
-moEffectGrid::~moEffectGrid() 
+moEffectGrid::~moEffectGrid()
 {
 	Finish();
 }
@@ -96,7 +96,7 @@ MOboolean moEffectGrid::Init()
     color = m_Config.GetParamIndex("color");
     textura = m_Config.GetParamIndex("textura");
 	texturab = m_Config.GetParamIndex("texturab");
-    
+
 	// Seteos de Texturas.
 	moText strimage;
 	MOint id;
@@ -106,7 +106,7 @@ MOboolean moEffectGrid::Init()
 	ntextures = m_Config.GetParam(textura).GetValuesCount();
     textures = new MOtexture[ntextures];
 
-    for(MOuint i=0; i<ntextures; i++) 
+    for(MOuint i=0; i<ntextures; i++)
     {
 		strimage = m_Config.GetParam().GetValue().GetSubValue(0).Text();
 		id = MOTextures->GetTextureMOId(strimage, true);
@@ -121,16 +121,18 @@ MOboolean moEffectGrid::Init()
 
 
     // Seteos generales
+    /*
     if(preconfig.GetPreConfNum() > 0)
         preconfig.PreConfFirst( GetConfig());
+        */
 
 	return true;
 }
 
-void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate) 
+void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
 	int I, J, textura_a, textura_b;
-	
+
     PreDraw( tempogral, parentstate);
 
   glMatrixMode( GL_PROJECTION );
@@ -156,12 +158,12 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
-	
+
     glColor4f(  m_Config.GetParam(color).GetValue().GetSubValue(MO_RED).Float()*state.tintr,
                     m_Config.GetParam(color).GetValue().GetSubValue(MO_GREEN).Float()*state.tintg,
                     m_Config.GetParam(color).GetValue().GetSubValue(MO_BLUE).Float()*state.tintb,
                     m_Config.GetParam(color).GetValue().GetSubValue(MO_ALPHA).Float()*state.alpha);
-	
+
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
 	Grid->Loop_Engine();
@@ -196,8 +198,8 @@ moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->array[did]->GetStatus(cid);
-			valor = IODeviceManager->array[did]->GetValue(cid);
+			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
 			if(state)
 			switch(i) {
 				case MO_GRID_PITCH:

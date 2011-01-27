@@ -32,10 +32,10 @@
 #ifndef __MO_EFFECT_DRAW_H__
 #define __MO_EFFECT_DRAW_H__
 
-#include <moPlugin.h>
-#include <moLuaBase.h>
-#include <moP5.h>
-#include <moFilterManager.h>
+#include "moPlugin.h"
+#include "moLuaBase.h"
+#include "moFilterManager.h"
+#include "moP5.h"
 
 #define MO_DRAW_TRANSLATE_X 0
 #define MO_DRAW_TRANSLATE_Y 1

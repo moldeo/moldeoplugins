@@ -33,6 +33,7 @@
 #define __MO_EFFECT_PP2D_H__
 
 #include "moPostPlugin.h"
+#include "moFilterManager.h"
 
 #define MO_PP2D_TRANSLATE_X 0
 #define MO_PP2D_TRANSLATE_Y 1

@@ -33,6 +33,7 @@
 #define __MO_EFFECT_SAMPLETEST_H__
 
 #include "moPlugin.h"
+#include "moFilterManager.h"
 
 #define MO_SAMPLETEST_TRANSLATE_X 0
 #define MO_SAMPLETEST_TRANSLATE_Y 1

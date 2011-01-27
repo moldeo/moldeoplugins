@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_mouse.la
-libmod_mouse_la_SOURCES = moMouse.cpp
+libmod_mouse_la_SOURCES = moMouse.cpp moMouse.h
 libmod_mouse_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_mouse_la_LDFLAGS =
 libmod_mouse_la_LIBADD = 

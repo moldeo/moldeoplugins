@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_icon3d.la
-libmod_icon3d_la_SOURCES = moEffectIcon3D.cpp
+libmod_icon3d_la_SOURCES = moEffectIcon3D.cpp moEffectIcon3D.h
 libmod_icon3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_icon3d_la_LDFLAGS =
 libmod_icon3d_la_LIBADD = 

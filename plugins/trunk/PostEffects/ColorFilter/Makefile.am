@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_colorfilter.la
-libmod_colorfilter_la_SOURCES = moPostEffectColorFilter.cpp
+libmod_colorfilter_la_SOURCES = moPostEffectColorFilter.cpp moPostEffectColorFilter.h
 libmod_colorfilter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_colorfilter_la_LDFLAGS =
 libmod_colorfilter_la_LIBADD = 

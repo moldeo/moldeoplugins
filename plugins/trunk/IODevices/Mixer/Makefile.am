@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmod_mixer.la
-libmod_mixer_la_SOURCES = moMixer.cpp
+libmod_mixer_la_SOURCES = moMixer.cpp moMixer.h
 libmod_mixer_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmod_mixer_la_LDFLAGS =
 libmod_mixer_la_LIBADD = 
