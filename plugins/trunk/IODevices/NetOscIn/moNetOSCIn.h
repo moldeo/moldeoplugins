@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -239,7 +239,7 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
                     data = moData( pointer, size, dtype );
                     message.Add( data );
                 }
-                //moAbstract::MODebug->Push( data.TypeToText()+ moText(": ") + data.ToText() );
+                //moAbstract::MODebug2->Push( data.TypeToText()+ moText(": ") + data.ToText() );
                 (arg++);
             }
 

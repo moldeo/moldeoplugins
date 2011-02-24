@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -115,28 +115,16 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
 
     float ancho, alto;
-    float prop;
 
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
-    if ( w == 0 || h == 0 ) { w  = 1; h = 1; prop = 1.0; }
-    else {
-      prop = (float) h / (float) w;
-    }
-
-    PreDraw( tempogral, parentstate);
-
+    BeginDraw( tempogral, parentstate);
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glLoadIdentity();									// Reset The View
-
     // Cambiar la proyeccion para una vista ortogonal //
     glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
-    glMatrixMode(GL_PROJECTION);    // Select The Projection Matrix
-    glLoadIdentity();               // Reset The Projection Matrix
-    glOrtho( -0.5, 0.5, -0.5*prop, 0.5*prop, -1, 1);          // Set Up An Ortho Screen
 
+    m_pResourceManager->GetGLMan()->SetOrthographicView();
 
     glEnable(GL_ALPHA);
 
@@ -155,7 +143,8 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
                 m_Config.Eval( moR(ICON_SCALEY)),
                   1.0);
 
-    SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
+    //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], state );
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
@@ -191,6 +180,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
       }
     }
 
+    EndDraw();
 }
 
 MOboolean moEffectIcon::Finish()

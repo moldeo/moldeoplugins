@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -88,16 +88,9 @@ MOboolean moNetOSCOut::Init()
     moText conf, dev_name;
 
     // Loading config file.
-	conf = m_pResourceManager->GetDataMan()->GetDataPath()+moText("/");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		moText text = "Couldn't load netoscout config";
-		MODebug2->Error(text);
-		return false;
-	}
-
-	moMoldeoObject::Init();
+    if (moMoldeoObject::Init()) {
+      moMoldeoObject::CreateConnectors();
+    } else return false;
 
 
     moDefineParamIndex( NETOSCOUT_HOSTS, moText("hosts") );

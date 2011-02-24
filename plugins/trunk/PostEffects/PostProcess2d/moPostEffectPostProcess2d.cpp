@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -304,19 +304,19 @@ void moPostEffectPostProcess2d::Interaction( moIODeviceManager *IODeviceManager 
 			switch(i) {
 				case MO_PP2D_TRANSLATE_X:
 					Tx = valor;
-					MODebug->Push(IntToStr(valor));
+					MODebug2->Push(IntToStr(valor));
 					break;
 				case MO_PP2D_TRANSLATE_Y:
 					Ty = m_pResourceManager->GetRenderMan()->RenderHeight() - valor;
-					MODebug->Push(IntToStr(valor));
+					MODebug2->Push(IntToStr(valor));
 					break;
 				case MO_PP2D_SCALE_X:
 					Sx+=((float) valor / (float) 256.0);
-					MODebug->Push(IntToStr(valor));
+					MODebug2->Push(IntToStr(valor));
 					break;
 				case MO_PP2D_SCALE_Y:
 					Sy+=((float) valor / (float) 256.0);
-					MODebug->Push(IntToStr(valor));
+					MODebug2->Push(IntToStr(valor));
 					break;
 			}
 		temp = temp->next;

@@ -21,10 +21,10 @@
   *                                                                          *
   ****************************************************************************
 
-  Copyright(C) 2007 Andrés Colubri
+  Copyright(C) 2007
 
   Authors:
-  Andrés Colubri
+
   Fabricio Costa
 
 *******************************************************************************/
@@ -786,7 +786,7 @@ void moEffectLiveDrawing2::HandleReturns(moLuaVirtualMachine& vm, const char *st
         lua_State *state = (lua_State *) vm;
         MOint script_result = (MOint) lua_tonumber (state, 1);
 		if (script_result != 0)
-			MODebug->Push("Script returned error code: " + IntToStr(script_result));
+			MODebug2->Push("Script returned error code: " + IntToStr(script_result));
     }
 	*/
 }
@@ -993,7 +993,7 @@ void moEffectLiveDrawing2::updateFlowVelocity()
 	flow_velocity_bak = flow_velocity;
 	if (state.tempo.delta <= 1.0) flow_velocity = state.tempo.delta * flow_velocity0;
 	else flow_velocity = (1.0 + 10.0 * (state.tempo.delta - 1.0)) * flow_velocity0;
-	//if (flow_velocity != flow_velocity_bak) MODebug->Push("Flow velocity: " + FloatToStr(flow_velocity));
+	//if (flow_velocity != flow_velocity_bak) MODebug2->Push("Flow velocity: " + FloatToStr(flow_velocity));
 }
 
 void moEffectLiveDrawing2::displaceGestures()

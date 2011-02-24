@@ -59,6 +59,7 @@ AC_CONFIG_SUBDIRS(
 	Effects/Icon3D
 	Effects/Image
 	Effects/ImageFlow
+	Effects/Movie
 	Effects/Plane
 	Effects/SampleTest
 	Effects/SampleTest3d
@@ -77,7 +78,6 @@ AC_CONFIG_SUBDIRS(
 #	Effects/LightPercussion
 #	Effects/Lights
 #	Effects/LiveDrawing2
-#	Effects/Movie
 #	
 #	Effects/Protein
 #	Effects/RegularSolid

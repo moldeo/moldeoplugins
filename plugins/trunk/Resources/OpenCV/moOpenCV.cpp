@@ -109,17 +109,9 @@ MOboolean moOpenCV::Init()
 	MOint nvalues;
 	MOint trackersystems;
 
-	configname = m_pResourceManager->GetDataMan()->GetDataPath();
-	configname +=  moSlash + (moText)GetConfigName();
-    configname +=  moText(".cfg");
-
-	if (m_Config.LoadConfig(configname) != MO_CONFIG_OK ) {
-		moText text = moText("Couldn't load opencv config:") + (moText)configname;
-		MODebug2->Error( text );
-		return false;
-	}
-
-	moMoldeoObject::Init();
+  if (moMoldeoObject::Init()) {
+    moMoldeoObject::CreateConnectors();
+  } else return false;
 
 
 	moDefineParamIndex( OPENCV_THRESHOLD, moText("threshold") );

@@ -85,15 +85,9 @@ MOboolean moNetOSCIn::Init()
     //==========================
 
     // Loading config file.
-	conf = m_pResourceManager->GetDataMan()->GetDataPath() + moSlash;
-    conf += GetConfigName();
-    conf += moText(".cfg");
-
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		moText text = "Couldn't load netoscin config";
-		MODebug->Push(text);
-		return false;
-	}
+    if (moMoldeoObject::Init()) {
+      moMoldeoObject::CreateConnectors();
+    } else return false;
 
     //==========================
     // INIT

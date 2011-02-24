@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -41,25 +41,30 @@
 #define MO_SOUND_SCALE_X 2
 #define MO_SOUND_SCALE_Y 3
 
+
 enum moSoundParamIndex {
 	SOUND_ALPHA,
 	SOUND_COLOR,
 	SOUND_SYNC,
 	SOUND_PHASE,
+
 	SOUND_SOUND,
-	SOUND_TEXTURE,
-	SOUND_BLENDING,
-	SOUND_WIDTH,
-	SOUND_HEIGHT,
-	SOUND_TRANSLATEX,
-	SOUND_TRANSLATEY,
-	SOUND_TRANSLATEZ,
-	SOUND_ROTATEX,
-	SOUND_ROTATEY,
-	SOUND_ROTATEZ,
-	SOUND_SCALEX,
-	SOUND_SCALEY,
-	SOUND_SCALEZ,
+	SOUND_MODE,
+	SOUND_LOOP,
+	SOUND_POSITION,
+	SOUND_PITCH,
+	SOUND_VOLUME,
+	SOUND_BALANCE,
+
+	SOUND_ECHO_DELAY,
+	SOUND_ECHO_INTENSITY,
+	SOUND_ECHO_FEEDBACK,
+
+  SOUND_POSITION_IN,
+  SOUND_POSITION_OUT,
+
+  SOUND_FADE_IN,
+  SOUND_FADE_OUT,
 	SOUND_INLET,
 	SOUND_OUTLET
 };
@@ -67,6 +72,13 @@ enum moSoundParamIndex {
 class moEffectSound: public moEffect {
 
 public:
+    enum SoundMode {
+      MO_SOUND_MODE_PLAY_ONCE = 0,
+      MO_SOUND_MODE_SCRIPT = 1,
+      MO_SOUND_MODE_CYCLE = 2,
+      MO_SOUND_MODE_PLAYLIST = 3
+    };
+
     moEffectSound();
     virtual ~moEffectSound();
 
@@ -80,10 +92,14 @@ public:
 private:
 
     long    last_ticks;
+    moSound*   Sound;
 
     moGsGraph   m_Audio;
     moText      m_SoundFilename;
     moText      m_SoundFilenameFull;
+
+    int         m_FramePosition;
+    float     m_UserPosition;
 
     bool    m_bAudioStarted;
 

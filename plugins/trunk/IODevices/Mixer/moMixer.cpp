@@ -106,16 +106,9 @@ moMixer::Init() {
 	//Mixer
 
 	//levantamos el config de la Mixer
-	conf = m_pResourceManager->GetDataMan()->GetDataPath()+moText("/");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		text = moText("Couldn't load mixer config");
-		MODebug2->Error(text);
-		return false;
-	}
-
-    moMoldeoObject::Init();
+  if (moMoldeoObject::Init()) {
+    moMoldeoObject::CreateConnectors();
+  } else return false;
 
 	//levantamos los codes definidos
 	coparam = m_Config.GetParamIndex("code");

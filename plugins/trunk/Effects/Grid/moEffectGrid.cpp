@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -204,11 +204,11 @@ moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
 			switch(i) {
 				case MO_GRID_PITCH:
 					Grid->Pitch(valor);
-					MODebug->Push(IntToStr(valor));
+					MODebug2->Push(IntToStr(valor));
 					break;
 				case MO_GRID_TRIM:
 					Grid->Trim(valor);
-					//MODebug->Push(IntToStr(valor));
+					//MODebug2->Push(IntToStr(valor));
 					break;
 				case MO_GRID_UP:
 					Grid->Check_Keyb(2);
