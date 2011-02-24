@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -62,11 +62,41 @@ void moEffectSoundFactory::Destroy(moEffect* fx) {
 moEffectSound::moEffectSound() {
 
 	SetName("sound");
-
+	Sound = NULL;
 }
 
 moEffectSound::~moEffectSound() {
 	Finish();
+}
+
+
+moConfigDefinition *
+moEffectSound::GetDefinition( moConfigDefinition *p_configdefinition ) {
+
+	//default: alpha, color, syncro
+	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("sound"), MO_PARAM_SOUND, SOUND_SOUND, moValue( "default", MO_VALUE_TXT ) );
+	p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, SOUND_MODE, moValue( "0", MO_VALUE_NUM_INT ) );
+	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, SOUND_LOOP, moValue( "1", MO_VALUE_NUM_INT ) );
+	p_configdefinition->Add( moText("position"), MO_PARAM_FUNCTION, SOUND_POSITION, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("pitch"), MO_PARAM_FUNCTION, SOUND_PITCH, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
+
+	//p_configdefinition->Add( moText("sound"), MO_PARAM_TEXT, SOUND_SOUND, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, SOUND_VOLUME, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("balance"), MO_PARAM_TRANSLATEX, SOUND_BALANCE, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+
+	///ECHO - audioecho - gstreamer -
+	p_configdefinition->Add( moText("echo_delay"), MO_PARAM_FUNCTION, SOUND_ECHO_DELAY, moValue( "0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("echo_intensity"), MO_PARAM_FUNCTION, SOUND_ECHO_INTENSITY, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("echo_feedback"), MO_PARAM_FUNCTION, SOUND_ECHO_FEEDBACK, moValue( "0", MO_VALUE_FUNCTION).Ref() );
+
+	p_configdefinition->Add( moText("position_in"), MO_PARAM_FUNCTION, SOUND_POSITION_IN, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("position_out"), MO_PARAM_FUNCTION, SOUND_POSITION_OUT, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("fade_in"), MO_PARAM_FUNCTION, SOUND_FADE_IN, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("fade_out"), MO_PARAM_FUNCTION, SOUND_FADE_OUT, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+
+
+	return p_configdefinition;
 }
 
 MOboolean moEffectSound::Init() {
@@ -77,23 +107,28 @@ MOboolean moEffectSound::Init() {
 	moDefineParamIndex( SOUND_COLOR, moText("color") );
 	moDefineParamIndex( SOUND_SYNC, moText("syncro") );
 	moDefineParamIndex( SOUND_PHASE, moText("phase") );
+
 	moDefineParamIndex( SOUND_SOUND, moText("sound") );
-	moDefineParamIndex( SOUND_TEXTURE, moText("texture") );
-	moDefineParamIndex( SOUND_BLENDING, moText("blending") );
-	moDefineParamIndex( SOUND_WIDTH, moText("width") );
-	moDefineParamIndex( SOUND_HEIGHT, moText("height") );
-	moDefineParamIndex( SOUND_TRANSLATEX, moText("translatex") );
-	moDefineParamIndex( SOUND_TRANSLATEY, moText("translatey") );
-	moDefineParamIndex( SOUND_TRANSLATEZ, moText("translatez") );
-	moDefineParamIndex( SOUND_ROTATEX, moText("rotatex") );
-	moDefineParamIndex( SOUND_ROTATEY, moText("rotatey") );
-	moDefineParamIndex( SOUND_ROTATEZ, moText("rotatez") );
-	moDefineParamIndex( SOUND_SCALEX, moText("scalex") );
-	moDefineParamIndex( SOUND_SCALEY, moText("scaley") );
-	moDefineParamIndex( SOUND_SCALEZ, moText("scalez") );
+	moDefineParamIndex( SOUND_MODE, moText("mode") );
+	moDefineParamIndex( SOUND_LOOP, moText("loop") );
+
+	moDefineParamIndex( SOUND_POSITION, moText("position") );
+	moDefineParamIndex( SOUND_PITCH, moText("pitch") );
+	moDefineParamIndex( SOUND_VOLUME, moText("volume") );
+  moDefineParamIndex( SOUND_BALANCE, moText("balance") );
+
+  moDefineParamIndex( SOUND_ECHO_DELAY, moText("echo_delay") );
+  moDefineParamIndex( SOUND_ECHO_INTENSITY, moText("echo_intensity") );
+  moDefineParamIndex( SOUND_ECHO_FEEDBACK, moText("echo_feedback") );
+
+  moDefineParamIndex( SOUND_POSITION_IN, moText("position_in") );
+  moDefineParamIndex( SOUND_POSITION_OUT, moText("position_out") );
+  moDefineParamIndex( SOUND_FADE_IN, moText("fade_in") );
+  moDefineParamIndex( SOUND_FADE_OUT, moText("fade_out") );
+
 	moDefineParamIndex( SOUND_INLET, moText("inlet") );
 	moDefineParamIndex( SOUND_OUTLET, moText("outlet") );
-
+/*
     Tx = Ty = Tz = Rx = Ry = Rz = 0.0;
 	Sx = Sy = Sz = 1.0;
 
@@ -112,9 +147,12 @@ MOboolean moEffectSound::Init() {
     }
 
     last_ticks = 0;
-
+*/
+  m_UserPosition = 0;
 	return true;
 }
+
+
 
 #define KLT_TRACKED           0
 #define KLT_NOT_FOUND        -1
@@ -131,8 +169,11 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
     int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
+    bool bReBalance = false;
+
     PreDraw( tempogral, parentstate);
 
+/*
     if (m_SoundFilename!=m_Config[moParamReference(SOUND_SOUND)][MO_SELECTED][0].Text() ) {
 
         m_SoundFilename = m_Config[moParamReference(SOUND_SOUND)][MO_SELECTED][0].Text();
@@ -141,7 +182,7 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
         m_Audio.BuildLiveSound( m_SoundFilenameFull );
 
     }
-
+*/
 
 
     /*
@@ -160,6 +201,8 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
         m_bAudioStarted = false;
     }
     */
+
+    /*
     moStreamState audiostate = m_Audio.GetState();
     moText  textstate = m_Audio.StateToText( audiostate );
     long    audioposition;
@@ -195,7 +238,7 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
         }
 
     }
-
+*/
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
 	glLoadIdentity();									// Reset The View
@@ -212,58 +255,149 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 	glDisable(GL_ALPHA);
 
-    // Draw //
-	glTranslatef(  ( m_Config[moR(SOUND_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang)+Tx )*w,
-                   ( m_Config[moR(SOUND_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang)+Ty )*h,
-					m_Config[moR(SOUND_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang)+Tz);
-
-	glRotatef(  m_Config[moR(SOUND_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(SOUND_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(SOUND_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(SOUND_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang)*Sx,
-                m_Config[moR(SOUND_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang)*Sy,
-                m_Config[moR(SOUND_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang)*Sz);
-
     SetColor( m_Config[moR(SOUND_COLOR)][MO_SELECTED], m_Config[moR(SOUND_ALPHA)][MO_SELECTED], state );
 
-    SetBlending( (moBlendingModes) m_Config[moR(SOUND_BLENDING)][MO_SELECTED][0].Int() );
+    moSound* NextSound = NULL;
+    if (m_Config[ moR(SOUND_SOUND) ].GetData())
+      NextSound = m_Config[ moR(SOUND_SOUND) ].GetData()->Sound();
 
-    moTexture* pImage = (moTexture*) m_Config[moR(SOUND_TEXTURE)].GetData()->Pointer();
+    if (NextSound && Sound) {
+      if ( Sound->GetName() != NextSound->GetName() ) {
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(SOUND_TEXTURE)].GetData()->GetGLId(&state.tempo) );
+        ///si se cambió de película
+        if (Sound->Initialized()) {
+          ///parar o pausar...
+          ///faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
+          Sound->Stop();
+          bReBalance = true;
+        }
 
-    PosTextX0 = 0.0;
-	PosTextX1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
-    PosTextY0 = 0.0;
-    PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
+      }
+    }
 
-	//ancho = (int)m_Config[ moR(SOUND_WIDTH) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(w/800.0);
-	//alto = (int)m_Config[ moR(SOUND_HEIGHT) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(h/600.0);
+    Sound = NextSound;
 
-	/*
-	glBegin(GL_QUADS);
-		glTexCoord2f( PosTextX0, PosTextY1);
-		glVertex2f( -0.5*w, -0.5*h);
+    int mLoop = m_Config.Int(moR(SOUND_LOOP));
+    int mMode = m_Config.Int(moR(SOUND_MODE));
 
-		glTexCoord2f( PosTextX1, PosTextY1);
-		glVertex2f(  0.5*w, -0.5*h);
+    MOulong AudioPosition,AudioDuration; //in ms
+    moText tPosition,tDuration;
 
-		glTexCoord2f( PosTextX1, PosTextY0);
-		glVertex2f(  0.5*w,  0.5*h);
+    if (Sound) {
 
-		glTexCoord2f( PosTextX0, PosTextY0);
-		glVertex2f( -0.5*w,  0.5*h);
-	glEnd();
-*/
+      AudioPosition = Sound->GetPosition();
+      AudioDuration = Sound->GetDuration();
+      tPosition = moVideoManager::NanosecondsToTimecode((MOuint64)AudioPosition*(MOuint64)1000000);
+      tDuration = moVideoManager::NanosecondsToTimecode((MOuint64)AudioDuration*(MOuint64)1000000);
+
+      double mUserPosition = m_Config.Eval(moR(SOUND_POSITION));
+
+      if (mUserPosition!=m_UserPosition) {
+        //MODebug2->Push(" mUserPosition:" + FloatToStr(mUserPosition) + "/" + FloatToStr(m_UserPosition) );
+        Sound->Seek( (MOulong)mUserPosition, 1.0 );
+        m_UserPosition = mUserPosition;
+      }
+
+      ///estamos en syncro de todas maneras con el clock de la Consola...
+      if (moTimeManager::MoldeoTimer->Paused()) {
+        Sound->Pause();
+      }
+
+      /// caso por Timer PARADO (NOT STARTED)
+      if (!moTimeManager::MoldeoTimer->Started()) {
+        if (Sound->IsPlaying())
+          Sound->Stop();
+      }
+
+      if (!Sound->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+         Sound->Play();
+      }
+
+      switch((SoundMode)mMode) {
+
+          case MO_SOUND_MODE_PLAYLIST:
+            if ( AudioPosition >= AudioDuration || Sound->IsEOS()) {
+
+              if ( mLoop && m_Config.GetParam(moR(SOUND_SOUND)).GetIndexValue() == (m_Config.GetParam(moR(SOUND_SOUND)).GetValuesCount()-1) ) {
+                  m_Config.GetParam(moR(SOUND_SOUND)).FirstValue();
+              } else m_Config.GetParam(moR(SOUND_SOUND)).NextValue();
+
+              if (Sound->State()!=MO_STREAMSTATE_STOPPED) {
+                Sound->Stop();
+              }
+              MODebug2->Push( "EOS:" + IntToStr((int)Sound->IsEOS()) );
+            }
+            break;
+
+          default:
+              if (mLoop) {
+                if ( AudioPosition >= AudioDuration || Sound->IsEOS()) {
+                  Sound->Pause();
+                  Sound->Seek( 0, 1.0 );
+                  //if ( m_FramePosition >= (Sound->GetFrameCount()-1) || Sound->IsEOS() ) {
+                    //Sound->Pause();
+                    //
+                    //Sound->Play();
+                  //}
+                }
+              }
+            break;
+
+      }
+
+      float mVolume = m_Config.Eval( moR(SOUND_VOLUME) );
+
+      if ( mVolume !=Sound->GetVolume() || bReBalance ) {
+        Sound->SetVolume( mVolume );
+      }
+
+      float mPitch = m_Config.Eval( moR(SOUND_PITCH) );
+
+      long pitchi1 = ( mPitch * 100.0 );
+      long pitchi2 = ( Sound->GetPitch() * 100.0 );
+
+      if ( pitchi1 != pitchi2 ) {
+        mPitch = (float)pitchi1 / 100.0;
+        Sound->SetPitch( mPitch );
+      }
+
+      float mBalance = m_Config.Eval( moR(SOUND_BALANCE) );
+
+      if ( mBalance != Sound->GetBalance() || bReBalance ) {
+        Sound->SetBalance( mBalance );
+      }
+
+      float mEchoDelay = m_Config.Eval( moR(SOUND_ECHO_DELAY) );
+
+      if ( mEchoDelay != Sound->GetEchoDelay() || bReBalance ) {
+        Sound->SetEchoDelay( mEchoDelay );
+      }
+
+      float mEchoIntensity = m_Config.Eval( moR(SOUND_ECHO_INTENSITY) );
+
+      if ( mEchoIntensity != Sound->GetEchoIntensity() || bReBalance ) {
+        Sound->SetEchoIntensity( mEchoIntensity );
+      }
+
+      float mEchoFeedback = m_Config.Eval( moR(SOUND_ECHO_FEEDBACK) );
+
+      if ( mEchoFeedback != Sound->GetEchoFeedback() || bReBalance ) {
+        Sound->SetEchoFeedback( mEchoFeedback );
+      }
+
+    }
+
     moFont* pFont = m_pResourceManager->GetFontMan()->GetFont(0);
-
+/*
     textstate+= moText(" position") + IntToStr(audioposition);
     textstate+= moText(" diff:") + (moText)IntToStr( abs(audioposition - last_ticks) );
+*/
+    moText textaudio = tPosition + " / " + tDuration;
 
     if (pFont) {
         pFont->Draw(    0.0,
                         0.0,
-                        textstate );
+                        textaudio );
     }
 
 }
@@ -280,64 +414,7 @@ void moEffectSound::Interaction( moIODeviceManager *IODeviceManager ) {
 
 	moEffect::Interaction( IODeviceManager );
 
-	if (devicecode!=NULL)
-	for(int i=0; i<ncodes; i++) {
-
-		temp = devicecode[i].First;
-
-		while(temp!=NULL) {
-			did = temp->device;
-			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
-			if (state)
-			switch(i) {
-				case MO_SOUND_TRANSLATE_X:
-					Tx = valor;
-					MODebug->Push(IntToStr(valor));
-					break;
-				case MO_SOUND_TRANSLATE_Y:
-					Ty = m_pResourceManager->GetRenderMan()->RenderHeight() - valor;
-					MODebug->Push(IntToStr(valor));
-					break;
-				case MO_SOUND_SCALE_X:
-					Sx+=((float) valor / (float) 256.0);
-					MODebug->Push(IntToStr(valor));
-					break;
-				case MO_SOUND_SCALE_Y:
-					Sy+=((float) valor / (float) 256.0);
-					MODebug->Push(IntToStr(valor));
-					break;
-			}
-		temp = temp->next;
-		}
-	}
-
 }
-
-moConfigDefinition *
-moEffectSound::GetDefinition( moConfigDefinition *p_configdefinition ) {
-
-	//default: alpha, color, syncro
-	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("sound"), MO_PARAM_TEXT, SOUND_SOUND, moValue( "costa.mp3", "TXT") );
-	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, SOUND_TEXTURE, moValue( "soundos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, SOUND_BLENDING, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, SOUND_WIDTH, moValue( "256", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, SOUND_HEIGHT, moValue( "256", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, SOUND_TRANSLATEX, moValue( "0.5", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, SOUND_TRANSLATEY, moValue( "0.5", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, SOUND_TRANSLATEZ );
-	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, SOUND_ROTATEX );
-	p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, SOUND_ROTATEY );
-	p_configdefinition->Add( moText("rotatez"), MO_PARAM_ROTATEZ, SOUND_ROTATEZ );
-	p_configdefinition->Add( moText("scalex"), MO_PARAM_SCALEX, SOUND_SCALEX );
-	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, SOUND_SCALEY );
-	p_configdefinition->Add( moText("scalez"), MO_PARAM_SCALEZ, SOUND_SCALEZ );
-	return p_configdefinition;
-}
-
-
 
 void
 moEffectSound::Update( moEventList *Events ) {
@@ -345,5 +422,12 @@ moEffectSound::Update( moEventList *Events ) {
 	//get the pointer from the Moldeo Object sending it...
 	moMoldeoObject::Update(Events);
 
+  ///SE APAGA EL SONIDO SI EL EFECTO ESTA DESACTIVADO
+
+  if ( state.on==MO_ON && m_Config.Sound( moR(SOUND_SOUND) ).State()!=MO_STREAMSTATE_PLAYING ) {
+    m_Config.Sound( moR(SOUND_SOUND) ).Play();
+  } else if ( state.on==MO_OFF  && m_Config.Sound( moR(SOUND_SOUND) ).State()==MO_STREAMSTATE_PLAYING ) {
+    m_Config.Sound( moR(SOUND_SOUND) ).Pause();
+  }
 
 }

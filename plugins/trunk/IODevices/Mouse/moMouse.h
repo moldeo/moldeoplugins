@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 // Dispositivo de Keydo y Mouse //

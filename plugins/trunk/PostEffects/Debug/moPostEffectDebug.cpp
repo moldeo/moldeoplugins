@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -159,10 +159,10 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 	state_magnitude+= FloatToStr(state.amplitude,4);
 
 
-	MODebug->Push(state_datos);
-	MODebug->Push(state_luminosidad);
-	MODebug->Push(state_colorido);
-	MODebug->Push(state_magnitude);
+	MODebug2->Push(state_datos);
+	MODebug2->Push(state_luminosidad);
+	MODebug2->Push(state_colorido);
+	MODebug2->Push(state_magnitude);
 */
 
 

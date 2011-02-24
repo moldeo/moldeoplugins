@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -83,6 +83,7 @@ enum moEffectMovieMode {
 	MO_MOVIE_MODE_VCR = 0,
 	MO_MOVIE_MODE_SCRIPT = 1,
 	MO_MOVIE_MODE_CYCLE = 2,
+	MO_MOVIE_MODE_VCR_PLAYLIST = 3
 };
 
 enum moEffectMoviePlayState {
@@ -125,13 +126,20 @@ enum moMovieParamIndex {
 	MOVIE_SYNC,
 	MOVIE_MOVIES,
 	MOVIE_SOUNDS,
+	MOVIE_POSITION,
+	MOVIE_SPEED,
+	MOVIE_VOLUME,
+	MOVIE_BALANCE,
+	MOVIE_BRIGHTNESS,
+	MOVIE_CONTRAST,
+	MOVIE_SATURATION,
+	MOVIE_HUE,
 	MOVIE_SCRIPT,
 	MOVIE_MODE,
 	MOVIE_BLENDING,
 	MOVIE_STARTPLAYING,
 	MOVIE_LOOP,
 	MOVIE_SHOWTRACKDATA,
-	MOVIE_SHOWMOVIEDATA,
 	MOVIE_INTERPOLATION,
 	MOVIE_POSTEXX,
 	MOVIE_POSTEXY,
@@ -141,6 +149,11 @@ enum moMovieParamIndex {
 	MOVIE_POSCUADY,
 	MOVIE_ANCCUADX,
 	MOVIE_ALTCUADY,
+	MOVIE_SHOWMOVIEDATA,
+	MOVIE_DISPLAY_X,
+	MOVIE_DISPLAY_Y,
+	MOVIE_DISPLAY_WIDTH,
+	MOVIE_DISPLAY_HEIGHT,
 	MOVIE_INLET,
 	MOVIE_OUTLET
 };
@@ -184,8 +197,8 @@ protected:
 
   //movies
   moTexture* m_pTexture;
-
-	moTextureAnimated* m_TAnim;
+  moMovie*   m_pMovie;
+	moTextureAnimated* m_pAnim;
 	moSound*	Sound;
 
 	MOint startplaying;
@@ -197,13 +210,28 @@ protected:
     moGsGraph m_SoundSystem;
 
 	//movie
+	long            m_UserPosition;
+
 	MOboolean				m_bDisplayOn;
 	MOboolean				m_bStartPlayingOn;
 	MOboolean				m_bLoop;//true: loop false: no loop
 	MOfloat					m_PlaySpeed;//1X = 1.0   2X = 2.0
+
+	MOfloat         m_Volume;
+	MOfloat         m_Balance;
+	MOfloat         m_Brightness;
+	MOfloat         m_Contrast;
+	MOfloat         m_Hue;
+	MOfloat         m_Saturation;
+
 	MOfloat					m_FramesPerSecond;//NTSC 29.97 fps PAL 25 fps
 	moEffectMoviePlayState	m_PlayState;
 	moEffectMovieSeekState	m_SeekState;
+
+	float         m_DisplayX;
+	float         m_DisplayY;
+	float         m_DisplayW;
+	float         m_DisplayH;
 
 	long					m_FramesLength;
 	long					m_FramePosition;
@@ -240,10 +268,12 @@ protected:
 	//CUSTOM FUNCTIONS
 	MOuint MovieGLId();
 
+  void UpdateParameters();
+
 	void SpeedRegulation( MOfloat p_fMinSpeed, MOfloat p_fMaxSpeed );
 	void VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValue=0, MOfloat p_fValue = 0.0 );
 	void VCRPlaySpeed();
-    moEffectMoviePlayState VCRState();
+  moEffectMoviePlayState VCRState();
 
     // Script functions.
 	void RegisterFunctions();

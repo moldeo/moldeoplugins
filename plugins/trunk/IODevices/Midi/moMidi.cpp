@@ -513,16 +513,9 @@ moMidi::Init() {
 
 	// Loading config file.
 	//levantamos el config del keyboard
-	conf = m_pResourceManager->GetDataMan()->GetDataPath()+moText("/");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		moText text = "Couldn't load midi config";
-		MODebug2->Error(text);
-		return false;
-	}
-
-	moMoldeoObject::Init();
+  if (moMoldeoObject::Init()) {
+    moMoldeoObject::CreateConnectors();
+  } else return false;
 
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
 

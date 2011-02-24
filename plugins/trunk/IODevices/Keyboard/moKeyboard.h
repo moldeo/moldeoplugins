@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 // Dispositivo de Keydo y Mouse //
@@ -42,7 +42,7 @@
 
 class  moKey {
 public:
-	MOboolean pushed; 
+	MOboolean pushed;
 	MOint pushedmod;
 	MOboolean released;
 	MOint releasedmod;
@@ -72,7 +72,7 @@ public:
 		pushed = MO_TRUE;
 		pushedmod =  mod;
 		released = MO_FALSE;
-		releasedmod = 0;//indefinido	
+		releasedmod = 0;//indefinido
 		pressedmod = 0;
 	}
 
@@ -81,7 +81,7 @@ public:
 		releasedmod = mod;
 		//se soltó pero nunca se pulsó(es un error) o no coincide el mapa de keys especiales
 		if((pushed == MO_FALSE) ||(releasedmod!=pushedmod)) {
-			Init();			
+			Init();
 			return MO_FALSE;
 		} else {
 			pressed = pressed + 1;
@@ -108,10 +108,10 @@ public:
 };
 
 class  moKeyboard : public moIODevice {
-public:	
+public:
     moKeyboard();
     virtual ~moKeyboard();
-    
+
     void			Update(moEventList*);
 	MOboolean		Init();
     MOswitch		GetStatus( MOdevcode);
@@ -121,7 +121,7 @@ public:
 	MOint			getKey( moText);
 	MOboolean		Finish();
 	MOswitch		getSpecials(MOint iii);
-	
+
 
 private:
     moConfig config;
@@ -163,7 +163,7 @@ MO_PLG_API void DestroyIODeviceFactory();
 /*
 	//MOUSE
 	MOswitch EventsMouse[16];
-	MOswitch ButtonsMouse[16];	
+	MOswitch ButtonsMouse[16];
 	MOint MouseMotionX,MouseMotionY;//entre-255 y 255
 	MOfloat MouseDefinition;
 */

@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -256,7 +256,7 @@ void moEffectImage::Interaction( moIODeviceManager *IODeviceManager ) {
 			switch(i) {
 				case MO_FILTER_PAR1:
 					FilterParams.par_flt1 = ((float) valor / (float) 800.0);
-					//MODebug->Push("par1: " + FloatToStr(valor));
+					//MODebug2->Push("par1: " + FloatToStr(valor));
 					break;
 
 			}
@@ -289,7 +289,7 @@ moEffectImage::Update( moEventList *p_EventList ) {
 			TrackerX = actual->reservedvalue0;
 			TrackerY = actual->reservedvalue1;
 			Variance = actual->reservedvalue2;
-			MODebug->Push( moText("NF:")+IntToStr(NF)+moText("X:")+IntToStr(TrackerX)+moText("Y:")+IntToStr(TrackerY)+moText("V:")+IntToStr(Variance));
+			MODebug2->Push( moText("NF:")+IntToStr(NF)+moText("X:")+IntToStr(TrackerX)+moText("Y:")+IntToStr(TrackerY)+moText("V:")+IntToStr(Variance));
 		}
 		actual = tmp;
 	}

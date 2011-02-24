@@ -68,6 +68,48 @@ moEffectMovie::~moEffectMovie() {
 	Finish();
 }
 
+
+moConfigDefinition *
+moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
+
+	//default: alpha, color, syncro
+	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("movies"), MO_PARAM_TEXTURE, MOVIE_MOVIES );
+	p_configdefinition->Add( moText("sounds"), MO_PARAM_SOUND, MOVIE_SOUNDS );
+	p_configdefinition->Add( moText("position"), MO_PARAM_FUNCTION, MOVIE_POSITION, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("speed"), MO_PARAM_FUNCTION, MOVIE_SPEED, moValue( "1.0","FUNCTION").Ref() );
+  p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, MOVIE_VOLUME, moValue( "1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("balance"), MO_PARAM_FUNCTION, MOVIE_BALANCE, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("brightness"), MO_PARAM_FUNCTION, MOVIE_BRIGHTNESS, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("contrast"), MO_PARAM_FUNCTION, MOVIE_CONTRAST, moValue( "1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("saturation"), MO_PARAM_FUNCTION, MOVIE_SATURATION, moValue( "1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("hue"), MO_PARAM_FUNCTION, MOVIE_HUE, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("script"), MO_PARAM_SCRIPT, MOVIE_SCRIPT );
+	p_configdefinition->Add( moText("moviemode"), MO_PARAM_NUMERIC, MOVIE_MODE, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, MOVIE_BLENDING);
+	p_configdefinition->Add( moText("startplaying"), MO_PARAM_NUMERIC, MOVIE_STARTPLAYING, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, MOVIE_LOOP, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("showtrackdata"), MO_PARAM_NUMERIC, MOVIE_SHOWTRACKDATA, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("interpolation"), MO_PARAM_NUMERIC, MOVIE_INTERPOLATION, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("pos_text_x"), MO_PARAM_FUNCTION, MOVIE_POSTEXX, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("pos_text_y"), MO_PARAM_FUNCTION, MOVIE_POSTEXY, moValue( "0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("anc_text_x"), MO_PARAM_FUNCTION, MOVIE_ANCTEXX, moValue( "1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("alt_text_y"), MO_PARAM_FUNCTION, MOVIE_ALTTEXY, moValue( "1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("pos_cuad_x"), MO_PARAM_FUNCTION, MOVIE_POSCUADX, moValue( "0.0","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("pos_cuad_y"), MO_PARAM_FUNCTION, MOVIE_POSCUADY, moValue( "0.0","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("anc_cuad_x"), MO_PARAM_FUNCTION, MOVIE_ANCCUADX, moValue( "1.0","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("alt_cuad_y"), MO_PARAM_FUNCTION, MOVIE_ALTCUADY, moValue( "1.0","FUNCTION").Ref()  );
+
+	p_configdefinition->Add( moText("showmoviedata"), MO_PARAM_NUMERIC, MOVIE_SHOWMOVIEDATA, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("display_x"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_X, moValue( "-0.5","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("display_y"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_Y, moValue( "-0.35","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("display_width"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_WIDTH, moValue( "1.0","FUNCTION").Ref()  );
+	p_configdefinition->Add( moText("display_height"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_HEIGHT, moValue( "0.05","FUNCTION").Ref()  );
+
+	return p_configdefinition;
+}
+
+
 MOboolean
 moEffectMovie::Init() {
 
@@ -77,14 +119,24 @@ moEffectMovie::Init() {
 	moDefineParamIndex( MOVIE_ALPHA, moText("alpha") );
 	moDefineParamIndex( MOVIE_COLOR, moText("color") );
 	moDefineParamIndex( MOVIE_SYNC, moText("syncro") );
+	moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
 	moDefineParamIndex( MOVIE_MOVIES, moText("movies") );
 	moDefineParamIndex( MOVIE_SOUNDS, moText("sounds") );
-	moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
 	moDefineParamIndex( MOVIE_MODE, moText("moviemode") );
 	moDefineParamIndex( MOVIE_BLENDING, moText("blending") );
 	moDefineParamIndex( MOVIE_STARTPLAYING, moText("startplaying") );
 	moDefineParamIndex( MOVIE_LOOP, moText("loop") );
-	moDefineParamIndex( MOVIE_SHOWTRACKDATA, moText("showtrackdata") );
+
+	moDefineParamIndex( MOVIE_POSITION, moText("position") );
+	moDefineParamIndex( MOVIE_SPEED, moText("speed") );
+	moDefineParamIndex( MOVIE_VOLUME, moText("volume") );
+	moDefineParamIndex( MOVIE_BALANCE, moText("balance") );
+	moDefineParamIndex( MOVIE_BRIGHTNESS, moText("brightness") );
+	moDefineParamIndex( MOVIE_CONTRAST, moText("contrast") );
+	moDefineParamIndex( MOVIE_SATURATION, moText("saturation") );
+	moDefineParamIndex( MOVIE_HUE, moText("hue") );
+
+
 	moDefineParamIndex( MOVIE_SHOWMOVIEDATA, moText("showmoviedata") );
 	moDefineParamIndex( MOVIE_INTERPOLATION, moText("interpolation") );
 	moDefineParamIndex( MOVIE_POSTEXX, moText("pos_text_x") );
@@ -95,20 +147,15 @@ moEffectMovie::Init() {
 	moDefineParamIndex( MOVIE_POSCUADY, moText("pos_cuad_y") );
 	moDefineParamIndex( MOVIE_ANCCUADX, moText("anc_cuad_x") );
 	moDefineParamIndex( MOVIE_ALTCUADY, moText("alt_cuad_y") );
+
+	moDefineParamIndex( MOVIE_SHOWTRACKDATA, moText("showtrackdata") );
+	moDefineParamIndex( MOVIE_DISPLAY_X, moText("display_x") );
+	moDefineParamIndex( MOVIE_DISPLAY_Y, moText("display_y") );
+	moDefineParamIndex( MOVIE_DISPLAY_WIDTH, moText("display_width") );
+	moDefineParamIndex( MOVIE_DISPLAY_HEIGHT, moText("display_height") );
+
 	moDefineParamIndex( MOVIE_INLET, moText("inlet") );
 	moDefineParamIndex( MOVIE_OUTLET, moText("outlet") );
-
-	m_bStartPlayingOn = m_Config[moParamReference(MOVIE_STARTPLAYING)][MO_SELECTED][0].Int();
-	m_bLoop = m_Config[moParamReference(MOVIE_LOOP)][MO_SELECTED][0].Int();
-
-	m_bInterpolation = m_Config[moParamReference(MOVIE_INTERPOLATION)][MO_SELECTED][0].Int();
-
-	// Seteos de Texturas.
-	//Images.MODebug = MODebug;
-	//Images.Init(GetConfig(), moParamReference(MOVIE_MOVIES), m_pResourceManager->GetTextureMan());
-
-    if (m_Config.GetPreConfCount() > 0)
-        m_Config.PreConfFirst();
 
 	m_PlaySpeed = 0.0;
 	m_PlayState = MO_MOVIE_PLAYSTATE_STOPPED;//speed 0 0.0
@@ -124,19 +171,11 @@ moEffectMovie::Init() {
 	m_FramePositionFAux = 0.0;
 	m_DiffFrame = 0.0;
 	m_FramePositionInc = 0.0;
-	m_TAnim = NULL;
 
-/*
-	MOint imov = m_Config[moParamReference(MOVIE_MOVIES)].GetIndexValue();
-	if (Images.ValidIndex(imov)) {
-		if (Images[imov]->GetType() == MO_TYPE_MOVIE ||
-			Images[imov]->GetType() == MO_TYPE_VIDEOBUFFER) {
-			m_TAnim = (moTextureAnimated*)Images[imov];
-			m_FramesLength = m_TAnim->GetNumberFrames();
-			m_FramesPerSecond = m_TAnim->GetFramesPerSecond();
-		}
-	}
-	*/
+	m_pAnim = NULL;
+	m_pMovie = NULL;
+	m_pTexture = NULL;
+
 /*
 	Sound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
 	if (Sound) {
@@ -144,7 +183,7 @@ moEffectMovie::Init() {
 							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][2].Float(),
 							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][3].Float());
 	}
-	 */
+
 	 {
       moText wavfilename = m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text();
       wavfilename = (moText)m_pResourceManager->GetDataMan()->GetDataPath() + (moText)moSlash + (moText)wavfilename;
@@ -157,8 +196,8 @@ moEffectMovie::Init() {
       }
 
     }
-
-
+	 */
+/*
 	m_MovieScriptFN = m_Config[moParamReference(MOVIE_SCRIPT)][MO_SELECTED][0].Text();
 	if ((moText)m_MovieScriptFN!=moText("")) {
 
@@ -180,7 +219,7 @@ moEffectMovie::Init() {
             MODebug2->Error("couldnt compile script");
         }
 	}
-
+*/
 	m_bTrackerInit = false;
 	m_pTrackerData = NULL;
 	//m_pTrackerGpuData = NULL;
@@ -191,83 +230,209 @@ moEffectMovie::Init() {
 	return true;
 }
 
-void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
-{
-	MOint Image, FrameGLid;
+void moEffectMovie::UpdateParameters() {
 
-	MOint Blending;
-	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
-    MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-    MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
-    MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
+  float Volume,Balance,Brightness,Contrast,Saturation,Hue;
+  long  UserPosition;
+  moTexture *pTexture;
+  bool bReBalance = false;
 
-    PreDraw( tempogral, parentstate);
+  ///user position, convert from function to long...
+  UserPosition = (long)m_Config.Eval(moR(MOVIE_POSITION));
 
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
+  ///sound balance
+  Volume = m_Config.Eval(moR(MOVIE_VOLUME));
+  Balance = m_Config.Eval(moR(MOVIE_BALANCE));
 
-/*
-	if (Sound)
-		Sound->Update();
-*/
-	glColor4f(  m_Config[moR(MOVIE_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * state.tintr,
-                m_Config[moR(MOVIE_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * state.tintg,
-                m_Config[moR(MOVIE_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * state.tintb,
-				m_Config[moR(MOVIE_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
-				m_Config[moR(MOVIE_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
-
-	Image = m_Config[moParamReference(MOVIE_MOVIES)].GetIndexValue();
-
-	moviemode = m_Config[moParamReference(MOVIE_MODE)].GetIndexValue();
-
-	Blending = m_Config[moParamReference(MOVIE_BLENDING)].GetIndexValue();
-	//DIBUJAR
-	glEnable(GL_BLEND);
-
-	glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
-
-    SetBlending( (moBlendingModes) Blending );
-	//source: GL_ZERO, GL_ONE, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, and GL_SRC_ALPHA_SATURATE
-	//destination: GL_ZERO, GL_ONE, GL_SCR_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, and GL_ONE_MINUS_DST_ALPHA.
-
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPushMatrix();										// Store The Projection Matrix
-	glLoadIdentity();									// Reset The Projection Matrix
-	glOrtho(0,800,0,600,-1,1);							// Set Up An Ortho Screen
-	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glPushMatrix();										// Store The Modelview Matrix
-	glLoadIdentity();									// Reset The Modelview Matrix
+  ///video balance
+  Brightness = m_Config.Eval(moR(MOVIE_BRIGHTNESS));
+  Contrast = m_Config.Eval(moR(MOVIE_CONTRAST));
+  Saturation = m_Config.Eval(moR(MOVIE_SATURATION));
+  Hue = m_Config.Eval(moR(MOVIE_HUE));
 
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  m_bStartPlayingOn = m_Config.Int(moR(MOVIE_STARTPLAYING));
+	m_bLoop = m_Config.Int(moR(MOVIE_LOOP));
+	m_bInterpolation = m_Config.Int(moR(MOVIE_INTERPOLATION));
 
 	//registro de los dos ticks correspondientes a un Frame
 	m_TicksAux = m_Ticks;
 	m_Ticks = state.tempo.ticks;
 
-/*
-	if (Images[Image])
-	if (Images[Image]->GetType() == MO_TYPE_MOVIE || Images[Image]->GetType() == MO_TYPE_VIDEOBUFFER) {
-		m_TAnim = (moTextureAnimated*)Images[Image];
-		if (m_TAnim) {
-			m_FramesLength = m_TAnim->GetNumberFrames();
-			m_FramesPerSecond = m_TAnim->GetFramesPerSecond();
-		}
-	}
-	*/
-	m_pTexture = m_Config[moR(MOVIE_MOVIES)].GetData()->Texture();
+	pTexture = m_Config[moR(MOVIE_MOVIES)].GetData()->Texture();
 
-	if (m_pTexture->GetType()!=MO_TYPE_TEXTURE && m_pTexture->GetType()!=MO_TYPE_TEXTUREMEMORY ) {
-	  m_TAnim = (moTextureAnimated*)m_pTexture;
-	  if (m_TAnim) {
-			m_FramesLength = m_TAnim->GetNumberFrames();
-			m_FramesPerSecond = m_TAnim->GetFramesPerSecond();
-		}
-  } else {
-    m_TAnim = NULL;
+  /**
+  *    ASIGNACION DE OBJETOS
+  */
+  if (pTexture) {
+
+    /// CAMBIO O SALTO DE PELICULA....
+    if (m_pTexture)
+      if (pTexture->GetName()!=m_pTexture->GetName()) {
+
+        ///si se cambió de película
+        if (m_pMovie) {
+          ///parar o pausar...
+          ///faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
+          m_pMovie->Stop();
+          bReBalance = true;
+        }
+      }
+
+    ///Asignamos la textura nueva...
+    m_pTexture = pTexture;
+
+    if(m_pTexture)
+      switch(m_pTexture->GetType()) {
+        case MO_TYPE_MOVIE:
+          ///REASIGNAMOS
+          m_pMovie = dynamic_cast<moMovie*>(m_pTexture);
+          m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
+          break;
+
+        case MO_TYPE_CIRCULARVIDEOBUFFER:
+        case MO_TYPE_VIDEOBUFFER:
+        case MO_TYPE_TEXTURE_MULTIPLE:
+        case MO_TYPE_TEXTUREBUFFER:
+          m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
+          break;
+        default:
+          break;
+      }
+
+  } ///fin asignacion de Objetos....
+
+  /**
+  *
+  *   TRATAMIENTO DE LOS CUADROS DE LA TEXTURA
+  *
+  */
+  if (m_pTexture)
+    if (m_pTexture->GetType()!=MO_TYPE_TEXTURE && m_pTexture->GetType()!=MO_TYPE_TEXTUREMEMORY ) {
+
+      if (UserPosition!=m_UserPosition) {
+        m_UserPosition=UserPosition;
+        //MODebug2->Push("changed user position:" + IntToStr(UserPosition) );
+        if (m_pAnim) {
+          m_FramePosition = m_UserPosition;
+          ///MovieGLID() se ocupa del resto
+          //m_pAnim->GetGLId( (MOuint) m_UserPosition );
+        }
+        if (m_pMovie) {
+          m_pMovie->Seek( m_UserPosition );
+        }
+      }
+
+    /**
+    *     SI DERIVA DE moTextureAnimated
+    */
+    if (m_pAnim) {
+      m_FramesLength = m_pAnim->GetFrameCount();
+      m_FramesPerSecond = m_pAnim->GetFramesPerSecond();
+      //m_FramePosition = m_pAnim->GetFrame();
+      //m_FramePositionF = (double)m_FramePosition;
+    }
+
+    /**
+    *   TRATAMIENTO DE VIDEOBUFFER
+    */
+    if ( m_pAnim->GetType()==MO_TYPE_VIDEOBUFFER ) {
+
+        //m_FramePosition = m_pAnim->GetPosition();
+        //m_FramePositionF = (double)m_FramePosition;
+
+    }
+
+    /**
+    *     PELICULA (tratamiento)
+    *     2 modos:
+    *             MO_PLAYMODE_TIMEBASE
+    *             MO_PLAYMODE_FRAMEBASE
+    */
+    if (m_pMovie) {
+
+      ///TODO: calculo de frame (solo si esta en modo VCR y en MO_PLAYMODE_TIMEBASE??)
+      if (m_pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
+
+        m_FramePosition = m_pMovie->GetPosition();
+        m_FramePositionF = (double)m_FramePosition;
+
+        ///estamos en syncro de todas maneras con el clock de la Consola...
+        if ( (m_Ticks-m_TicksAux)==0 ) { ///no esta avanzando el clock
+          /// caso por Timer PAUSADO
+          if (moTimeManager::MoldeoTimer->Paused()) {
+            m_pMovie->Pause();
+          }
+          /// caso por Timer PARADO (NOT STARTED)
+          if (!moTimeManager::MoldeoTimer->Started()) {
+            if (m_pMovie->IsPlaying())
+              m_pMovie->Stop();
+          }
+        } else {
+          if (!m_pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+             m_pMovie->Play();
+          }
+        }
+
+      }
+
+    } ///fin PELICULA (tratamiento)
   }
+
+  /**
+  *
+  *
+  *     BALANCES DE VOLUMEN Y CONTRASTE
+  *       salto de posicion por el usuario
+  *
+  */
+  if (m_pMovie) {
+
+      if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pMovie->SetVolume(m_Volume); }
+      if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pMovie->SetBalance(m_Balance);}
+
+      if (Brightness!=m_Brightness || bReBalance) { m_Brightness=Brightness; m_pMovie->SetBrightness(m_Brightness);}
+      if (Contrast!=m_Contrast || bReBalance) { m_Contrast=Contrast; m_pMovie->SetContrast(m_Contrast);}
+      if (Saturation!=m_Saturation || bReBalance) { m_Saturation=Saturation; m_pMovie->SetSaturation(m_Saturation);}
+      if (Hue!=m_Hue || bReBalance) { m_Hue=Hue; m_pMovie->SetHue(m_Hue);}
+      bReBalance = false;
+  }
+
+}
+
+void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
+{
+  MOuint FrameGLid;
+
+	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
+  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
+  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
+  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
+
+
+  UpdateParameters();
+
+    PreDraw( tempogral, parentstate);
+
+    // Guardar y resetar la matriz de vista del modelo //
+    glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
+    glLoadIdentity();									// Reset The View
+    // Cambiar la proyeccion para una vista ortogonal //
+    glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
+    glEnable(GL_ALPHA);
+    m_pResourceManager->GetGLMan()->SetOrthographicView();
+
+/*
+	if (Sound)
+		Sound->Update();
+*/
+
+	moviemode = m_Config.Int(moR(MOVIE_MODE));
+
+  //SetColor( m_Config[moR(MOVIE_COLOR)][MO_SELECTED], m_Config[moR(MOVIE_ALPHA)][MO_SELECTED], state );
+  SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], state );
+
+  SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
 
 	//aquí debemos modificar Images.Get(Image,&state.tempo) para los distintos modos de reproduccion
 	//0: PLAY NORMAL 1X [25 fps o 29.97]
@@ -278,11 +443,16 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 	//5: STOP []
 	//6: SEEK( position )
 
+  //VCRPlaySpeed();
+  if (m_pAnim) {
+//    if (m_pAnim->IsPlaying())
+  //    MODebug2->Push(" FramePosition: "+IntToStr(m_FramePosition) + " FPS: " + FloatToStr(m_FramesPerSecond) +" TimeCode: " + moVideoManager::FramesToTimecode(m_FramePosition,m_FramesPerSecond) );
+  }
 
 	switch(moviemode) {
 		case MO_MOVIE_MODE_VCR:
-
-			if (m_bStartPlayingOn) {
+/*
+			if (m_bStartPlayingOn && m_PlayState==MO_MOVIE_PLAYSTATE_STOPPED) {
 			    m_FramePosition = 0;
                 m_FramePositionAux = 0;
                 m_FramePositionF = 0.0;
@@ -290,7 +460,9 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
                 m_Ticks = state.tempo.ticks;
                 m_TicksAux = m_Ticks;
 				VCRCommand( MO_MOVIE_VCR_PLAY );
-				m_bStartPlayingOn = false;//second round off if we stop
+				///TODO: ver bien como usar esto del play cuando arranca...
+				///lo ideal seria trabajar con la clase Timer, que lo tome de medida...
+				///m_bStartPlayingOn = false;
 			}
 
 			switch(m_PlayState) {
@@ -301,7 +473,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 					m_FramePositionFAux = 0.0;
 					//FrameGLid = Images.GetGLId(Image, 1);
 
-					m_FramePosition = 1;
+					m_FramePosition = 1;///para arrancar...
 					FrameGLid = MovieGLId();
 					break;
 
@@ -322,7 +494,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 			}
 
 			//Frame in funcion of m_FramePosition
-			//MODebug->Push(IntToStr(m_FramePosition));
+			//MODebug2->Push(IntToStr(m_FramePosition));
 			if ( m_FramePosition <  m_FramesLength ) {
 				//FrameGLid = Images.GetGLId( (int)Image, (int)m_FramePosition );
 				FrameGLid = MovieGLId();
@@ -332,19 +504,17 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 					m_FramePosition = 0;
 					m_FramePositionAux = 0;
 					m_FramePositionF = 0.0;
-					//FrameGLid = Images.GetGLId( (int)Image, (int)m_FramePosition );
 					FrameGLid = MovieGLId();
 				} else {
 					VCRCommand(MO_MOVIE_VCR_STOP);
-					//FrameGLid = Images.GetGLId( (int)Image, (int)m_FramePosition );
 					FrameGLid = MovieGLId();
 				}
-			}
+			}*/
 			break;
 
 		case MO_MOVIE_MODE_SCRIPT:
 
-			if ( m_bTrackerInit ) {
+			/*if ( m_bTrackerInit ) {
 				SelectScriptFunction("Run");
 
 				if (m_pTrackerData) {
@@ -352,7 +522,8 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 					AddFunctionParam((int)m_pTrackerData->GetVideoFormat().m_Width);
 					AddFunctionParam((int)m_pTrackerData->GetVideoFormat().m_Height);
 				}
-                RunSelectedFunction(1);
+
+        RunSelectedFunction(1);
 
 				m_DiffFrame = (m_FramePositionFAux - m_FramePositionF);
 				m_FramePosition = m_FramePositionF;
@@ -369,73 +540,101 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 			if (m_FramePosition < m_FramesLength)
 			{
 				//FrameGLid = Images.GetGLId((int)Image, (int)m_FramePosition );
-				//MODebug->Push(IntToStr(m_FramePosition));
+				//MODebug2->Push(IntToStr(m_FramePosition));
 				FrameGLid = MovieGLId();
 			}
 			else
 			{
-				MODebug->Push("Error: script generating invalid frame positions.");
+				MODebug2->Push("Error: script generating invalid frame positions.");
 			    //FrameGLid = Images.GetGLId(Image, 1);
 			    m_FramePosition = 1;
 			    FrameGLid = MovieGLId();
 			}
-
+*/
 			break;
 
 		case MO_MOVIE_MODE_CYCLE:
 			 //FrameGLid = Images.GetGLId(Image, &state.tempo);
 			 //FrameGLid = m_Config[moR(MOVIE_MOVIE)].GetData()->GetGLId(&state.tempo);
-			 FrameGLid = MovieGLId();
+			 //FrameGLid = MovieGLId();
 			break;
 
 		default:
 			break;
 	}
 /*
-	MODebug->Push(moText("F:")+IntToStr(m_FramePosition));
-	MODebug->Push(moText("FAux:")+IntToStr(m_FramePositionAux));
-	MODebug->Push(moText("FF:")+IntToStr(m_FramePositionF));
-	MODebug->Push(moText("FFAux:")+IntToStr(m_FramePositionFAux));
+	MODebug2->Push(moText("F:")+IntToStr(m_FramePosition));
+	MODebug2->Push(moText("FAux:")+IntToStr(m_FramePositionAux));
+	MODebug2->Push(moText("FF:")+IntToStr(m_FramePositionF));
+	MODebug2->Push(moText("FFAux:")+IntToStr(m_FramePositionFAux));
 
-	MODebug->Push(moText("E:")+IntToStr(m_PlayState));
-	MODebug->Push(moText("S:")+IntToStr(m_PlaySpeed));
+	MODebug2->Push(moText("E:")+IntToStr(m_PlayState));
+	MODebug2->Push(moText("S:")+IntToStr(m_PlaySpeed));
 */
 
-	PosTextX = m_Config[moR(MOVIE_POSTEXX)].GetData()->Fun()->Eval(state.tempo.ang);
-    AncTextX = m_Config[moR(MOVIE_ANCTEXX)].GetData()->Fun()->Eval(state.tempo.ang);
-	PosTextY = m_Config[moR(MOVIE_POSTEXY)].GetData()->Fun()->Eval(state.tempo.ang);
-    AltTextY = m_Config[moR(MOVIE_ALTTEXY)].GetData()->Fun()->Eval(state.tempo.ang);
+	PosTextX = m_Config.Eval(moR(MOVIE_POSTEXX));
+    AncTextX = m_Config.Eval(moR(MOVIE_ANCTEXX));
+	PosTextY = m_Config.Eval(moR(MOVIE_POSTEXY));
+    AltTextY = m_Config.Eval(moR(MOVIE_ALTTEXY));
 
-	PosCuadX = m_Config[moR(MOVIE_POSCUADX)].GetData()->Fun()->Eval(state.tempo.ang);
-    AncCuadX = m_Config[moR(MOVIE_ANCCUADX)].GetData()->Fun()->Eval(state.tempo.ang);
-	PosCuadY = m_Config[moR(MOVIE_POSCUADY)].GetData()->Fun()->Eval(state.tempo.ang);
-    AltCuadY = m_Config[moR(MOVIE_ALTCUADY)].GetData()->Fun()->Eval(state.tempo.ang);
+	PosCuadX = m_Config.Eval(moR(MOVIE_POSCUADX));
+    AncCuadX = m_Config.Eval(moR(MOVIE_ANCCUADX));
+	PosCuadY = m_Config.Eval(moR(MOVIE_POSCUADY));
+    AltCuadY = m_Config.Eval(moR(MOVIE_ALTCUADY));
 
-	PosTextX0 = PosTextX*m_pTexture->GetMaxCoordS();
-	PosTextX1 =(PosTextX + AncTextX)*m_pTexture->GetMaxCoordS();
-	PosTextY0 =(1 - PosTextY)*m_pTexture->GetMaxCoordT();
-	PosTextY1 =(1 - PosTextY - AltTextY)*m_pTexture->GetMaxCoordT();
+	if (m_pTexture) {
+		PosTextX0 = PosTextX * m_pTexture->GetMaxCoordS();
+		PosTextX1 =(PosTextX + AncTextX)* m_pTexture->GetMaxCoordS();
+		PosTextY0 =(1 - PosTextY)*m_pTexture->GetMaxCoordT();
+		PosTextY1 =(1 - PosTextY - AltTextY)*m_pTexture->GetMaxCoordT();
+	} else {
+		PosTextX0 = PosTextX;
+		PosTextX1 =(PosTextX + AncTextX);
+		PosTextY0 =(1 - PosTextY);
+		PosTextY1 =(1 - PosTextY - AltTextY);
+	}
 
-	PosCuadX0 = PosCuadX;
-	PosCuadX1 = PosCuadX + AncCuadX;
-	PosCuadY1 = PosCuadY;
-	PosCuadY0 = PosCuadY + AltCuadY;
+	PosCuadX0 = PosCuadX-AncCuadX/2;
+	PosCuadX1 = PosCuadX + AncCuadX/2;
+	PosCuadY1 = PosCuadY - AltCuadY/2;
+	PosCuadY0 = PosCuadY + AltCuadY/2;
 
-	glBindTexture(GL_TEXTURE_2D, FrameGLid);
+  glEnable(GL_TEXTURE_2D);
+
+  FrameGLid = MovieGLId();
+
+	glBindTexture(GL_TEXTURE_2D, FrameGLid );
+
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
-		glVertex2i ( PosCuadX0, PosCuadY0);
+		glVertex2f ( PosCuadX0, PosCuadY0);
 
 		glTexCoord2f( PosTextX1, PosTextY1);
-		glVertex2i ( PosCuadX1, PosCuadY0);
+		glVertex2f ( PosCuadX1, PosCuadY0);
 
-        glTexCoord2f( PosTextX1, PosTextY0);
-		glVertex2i ( PosCuadX1, PosCuadY1);
+    glTexCoord2f( PosTextX1, PosTextY0);
+		glVertex2f ( PosCuadX1, PosCuadY1);
 
 		glTexCoord2f( PosTextX0, PosTextY0);
-		glVertex2i ( PosCuadX0, PosCuadY1);
+		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
 
+	/*
+    glBegin(GL_QUADS);
+      glTexCoord2f( 0.0, 1.0 );
+      glVertex2f( -0.5, -0.5);
+
+      glTexCoord2f( 1.0, 1.0 );
+      glVertex2f(  0.5, -0.5);
+
+      glTexCoord2f( 1.0, 0.0 );
+      glVertex2f(  0.5,  0.5);
+
+      glTexCoord2f( 0.0, 0.0 );
+      glVertex2f( -0.5,  0.5);
+    glEnd();
+    */
+/*
 	glBindTexture(GL_TEXTURE_2D, 0);
 
     glBegin(GL_QUADS);
@@ -447,14 +646,25 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     //if ((MovieMode == MO_MOVIE_MODE_SCRIPT) && m_bTrackerInit && config.GetCurrentValue(showtrackdata))
 	bool showfeat = m_Config[moR(MOVIE_SHOWTRACKDATA)][MO_SELECTED][0].Int();
-	if (m_bTrackerInit && showfeat) DrawTrackerFeatures();
+	//if (m_bTrackerInit && showfeat) DrawTrackerFeatures();
 
-	bool showmoviedata = m_Config[moR(MOVIE_SHOWMOVIEDATA)][MO_SELECTED][0].Int();
+
+*/
+  bool showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
+
+  m_DisplayX = m_Config.Eval( moR(MOVIE_DISPLAY_X) );
+  m_DisplayY = m_Config.Eval( moR(MOVIE_DISPLAY_Y) );
+  m_DisplayW = m_Config.Eval( moR(MOVIE_DISPLAY_WIDTH) );
+  m_DisplayH = m_Config.Eval( moR(MOVIE_DISPLAY_HEIGHT) );
+
 	if (showmoviedata) {
-		DrawDisplayInfo( PosCuadX0, PosCuadY0-252 );
+		DrawDisplayInfo( PosCuadX0, PosCuadY0 );
 	}
 
-    glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+  glEnable(GL_TEXTURE_2D);
+  EndDraw();
+
+  glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();
@@ -464,26 +674,56 @@ MOuint moEffectMovie::MovieGLId() {
 
   MOuint glid = 0;
 
+  //MODebug2->Push("m_FramePosition:"+IntToStr(m_FramePosition));
+
   switch(moviemode) {
 
 		case MO_MOVIE_MODE_VCR:
     case MO_MOVIE_MODE_SCRIPT:
-      if (m_TAnim) {
-        glid = m_TAnim->GetGLId( (MOuint)m_FramePosition );
-      }
+      //if (!moTimeManager::MoldeoTimer->Paused() && moTimeManager::MoldeoTimer->Started()) {
+        if (m_pAnim) {
+          ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
+          ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
+          glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+        }
+      //}
       break;
 
     case MO_MOVIE_MODE_CYCLE:
-      if (m_TAnim) {
-        glid = m_TAnim->GetGLId( &state.tempo );
-      }
+      //if (m_pAnim) {
+        //glid = m_pAnim->GetGLId( &state.tempo );
+        glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &state.tempo );
+        //MODebug2->Push("glid CYCLE:"+IntToStr(glid)+" tempo:"+FloatToStr(state.tempo.ang));
+      //}
       break;
+
+    case MO_MOVIE_MODE_VCR_PLAYLIST:
+
+      if (m_pMovie) {
+        if ( (m_FramePosition-1) >= m_FramesLength || m_pMovie->IsEOS()) {
+          ///next clip...
+          m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+          if (m_pMovie) {
+            m_pMovie->Stop();
+          }
+          MODebug2->Push( "EOS:" + IntToStr((int)m_pMovie->IsEOS()) );
+          MODebug2->Push("glid VCRPLAYLIST:" + IntToStr(glid) + " FramePosition:" + IntToStr(m_FramePosition) );
+        }
+      }
+      //if (m_pAnim) {
+        //glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
+        //glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+        glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+      //}
+      break;
+
   }
 
-  if ( glid==0 && m_pTexture) {
-    glid == m_pTexture->GetGLId();
+  if ( glid<=0 ) {
+    //glid = m_pTexture->GetGLId();
+    glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &state.tempo );
   }
-
+  return glid;
 }
 
 
@@ -492,9 +732,7 @@ void
 moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {
 
 	moTextArray pInfo;
-
-
-
+/*
     pInfo.Add( moText("TicksAux:") + IntToStr((int)m_TicksAux) );
     pInfo.Add( moText("Ticks:") + IntToStr((int)m_Ticks) );
     pInfo.Add( moText(" "));
@@ -506,17 +744,22 @@ moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {
 	pInfo.Add( moText("Len:") + IntToStr(m_FramesLength) );
 	pInfo.Add( moText("Fps:") + FloatToStr(m_FramesPerSecond) );
 	pInfo.Add( moText(" "));
-	pInfo.Add( moText("Posi.:") + IntToStr(m_FramePosition));
+
+	*/
+	pInfo.Add( moText("Frame:") + IntToStr( m_FramePosition ) + moText(" FPS:") + FloatToStr( m_FramesPerSecond ));
+  pInfo.Add( moVideoManager::FramesToTimecode( (MOulonglong)m_FramePosition, m_FramesPerSecond ) );
     /*if (Sound)
 		if (m_FramesLength>0 && Sound->GetBufferSize()>0 )
 			pInfo.Add( moText("FP S:") + IntToStr(Sound->GetActualSample()/ ( Sound->GetBufferSize() / m_FramesLength )) );
         */
+
+        /*
 	pInfo.Add( moText("P.F.:") + FloatToStr(m_FramePositionF));
 	pInfo.Add( moText("P.Inc.:") + FloatToStr(m_FramePositionInc));
 	pInfo.Add( moText(" "));
 	pInfo.Add( moText("P.Aux.:") + IntToStr(m_FramePositionAux));
 	pInfo.Add( moText("P.Aux.F.:") + FloatToStr(m_FramePositionFAux));
-
+*/
 
 	/*
 	pInfo.Add( moText("shottime: ")+m_tScriptDebug.Pop());
@@ -535,121 +778,24 @@ moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {
 	pInfo.Add( moText("GFINISH: ")+m_tScriptDebug.Pop());
 	pInfo.Add( moText("LFINISH: ")+m_tScriptDebug.Pop());
 */
-	m_pResourceManager->GetGuiMan()->DisplayInfoWindow( x , y, 144, 252, pInfo );
+	m_pResourceManager->GetGuiMan()->DisplayInfoWindow( m_DisplayX , m_DisplayY, m_DisplayW, m_DisplayH, pInfo );
 
 }
 
 MOboolean moEffectMovie::Finish()
 {
-
+/*
     if ((moText)m_MovieScriptFN!=moText("")) {
       SelectScriptFunction("Finish");
       RunSelectedFunction();
       moScript::FinishScript();
     }
-
+*/
     m_pTrackerData = NULL;
 
     //Images.Finish();
     PreFinish();
 	return true;
-}
-
-void moEffectMovie::DrawTrackerFeatures()
-{
-	int i, tw, th, v;
-    float x, y;
-/*
-	if (m_pTrackerData) {
-		tw = m_pTrackerData->m_VideoFormat.m_Width;
-		th = m_pTrackerData->m_VideoFormat.m_Height;
-
-		SelectScriptFunction("Draw");
-		AddFunctionParam(tw);
-		AddFunctionParam(th);
-		RunSelectedFunction();
-
-		for (i = 0; i < m_pTrackerData->m_NFeatures; i++)
-		{
-			x = 800.0 * m_pTrackerData->m_FeatureList->feature[i]->x / tw;
-			y = 600.0 * m_pTrackerData->m_FeatureList->feature[i]->y / th;
-			v = m_pTrackerData->m_FeatureList->feature[i]->val;
-
-			if (v == KLT_TRACKED) glColor4f(0.5, 1.0, 0.5, 1.0);
-			else if (v == KLT_NOT_FOUND) glColor4f(0.0, 0.0, 0.0, 1.0);
-			else if (v == KLT_SMALL_DET) glColor4f(1.0, 0.0, 0.0, 1.0);
-			else if (v == KLT_MAX_ITERATIONS) glColor4f(0.0, 1.0, 0.0, 1.0);
-			else if (v == KLT_OOB) glColor4f(0.0, 0.0, 1.0, 1.0);
-			else if (v == KLT_LARGE_RESIDUE) glColor4f(1.0, 1.0, 0.0, 1.0);
-			glBegin(GL_QUADS);
-				glVertex2f(x - 5, y - 5);
-				glVertex2f(x - 5, y + 5);
-				glVertex2f(x + 5, y + 5);
-				glVertex2f(x + 5, y - 5);
-			glEnd();
-		}
-	} else if (m_pTrackerGpuData) {
-		tw = m_pTrackerGpuData->m_VideoFormat.m_Width;
-		th = m_pTrackerGpuData->m_VideoFormat.m_Height;
-
-		SelectScriptFunction("Draw");
-		AddFunctionParam(tw);
-		AddFunctionParam(th);
-		RunSelectedFunction();
-
-		for (i = 0; i < m_pTrackerGpuData->m_NFeatures; i++)
-		{
-			x = 800.0 * m_pTrackerGpuData->m_FeatureList->_list[i]->x / tw;
-			y = 600.0 * m_pTrackerGpuData->m_FeatureList->_list[i]->y / th;
-			v = m_pTrackerGpuData->m_FeatureList->_list[i]->valid;
-
-			//if (v == KLT_TRACKED) glColor4f(0.5, 1.0, 0.5, 1.0);
-			//else if (v == KLT_NOT_FOUND) glColor4f(0.0, 0.0, 0.0, 1.0);
-			//else if (v == KLT_SMALL_DET) glColor4f(1.0, 0.0, 0.0, 1.0);
-			//else if (v == KLT_MAX_ITERATIONS) glColor4f(0.0, 1.0, 0.0, 1.0);
-			//else if (v == KLT_OOB) glColor4f(0.0, 0.0, 1.0, 1.0);
-			//else if (v == KLT_LARGE_RESIDUE) glColor4f(1.0, 1.0, 0.0, 1.0);
-			if ((bool)v==true) glColor4f(0.0, 1.0, 0.0, 1.0);
-			else glColor4f(0.0, 0.0, 1.0, 1.0);
-			glBegin(GL_QUADS);
-				glVertex2f(x - 5, y - 5);
-				glVertex2f(x - 5, y + 5);
-				glVertex2f(x + 5, y + 5);
-				glVertex2f(x + 5, y - 5);
-			glEnd();
-		}
-
-	}*/
-	if (m_pTrackerData) {
-		tw = m_pTrackerData->GetVideoFormat().m_Width;
-		th = m_pTrackerData->GetVideoFormat().m_Height;
-
-		SelectScriptFunction("Draw");
-		AddFunctionParam(tw);
-		AddFunctionParam(th);
-		RunSelectedFunction();
-
-		for (i = 0; i < m_pTrackerData->GetFeaturesCount(); i++)
-		{
-			x = 800.0 * m_pTrackerData->GetFeature(i)->x / tw;
-			y = 600.0 * m_pTrackerData->GetFeature(i)->y / th;
-			v = m_pTrackerData->GetFeature(i)->val;
-
-			if (v == MO_TRACKER_TRACKED) glColor4f(0.5, 1.0, 0.5, 1.0);
-			else if (v == MO_TRACKER_NOT_FOUND) glColor4f(0.0, 0.0, 0.0, 1.0);
-			else if (v == MO_TRACKER_SMALL_DET) glColor4f(1.0, 0.0, 0.0, 1.0);
-			else if (v == MO_TRACKER_MAX_ITERATIONS) glColor4f(0.0, 1.0, 0.0, 1.0);
-			else if (v == MO_TRACKER_OOB) glColor4f(0.0, 0.0, 1.0, 1.0);
-			else if (v == MO_TRACKER_LARGE_RESIDUE) glColor4f(1.0, 1.0, 0.0, 1.0);
-			glBegin(GL_QUADS);
-				glVertex2f(x - 5, y - 5);
-				glVertex2f(x - 5, y + 5);
-				glVertex2f(x + 5, y + 5);
-				glVertex2f(x + 5, y - 5);
-			glEnd();
-		}
-	}
-
 }
 
 void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
@@ -682,67 +828,67 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 				//VCR COMMANDS
 				case MO_MOVIE_STOP:
 					VCRCommand( MO_MOVIE_VCR_STOP );
-					MODebug->Push("STOP");
+					MODebug2->Push("STOP");
 					break;
 				case MO_MOVIE_PLAY:
 					VCRCommand( MO_MOVIE_VCR_PLAY );
-					MODebug->Push("PLAY");
+					MODebug2->Push("PLAY");
 					break;
 				case MO_MOVIE_REVERSE:
 					VCRCommand( MO_MOVIE_VCR_REVERSE );
-					MODebug->Push("REVERSE");
+					MODebug2->Push("REVERSE");
 					break;
 				case MO_MOVIE_FW:
 					VCRCommand( MO_MOVIE_VCR_FW );
-					MODebug->Push("FORWARD");
+					MODebug2->Push("FORWARD");
 					break;
 				case MO_MOVIE_RW:
 					VCRCommand( MO_MOVIE_VCR_RW );
-					MODebug->Push("REWIND");
+					MODebug2->Push("REWIND");
 					break;
 				case MO_MOVIE_FF:
 					VCRCommand( MO_MOVIE_VCR_FF );
-					MODebug->Push("FAST FORWARD");
+					MODebug2->Push("FAST FORWARD");
 					break;
 				case MO_MOVIE_FR:
 					VCRCommand( MO_MOVIE_VCR_FR );
-					MODebug->Push("FAST REWIND");
+					MODebug2->Push("FAST REWIND");
 					break;
 				case MO_MOVIE_SPEED:
 					VCRCommand( MO_MOVIE_VCR_SPEED );
-					MODebug->Push("PLAY AT SPEED");
+					MODebug2->Push("PLAY AT SPEED");
 					break;
 				case MO_MOVIE_PAUSE:
 					VCRCommand( MO_MOVIE_VCR_PAUSE );
-					MODebug->Push("PAUSE");
+					MODebug2->Push("PAUSE");
 					break;
 				case MO_MOVIE_SEEK:
 					VCRCommand( MO_MOVIE_VCR_SEEK );
-					MODebug->Push("SEEK");
+					MODebug2->Push("SEEK");
 					break;
 				case MO_MOVIE_PREVFRAME:
 					VCRCommand( MO_MOVIE_VCR_PREVFRAME );
-					MODebug->Push("PREVFRAME");
+					MODebug2->Push("PREVFRAME");
 					break;
 				case MO_MOVIE_NEXTFRAME:
 					VCRCommand( MO_MOVIE_VCR_NEXTFRAME );
-					MODebug->Push("NEXTFRAME");
+					MODebug2->Push("NEXTFRAME");
 					break;
 				case MO_MOVIE_LOOP:
 					this->m_bLoop = !this->m_bLoop;
-					if (m_bLoop) MODebug->Push(moText("Looped"));
-					else MODebug->Push(moText("Unlooped"));
+					if (m_bLoop) MODebug2->Push(moText("Looped"));
+					else MODebug2->Push(moText("Unlooped"));
 					break;
 				case MO_MOVIE_GAIN_UP:
 					if (Sound) {
 						Sound->SetVolume(+0.1);
-						MODebug->Push(moText("GainUp: ")+FloatToStr(Sound->GetVolume()));
+						MODebug2->Push(moText("GainUp: ")+FloatToStr(Sound->GetVolume()));
 					}
 					break;
 				case MO_MOVIE_GAIN_DOWN:
 					if (Sound) {
 						Sound->SetVolume(-0.1);
-						MODebug->Push(moText("GainDown: ")+FloatToStr(Sound->GetVolume()));
+						MODebug2->Push(moText("GainDown: ")+FloatToStr(Sound->GetVolume()));
 					}
 					break;
 //1.0 AL_EQUALIZER_LOW_GAIN [0.126, 7.943] 1.0
@@ -758,7 +904,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>lowgain) lowgain = 0.126;
 					else if (lowgain>7.9) lowgain = 7.9;
 					EQ->SetParameterF( AL_EQUALIZER_LOW_GAIN, lowgain );
-					MODebug->Push( moText("LowGainUp: ")+FloatToStr(lowgain) );
+					MODebug2->Push( moText("LowGainUp: ")+FloatToStr(lowgain) );
 					*/
 					break;
 				case MO_MOVIE_EQ_LOW_GAIN_DOWN:
@@ -768,7 +914,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>lowgain) lowgain = 0.126;
 					else if (lowgain>7.9) lowgain = 7.9;
 					EQ->SetParameterF( AL_EQUALIZER_LOW_GAIN, lowgain );
-					MODebug->Push( moText("LowGainDown: ")+FloatToStr(lowgain) );
+					MODebug2->Push( moText("LowGainDown: ")+FloatToStr(lowgain) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_LOW_CUTOFF Hz [50.0, 800.0] 200.0
@@ -779,7 +925,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (50.0>lowcutoff) lowcutoff = 50.0;
 					else if (lowcutoff>800.0) lowcutoff = 800.0;
 					EQ->SetParameterF( AL_EQUALIZER_LOW_CUTOFF, lowcutoff );
-					MODebug->Push( moText("LowCutoffUp: ")+FloatToStr(lowcutoff) );
+					MODebug2->Push( moText("LowCutoffUp: ")+FloatToStr(lowcutoff) );
 					*/
 					break;
 				case MO_MOVIE_EQ_LOW_CUTOFF_DOWN:
@@ -789,7 +935,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (50.0>lowcutoff) lowcutoff = 50.0;
 					else if (lowcutoff>800.0) lowcutoff = 800.0;
 					EQ->SetParameterF( AL_EQUALIZER_LOW_CUTOFF, lowgain );
-					MODebug->Push( moText("LowCutoffDown: ")+FloatToStr(lowcutoff) );
+					MODebug2->Push( moText("LowCutoffDown: ")+FloatToStr(lowcutoff) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID1_GAIN [0.126, 7.943] 1.0
@@ -800,7 +946,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_GAIN, fxvalue );
-					MODebug->Push( moText("Mid1GainUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid1GainUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID1_GAIN_DOWN:
@@ -810,7 +956,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_GAIN, fxvalue );
-					MODebug->Push(  moText("Mid1GainDown: ")+ FloatToStr(fxvalue) );
+					MODebug2->Push(  moText("Mid1GainDown: ")+ FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID1_CENTER Hz [200.0, 3000.0] 500.0
@@ -821,7 +967,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (200>fxvalue) fxvalue = 200;
 					else if (fxvalue>3000) fxvalue = 3000;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_CENTER, fxvalue );
-					MODebug->Push( moText("Mid1CenterUp: ")+ FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid1CenterUp: ")+ FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID1_CENTER_DOWN:
@@ -831,7 +977,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (200>fxvalue) fxvalue = 200;
 					else if (fxvalue>3000) fxvalue = 3000;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_CENTER, fxvalue );
-					MODebug->Push( moText("Mid1CenterDown: ")+ FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid1CenterDown: ")+ FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID1_WIDTH [0.01, 1.0] 1.0
@@ -842,7 +988,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.01>fxvalue) fxvalue = 0.01;
 					else if (fxvalue>1.0) fxvalue = 1.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_WIDTH, fxvalue );
-					MODebug->Push( moText("Mid1WidthUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid1WidthUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID1_WIDTH_DOWN:
@@ -852,7 +998,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.01>fxvalue) fxvalue = 0.01;
 					else if (fxvalue>1.0) fxvalue = 1.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID1_WIDTH, fxvalue );
-					MODebug->Push( moText("Mid1WidthDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid1WidthDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID2_GAIN [0.126, 7.943] 1.0
@@ -863,7 +1009,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_GAIN, fxvalue );
-					MODebug->Push( moText("Mid2GainUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2GainUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID2_GAIN_DOWN:
@@ -873,7 +1019,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_GAIN, fxvalue );
-					MODebug->Push( moText("Mid2GainDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2GainDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID2_CENTER [1000.0, 8000.0] 3000.0
@@ -884,7 +1030,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (1000.0>fxvalue) fxvalue = 1000.0;
 					else if (fxvalue>8000.0) fxvalue = 8000.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_CENTER, fxvalue );
-					MODebug->Push( moText("Mid2CenterUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2CenterUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID2_CENTER_DOWN:
@@ -894,7 +1040,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (1000.0>fxvalue) fxvalue = 1000.0;
 					else if (fxvalue>8000.0) fxvalue = 8000.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_CENTER, fxvalue );
-					MODebug->Push( moText("Mid2CenterDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2CenterDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_MID2_WIDTH [0.01, 1.0] 1.0
@@ -905,7 +1051,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.01>fxvalue) fxvalue = 0.01;
 					else if (fxvalue>1.0) fxvalue = 1.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_WIDTH, fxvalue );
-					MODebug->Push( moText("Mid2WidthUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2WidthUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_MID2_WIDTH_DOWN:
@@ -915,7 +1061,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.01>fxvalue) fxvalue = 0.01;
 					else if (fxvalue>1.0) fxvalue = 1.0;
 					EQ->SetParameterF( AL_EQUALIZER_MID2_WIDTH, fxvalue );
-					MODebug->Push( moText("Mid2WidthDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("Mid2WidthDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_HIGH_GAIN [0.126, 7.943] 1.0
@@ -926,7 +1072,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_HIGH_GAIN, fxvalue );
-					MODebug->Push( moText("HighGainUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("HighGainUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_HIGH_GAIN_DOWN:
@@ -936,7 +1082,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0.126>fxvalue) fxvalue = 0.126;
 					else if (fxvalue>7.943) fxvalue = 7.943;
 					EQ->SetParameterF( AL_EQUALIZER_HIGH_GAIN, fxvalue );
-					MODebug->Push(  moText("HighGainDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push(  moText("HighGainDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 //1.0 AL_EQUALIZER_HIGH_CUTOFF Hz [4000.0, 16000.0] 6000.0
@@ -947,7 +1093,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (4000.0>fxvalue) fxvalue = 4000.0;
 					else if (fxvalue>16000.0) fxvalue = 16000.0;
 					EQ->SetParameterF( AL_EQUALIZER_HIGH_CUTOFF, fxvalue );
-					MODebug->Push( moText("HighCutoffUp: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("HighCutoffUp: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 				case MO_MOVIE_EQ_HIGH_CUTOFF_DOWN:
@@ -957,7 +1103,7 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (4000.0>fxvalue) fxvalue = 4000.0;
 					else if (fxvalue>16000.0) fxvalue = 16000.0;
 					EQ->SetParameterF( AL_EQUALIZER_HIGH_CUTOFF, fxvalue );
-					MODebug->Push( moText("HighCutoffDown: ")+FloatToStr(fxvalue) );
+					MODebug2->Push( moText("HighCutoffDown: ")+FloatToStr(fxvalue) );
 					*/
 					break;
 
@@ -976,71 +1122,6 @@ moEffectMovie::Update( moEventList *Events ) {
 	//get the pointer from the Moldeo Object sending it...
 	moMoldeoObject::Update(Events);
 
-
-	//Procesar Inlets
-
-	for(int i=0; i<m_Inlets.Count(); i++) {
-		moInlet* pInlet = m_Inlets[i];
-		if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKER")) {
-
-			m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
-			if (m_pTrackerData && !m_bTrackerInit) {
-				m_bTrackerInit = true;
-
-				SelectScriptFunction("Reset");
-				RunSelectedFunction();
-				//MODebug->Push(IntToStr(TrackerId));
-			}
-		}
-        /*
-		if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKERKLT")) {
-
-			m_pTrackerData = (moTrackerKLTSystemData *)pInlet->GetData()->Pointer();
-			if (m_pTrackerData && !m_bTrackerInit) {
-				m_bTrackerInit = true;
-
-				SelectScriptFunction("Reset");
-				RunSelectedFunction();
-				//MODebug->Push(IntToStr(TrackerId));
-			}
-		} else if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKERGPUKLT")) {
-			m_pTrackerGpuData = (moTrackerGpuKLTSystemData *)pInlet->GetData()->Pointer();
-			if (m_pTrackerGpuData && !m_bTrackerInit) {
-				m_bTrackerInit = true;
-
-				SelectScriptFunction("Reset");
-				RunSelectedFunction();
-				//MODebug->Push(IntToStr(TrackerId));
-			}
-		}*/
-	}
-
-}
-
-moConfigDefinition *
-moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
-
-	//default: alpha, color, syncro
-	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("movies"), MO_PARAM_TEXTURE, MOVIE_MOVIES );
-	p_configdefinition->Add( moText("sounds"), MO_PARAM_SOUND, MOVIE_SOUNDS );
-	p_configdefinition->Add( moText("script"), MO_PARAM_SCRIPT, MOVIE_SCRIPT );
-	p_configdefinition->Add( moText("moviemode"), MO_PARAM_NUMERIC, MOVIE_MODE, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, MOVIE_BLENDING);
-	p_configdefinition->Add( moText("startplaying"), MO_PARAM_NUMERIC, MOVIE_STARTPLAYING, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, MOVIE_LOOP, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("showtrackdata"), MO_PARAM_NUMERIC, MOVIE_SHOWTRACKDATA, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("showmoviedata"), MO_PARAM_NUMERIC, MOVIE_SHOWMOVIEDATA, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("interpolation"), MO_PARAM_NUMERIC, MOVIE_INTERPOLATION, moValue( "0","NUM").Ref() );
-	p_configdefinition->Add( moText("pos_text_x"), MO_PARAM_FUNCTION, MOVIE_POSTEXX, moValue( "0.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("pos_text_y"), MO_PARAM_FUNCTION, MOVIE_POSTEXY, moValue( "0.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("anc_text_x"), MO_PARAM_FUNCTION, MOVIE_ANCTEXX, moValue( "1.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("alt_text_y"), MO_PARAM_FUNCTION, MOVIE_ALTTEXY, moValue( "1.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("pos_cuad_x"), MO_PARAM_FUNCTION, MOVIE_POSCUADX, moValue( "0.0","FUNCTION").Ref()  );
-	p_configdefinition->Add( moText("pos_cuad_y"), MO_PARAM_FUNCTION, MOVIE_POSCUADY, moValue( "0.0","FUNCTION").Ref()  );
-	p_configdefinition->Add( moText("anc_cuad_x"), MO_PARAM_FUNCTION, MOVIE_ANCCUADX, moValue( "1.0","FUNCTION").Ref()  );
-	p_configdefinition->Add( moText("alt_cuad_y"), MO_PARAM_FUNCTION, MOVIE_ALTCUADY, moValue( "1.0","FUNCTION").Ref()  );
-	return p_configdefinition;
 }
 
 //CUSTOM FUNCTIONS
@@ -1049,8 +1130,8 @@ moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
 //play en funcion de play speed:
 void moEffectMovie::VCRPlaySpeed() {
 
-	//if (m_TAnim)
-	//if (!m_TAnim->IsInterpolating()) {
+	//if (m_pAnim)
+	//if (!m_pAnim->IsInterpolating()) {
 
 
 		m_FramePositionAux = m_FramePosition;
@@ -1105,7 +1186,7 @@ void moEffectMovie::SpeedRegulation( MOfloat p_fMinSpeed, MOfloat p_fMaxSpeed ) 
 
 	speedF = (double) 1000.0 * (double) (m_FramePositionFAux - m_FramePositionF) / (deltaticksF * m_FramesPerSecond);
 
-	//MODebug->Push(FloatToStr(speedF));
+	//MODebug2->Push(FloatToStr(speedF));
 
 	if ( speedF > p_fMaxSpeed ) {
 		m_PlaySpeed = p_fMaxSpeed;
@@ -1126,21 +1207,21 @@ void moEffectMovie::VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValu
 			m_PlaySpeed = 0.0;
 			/*if (Sound) Sound->Stop();*/
 			/*if (Sound) Sound->Stop();*/
-			m_SoundSystem.Stop();
+			//m_SoundSystem.Stop();
 			m_bPlayingSound = false;
 			break;
 
 		case MO_MOVIE_VCR_PLAY:
 			m_PlayState = MO_MOVIE_PLAYSTATE_PLAYING;
 			m_PlaySpeed = 1.0;
-			m_SoundSystem.Play();
+			//m_SoundSystem.Play();
 			break;
 
 		case MO_MOVIE_VCR_PAUSE:
 			m_PlaySpeed = 0.0;
 			m_PlayState = MO_MOVIE_PLAYSTATE_PAUSED;
 			/*if (Sound) Sound->Pause();*/
-			m_SoundSystem.Pause();
+			//m_SoundSystem.Pause();
 			m_bPlayingSound = false;
 			break;
 
@@ -1202,8 +1283,6 @@ int moEffectMovie::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
 {
     switch (iFunctionNumber - m_iMethodBase)
     {
-        case 0:
-            return GetFeature(vm);
         case 1:
             return SpeedRegulation(vm);
         case 2:
@@ -1246,12 +1325,8 @@ int moEffectMovie::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
             return SetFramePositionF(vm);
         case 21:
             return SetPlaySpeed(vm);
-        case 22:
-            return GetTicks(vm);
         case 23:
             return DrawLine(vm);
-        case 24:
-            return PushDebugString(vm);
 	}
     return 0;
 }
@@ -1263,44 +1338,41 @@ void moEffectMovie::HandleReturns(moLuaVirtualMachine& vm, const char *strFunc)
         lua_State *state = (lua_State *) vm;
         MOint script_result = (MOint) lua_tonumber (state, 1);
 		if (script_result != 0)
-			MODebug->Push(moText("Script returned error code: ") + (moText)IntToStr(script_result));
+			MODebug2->Push(moText("Script returned error code: ") + (moText)IntToStr(script_result));
     }
 }
 
 void moEffectMovie::RegisterFunctions()
 {
-    m_iMethodBase = RegisterFunction("GetFeature");
+    m_iMethodBase = RegisterBaseFunction("GetFeature");
 
-	RegisterFunction("SpeedRegulation");
+    RegisterFunction("SpeedRegulation");
 
-	RegisterFunction("VCRStop");
-	RegisterFunction("VCRPlay");
-	RegisterFunction("VCRPause");
-	RegisterFunction("VCRReverse");
-	RegisterFunction("VCRForward");
-	RegisterFunction("VCRRewind");
-	RegisterFunction("VCRFForward");
-	RegisterFunction("VCRFRewind");
-	RegisterFunction("VCRSeek");
-	RegisterFunction("VCRSpeed");
-	RegisterFunction("VCRPrevFrame");
-	RegisterFunction("VCRNextFrame");
-	RegisterFunction("VCRLoop");
-	RegisterFunction("VCRPlaySpeed");
+    RegisterFunction("VCRStop");
+    RegisterFunction("VCRPlay");
+    RegisterFunction("VCRPause");
+    RegisterFunction("VCRReverse");
+    RegisterFunction("VCRForward");
+    RegisterFunction("VCRRewind");
+    RegisterFunction("VCRFForward");
+    RegisterFunction("VCRFRewind");
+    RegisterFunction("VCRSeek");
+    RegisterFunction("VCRSpeed");
+    RegisterFunction("VCRPrevFrame");
+    RegisterFunction("VCRNextFrame");
+    RegisterFunction("VCRLoop");
+    RegisterFunction("VCRPlaySpeed");
 
-	RegisterFunction("GetFramePosition");
-	RegisterFunction("GetFramePositionF");
-	RegisterFunction("GetPlaySpeed");
+    RegisterFunction("GetFramePosition");
+    RegisterFunction("GetFramePositionF");
+    RegisterFunction("GetPlaySpeed");
 
-	RegisterFunction("SetFramePosition");
-	RegisterFunction("SetFramePositionF");
-	RegisterFunction("SetPlaySpeed");
+    RegisterFunction("SetFramePosition");
+    RegisterFunction("SetFramePositionF");
+    RegisterFunction("SetPlaySpeed");
 
-	RegisterFunction("GetTicks");
+    RegisterFunction("DrawLine");
 
-	RegisterFunction("DrawLine");
-
-	RegisterFunction("PushDebugString");
 }
 
 int moEffectMovie::GetFeature(moLuaVirtualMachine& vm)
@@ -1502,16 +1574,3 @@ int moEffectMovie::DrawLine(moLuaVirtualMachine& vm)
     return 0;
 }
 
-int moEffectMovie::PushDebugString(moLuaVirtualMachine& vm)
-{
-    lua_State *state = (lua_State *) vm;
-	if (lua_isboolean(state,1)) {
-		bool vb = lua_toboolean(state,1);
-		vb ? m_tScriptDebug.Push(moText("true")) : m_tScriptDebug.Push(moText("false"));
-	} else {
-		char *text = (char *) lua_tostring (state, 1);
-		m_tScriptDebug.Push(moText(text));
-	}
-
-    return 0;
-}

@@ -21,10 +21,10 @@
   *                                                                          *
   ****************************************************************************
 
-  Copyright(C) 2007 Andrés Colubri
+  Copyright(C) 2007
 
   Authors:
-  Andrés Colubri
+
   Fabricio Costa
 
 *******************************************************************************/
@@ -49,6 +49,7 @@
 #define MO_TRACKERKLT_LIVE_OUT 3
 
 enum moTrackerKLTParamIndex {
+    TRACKERKLT_TEXTURE,
     TRACKERKLT_NUM_FEAT,
     TRACKERKLT_REPLACE_LOST_FEAT,
     TRACKERKLT_DIFF_MODE,
@@ -63,7 +64,7 @@ enum moTrackerKLTParamIndex {
 
     TRACKERKLT_BORDERX,
     TRACKERKLT_BORDERY,
-    TRACKERKLT_NPYRAMIDLEVELS,
+    TRACKERKLT_PYRAMID_LEVELS,
     TRACKERKLT_SUBSAMPLING,
     TRACKERKLT_MAX_ITERATIONS,
 
@@ -201,6 +202,7 @@ private:
     KLT_TrackingContext m_tc;
     KLT_FeatureList m_fl;
     KLT_FeatureTable m_ft;
+    KLT_FeatureHistory m_fh;
 
 
 	void CopyBufferToImg(GLubyte *p_pBuffer, unsigned char *p_img, MOuint p_RGB_mode);

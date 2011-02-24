@@ -21,10 +21,10 @@
   *                                                                          *
   ****************************************************************************
 
-  Copyright(C) 2007 Andrés Colubri
+  Copyright(C) 2007
 
   Authors:
-  Andrés Colubri
+
   Fabricio Costa
 
 *******************************************************************************/
@@ -113,6 +113,7 @@ moTrackerKLTSystem::moTrackerKLTSystem()
     m_tc = NULL;
     m_fl = NULL;
     m_ft = NULL;
+    m_fh = NULL;
 
 	m_img1 = NULL;
 	m_img2 = NULL;
@@ -181,11 +182,13 @@ MOboolean moTrackerKLTSystem::Init(
 	m_tc->max_iterations = 10;
     m_tc->max_residue = 10;
 
-    m_tc->window_width = 4;//7
-    m_tc->window_height = 4;//7
+    //m_tc->window_width = 4;//7
+    //m_tc->window_height = 4;//7
+    m_tc->window_width = 9;//7
+    m_tc->window_height = 9;//7
     m_tc->min_displacement = 0.10000001;//0.10000001
     m_tc->min_determinant = 0.0099999978;//0.0099999978
-    m_tc->max_residue = 10;
+    m_tc->max_residue = 1;
 
   /** FEATURE LIST */
 
@@ -201,6 +204,14 @@ MOboolean moTrackerKLTSystem::Init(
   /** FEATURE TABLE */
 
 	if (0 < p_nFrames) m_ft = KLTCreateFeatureTable(p_nFrames, p_nFeatures);
+
+	if (!m_ft) {
+	  MODebug2->Error("moTrackerKLTSystem::Init - Couldn't create Feature Table");
+	  return false;
+	}
+
+	/** FEATURE HISTORY */
+  if (0 < p_nFrames) m_fh = KLTCreateFeatureHistory(p_nFrames );
 
 	if (!m_ft) {
 	  MODebug2->Error("moTrackerKLTSystem::Init - Couldn't create Feature Table");
@@ -435,6 +446,12 @@ MOboolean moTrackerKLTSystem::Finish()
     }
 */
 
+	if (m_fh != NULL)
+	{
+	    KLTFreeFeatureHistory(m_fh);
+      m_fh = NULL;
+	}
+
 	if (m_tc != NULL)
 	{
 		KLTFreeTrackingContext(m_tc);
@@ -558,9 +575,10 @@ void moTrackerKLTSystem::ContinueTracking(GLubyte *p_pBuffer, MOuint p_RGB_mode)
 			if (m_replaceLostFeatures || m_nCurrentFrame==0) KLTReplaceLostFeatures(m_tc, m_img2, m_nCols, m_nRows, m_fl);
 		}
 
-		if (0 < m_nFrames && (m_nCurrentFrame < m_nFrames))
+		if (0 < m_nFrames && (m_nCurrentFrame < m_nFrames) && this->GetNFeatures()>=1 )
 		{
 			KLTStoreFeatureList(m_fl, m_ft, m_nCurrentFrame);
+			//KLTStoreFeatureHistory( m_fh, m_ft, 1 );
 
 			m_nCurrentFrame++;
 		} else m_nCurrentFrame = 0;
@@ -801,8 +819,9 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
   float minX = 1.0f, minY = 1.0;
 	float maxX = 0.0f, maxY = 0.0;
 
-    float vel,acc;
-    m_pTrackerSystemData->nPares = 0;
+  float vel=0.0,acc=0.0,tor=0.0;
+  float velAverage = 0.0, accAverage =0.0, torAverage=0.0;
+  m_pTrackerSystemData->nPares = 0;
 
 	for(int i=0; i<m_fl->nFeatures; i++ ) {
 
@@ -823,17 +842,39 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
 
             ///TAIL
             /// from 4th frame
+            //if (i==0) MODebug2->Push( "m_nCurrentFrame:" + IntToStr(m_nCurrentFrame) + " val:" + IntToStr(TF->val) );
             if (TF->val>=0) {
+
+              if (m_ft) {
+                if (m_nCurrentFrame>=2 && m_ft->feature[i][m_nCurrentFrame-1]->val >=0 && m_ft->feature[i][m_nCurrentFrame-2]->val >=0) {
+
+                  TF->tr_x = m_ft->feature[i][m_nCurrentFrame-2]->x /  (float)tw;
+                  TF->tr_y = m_ft->feature[i][m_nCurrentFrame-2]->y /  (float)th;
+                  TF->v_x = TF->x - TF->tr_x;
+                  TF->v_y = TF->y - TF->tr_y;
+                  vel = moVector2f( TF->v_x, TF->v_y ).Length();
+                  if ( not (vel > 0.0001 && vel < 0.1 )) {
+                    TF->tr_x = TF->x;
+                    TF->tr_y = TF->y;
+                  }
+                  /*if (i==0) MODebug2->Push( "m_nCurrentFrame:" + IntToStr(m_nCurrentFrame) + " val:" + IntToStr(TF->val)
+                                           + "x:" + FloatToStr(TF->x)
+                                           + "trx:" + FloatToStr(TF->tr_x) );*/
+                }
+              }
+
                if (m_nCurrentFrame>4 && 5<m_nFrames && m_nCurrentFrame<m_nFrames ) {
 
-                   for(int j=0; j<4; j++) {
+                   /*for(int j=0; j<4; j++) {
                        if (m_ft) {
                            if ( m_ft->feature[i][m_nCurrentFrame-j] && m_ft->feature[i][m_nCurrentFrame-j]->val>=KLT_TRACKED ) {
                                 TF->tr_x = m_ft->feature[i][m_nCurrentFrame-j]->x /  (float)tw;
                                 TF->tr_y = m_ft->feature[i][m_nCurrentFrame-j]->y /  (float)th;
-                           } else break;
+                                break;
+                           }
                        }
-                   }
+                   }*/
+
 
                }
 
@@ -928,27 +969,32 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
                ///genera la matrix de referencia rapida por zonas
                ///m_pTrackerSystemData->SetPositionMatrix( TF );
 
+              ///CALCULATE VELOCITY AND ACCELERATION
+              TF->ap_x = TF->a_x;
+              TF->ap_y = TF->a_x;
+              TF->vp_x = TF->v_x;
+              TF->vp_y = TF->v_x;
+              TF->v_x = TF->x - TF->tr_x;
+              TF->v_y = TF->y - TF->tr_y;
+              TF->a_x = TF->v_x - TF->vp_x;
+              TF->a_y = TF->v_y - TF->vp_y;
+              TF->t_x = TF->a_x - TF->ap_x;
+              TF->t_y = TF->a_y - TF->ap_y;
+
+              vel = moVector2f( TF->v_x, TF->v_y ).Length();
+              acc = moVector2f( TF->a_x, TF->a_y ).Length();
+              tor = moVector2f( TF->t_x, TF->t_y ).Length();
+              velAverage+= vel;
+              accAverage+= acc;
+              torAverage+= tor;
+
+              if ( vel >= 0.001 && vel <=0.05 ) m_pTrackerSystemData->SetMotionMatrix( TF->x, TF->y, 1 );
+              if ( acc >= 0.001 ) m_pTrackerSystemData->SetAccelerationMatrix( TF->x, TF->y, 1 );
+
 
             }
 
             //MODebug2->Push( moText("debugging") + IntToStr(m_pTrackerSystemData->GetMaxFeatures()));
-
-
-
-            ///CALCULATE VELOCITY AND ACCELERATION
-            TF->vp_x = TF->v_x;
-            TF->vp_y = TF->v_x;
-            TF->v_x = TF->x - TF->tr_x;
-            TF->v_y = TF->y - TF->tr_y;
-            TF->a_x = TF->v_x - TF->vp_x;
-            TF->a_y = TF->v_y - TF->vp_y;
-
-
-            vel = moVector2f( TF->v_x, TF->v_y ).Length();
-            acc = moVector2f( TF->a_x, TF->a_y ).Length();
-
-            if ( vel >= 0.01 ) m_pTrackerSystemData->SetMotionMatrix( TF->x, TF->y, 1 );
-            if ( acc >= 0.01 ) m_pTrackerSystemData->SetAccelerationMatrix( TF->x, TF->y, 1 );
 
             m_pTrackerSystemData->GetFeatures().Add(TF);
         }
@@ -1276,7 +1322,9 @@ if ( m_pTUIOSystemData ) {
 
     m_pTrackerSystemData->SetMax( 0, 0 );
     m_pTrackerSystemData->SetMin( 0, 0 );
-    m_pTrackerSystemData->SetValidFeatures( 0 );
+
+    m_pTrackerSystemData->SetDeltaValidFeatures( m_pTrackerSystemData->GetValidFeatures() - (int)sumN );
+    m_pTrackerSystemData->SetValidFeatures( (int)sumN );
 
     if (sumN>=1.0f) {
 
@@ -1289,9 +1337,16 @@ if ( m_pTUIOSystemData ) {
         m_pTrackerSystemData->SetBarycenterMotion( BarMot.X(), BarMot.Y() );
         m_pTrackerSystemData->SetBarycenterAcceleration( BarAcc.X(), BarAcc.Y() );
 
+        velAverage = velAverage / (float)sumN;
+        accAverage = accAverage / (float)sumN;
+        torAverage = torAverage / (float)sumN;
+
+        m_pTrackerSystemData->SetAbsoluteSpeedAverage( velAverage );
+        m_pTrackerSystemData->SetAbsoluteAccelerationAverage( accAverage );
+        m_pTrackerSystemData->SetAbsoluteTorqueAverage( torAverage );
+
         m_pTrackerSystemData->SetMax( maxX, maxY );
         m_pTrackerSystemData->SetMin( minX, minY );
-        m_pTrackerSystemData->SetValidFeatures( (int)sumN );
 
         ///CALCULATE VARIANCE FOR EACH COMPONENT
 
@@ -1322,13 +1377,25 @@ if ( m_pTUIOSystemData ) {
         }
 
     }
-
+/*
     if ( (m_nCurrentFrame % 100) == 0 ) MODebug2->Message(
       moText(" baryc x: ") + FloatToStr(m_pTrackerSystemData->GetBarycenter().X())
       + moText(" baryc y: ") + FloatToStr(m_pTrackerSystemData->GetBarycenter().Y())
       + moText(" n features: ") + IntToStr(m_pTrackerSystemData->GetValidFeatures())
 
       );
+*/
+
+      /**
+      *  NUEVO ---- 2011---- graba los datos
+      *  esta funcion se llama en cada iteracion
+      *  El objeto interno es m_pTrackerSystemData->GetHistory()
+      *    m_pTrackerSystemData->GetHistory()->StartRecording()
+      *    m_pTrackerSystemData->GetHistory()->StopRecording()
+      *     etc...
+      */
+
+      m_pTrackerSystemData->Record();
 
 }
 
@@ -1424,51 +1491,41 @@ moTrackerKLT::~moTrackerKLT()
 MOboolean moTrackerKLT::Init()
 {
 
-    moText configname;
 	MOint nvalues;
 	MOint trackersystems;
 
-	configname = m_pResourceManager->GetDataMan()->GetDataPath();
-	configname +=  moSlash + (moText)GetConfigName();
-    configname +=  moText(".cfg");
+  if ( GetConfigName().Length()==0 ) return false;
 
-	if (m_Config.LoadConfig(configname) != MO_CONFIG_OK ) {
-		moText text = moText("Couldn't load trackerklt config:") + (moText)configname;
-		MODebug2->Error( text );
-		return false;
-	}
+    if (!moResource::Init()) return false;
 
-	moMoldeoObject::Init();
+    moDefineParamIndex( TRACKERKLT_TEXTURE, "texture" );
+    moDefineParamIndex( TRACKERKLT_NUM_FEAT, "num_feat" );
+    moDefineParamIndex( TRACKERKLT_REPLACE_LOST_FEAT,"replace_lost_feat" );
+    moDefineParamIndex( TRACKERKLT_DIFF_MODE,"diff_mode" );
+    moDefineParamIndex( TRACKERKLT_NUM_SAMPLES,"num_samples" );
 
-    moDefineParamIndex( TRACKERKLT_NUM_FEAT, moText("num_feat") );
-    moDefineParamIndex( TRACKERKLT_REPLACE_LOST_FEAT,moText("replace_lost_feat") );
-    moDefineParamIndex( TRACKERKLT_DIFF_MODE,moText("diff_mode") );
-    moDefineParamIndex( TRACKERKLT_NUM_SAMPLES,moText("num_samples") );
+    moDefineParamIndex( TRACKERKLT_MIN_DIST,"min_dist" );
+    moDefineParamIndex( TRACKERKLT_MIN_EIGEN,"min_eigen" );
 
-    moDefineParamIndex( TRACKERKLT_MIN_DIST,moText("min_dist") );
-    moDefineParamIndex( TRACKERKLT_MIN_EIGEN,moText("min_eigen") );
+    moDefineParamIndex( TRACKERKLT_LIGHT_SENS,"light_sens" );
+    moDefineParamIndex( TRACKERKLT_NUM_FRAMES,"num_frames" );
+    moDefineParamIndex( TRACKERKLT_SAMPLE_RATE,"sample_rate" );
 
-    moDefineParamIndex( TRACKERKLT_LIGHT_SENS,moText("light_sens") );
-    moDefineParamIndex( TRACKERKLT_NUM_FRAMES,moText("num_frames") );
-    moDefineParamIndex( TRACKERKLT_SAMPLE_RATE,moText("sample_rate") );
+    moDefineParamIndex( TRACKERKLT_BORDERX,"borderx" );
+    moDefineParamIndex( TRACKERKLT_BORDERY,"bordery" );
+    moDefineParamIndex( TRACKERKLT_PYRAMID_LEVELS,"pyramid_levels" );
+    moDefineParamIndex( TRACKERKLT_SUBSAMPLING,"subsampling" );
+    moDefineParamIndex( TRACKERKLT_MAX_ITERATIONS,"max_iterations");
 
-/*
-    moDefineParamIndex( TRACKERKLT_BORDERX,moText("borderx") );
-    moDefineParamIndex( TRACKERKLT_BORDERY,moText("bordery") );
-    moDefineParamIndex( TRACKERKLT_NPYRAMIDLEVELS,moText("npyramidlevels") );
-    moDefineParamIndex( TRACKERKLT_SUBSAMPLING,moText("subsampling") );
-    moDefineParamIndex( TRACKERKLT_MAX_ITERATIONS,moText("max_iterations") );
+    moDefineParamIndex( TRACKERKLT_WINDOW_WIDTH,"window_width" );
+    moDefineParamIndex( TRACKERKLT_WINDOW_HEIGHT,"window_height" );
 
-    moDefineParamIndex( TRACKERKLT_WINDOW_WIDTH,moText("window_width") );
-    moDefineParamIndex( TRACKERKLT_WINDOW_HEIGHT,moText("window_height") );
+    moDefineParamIndex( TRACKERKLT_MIN_DISPLACEMENT,"min_displacement" );
+    moDefineParamIndex( TRACKERKLT_MIN_DETERMINANT,"min_determinant" );
+    moDefineParamIndex( TRACKERKLT_MAX_RESIDUE,"max_residue" );
 
-    moDefineParamIndex( TRACKERKLT_MIN_DISPLACEMENT,moText("min_displacement") );
-    moDefineParamIndex( TRACKERKLT_MIN_DETERMINANT,moText("min_determinant") );
-    moDefineParamIndex( TRACKERKLT_MAX_RESIDUE,moText("max_residue") );
-
-    moDefineParamIndex( TRACKERKLT_MIN_SEGMENT_LEN,moText("min_segment_len") );
-    moDefineParamIndex( TRACKERKLT_MAX_SEGMENT_LEN,moText("max_segment_len") );
-*/
+    moDefineParamIndex( TRACKERKLT_MIN_SEGMENT_LEN,"min_segment_len" );
+    moDefineParamIndex( TRACKERKLT_MAX_SEGMENT_LEN,"max_segment_len" );
 
     m_SampleCounter = 0;
 	trackersystems = m_Config.GetParamIndex("trackersystems");
@@ -1553,57 +1610,71 @@ void moTrackerKLT::UpdateParameters() {
 	num_frames = m_Config.GetParam(m_Config.GetParamIndex("num_frames")).GetValue().GetSubValue(0).Int();
 	m_SampleRate = m_Config.GetParam(m_Config.GetParamIndex("sample_rate")).GetValue().GetSubValue().Int();
 
-/*
+
 	borderx = m_Config.GetParam(m_Config.GetParamIndex("borderx")).GetValue().GetSubValue().Int();
 	bordery = m_Config.GetParam(m_Config.GetParamIndex("bordery")).GetValue().GetSubValue().Int();
+	window_width = m_Config.GetParam(m_Config.GetParamIndex("window_width")).GetValue().GetSubValue().Int();
+	window_height = m_Config.GetParam(m_Config.GetParamIndex("window_height")).GetValue().GetSubValue().Int();
+  min_displacement = m_Config.GetParam(m_Config.GetParamIndex("min_displacement")).GetValue().GetSubValue().Float();
+  min_determinant = m_Config.GetParam(m_Config.GetParamIndex("min_determinant")).GetValue().GetSubValue().Float();
+  max_residue = m_Config.GetParam(m_Config.GetParamIndex("max_residue")).GetValue().GetSubValue().Float();
 
 	pyramid_levels = m_Config.GetParam(m_Config.GetParamIndex("pyramid_levels")).GetValue().GetSubValue().Int();
 	subsampling = m_Config.GetParam(m_Config.GetParamIndex("subsampling")).GetValue().GetSubValue().Int();
 	max_iterations = m_Config.GetParam(m_Config.GetParamIndex("max_iterations")).GetValue().GetSubValue().Int();
 
-	window_width = m_Config.GetParam(m_Config.GetParamIndex("window_width")).GetValue().GetSubValue().Int();
-	window_height = m_Config.GetParam(m_Config.GetParamIndex("window_height")).GetValue().GetSubValue().Int();
-
-    min_displacement = m_Config.GetParam(m_Config.GetParamIndex("min_displacement")).GetValue().GetSubValue().Float();
-    min_determinant = m_Config.GetParam(m_Config.GetParamIndex("min_determinant")).GetValue().GetSubValue().Float();
-    max_residue = m_Config.GetParam(m_Config.GetParamIndex("max_residue")).GetValue().GetSubValue().Float();
-
     min_segment_len = m_Config.GetParam(m_Config.GetParamIndex("min_segment_len")).GetValue().GetSubValue().Float();
     max_segment_len = m_Config.GetParam(m_Config.GetParamIndex("max_segment_len")).GetValue().GetSubValue().Float();
-*/
+
 }
 
 moConfigDefinition* moTrackerKLT::GetDefinition(moConfigDefinition *p_configdefinition) {
 
     p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
+    p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, TRACKERKLT_TEXTURE, moValue( "default", "TXT") );
     p_configdefinition->Add( moText("num_feat"), MO_PARAM_NUMERIC, TRACKERKLT_NUM_FEAT, moValue( "100", "INT").Ref() );
     p_configdefinition->Add( moText("replace_lost_feat"), MO_PARAM_NUMERIC, TRACKERKLT_REPLACE_LOST_FEAT, moValue( "1", "INT").Ref() );
     p_configdefinition->Add( moText("diff_mode"), MO_PARAM_NUMERIC, TRACKERKLT_DIFF_MODE, moValue( "0", "INT").Ref() );
     p_configdefinition->Add( moText("num_samples"), MO_PARAM_NUMERIC, TRACKERKLT_NUM_SAMPLES, moValue( "1", "INT").Ref() );
 
+    ///The minimum distance between each feature being selected, in pixels.
     p_configdefinition->Add( moText("min_dist"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_DIST, moValue( "10.0", "FLOAT").Ref() );
-    p_configdefinition->Add( moText("min_eigen"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_EIGEN, moValue( "100.0", "FLOAT").Ref() );
 
+    ///The minimum allowable eigenvalue for new features being selected. In other words,
+    ///KLTSelectGoodFeatures() and KLTReplaceLostFeatures() add only those features whose
+    ///minimum eigenvalue is at least min_eigenvalue, which must not be less than one.
+    ///By setting this parameter to a number larger than one and nFeatures to a very large number,
+    ///the effect is to select all features whose minimum eigenvalue is above a threshold. Default: 1.
+    p_configdefinition->Add( moText("min_eigen"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_EIGEN, moValue( "1.0", "FLOAT").Ref() );
+
+    ///Whether to normalize the image intensities for gain and bias within the window. This is an extension beyond the standard algorithm. Used by KLTTrackFeatures(). Default: FALSE
     p_configdefinition->Add( moText("light_sens"), MO_PARAM_NUMERIC, TRACKERKLT_LIGHT_SENS, moValue( "1", "INT").Ref() );
     p_configdefinition->Add( moText("num_frames"), MO_PARAM_NUMERIC, TRACKERKLT_NUM_FRAMES, moValue( "50", "INT").Ref() );
     p_configdefinition->Add( moText("sample_rate"), MO_PARAM_NUMERIC, TRACKERKLT_SAMPLE_RATE, moValue( "1", "INT").Ref() );
-/*
+
+    ///The size of the border, in pixels, that is not analyzed by the computation of KLTSelectGoodFeatures() and KLTReplaceLostFeatures(). This border is necessary because convolution with the Gaussian causes much of the image's values to become unknown. Tracking in those regions can produce strange results. Can be changed more easily using the convenience function KLTUpdateTCBorder(). Default: KLTUpdateTCBorder() => 23.
     p_configdefinition->Add( moText("borderx"), MO_PARAM_NUMERIC, TRACKERKLT_BORDERX, moValue( "2", "INT").Ref() );
     p_configdefinition->Add( moText("bordery"), MO_PARAM_NUMERIC, TRACKERKLT_BORDERY, moValue( "2", "INT").Ref() );
-    p_configdefinition->Add( moText("nPyramidLevels"), MO_PARAM_NUMERIC, TRACKERKLT_NPYRAMIDLEVELS, moValue( "2", "INT").Ref() );
+    p_configdefinition->Add( moText("pyramid_levels"), MO_PARAM_NUMERIC, TRACKERKLT_PYRAMID_LEVELS, moValue( "2", "INT").Ref() );
     p_configdefinition->Add( moText("subsampling"), MO_PARAM_NUMERIC, TRACKERKLT_SUBSAMPLING, moValue( "4", "INT").Ref() );
+    ///The maximum number of iterations allowed when tracking. If exceeded, the feature is lost. Used by KLTTrackFeatures(). Default: 10.
     p_configdefinition->Add( moText("max_iterations"), MO_PARAM_NUMERIC, TRACKERKLT_MAX_ITERATIONS, moValue( "10", "INT").Ref() );
 
-    p_configdefinition->Add( moText("window_width"), MO_PARAM_NUMERIC, TRACKERKLT_WINDOW_WIDTH, moValue( "4", "INT").Ref() );
-    p_configdefinition->Add( moText("window_height"), MO_PARAM_NUMERIC, TRACKERKLT_WINDOW_HEIGHT, moValue( "4", "INT").Ref() );
+    ///The size of the feature window, in pixels. It is suggested that you call the convenience function KLTUpdateTCBorder() after changing this parameter. Default: 7
+    p_configdefinition->Add( moText("window_width"), MO_PARAM_NUMERIC, TRACKERKLT_WINDOW_WIDTH, moValue( "5", "INT").Ref() );
+    p_configdefinition->Add( moText("window_height"), MO_PARAM_NUMERIC, TRACKERKLT_WINDOW_HEIGHT, moValue( "5", "INT").Ref() );
 
+    ///The minimum displacement, in pixels, necessary to stop the iterative tracker and declare tracking successful. Used by KLTTrackFeatures(). Default: 0.1.
     p_configdefinition->Add( moText("min_displacement"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_DISPLACEMENT, moValue( "0.10000001", "FLOAT").Ref() );
+    ///The minimum allowable determinant before a feature is declared lost. Used by KLTTrackFeatures(). Default: 0.01
     p_configdefinition->Add( moText("min_determinant"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_DETERMINANT, moValue( "0.0099999978", "FLOAT").Ref() );
-    p_configdefinition->Add( moText("max_residue"), MO_PARAM_NUMERIC, TRACKERKLT_MAX_RESIDUE, moValue( "10.0", "FLOAT").Ref() );
+    ///The maximum residue, averaged per pixel, allowed when tracking. If exceeded, the feature is lost.
+    ///Used by KLTTrackFeatures(). Default: 1.0.
+    p_configdefinition->Add( moText("max_residue"), MO_PARAM_NUMERIC, TRACKERKLT_MAX_RESIDUE, moValue( "1.0", "FLOAT").Ref() );
 
     p_configdefinition->Add( moText("min_segment_len"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_SEGMENT_LEN, moValue( "0.0", "FLOAT").Ref() );
     p_configdefinition->Add( moText("max_segment_len"), MO_PARAM_NUMERIC, TRACKERKLT_MAX_SEGMENT_LEN, moValue( "0.4", "FLOAT").Ref() );
-*/
+
 }
 
 MOboolean moTrackerKLT::Finish()
@@ -1699,6 +1770,7 @@ void moTrackerKLT::Update(moEventList *Events)
 
 	moBucket* pBucket = NULL;
 	moVideoSample* pSample = NULL;
+	moVideoSample* pTexSample = NULL;
 
     UpdateParameters();
 
@@ -1720,25 +1792,155 @@ void moTrackerKLT::Update(moEventList *Events)
 	}
 
 	actual = Events->First;
-	//Buscamos los eventos del VideoManager...samples... obsoleto, seran datos de Outlets e Inlets...
-	//Outlet de videomanager LIVEOUT0 a inlet de tracker
+
+
+	//moTexture* pTex = m_Config.Texture( moR( TRACKERKLT_TEXTURE ) );
+	moData* pTexData = m_Config[moR( TRACKERKLT_TEXTURE )].GetData();
+	moTexture* pTex = NULL;
+	moTextureFilter* pTexFilter = NULL;
+	if (pTexData) {
+
+            ///segun el modelo aplicamos...
+            pTexData->GetGLId();
+            moTexture*  pTexture = pTexData->Texture();
+            moMovie*  pMovie = NULL;
+
+            //int glid = m_Config.GetGLId( moR(TRACKERKLT_TEXTURE), (MOuint)0 );
+
+            if (pTexture) {
+              switch( pTexture->GetType() ) {
+                case MO_TYPE_MOVIE:
+                  pMovie = (moMovie*)pTexture;
+
+                  if (pMovie) {
+
+                    ///TODO: calculo de frame (solo si esta en modo VCR y en MO_PLAYMODE_TIMEBASE??)
+                    if (pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
+
+                        /// caso por Timer PAUSADO
+                        if (moTimeManager::MoldeoTimer->Paused()) {
+                          pMovie->Pause();
+                          MODebug2->Push("TRACKER PAUSE MOVIE!!");
+                        }
+                        /// caso por Timer PARADO (NOT STARTED)
+                        if (!moTimeManager::MoldeoTimer->Started()) {
+                          if (pMovie->IsPlaying()) {
+                            pMovie->Stop();
+                            MODebug2->Push("TRACKER STOP MOVIE!!");
+                          }
+                        }
+
+                       /// LOOP FORCED
+                        if (pMovie->IsEOS()) {
+                          pMovie->Pause();
+                          pMovie->Seek( 0, 1.0 );
+                          //MODebug2->Push("LOOP!!");
+                          MODebug2->Push("TRACKER LOOP MOVIE!!");
+                        }
+
+                        /// PLAY !!
+                        if (!pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+                          pMovie->Play();
+                          MODebug2->Push("TRACKER PLAY MOVIE!!");
+                        }
+
+
+                    }
+
+                    ///actualizamos el frame....
+                    if (pMovie->IsPlaying()) {
+                      int pos = pMovie->GetPosition();
+                      //MODebug2->Push("POS:"+IntToStr(pos) );
+                      pMovie->GetGLId((GLuint)pos);
+                    }
+
+
+                  } ///fin PELICULA (tratamiento)
+
+                  break;
+              }
+
+            }
+
+            switch(pTexData->Type()) {
+
+                case MO_DATA_IMAGESAMPLE:
+                    pTex = pTexData->Texture();
+                    break;
+
+                case MO_DATA_IMAGESAMPLE_FILTERED:
+                    pTex = pTexData->TextureDestination();
+                    break;
+
+            }
+
+            if (pTex) {
+
+                pTexSample = new moVideoSample();
+                if (pTexSample) {
+                    pTexSample->m_VideoFormat.m_Width = pTex->GetWidth();
+                    pTexSample->m_VideoFormat.m_Height = pTex->GetHeight();
+                    pTexSample->m_VideoFormat.m_BufferSize = pTex->GetWidth()*pTex->GetHeight()*3;
+
+                    pBucket = new moBucket();
+                    if (pBucket) {
+                        pBucket->BuildBucket( pTexSample->m_VideoFormat.m_BufferSize, 0);
+                        pTex->GetBuffer( (void*) pBucket->GetBuffer(), GL_RGB, GL_UNSIGNED_BYTE );
+                        ///asignamos el bucket al videosample
+                        pTexSample->m_pSampleBuffer = pBucket;
+
+                    }
+                }
+
+            }
+
+
+    }
+
+    if (pTexSample!=NULL) pSample = pTexSample;
+
+	///Buscamos los eventos del VideoManager...samples... obsoleto, seran datos de Outlets e Inlets...
+	///Outlet de videomanager LIVEOUT0 a inlet de tracker
+
+	///TODO: atencion: ya no trata varios datos por el mismo tracker, eso ya perdio sentido
+	///cada tracker debe procesar una sola señal o dos a lo sumo... para lo cual deberia definirse dos entradas de camaras....
 	while(actual!=NULL) {
 		//solo nos interesan los del VideoManager por ahora
 		if(actual->deviceid == m_pResourceManager->GetVideoMan()->GetId() ) {
 
-			pSample = (moVideoSample*)actual->pointer;
+		    /*
+			if (pSample==NULL)
+                pSample = (moVideoSample*)actual->pointer;
+            */
+
+            if (actual->devicecode < m_TrackerSystems.Count()) {
+
+            }
+
+			tmp = actual->next;
+			actual = tmp;
+		} else actual = actual->next;//no es el que necesitamos...
+	}
+
+
+    if (pSample) {
 
 			pBucket = (moBucket*)pSample->m_pSampleBuffer;
 
 			//atencion! el devicecode corresponde al  iesimo dispositivo de captura...
-			if ( actual->devicecode < m_TrackerSystems.Count() && pSample && pBucket && ( (m_SampleCounter % m_SampleRate)==0)) {
+			if ( pSample && pBucket && ( (m_SampleCounter % m_SampleRate)==0)) {
 
 				moTrackerKLTSystemPtr pTS=NULL;
 
 				//MODebug2->Push( moText("Counter:") + IntToStr(m_SampleCounter) );
                 ///el actual->devicecode, es un indice en este caso basado en 0, donde enviar
                 ///la camara q esta siendo tomada, a su vez tomada en 0 (el VideoSample)
-				pTS = m_TrackerSystems.Get( actual->devicecode );
+				if (actual) {
+                    pTS = m_TrackerSystems.Get( actual->devicecode );
+                } else {
+                    ///tomamos el primer dispositivo
+                    pTS = m_TrackerSystems.Get( 0 );
+                }
 				if ( pTS )
 					if (pTS->IsActive() ) {
 
@@ -1793,6 +1995,10 @@ void moTrackerKLT::Update(moEventList *Events)
 						///===============
 
 
+              moVideoSample* newSample = NULL;
+
+              ///VERSION CON TEXTURE:::
+              ///newSample
 
 							if ( pTS->Init(  num_feat,
                                         pSample,
@@ -1817,21 +2023,57 @@ void moTrackerKLT::Update(moEventList *Events)
                           TC->mindist = min_dist;
                           //TC->lighting_insensitive = light_sens;
                           //TC->sequentialMode = (int)diff_mode;
-  /*
-                          TC->borderx = borderx;//24
-                          TC->bordery = bordery;//24
-                          TC->nPyramidLevels = pyramid_levels;//2
-                          TC->subsampling = subsampling;//4
-                          TC->max_iterations = max_iterations;
+                          bool reset_tc = false;
 
-                          TC->window_width = window_width;//7
-                          TC->window_height = window_height;//7
-                          TC->min_displacement = min_displacement;//0.10000001
-                          TC->min_determinant = min_determinant;//0.0099999978
-                          TC->max_residue = max_residue;
-                          */
+                          reset_tc = reset_tc || ( TC->borderx != borderx );
+                          reset_tc = reset_tc || ( TC->bordery != bordery );//24
+                          reset_tc = reset_tc || ( TC->window_width != window_width);//7
+                          reset_tc = reset_tc || ( TC->window_height != window_height);//7
+                          reset_tc = reset_tc || ( TC->min_displacement != min_displacement);//0.10000001
+                          reset_tc = reset_tc || ( TC->min_determinant != min_determinant);//0.0099999978
+                          reset_tc = reset_tc || ( TC->max_residue != max_residue);
+
+                          bool reset_pyramid = false;
+
+                          reset_pyramid = reset_pyramid || ( TC->nPyramidLevels != pyramid_levels);//2
+                          reset_pyramid = reset_pyramid || ( TC->subsampling != subsampling);//4
+                          reset_pyramid = reset_pyramid || ( TC->max_iterations != max_iterations);
+
+                          if (reset_tc) {
+
+                            TC->borderx = borderx;//24
+                            TC->bordery = bordery;//24
+                            TC->window_width = window_width;//7
+                            TC->window_height = window_height;//7
+
+                            TC->min_displacement = min_displacement;//0.10000001
+                            TC->min_determinant = min_determinant;//0.0099999978
+                            TC->max_residue = max_residue;
+
+                            //KLTUpdateTCBorder(TC);
+
+                            MODebug2->Push("moTrackerKLT::Update > Updating tracking context");
+                            MODebug2->Push("moTrackerKLT::Update > TC->borderx : "+IntToStr(TC->borderx));
+                            MODebug2->Push("moTrackerKLT::Update > TC->bordery : "+IntToStr(TC->bordery));
+                            MODebug2->Push("moTrackerKLT::Update > TC->window_width : "+IntToStr(TC->window_width));
+                            MODebug2->Push("moTrackerKLT::Update > TC->window_height : "+IntToStr(TC->window_height));
+                            MODebug2->Push("moTrackerKLT::Update > TC->min_displacement : "+FloatToStr(TC->min_displacement));
+                            MODebug2->Push("moTrackerKLT::Update > TC->min_determinant : "+FloatToStr(TC->min_determinant));
+                            MODebug2->Push("moTrackerKLT::Update > TC->max_residue : "+FloatToStr(TC->max_residue));
+
+                          }
+
+                          if (reset_pyramid) {
+                            TC->nPyramidLevels = pyramid_levels;//2
+                            TC->subsampling = subsampling;//4
+                            TC->max_iterations = max_iterations;
+                            KLTChangeTCPyramid(TC,15);
+                          }
+
+
                         } else MODebug2->Error( moText("error TC (tracking context) is void") );
 
+                        ///version TUIO
                         pTS->min_segment_len = min_segment_len;
                         pTS->max_segment_len = max_segment_len;
 
@@ -1891,17 +2133,22 @@ void moTrackerKLT::Update(moEventList *Events)
 
             //MODebug2->Message( moText("outlet: ") + IntToStr( actual->devicecode ) + moText("n outlets:") + IntToStr( m_Outlets.Count() ) );
 
-						if ( actual->devicecode<m_Outlets.Count() && m_Outlets[actual->devicecode] ) {
-						  if ( m_Outlets[actual->devicecode]->GetData() && pTS->GetData()) {
-
-						    //MODebug2->Message( moText("TrackerKLT > Updating outlet: ") + IntToStr( actual->devicecode ) + moText("    n outlets:") + IntToStr( m_Outlets.Count() ) );
-
-                m_Outlets[actual->devicecode]->GetData()->SetPointer( (MOpointer)pTS->GetData(), sizeof(moTrackerSystemData) );
-                m_Outlets[actual->devicecode]->Update(); ///to notify Inlets!!
-              } else {
-                MODebug2->Error( moText("TrackerKLT::Update > Outlet unitiliazed i:")+IntToStr( actual->devicecode ) );
-              }
-            }
+                        if (actual) {
+                            if ( actual->devicecode<m_Outlets.Count() && m_Outlets[actual->devicecode] ) {
+                                if ( m_Outlets[actual->devicecode]->GetData() && pTS->GetData()) {
+                                    //MODebug2->Message( moText("TrackerKLT > Updating outlet: ") + IntToStr( actual->devicecode ) + moText("    n outlets:") + IntToStr( m_Outlets.Count() ) );
+                                    m_Outlets[actual->devicecode]->GetData()->SetPointer( (MOpointer)pTS->GetData(), sizeof(moTrackerSystemData) );
+                                    m_Outlets[actual->devicecode]->Update(); ///to notify Inlets!!
+                                  } else {
+                                    MODebug2->Error( moText("TrackerKLT::Update > Outlet unitiliazed i:")+IntToStr( actual->devicecode ) );
+                                  }
+                            }
+                        } else {
+                            if (m_Outlets.Count()>=1 && m_Outlets[0]) {
+                                m_Outlets[0]->GetData()->SetPointer( (MOpointer)pTS->GetData(), sizeof(moTrackerSystemData) );
+                                m_Outlets[0]->Update(); ///to notify Inlets!!
+                            }
+                        }
 
 
 
@@ -1921,10 +2168,15 @@ void moTrackerKLT::Update(moEventList *Events)
 
 					}
 			}
-			tmp = actual->next;
-			actual = tmp;
-		} else actual = actual->next;//no es el que necesitamos...
-	}
+
+    }
+
+    if (pTexSample) {
+        if (pBucket) {
+            delete pBucket;
+        }
+        delete pTexSample;
+    }
 
   ///Genera los mensajes necesarios para pasar los datos a otros objetos
 	moMoldeoObject::Update(Events);

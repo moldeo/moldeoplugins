@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -117,16 +117,9 @@ moKeyboard::Init() {
 	//KEYBOARD COMUN
 
 	//levantamos el config del keyboard
-	conf = m_pResourceManager->GetDataMan()->GetDataPath()+moText("/");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		text = moText("Couldn't load keyboard config");
-		MODebug2->Error(text);
-		return false;
-	}
-
-    moMoldeoObject::Init();
+  if (moMoldeoObject::Init()) {
+    moMoldeoObject::CreateConnectors();
+  } else return false;
 
 
 	//levantamos los codes definidos

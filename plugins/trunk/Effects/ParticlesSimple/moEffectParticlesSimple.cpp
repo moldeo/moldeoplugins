@@ -25,7 +25,7 @@
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+
 
 *******************************************************************************/
 
@@ -90,9 +90,14 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("folders"), MO_PARAM_TEXTUREFOLDER, PARTICLES_FOLDERS, moValue( "", "TXT") );
-	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM").Ref() );
+	/*moTextArray TOptions( 4,moText("Unit (full texture in each particle)"),
+                      moText("Patch (texture fragment in each particle)"),
+                                     moText("Many (full textures from texturefolder)"),
+                                     moText("Many 2 Patch (texture fragment from texturefolder - composition)") );
+                                     */
+	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM") );
 
-	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, PARTICLES_WIDTH, moValue( "9", "NUM") );
 	p_configdefinition->Add( moText("height"), MO_PARAM_NUMERIC, PARTICLES_HEIGHT, moValue( "9", "NUM") );
 
@@ -283,9 +288,6 @@ moEffectParticlesSimple::Init()
 	moDefineParamIndex( PARTICLES_OUTLET, moText("outlet") );
 
     m_Physics.m_ParticleScript = moText("");
-
-    InitScript();
-    RegisterFunctions();
 
     m_Rate = 0;
     last_tick = 0;
@@ -1985,7 +1987,7 @@ void moEffectParticlesSimple::TrackParticle( int partid ) {
     int j = 0;
     if (pPar) {
         //MODebug2->Push( moText("Pos:") + IntToStr(i) + moText(" J:") + IntToStr(j) + moText(" lum:") + IntToStr(lum) + moText(" lumindex:") + IntToStr(lumindex) + moText(" glid:") + IntToStr(pPar->GLId) + moText(" glid2:") + IntToStr(pPar->GLId2));
-        MODebug2->Push( moText("Pos X:") + IntToStr(pPar->Pos.X()) + moText(" Pos Y:") + IntToStr(pPar->Pos.Y()) + moText(" glid:") + IntToStr(pPar->GLId) + moText(" glid2:") + IntToStr(pPar->GLId2));
+        MODebug2->Push( moText("Pos X:") + FloatToStr(pPar->Pos.X()) + moText(" Pos Y:") + FloatToStr(pPar->Pos.Y()) + moText(" glid:") + IntToStr(pPar->GLId) + moText(" glid2:") + IntToStr(pPar->GLId2));
         MODebug2->Push( moText("X:") + FloatToStr(pPar->Pos3d.X()) + moText(" Y:") + FloatToStr(pPar->Pos3d.Y()) + moText(" Z:") + FloatToStr(pPar->Pos3d.Z()) );
         MODebug2->Push( moText("VX:") + FloatToStr(pPar->Velocity.X()) + moText(" VY:") + FloatToStr(pPar->Velocity.Y()) + moText(" VZ:") + FloatToStr(pPar->Velocity.Z()) );
         MODebug2->Push( moText("FX:") + FloatToStr(pPar->Force.X()) + moText(" FY:") + FloatToStr(pPar->Force.Y()) + moText(" FZ:") + FloatToStr(pPar->Force.Z()) );
