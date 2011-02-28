@@ -1884,6 +1884,7 @@ void moTrackerKLT::Update(moEventList *Events)
 
                     pBucket = new moBucket();
                     if (pBucket) {
+                        ///ATENCION!!! al hacer un BuildBucket, hay que hacer un EmptyBucket!!!
                         pBucket->BuildBucket( pTexSample->m_VideoFormat.m_BufferSize, 0);
                         pTex->GetBuffer( (void*) pBucket->GetBuffer(), GL_RGB, GL_UNSIGNED_BYTE );
                         ///asignamos el bucket al videosample
@@ -2173,6 +2174,7 @@ void moTrackerKLT::Update(moEventList *Events)
 
     if (pTexSample) {
         if (pBucket) {
+            pBucket->EmptyBucket();
             delete pBucket;
         }
         delete pTexSample;
