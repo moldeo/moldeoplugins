@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_lightpercussion.la
-libmod_lightpercussion_la_SOURCES = moEffectLightPercussion.cpp moEffectLightPercussion.h
-libmod_lightpercussion_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_lightpercussion_la_LDFLAGS =
-libmod_lightpercussion_la_LIBADD = 
-libmod_lightpercussion_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_lightpercussion.la
+libmoldeo_lightpercussion_la_SOURCES = moEffectLightPercussion.cpp moEffectLightPercussion.h
+libmoldeo_lightpercussion_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_lightpercussion_la_LDFLAGS =
+libmoldeo_lightpercussion_la_LIBADD = 
+libmoldeo_lightpercussion_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

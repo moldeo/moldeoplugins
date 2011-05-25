@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_imageflow.la
-libmod_imageflow_la_SOURCES = moEffectImageFlow.cpp moEffectImageFlow.h
-libmod_imageflow_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_imageflow_la_LDFLAGS =
-libmod_imageflow_la_LIBADD = 
-libmod_imageflow_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_imageflow.la
+libmoldeo_imageflow_la_SOURCES = moEffectImageFlow.cpp moEffectImageFlow.h
+libmoldeo_imageflow_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_imageflow_la_LDFLAGS =
+libmoldeo_imageflow_la_LIBADD = 
+libmoldeo_imageflow_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_mirror.la
-libmod_mirror_la_SOURCES = moPreEffectMirror.cpp moPreEffectMirror.h
-libmod_mirror_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_mirror_la_LDFLAGS =
-libmod_mirror_la_LIBADD = 
-libmod_mirror_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_mirror.la
+libmoldeo_mirror_la_SOURCES = moPreEffectMirror.cpp moPreEffectMirror.h
+libmoldeo_mirror_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_mirror_la_LDFLAGS =
+libmoldeo_mirror_la_LIBADD = 
+libmoldeo_mirror_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = preeffects
 datadir = ${prefix}/share/moldeo

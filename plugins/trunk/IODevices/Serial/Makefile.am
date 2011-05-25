@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_serial.la
-libmod_serial_la_SOURCES = moSerial.cpp moSerial.h
-libmod_serial_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_serial_la_LDFLAGS =
-libmod_serial_la_LIBADD = 
-libmod_serial_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_serial.la
+libmoldeo_serial_la_SOURCES = moSerial.cpp moSerial.h
+libmoldeo_serial_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_serial_la_LDFLAGS =
+libmoldeo_serial_la_LIBADD = 
+libmoldeo_serial_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

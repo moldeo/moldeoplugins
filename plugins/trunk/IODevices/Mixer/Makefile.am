@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_mixer.la
-libmod_mixer_la_SOURCES = moMixer.cpp moMixer.h
-libmod_mixer_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_mixer_la_LDFLAGS =
-libmod_mixer_la_LIBADD = 
-libmod_mixer_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_mixer.la
+libmoldeo_mixer_la_SOURCES = moMixer.cpp moMixer.h
+libmoldeo_mixer_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_mixer_la_LDFLAGS =
+libmoldeo_mixer_la_LIBADD = 
+libmoldeo_mixer_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_calibrationgrid.la
-libmod_calibrationgrid_la_SOURCES = moCalibrationGrid.cpp moCalibrationGrid.h
-libmod_calibrationgrid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_calibrationgrid_la_LDFLAGS =
-libmod_calibrationgrid_la_LIBADD = 
-libmod_calibrationgrid_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_calibrationgrid.la
+libmoldeo_calibrationgrid_la_SOURCES = moCalibrationGrid.cpp moCalibrationGrid.h
+libmoldeo_calibrationgrid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_calibrationgrid_la_LDFLAGS =
+libmoldeo_calibrationgrid_la_LIBADD = 
+libmoldeo_calibrationgrid_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = posteffects
 datadir = ${prefix}/share/moldeo

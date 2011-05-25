@@ -1,0 +1,16 @@
+usr/lib
+usr/lib/moldeo
+usr/lib/moldeo/preeffects
+usr/lib/moldeo/effects
+usr/lib/moldeo/posteffects
+usr/lib/moldeo/mastereffects
+usr/lib/moldeo/iodevices
+usr/lib/moldeo/resources
+usr/include
+usr/include/moldeo
+usr/include/moldeo/preeffects
+usr/include/moldeo/effects
+usr/include/moldeo/posteffects
+usr/include/moldeo/mastereffects
+usr/include/moldeo/iodevices
+usr/include/moldeo/resources

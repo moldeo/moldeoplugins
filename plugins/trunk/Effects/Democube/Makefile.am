@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_democube.la
-libmod_democube_la_SOURCES = moEffectDemocube.cpp
-libmod_democube_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_democube_la_LDFLAGS =
-libmod_democube_la_LIBADD = 
-libmod_democube_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_democube.la
+libmoldeo_democube_la_SOURCES = moEffectDemocube.cpp
+libmoldeo_democube_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_democube_la_LDFLAGS =
+libmoldeo_democube_la_LIBADD = 
+libmoldeo_democube_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

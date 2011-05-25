@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_trackergpuklt2.la
-libmod_trackergpuklt2_la_SOURCES = moTrackerGpuKLT2.cpp moTrackerGpuKLT2.h
-libmod_trackergpuklt2_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_trackergpuklt2_la_LDFLAGS =
-libmod_trackergpuklt2_la_LIBADD = 
-libmod_trackergpuklt2_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_trackergpuklt2.la
+libmoldeo_trackergpuklt2_la_SOURCES = moTrackerGpuKLT2.cpp moTrackerGpuKLT2.h
+libmoldeo_trackergpuklt2_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_trackergpuklt2_la_LDFLAGS =
+libmoldeo_trackergpuklt2_la_LIBADD = 
+libmoldeo_trackergpuklt2_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = resources
 datadir = ${prefix}/share/moldeo

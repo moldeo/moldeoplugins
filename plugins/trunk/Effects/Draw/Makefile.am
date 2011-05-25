@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_draw.la
-libmod_draw_la_SOURCES = moEffectDraw.cpp moEffectDraw.h
-libmod_draw_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_draw_la_LDFLAGS =
-libmod_draw_la_LIBADD = 
-libmod_draw_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_draw.la
+libmoldeo_draw_la_SOURCES = moEffectDraw.cpp moEffectDraw.h
+libmoldeo_draw_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_draw_la_LDFLAGS =
+libmoldeo_draw_la_LIBADD = 
+libmoldeo_draw_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

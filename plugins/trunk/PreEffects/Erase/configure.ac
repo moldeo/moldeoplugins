@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Erase], [0.7], [info@moldeointeractive.com.ar], [erase])
+AC_INIT([Erase], [0.7.9.2], [info@moldeointeractive.com.ar], [erase])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_sound.la
-libmod_sound_la_SOURCES = moEffectSound.cpp moEffectSound.h
-libmod_sound_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_sound_la_LDFLAGS =
-libmod_sound_la_LIBADD = 
-libmod_sound_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_sound.la
+libmoldeo_sound_la_SOURCES = moEffectSound.cpp moEffectSound.h
+libmoldeo_sound_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_sound_la_LDFLAGS =
+libmoldeo_sound_la_LIBADD = 
+libmoldeo_sound_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

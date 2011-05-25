@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_mirrormorphing.la
-libmod_mirrormorphing_la_SOURCES = moPreEffectMirrorMorphing.cpp moPreEffectMirrorMorphing.h
-libmod_mirrormorphing_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_mirrormorphing_la_LDFLAGS =
-libmod_mirrormorphing_la_LIBADD = 
-libmod_mirrormorphing_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_mirrormorphing.la
+libmoldeo_mirrormorphing_la_SOURCES = moPreEffectMirrorMorphing.cpp moPreEffectMirrorMorphing.h
+libmoldeo_mirrormorphing_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_mirrormorphing_la_LDFLAGS =
+libmoldeo_mirrormorphing_la_LIBADD = 
+libmoldeo_mirrormorphing_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = preeffects
 datadir = ${prefix}/share/moldeo

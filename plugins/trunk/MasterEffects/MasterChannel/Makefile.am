@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_masterchannel.la
-libmod_masterchannel_la_SOURCES = moMasterEffectMasterChannel.cpp moMasterEffectMasterChannel.h
-libmod_masterchannel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_masterchannel_la_LDFLAGS =
-libmod_masterchannel_la_LIBADD = 
-libmod_masterchannel_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_masterchannel.la
+libmoldeo_masterchannel_la_SOURCES = moMasterEffectMasterChannel.cpp moMasterEffectMasterChannel.h
+libmoldeo_masterchannel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_masterchannel_la_LDFLAGS =
+libmoldeo_masterchannel_la_LIBADD = 
+libmoldeo_masterchannel_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = mastereffects
 datadir = ${prefix}/share/moldeo

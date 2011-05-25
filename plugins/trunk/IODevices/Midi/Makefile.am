@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_midi.la
-libmod_midi_la_SOURCES = moMidi.cpp moMidi.h
-libmod_midi_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_midi_la_LDFLAGS =
-libmod_midi_la_LIBADD = 
-libmod_midi_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_midi.la
+libmoldeo_midi_la_SOURCES = moMidi.cpp moMidi.h
+libmoldeo_midi_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_midi_la_LDFLAGS =
+libmoldeo_midi_la_LIBADD = 
+libmoldeo_midi_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

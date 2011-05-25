@@ -1,5 +1,5 @@
-lib_LTLIBRARIES = libmod_netoscout.la
-libmod_netoscout_la_SOURCES = ip/IpEndpointName.cpp\
+lib_LTLIBRARIES = libmoldeo_netoscout.la
+libmoldeo_netoscout_la_SOURCES = ip/IpEndpointName.cpp\
 ip/IpEndpointName.h\
 ip/NetworkingUtils.h\
 ip/PacketListener.h\
@@ -21,10 +21,10 @@ OscReceivedElements.cpp\
 OscReceivedElements.h\
 OscTypes.cpp\
 OscTypes.h
-libmod_netoscout_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1
-libmod_netoscout_la_LDFLAGS =
-libmod_netoscout_la_LIBADD = 
-libmod_netoscout_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_netoscout_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1
+libmoldeo_netoscout_la_LDFLAGS =
+libmoldeo_netoscout_la_LIBADD = 
+libmoldeo_netoscout_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

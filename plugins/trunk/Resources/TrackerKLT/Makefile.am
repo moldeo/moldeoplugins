@@ -1,5 +1,5 @@
-lib_LTLIBRARIES = libmod_trackerklt.la
-libmod_trackerklt_la_SOURCES = moTrackerKLT.cpp \
+lib_LTLIBRARIES = libmoldeo_trackerklt.la
+libmoldeo_trackerklt_la_SOURCES = moTrackerKLT.cpp \
 moTrackerKLT.h \
 klt/base.h\
 klt/convolve.c\
@@ -19,11 +19,11 @@ klt/storeFeatures.c\
 klt/trackFeatures.c\
 klt/writeFeatures.c
 
-libmod_trackerklt_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} \
+libmoldeo_trackerklt_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} \
 	-I ./klt
-libmod_trackerklt_la_LDFLAGS =
-libmod_trackerklt_la_LIBADD = 
-libmod_trackerklt_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_trackerklt_la_LDFLAGS =
+libmoldeo_trackerklt_la_LIBADD = 
+libmoldeo_trackerklt_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = resources
 datadir = ${prefix}/share/moldeo

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_ligia.la
-libmod_ligia_la_SOURCES = moMasterEffectLigia.cpp moMasterEffectLigia.h
-libmod_ligia_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_ligia_la_LDFLAGS =
-libmod_ligia_la_LIBADD = 
-libmod_ligia_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_ligia.la
+libmoldeo_ligia_la_SOURCES = moMasterEffectLigia.cpp moMasterEffectLigia.h
+libmoldeo_ligia_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_ligia_la_LDFLAGS =
+libmoldeo_ligia_la_LIBADD = 
+libmoldeo_ligia_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = mastereffects
 datadir = ${prefix}/share/moldeo

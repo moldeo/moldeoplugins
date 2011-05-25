@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_tablet.la
-libmod_tablet_la_SOURCES = moTablet.cpp moTablet.h
-libmod_tablet_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_tablet_la_LDFLAGS =
-libmod_tablet_la_LIBADD = 
-libmod_tablet_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_tablet.la
+libmoldeo_tablet_la_SOURCES = moTablet.cpp moTablet.h
+libmoldeo_tablet_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_tablet_la_LDFLAGS =
+libmoldeo_tablet_la_LIBADD = 
+libmoldeo_tablet_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

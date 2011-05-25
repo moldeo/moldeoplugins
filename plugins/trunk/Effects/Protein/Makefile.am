@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_protein.la
-libmod_protein_la_SOURCES = moEffectProtein.cpp moEffectProtein.h
-libmod_protein_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_protein_la_LDFLAGS =
-libmod_protein_la_LIBADD = 
-libmod_protein_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_protein.la
+libmoldeo_protein_la_SOURCES = moEffectProtein.cpp moEffectProtein.h
+libmoldeo_protein_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_protein_la_LDFLAGS =
+libmoldeo_protein_la_LIBADD = 
+libmoldeo_protein_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

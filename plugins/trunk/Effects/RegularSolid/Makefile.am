@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_regularsolid.la
-libmod_regularsolid_la_SOURCES = moEffectRegularSolid.cpp moEffectRegularSolid.h
-libmod_regularsolid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_regularsolid_la_LDFLAGS =
-libmod_regularsolid_la_LIBADD = 
-libmod_regularsolid_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_regularsolid.la
+libmoldeo_regularsolid_la_SOURCES = moEffectRegularSolid.cpp moEffectRegularSolid.h
+libmoldeo_regularsolid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_regularsolid_la_LDFLAGS =
+libmoldeo_regularsolid_la_LIBADD = 
+libmoldeo_regularsolid_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

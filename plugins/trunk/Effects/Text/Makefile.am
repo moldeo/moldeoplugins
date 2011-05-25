@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_text.la
-libmod_text_la_SOURCES = moEffectText.cpp moEffectText.h
-libmod_text_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_text_la_LDFLAGS =
-libmod_text_la_LIBADD = 
-libmod_text_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_text.la
+libmoldeo_text_la_SOURCES = moEffectText.cpp moEffectText.h
+libmoldeo_text_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_text_la_LDFLAGS =
+libmoldeo_text_la_LIBADD = 
+libmoldeo_text_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

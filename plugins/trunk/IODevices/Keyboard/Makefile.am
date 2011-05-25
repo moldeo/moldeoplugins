@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_keyboard.la
-libmod_keyboard_la_SOURCES = moKeyboard.cpp moKeyboard.h
-libmod_keyboard_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_keyboard_la_LDFLAGS =
-libmod_keyboard_la_LIBADD = 
-libmod_keyboard_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_keyboard.la
+libmoldeo_keyboard_la_SOURCES = moKeyboard.cpp moKeyboard.h
+libmoldeo_keyboard_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_keyboard_la_LDFLAGS =
+libmoldeo_keyboard_la_LIBADD = 
+libmoldeo_keyboard_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

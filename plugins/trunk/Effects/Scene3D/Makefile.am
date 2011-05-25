@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_scene3d.la
-libmod_scene3d_la_SOURCES = moEffectScene3D.cpp moEffectScene3D.h
-libmod_scene3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_scene3d_la_LDFLAGS =
-libmod_scene3d_la_LIBADD = 
-libmod_scene3d_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_scene3d.la
+libmoldeo_scene3d_la_SOURCES = moEffectScene3D.cpp moEffectScene3D.h
+libmoldeo_scene3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_scene3d_la_LDFLAGS =
+libmoldeo_scene3d_la_LIBADD = 
+libmoldeo_scene3d_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_image.la
-libmod_image_la_SOURCES = moEffectImage.cpp moEffectImage.h
-libmod_image_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_image_la_LDFLAGS =
-libmod_image_la_LIBADD = 
-libmod_image_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_image.la
+libmoldeo_image_la_SOURCES = moEffectImage.cpp moEffectImage.h
+libmoldeo_image_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_image_la_LDFLAGS =
+libmoldeo_image_la_LIBADD = 
+libmoldeo_image_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo
