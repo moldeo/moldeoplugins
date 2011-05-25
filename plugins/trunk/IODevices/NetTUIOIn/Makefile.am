@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_nettuioin.la
-libmod_nettuioin_la_SOURCES = moNetTUIOIn.cpp moNetTUIOIn.h
-libmod_nettuioin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_nettuioin_la_LDFLAGS =
-libmod_nettuioin_la_LIBADD = 
-libmod_nettuioin_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_nettuioin.la
+libmoldeo_nettuioin_la_SOURCES = moNetTUIOIn.cpp moNetTUIOIn.h
+libmoldeo_nettuioin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_nettuioin_la_LDFLAGS =
+libmoldeo_nettuioin_la_LIBADD = 
+libmoldeo_nettuioin_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

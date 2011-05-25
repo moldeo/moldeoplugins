@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_lights.la
-libmod_lights_la_SOURCES = moEffectLights.cpp moEffectLights.h
-libmod_lights_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_lights_la_LDFLAGS =
-libmod_lights_la_LIBADD = 
-libmod_lights_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_lights.la
+libmoldeo_lights_la_SOURCES = moEffectLights.cpp moEffectLights.h
+libmoldeo_lights_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_lights_la_LDFLAGS =
+libmoldeo_lights_la_LIBADD = 
+libmoldeo_lights_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

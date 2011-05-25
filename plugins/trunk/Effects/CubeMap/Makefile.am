@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_cubemap.la
-libmod_cubemap_la_SOURCES = moEffectCubeMap.cpp moEffectCubeMap.h
-libmod_cubemap_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_cubemap_la_LDFLAGS =
-libmod_cubemap_la_LIBADD = 
-libmod_cubemap_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_cubemap.la
+libmoldeo_cubemap_la_SOURCES = moEffectCubeMap.cpp moEffectCubeMap.h
+libmoldeo_cubemap_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_cubemap_la_LDFLAGS =
+libmoldeo_cubemap_la_LIBADD = 
+libmoldeo_cubemap_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

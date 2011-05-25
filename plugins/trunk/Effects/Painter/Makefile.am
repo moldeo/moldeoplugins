@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_painter.la
-libmod_painter_la_SOURCES = moEffectPainter.cpp moEffectPainter.h
-libmod_painter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_painter_la_LDFLAGS =
-libmod_painter_la_LIBADD = 
-libmod_painter_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_painter.la
+libmoldeo_painter_la_SOURCES = moEffectPainter.cpp moEffectPainter.h
+libmoldeo_painter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_painter_la_LDFLAGS =
+libmoldeo_painter_la_LIBADD = 
+libmoldeo_painter_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

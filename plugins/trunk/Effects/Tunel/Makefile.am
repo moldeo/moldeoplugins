@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_tunel.la
-libmod_tunel_la_SOURCES = moEffectTunel.cpp moEffectTunel.h
-libmod_tunel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_tunel_la_LDFLAGS =
-libmod_tunel_la_LIBADD = 
-libmod_tunel_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_tunel.la
+libmoldeo_tunel_la_SOURCES = moEffectTunel.cpp moEffectTunel.h
+libmoldeo_tunel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_tunel_la_LDFLAGS =
+libmoldeo_tunel_la_LIBADD = 
+libmoldeo_tunel_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

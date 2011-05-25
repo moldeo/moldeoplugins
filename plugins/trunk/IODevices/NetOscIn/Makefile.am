@@ -1,5 +1,5 @@
-lib_LTLIBRARIES = libmod_netoscin.la
-libmod_netoscin_la_SOURCES = ip/IpEndpointName.h\
+lib_LTLIBRARIES = libmoldeo_netoscin.la
+libmoldeo_netoscin_la_SOURCES = ip/IpEndpointName.h\
 ip/NetworkingUtils.h\
 ip/PacketListener.h\
 ip/TimerListener.h\
@@ -21,11 +21,11 @@ OscTypes.h\
 ip/posix/NetworkingUtils.cpp\
 ip/posix/UdpSocket.cpp
 
-libmod_netoscin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1
+libmoldeo_netoscin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1
 
-libmod_netoscin_la_LDFLAGS =
-libmod_netoscin_la_LIBADD = 
-libmod_netoscin_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_netoscin_la_LDFLAGS =
+libmoldeo_netoscin_la_LIBADD = 
+libmoldeo_netoscin_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices
 datadir = ${prefix}/share/moldeo

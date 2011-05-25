@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_livedrawing2.la
-libmod_livedrawing2_la_SOURCES = moEffectLiveDrawing2.cpp moEffectLiveDrawing2.h
-libmod_livedrawing2_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_livedrawing2_la_LDFLAGS =
-libmod_livedrawing2_la_LIBADD = 
-libmod_livedrawing2_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_livedrawing2.la
+libmoldeo_livedrawing2_la_SOURCES = moEffectLiveDrawing2.cpp moEffectLiveDrawing2.h
+libmoldeo_livedrawing2_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_livedrawing2_la_LDFLAGS =
+libmoldeo_livedrawing2_la_LIBADD = 
+libmoldeo_livedrawing2_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

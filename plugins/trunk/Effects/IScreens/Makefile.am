@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_iscreens.la
-libmod_iscreens_la_SOURCES = moEffectIScreens.cpp
-libmod_iscreens_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_iscreens_la_LDFLAGS =
-libmod_iscreens_la_LIBADD = 
-libmod_iscreens_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_iscreens.la
+libmoldeo_iscreens_la_SOURCES = moEffectIScreens.cpp
+libmoldeo_iscreens_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_iscreens_la_LDFLAGS =
+libmoldeo_iscreens_la_LIBADD = 
+libmoldeo_iscreens_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

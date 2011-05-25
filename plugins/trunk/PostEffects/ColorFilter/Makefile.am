@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_colorfilter.la
-libmod_colorfilter_la_SOURCES = moPostEffectColorFilter.cpp moPostEffectColorFilter.h
-libmod_colorfilter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_colorfilter_la_LDFLAGS =
-libmod_colorfilter_la_LIBADD = 
-libmod_colorfilter_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_colorfilter.la
+libmoldeo_colorfilter_la_SOURCES = moPostEffectColorFilter.cpp moPostEffectColorFilter.h
+libmoldeo_colorfilter_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_colorfilter_la_LDFLAGS =
+libmoldeo_colorfilter_la_LIBADD = 
+libmoldeo_colorfilter_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = posteffects
 datadir = ${prefix}/share/moldeo

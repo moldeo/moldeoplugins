@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_icon3d.la
-libmod_icon3d_la_SOURCES = moEffectIcon3D.cpp moEffectIcon3D.h
-libmod_icon3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_icon3d_la_LDFLAGS =
-libmod_icon3d_la_LIBADD = 
-libmod_icon3d_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_icon3d.la
+libmoldeo_icon3d_la_SOURCES = moEffectIcon3D.cpp moEffectIcon3D.h
+libmoldeo_icon3d_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_icon3d_la_LDFLAGS =
+libmoldeo_icon3d_la_LIBADD = 
+libmoldeo_icon3d_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

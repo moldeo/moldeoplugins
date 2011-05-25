@@ -1,0 +1,13 @@
+usr/lib/moldeo/preeffects/lib*.so.*
+usr/lib/moldeo/effects/lib*.so.*
+usr/lib/moldeo/posteffects/lib*.so.*
+usr/lib/moldeo/mastereffects/lib*.so.*
+usr/lib/moldeo/iodevices/lib*.so.*
+usr/lib/moldeo/resources/lib*.so.*
+usr/lib/moldeo/preeffects/lib*.so
+usr/lib/moldeo/effects/lib*.so
+usr/lib/moldeo/posteffects/lib*.so
+usr/lib/moldeo/mastereffects/lib*.so
+usr/lib/moldeo/iodevices/lib*.so
+usr/lib/moldeo/resources/lib*.so
+

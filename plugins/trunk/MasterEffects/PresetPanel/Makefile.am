@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_presetpanel.la
-libmod_presetpanel_la_SOURCES = moMasterEffectPresetPanel.cpp moMasterEffectPresetPanel.h
-libmod_presetpanel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_presetpanel_la_LDFLAGS =
-libmod_presetpanel_la_LIBADD = 
-libmod_presetpanel_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_presetpanel.la
+libmoldeo_presetpanel_la_SOURCES = moMasterEffectPresetPanel.cpp moMasterEffectPresetPanel.h
+libmoldeo_presetpanel_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_presetpanel_la_LDFLAGS =
+libmoldeo_presetpanel_la_LIBADD = 
+libmoldeo_presetpanel_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = mastereffects
 datadir = ${prefix}/share/moldeo

@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_movie.la
-libmod_movie_la_SOURCES = moEffectMovie.cpp moEffectMovie.h
-libmod_movie_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_movie_la_LDFLAGS =
-libmod_movie_la_LIBADD = 
-libmod_movie_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_movie.la
+libmoldeo_movie_la_SOURCES = moEffectMovie.cpp moEffectMovie.h
+libmoldeo_movie_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_movie_la_LDFLAGS =
+libmoldeo_movie_la_LIBADD = 
+libmoldeo_movie_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

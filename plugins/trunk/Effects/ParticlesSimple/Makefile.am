@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_particlessimple.la
-libmod_particlessimple_la_SOURCES = moEffectParticlesSimple.cpp moEffectParticlesSimple.h
-libmod_particlessimple_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_particlessimple_la_LDFLAGS =
-libmod_particlessimple_la_LIBADD = 
-libmod_particlessimple_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_particlessimple.la
+libmoldeo_particlessimple_la_SOURCES = moEffectParticlesSimple.cpp moEffectParticlesSimple.h
+libmoldeo_particlessimple_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_particlessimple_la_LDFLAGS =
+libmoldeo_particlessimple_la_LIBADD = 
+libmoldeo_particlessimple_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

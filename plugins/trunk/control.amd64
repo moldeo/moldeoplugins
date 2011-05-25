@@ -1,0 +1,24 @@
+Source: moldeoplugins
+Priority: extra
+Maintainer: Fabricio Costa <fabricio.costa@moldeointeractive.com.ar>
+Build-Depends: debhelper (>= 7.0.50~), autotools-dev
+Standards-Version: 3.8.4
+Section: libs
+Homepage: http:\\www.moldeo.org
+#Vcs-Git: git://git.debian.org/collab-maint/moldeoplugins.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/moldeoplugins.git;a=summary
+
+Package: moldeoplugins-dev
+Section: libdevel
+Architecture: amd64
+Depends: moldeoplugins1 (= ${binary:Version})
+Description: Moldeo Plugins Headers
+ Moldeo Plugins Headers
+
+Package: moldeoplugins1
+Section: libs
+Architecture: amd64
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Moldeo Plugins
+ Moldeo Plugins
+

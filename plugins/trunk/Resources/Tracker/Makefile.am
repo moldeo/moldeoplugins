@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_tracker.la
-libmod_tracker_la_SOURCES = moTracker.cpp moTracker.h
-libmod_tracker_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_tracker_la_LDFLAGS =
-libmod_tracker_la_LIBADD = 
-libmod_tracker_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_tracker.la
+libmoldeo_tracker_la_SOURCES = moTracker.cpp moTracker.h
+libmoldeo_tracker_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_tracker_la_LDFLAGS =
+libmoldeo_tracker_la_LIBADD = 
+libmoldeo_tracker_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = resources
 datadir = ${prefix}/share/moldeo

@@ -737,6 +737,7 @@ void moEffectLiveDrawing2::initShaders()
 		line_shader = -1;
 	}
 	shaded = false;
+
 }
 
 void moEffectLiveDrawing2::initScripts()

@@ -1,5 +1,5 @@
-lib_LTLIBRARIES = libmod_grid.la
-libmod_grid_la_SOURCES = moEffectGrid.cpp moEffectGrid.h \
+lib_LTLIBRARIES = libmoldeo_grid.la
+libmoldeo_grid_la_SOURCES = moEffectGrid.cpp moEffectGrid.h \
 supereg/pcx.cpp \
 supereg/pcx.h \
 supereg/sup3d.cpp \
@@ -22,10 +22,10 @@ supereg/tmotor.h \
 supereg/trdrmap.cpp \
 supereg/trdrmap.h
 
-libmod_grid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./supereg
-libmod_grid_la_LDFLAGS =
-libmod_grid_la_LIBADD = 
-libmod_grid_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_grid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./supereg
+libmoldeo_grid_la_LDFLAGS =
+libmoldeo_grid_la_LIBADD = 
+libmoldeo_grid_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

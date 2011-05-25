@@ -1,9 +1,9 @@
-lib_LTLIBRARIES = libmod_debug.la
-libmod_debug_la_SOURCES = moPostEffectDebug.cpp moPostEffectDebug.h
-libmod_debug_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmod_debug_la_LDFLAGS =
-libmod_debug_la_LIBADD = 
-libmod_debug_la_LIBS = ${LIBMOLDEO_LIBS}
+lib_LTLIBRARIES = libmoldeo_debug.la
+libmoldeo_debug_la_SOURCES = moPostEffectDebug.cpp moPostEffectDebug.h
+libmoldeo_debug_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
+libmoldeo_debug_la_LDFLAGS =
+libmoldeo_debug_la_LIBADD = 
+libmoldeo_debug_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = posteffects
 datadir = ${prefix}/share/moldeo
