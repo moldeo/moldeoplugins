@@ -1,0 +1,4 @@
+usr/include/moldeo/preeffects/erase/*
+usr/lib/moldeo/preeffects/lib*.a
+usr/lib/moldeo/preeffects/lib*.so
+usr/lib/moldeo/preeffects/*.la
