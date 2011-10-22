@@ -10,11 +10,5 @@ usr/lib/moldeo/posteffects/lib*.la
 usr/lib/moldeo/mastereffects/lib*.la
 usr/lib/moldeo/iodevices/lib*.la
 usr/lib/moldeo/resources/lib*.la
-usr/lib/moldeo/preeffects/lib*.so
-usr/lib/moldeo/effects/lib*.so
-usr/lib/moldeo/posteffects/lib*.so
-usr/lib/moldeo/mastereffects/lib*.so
-usr/lib/moldeo/iodevices/lib*.so
-usr/lib/moldeo/resources/lib*.so
 usr/include/moldeo/preeffects/*
 
