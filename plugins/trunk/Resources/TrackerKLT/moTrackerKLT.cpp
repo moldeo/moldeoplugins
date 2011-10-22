@@ -86,7 +86,7 @@ void moTrackerKLTFactory::Destroy(moResource* fx) {
 moTrackerKLTSystem::moTrackerKLTSystem()
 {
     m_pTrackerSystemData = NULL;
-    m_pTrackerSystemData = new moTrackerSystemData(12,3);
+    m_pTrackerSystemData = new moTrackerSystemData(4,4,12,3);
 
     m_LiveOut = "";
     m_pTextureOut = NULL;
@@ -821,6 +821,7 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
 
   float vel=0.0,acc=0.0,tor=0.0;
   float velAverage = 0.0, accAverage =0.0, torAverage=0.0;
+  moVector2f velAverage_v(0,0);
   m_pTrackerSystemData->nPares = 0;
 
 	for(int i=0; i<m_fl->nFeatures; i++ ) {
@@ -987,6 +988,8 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
               velAverage+= vel;
               accAverage+= acc;
               torAverage+= tor;
+              velAverage_v+= moVector2f( fabs(TF->v_x), fabs(TF->v_y) );
+
 
               if ( vel >= 0.001 && vel <=0.05 ) m_pTrackerSystemData->SetMotionMatrix( TF->x, TF->y, 1 );
               if ( acc >= 0.001 ) m_pTrackerSystemData->SetAccelerationMatrix( TF->x, TF->y, 1 );
@@ -1340,6 +1343,7 @@ if ( m_pTUIOSystemData ) {
         velAverage = velAverage / (float)sumN;
         accAverage = accAverage / (float)sumN;
         torAverage = torAverage / (float)sumN;
+        velAverage_v = velAverage_v * 1.0f / (float)sumN;
 
         m_pTrackerSystemData->SetAbsoluteSpeedAverage( velAverage );
         m_pTrackerSystemData->SetAbsoluteAccelerationAverage( accAverage );
@@ -1360,8 +1364,13 @@ if ( m_pTUIOSystemData ) {
                 }
             }
         }
-        m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
+        //m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
+        m_pTrackerSystemData->SetVariance( velAverage_v.X(), velAverage_v.Y() );
 
+        /*
+        MODebug2->Push( moText("TrackerKLT: varX: ") + FloatToStr( m_pTrackerSystemData->GetVariance().X())
+                       + moText(" varY: ") + FloatToStr(m_pTrackerSystemData->GetVariance().Y()) );
+                       */
 
         ///CALCULATE CIRCULAR MATRIX
         for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
