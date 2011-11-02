@@ -1,0 +1,3 @@
+For testing module on an official Moldeo system installation:
+
+./configure --prefix=/usr
