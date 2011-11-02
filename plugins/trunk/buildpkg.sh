@@ -63,9 +63,12 @@ echo "extracting..."
 echo " 
 Now execute in deb folder:
  cd deb/moldeoplugins-*
- dh_make -m -e fabricio.costa@moldeointeractive.com.ar
+ dh_make -l -e fabricio.costa@moldeointeractive.com.ar -p moldeoplugins
  cp ../../control.amd64 debian/control
  cp ../../rules.amd64 debian/rules
+ cp ../../moldeoplugins1.dirs.amd64 debian/moldeoplugins.dirs 
+ cp ../../moldeoplugins1.install.amd64 debian/moldeoplugins.install
+ cp ../../moldeoplugins-dev.dirs.amd64 debian/moldeoplugins-dev.dirs
  cp ../../moldeoplugins-dev.install.amd64 debian/moldeoplugins-dev.install
  vi debian/changelog
  dpkg-buildpackage -us -uc -rfakeroot 2>&1 | tee ../../buildpkg_logs.txt
