@@ -11,11 +11,11 @@ Homepage: http:\\www.moldeo.org
 Package: moldeoplugins-dev
 Section: libdevel
 Architecture: amd64
-Depends: moldeoplugins1 (= ${binary:Version})
+Depends: moldeoplugins (= ${binary:Version})
 Description: Moldeo Plugins Headers
  Moldeo Plugins Headers
 
-Package: moldeoplugins1
+Package: moldeoplugins
 Section: libs
 Architecture: amd64
 Depends: ${shlibs:Depends}, ${misc:Depends}
