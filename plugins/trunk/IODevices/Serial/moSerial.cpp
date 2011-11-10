@@ -119,22 +119,11 @@ MOboolean moSerial::Init()
 
     bInited = false;
 
-    // Loading config file.
-	conf = m_pResourceManager->GetDataMan()->GetDataPath() + moText("\\");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		moText text = "Couldn't load serial config";
-		MODebug2->Push(text);
-		return false;
-	}
-
-
     enumerateDevices();
 
-
-	moMoldeoObject::Init();
+    if (moMoldeoObject::Init()) {
+        moMoldeoObject::CreateConnectors();
+    } else return false;
 
 	moDefineParamIndex( SERIAL_PORT, moText("port") );
 	moDefineParamIndex( SERIAL_BAUD, moText("baud") );
@@ -143,12 +132,19 @@ MOboolean moSerial::Init()
     //setup(  );
     //trying to catch :
     //
-    if (setup( (char*)m_Config[moText("port")][MO_SELECTED][0].Text(), m_Config[moText("baud")][MO_SELECTED][0].Int())) {
+    moText port;
+    int baud;
 
-        MODebug2->Message(moText("Setting up device success!!") +  moText("port: ") + m_Config[moR(SERIAL_PORT)][MO_SELECTED][0].Text() + moText(" baud: ") + IntToStr(m_Config[moR(SERIAL_BAUD)][MO_SELECTED][0].Int()) );
+    port = m_Config.Text( moR(SERIAL_PORT) );
+    baud = m_Config.Int( moR(SERIAL_BAUD) );
 
+    if ( setup( (char*)port, baud ) )  {
+        MODebug2->Message(  moText("Setting up device success!!") +
+                            moText("port: ") + port +
+                            moText(" baud: ") + IntToStr(baud) );
     } else {
-        MODebug2->Error( moText("Error in moSerial!! port: ") + m_Config[moText("port")][MO_SELECTED][0].Text() + moText(" baud: ") + IntToStr(m_Config[moText("baud")][MO_SELECTED][0].Int()));
+        MODebug2->Error(    moText("Error in moSerial!! port: ") + port +
+                            moText(" baud: ") + IntToStr(baud) );
     }
 
 
@@ -768,15 +764,74 @@ moSerial::Update(moEventList *Events) {
 	//borrando aquellos que ya usamos
 	while(actual!=NULL) {
 		//solo nos interesan los del serial q nosotros mismos generamos, para destruirlos
-		if(actual->deviceid == this->GetId()) {
+		MODebug2->Push( moText("thisID:")
+                    + IntToStr(   moMoldeoObject::GetId() )
+                    + moText("event deviceid:")
+                    + IntToStr(actual->deviceid)
+                    + moText( " devicecode:" )
+                    + IntToStr(actual->devicecode)
+                 );
+
+		if(actual->deviceid == moMoldeoObject::GetId() ) {
 			//ya usado lo borramos de la lista
 			tmp = actual->next;
+
+			if (actual->devicecode ==  77777 ) {
+			    //escribir al puerto
+                //writeByte( );
+                if (bInited) {
+
+                    int nbyte = 0;
+                    int nbytes = 10;
+                    bool start = true;
+
+                    //reset every bytes to state false
+                    /*
+                    for(int i=0; i<nbytes; i++) {
+                        Codes[nbyte].state = MO_FALSE;
+                        Codes[nbyte].value = 0;
+                    }writeByte
+
+                    while (nbyte<nbytes) {
+                        readchar = readByte();
+                        if (readchar!='\0') {
+                            if (start) { MODebug2->Message( moText("readchar:")); start = false; }
+                            MODebug2->Message( moText(" byte ") + IntToStr(nbyte) + moText(":") + IntToStr(readchar) );
+                            Codes[nbyte].state = MO_TRUE;
+                            Codes[nbyte].value = (int) readchar;
+
+                        }
+                        nbyte++;
+                    }
+                    */
+
+                    if (writeByte( actual->reservedvalue0 )) {
+			MODebug2->Push("Enviando mensaje!!!");
+		    }
+
+
+                }
+			}
+
 			Events->Delete(actual);
 			actual = tmp;
 		} else actual = actual->next;//no es nuestro pasamos al next
 	}
+/*
+	if (bInited) {
 
+		if (!writeByte( 1 )) {
+			MODebug2->Error("no envia");
+		} else {
+			//MODebug2->Push("Envia!!!");
+		}
 
+	} else {
+			//MODebug2->Error("no iniciado");
+	}
+*/
+
+	//MODebug2->Push("Updating serial");
 
 	//m_Codes
 /*
