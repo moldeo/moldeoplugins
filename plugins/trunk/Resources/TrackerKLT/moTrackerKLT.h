@@ -76,7 +76,8 @@ enum moTrackerKLTParamIndex {
     TRACKERKLT_MAX_RESIDUE,
 
     TRACKERKLT_MIN_SEGMENT_LEN,
-    TRACKERKLT_MAX_SEGMENT_LEN
+    TRACKERKLT_MAX_SEGMENT_LEN,
+    TRACKERKLT_UPDATE_ON
 };
 
 using namespace TUIO;
@@ -263,6 +264,8 @@ protected:
 
     moVector2f coordA,coordB,coordC,coordD;
     int  icoordA,icoordB,icoordC,icoordD;
+
+    int update_on;
 
 	moTrackerKLTSystems		m_TrackerSystems;
 };

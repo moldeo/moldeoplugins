@@ -1364,8 +1364,8 @@ if ( m_pTUIOSystemData ) {
                 }
             }
         }
-        //m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
-        m_pTrackerSystemData->SetVariance( velAverage_v.X(), velAverage_v.Y() );
+        m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
+        //m_pTrackerSystemData->SetVariance( velAverage_v.X(), velAverage_v.Y() );
 
         /*
         MODebug2->Push( moText("TrackerKLT: varX: ") + FloatToStr( m_pTrackerSystemData->GetVariance().X())
@@ -1536,6 +1536,8 @@ MOboolean moTrackerKLT::Init()
     moDefineParamIndex( TRACKERKLT_MIN_SEGMENT_LEN,"min_segment_len" );
     moDefineParamIndex( TRACKERKLT_MAX_SEGMENT_LEN,"max_segment_len" );
 
+    moDefineParamIndex( TRACKERKLT_UPDATE_ON,"update_on" );
+
     m_SampleCounter = 0;
 	trackersystems = m_Config.GetParamIndex("trackersystems");
     MODebug2->Message("In moTrackerKLT::Init ***********************************************\n");
@@ -1635,6 +1637,7 @@ void moTrackerKLT::UpdateParameters() {
     min_segment_len = m_Config.GetParam(m_Config.GetParamIndex("min_segment_len")).GetValue().GetSubValue().Float();
     max_segment_len = m_Config.GetParam(m_Config.GetParamIndex("max_segment_len")).GetValue().GetSubValue().Float();
 
+    update_on = m_Config.GetParam(m_Config.GetParamIndex("update_on")).GetValue().GetSubValue().Int();
 }
 
 moConfigDefinition* moTrackerKLT::GetDefinition(moConfigDefinition *p_configdefinition) {
@@ -1684,6 +1687,7 @@ moConfigDefinition* moTrackerKLT::GetDefinition(moConfigDefinition *p_configdefi
     p_configdefinition->Add( moText("min_segment_len"), MO_PARAM_NUMERIC, TRACKERKLT_MIN_SEGMENT_LEN, moValue( "0.0", "FLOAT").Ref() );
     p_configdefinition->Add( moText("max_segment_len"), MO_PARAM_NUMERIC, TRACKERKLT_MAX_SEGMENT_LEN, moValue( "0.4", "FLOAT").Ref() );
 
+    p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, TRACKERKLT_UPDATE_ON, moValue( "0", "INT") );
 }
 
 MOboolean moTrackerKLT::Finish()
@@ -1777,11 +1781,15 @@ void moTrackerKLT::Update(moEventList *Events)
 {
 	//get the pointer from the Moldeo Object sending it...
 
+
+
 	moBucket* pBucket = NULL;
 	moVideoSample* pSample = NULL;
 	moVideoSample* pTexSample = NULL;
 
     UpdateParameters();
+
+    if (this->update_on<1) return;
 
 //	MOuint i;
 	moEvent *actual,*tmp;
