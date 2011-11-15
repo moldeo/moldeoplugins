@@ -764,13 +764,7 @@ moSerial::Update(moEventList *Events) {
 	//borrando aquellos que ya usamos
 	while(actual!=NULL) {
 		//solo nos interesan los del serial q nosotros mismos generamos, para destruirlos
-		MODebug2->Push( moText("thisID:")
-                    + IntToStr(   moMoldeoObject::GetId() )
-                    + moText("event deviceid:")
-                    + IntToStr(actual->deviceid)
-                    + moText( " devicecode:" )
-                    + IntToStr(actual->devicecode)
-                 );
+
 
 		if(actual->deviceid == moMoldeoObject::GetId() ) {
 			//ya usado lo borramos de la lista
