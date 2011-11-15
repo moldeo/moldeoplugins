@@ -358,7 +358,7 @@ void moEffectMovie::UpdateParameters() {
         m_FramePositionF = (double)m_FramePosition;
 
         ///estamos en syncro de todas maneras con el clock de la Consola...
-        if ( (m_Ticks-m_TicksAux)==0 ) { ///no esta avanzando el clock
+        if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
           /// caso por Timer PAUSADO
           if (moTimeManager::MoldeoTimer->Paused()) {
             m_pMovie->Pause();
@@ -371,8 +371,22 @@ void moEffectMovie::UpdateParameters() {
         } else {
           if (!m_pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
              m_pMovie->Play();
+             MODebug2->Push(moText("Timer is started, movie not: Play()"));
+          } else if(m_pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+              if (m_pMovie->GetPosition()==0) {
+                  m_pMovie->Play();
+              }
           }
         }
+/*
+        MODebug2->Push(moText("TIMEBASE:") + IntToStr(m_Ticks-m_TicksAux)
+                       + moText(" IsPlaying:")
+                       + IntToStr(m_pMovie->IsPlaying())
+                       + moText(" MoldeoTimerStarted:")
+                       + IntToStr( moTimeManager::MoldeoTimer->Started() )
+                       + moText(" Position:")
+                       + IntToStr( m_pMovie->GetPosition() )
+                       );*/
 
       }
 
@@ -679,6 +693,28 @@ MOuint moEffectMovie::MovieGLId() {
   switch(moviemode) {
 
 		case MO_MOVIE_MODE_VCR:
+            if (m_pAnim) {
+              ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
+              ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
+              glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+            }
+
+          if (m_pMovie) {
+
+            if ( (m_FramePosition-1) >= m_FramesLength || m_pMovie->IsEOS()) {
+            ///stop current
+              if (m_pMovie) {
+                m_pMovie->Stop();
+              }
+
+              if (m_bLoop) {
+                    MODebug2->Push( "Looping");
+                    m_pMovie->Play();
+              }
+            }
+
+          }
+		break;
     case MO_MOVIE_MODE_SCRIPT:
       //if (!moTimeManager::MoldeoTimer->Paused() && moTimeManager::MoldeoTimer->Started()) {
         if (m_pAnim) {
@@ -698,23 +734,45 @@ MOuint moEffectMovie::MovieGLId() {
       break;
 
     case MO_MOVIE_MODE_VCR_PLAYLIST:
-
+        if (m_pAnim) {
+          ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
+          ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
+          glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+        }
       if (m_pMovie) {
         if ( (m_FramePosition-1) >= m_FramesLength || m_pMovie->IsEOS()) {
-          ///next clip...
-          m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+
+
+          ///stop current
           if (m_pMovie) {
             m_pMovie->Stop();
           }
+
+          ///next clip...
+          if (m_bLoop) {
+              if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount()<=1) {
+                  if (m_pMovie) {
+                    m_pMovie->Play();
+                  }
+              } else {
+                if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue() == (m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount() -1) ) {
+                    m_Config.GetParam(moR(MOVIE_MOVIES)).FirstValue();
+                     MODebug2->Push( "Looping");
+                } else {
+                    m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+                }
+              }
+          } else {
+            m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+          }
+
+
           MODebug2->Push( "EOS:" + IntToStr((int)m_pMovie->IsEOS()) );
-          MODebug2->Push("glid VCRPLAYLIST:" + IntToStr(glid) + " FramePosition:" + IntToStr(m_FramePosition) );
+          MODebug2->Push("glid VCRPLAYLIST:" + IntToStr(m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue()) + " FramePosition:" + IntToStr(m_FramePosition) );
+
         }
       }
-      //if (m_pAnim) {
-        //glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
-        //glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
-        glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
-      //}
+
       break;
 
   }
@@ -791,6 +849,11 @@ MOboolean moEffectMovie::Finish()
       moScript::FinishScript();
     }
 */
+    if (m_pMovie) {
+        m_pMovie->Stop();
+        m_pMovie = NULL;
+    }
+
     m_pTrackerData = NULL;
 
     //Images.Finish();
