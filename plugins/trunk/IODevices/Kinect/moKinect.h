@@ -185,8 +185,31 @@ enum moKinectParamIndex {
     KINECT_UMBRAL_TRACKEO_Z_FAR,
     KINECT_TRACKEO_FACTOR_ANGULO,
 
+    KINECT_UMBRAL_OBJETO_Z_NEAR,
+
     KINECT_VIEW_SCALEFACTOR,
-	KINECT_VIEW_FOVY
+	KINECT_VIEW_FOVY,
+
+	KINECT_OBJECT_COLOR1_TOP,
+	KINECT_OBJECT_COLOR1_BOTTOM,
+
+	KINECT_OBJECT_COLOR2_TOP,
+	KINECT_OBJECT_COLOR2_BOTTOM,
+
+	KINECT_OBJECT_COLOR3_TOP,
+	KINECT_OBJECT_COLOR3_BOTTOM,
+
+	KINECT_OBJECT_MIN_SURFACE,
+	KINECT_OBJECT_MAX_SURFACE,
+
+	KINECT_OBJECT_MIN_VOLUME,
+	KINECT_OBJECT_MAX_VOLUME,
+
+	KINECT_OBJECT_TEXTURE1,
+	KINECT_OBJECT_TEXTURE2,
+	KINECT_OBJECT_TEXTURE3,
+
+	KINECT_UPDATE_ON
 };
 
 //Buttons
@@ -373,6 +396,8 @@ public:
     int umbral_trackeo_z_far;
     float trackeo_factor_angulo;
 
+    int umbral_objeto_z_near;
+
     float scaleFactor;
     float fovy;
 
@@ -381,11 +406,28 @@ public:
     pcl::Normal m_BaseNormal;
     moVector3f m_BasePosition;
     moVector3f m_BaseRGB;
+    moVector3f m_BaseHSV;
 
     pcl::Normal m_TargetNormal;
     moVector3f m_TargetPosition;
     moVector3f m_TargetRGB;
     moVector3f m_TargetHSV;
+
+    moVector4d m_Color1Bottom;
+    moVector4d m_Color1Top;
+
+    moVector4d m_Color2Bottom;
+    moVector4d m_Color2Top;
+
+    moVector4d m_Color3Bottom;
+    moVector4d m_Color3Top;
+
+    float m_MinSurface;
+    float m_MaxSurface;
+
+    float m_MinVolume;
+    float m_MaxVolume;
+
 
     int m_fbo_idx;
     MOuint attach_point;
@@ -395,6 +437,18 @@ public:
     bool show_callback;
 
     moLock  m_DataLock;
+
+    int update_on;
+
+    int NDIF1;
+    int NDIF2;
+    int NDIF3;
+    int SURFACE1;
+    int SURFACE2;
+    int SURFACE3;
+
+    int SURFACE;
+    int VOLUME;
 
 private:
 
@@ -451,6 +505,22 @@ private:
     unsigned char* pData2;
     unsigned char* pImage;
     unsigned char* pIR;
+
+    unsigned char* pDataObj1;
+    unsigned char* pDataObj2;
+    unsigned char* pDataObj3;
+
+    int id_tex1;
+    int id_tex2;
+    int id_tex3;
+
+    float dif_tex1;
+    float dif_tex2;
+    float dif_tex3;
+
+    moTexture* m_pTex1;
+    moTexture* m_pTex2;
+    moTexture* m_pTex3;
 
     bool CheckError();
 

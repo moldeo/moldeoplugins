@@ -120,6 +120,22 @@ moKinect::moKinect() {
 	pCloud = NULL;
 	pCloudDif = NULL;
 
+    m_pTex1 = NULL;
+    m_pTex2 = NULL;
+    m_pTex3 = NULL;
+
+    pDataObj1 = NULL;
+    pDataObj2 = NULL;
+    pDataObj3 = NULL;
+
+    id_tex1 = -1;
+    id_tex2 = -1;
+    id_tex3 = -1;
+
+    dif_tex1 = -1;
+    dif_tex2 = -1;
+    dif_tex3 = -1;
+
 	show_callback = false;
 	m_center_curvature = 0.0;
 	m_CenterNormal.normal[0] = 0.0;
@@ -178,10 +194,48 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
     p_configdefinition->Add( moText("umbral_trackeo_z_far"), MO_PARAM_NUMERIC, KINECT_UMBRAL_TRACKEO_Z_FAR, moValue( "2500", "INT") );
     p_configdefinition->Add( moText("trackeo_factor_angulo"), MO_PARAM_FUNCTION, KINECT_TRACKEO_FACTOR_ANGULO, moValue( "0.0", "FUNCTION").Ref() );
 
+    p_configdefinition->Add( moText("umbral_objeto_z_near"), MO_PARAM_NUMERIC, KINECT_UMBRAL_OBJETO_Z_NEAR, moValue( "1300", "INT") );
+
 
     p_configdefinition->Add( moText("view_scalefactor"), MO_PARAM_FUNCTION, KINECT_VIEW_SCALEFACTOR, moValue( "0.7", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("view_fovy"), MO_PARAM_FUNCTION, KINECT_VIEW_FOVY, moValue( "45", "FUNCTION").Ref() );
 
+/*
+	KINECT_OBJECT_COLOR1_TOP,
+	KINECT_OBJECT_COLOR1_BOTTOM,
+
+	KINECT_OBJECT_COLOR2_TOP,
+	KINECT_OBJECT_COLOR2_BOTTOM,
+
+	KINECT_OBJECT_COLOR3_TOP,
+	KINECT_OBJECT_COLOR3_BOTTOM,
+
+	KINECT_OBJECT_MIN_SURFACE,
+	KINECT_OBJECT_MAX_SURFACE,
+
+	KINECT_OBJECT_MIN_VOLUME,
+	KINECT_OBJECT_MAX_VOLUME,*/
+    p_configdefinition->Add( moText("object_color1_bottom"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR1_BOTTOM );
+    p_configdefinition->Add( moText("object_color1_top"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR1_TOP );
+
+    p_configdefinition->Add( moText("object_color2_bottom"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR2_BOTTOM );
+    p_configdefinition->Add( moText("object_color2_top"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR2_TOP );
+
+    p_configdefinition->Add( moText("object_color3_bottom"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR3_BOTTOM );
+    p_configdefinition->Add( moText("object_color3_top"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR3_TOP );
+
+    p_configdefinition->Add( moText("object_min_surface"), MO_PARAM_NUMERIC, KINECT_OBJECT_MIN_SURFACE, moValue( "500", "FLOAT") );
+    p_configdefinition->Add( moText("object_max_surface"), MO_PARAM_NUMERIC, KINECT_OBJECT_MAX_SURFACE, moValue( "2000", "FLOAT") );
+
+    p_configdefinition->Add( moText("object_min_volume"), MO_PARAM_NUMERIC, KINECT_OBJECT_MIN_VOLUME, moValue( "500", "FLOAT") );
+    p_configdefinition->Add( moText("object_max_volume"), MO_PARAM_NUMERIC, KINECT_OBJECT_MAX_VOLUME, moValue( "2000", "FLOAT") );
+
+
+    p_configdefinition->Add( moText("texture1"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
+    p_configdefinition->Add( moText("texture2"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
+    p_configdefinition->Add( moText("texture3"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
+
+    p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, KINECT_UPDATE_ON, moValue( "0", "INT") );
 
 
 	return p_configdefinition;
@@ -189,16 +243,6 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 
 void moKinect::UpdateParameters() {
-
-    m_ReferencePoint = moVector3f(  m_Config.Eval( moR(KINECT_REF_POINT_X) ),
-                                    m_Config.Eval( moR(KINECT_REF_POINT_Y) ),
-                                    m_Config.Eval( moR(KINECT_REF_POINT_Z) )
-                                  );
-
-    m_ReferencePointDimension = moVector3f(  m_Config.Eval( moR(KINECT_REF_POINT_WIDTH) ),
-                                    m_Config.Eval( moR(KINECT_REF_POINT_HEIGHT) ),
-                                    m_Config.Eval( moR(KINECT_REF_POINT_DEEP) )
-                                  );
 
     m_Offset = moVector2f(
                             m_Config.Eval( moR(KINECT_OFFSET_MIN) ),
@@ -210,6 +254,16 @@ void moKinect::UpdateParameters() {
     calibrate_base = m_Config.Int( moR(KINECT_CALIBRATE_BASE));
 
     m_DataLock.Lock();
+
+    m_ReferencePoint = moVector3f(  m_Config.Eval( moR(KINECT_REF_POINT_X) ),
+                                    m_Config.Eval( moR(KINECT_REF_POINT_Y) ),
+                                    m_Config.Eval( moR(KINECT_REF_POINT_Z) )
+                                  );
+
+    m_ReferencePointDimension = moVector3f(  m_Config.Eval( moR(KINECT_REF_POINT_WIDTH) ),
+                                    m_Config.Eval( moR(KINECT_REF_POINT_HEIGHT) ),
+                                    m_Config.Eval( moR(KINECT_REF_POINT_DEEP) )
+                                  );
 
         base_camera_i = m_Config.Int( moR(KINECT_BASE_CAMERA_I));
         base_camera_j = m_Config.Int( moR(KINECT_BASE_CAMERA_J));
@@ -225,10 +279,53 @@ void moKinect::UpdateParameters() {
         umbral_trackeo_z_far = m_Config.Int( moR(KINECT_UMBRAL_TRACKEO_Z_FAR));
         trackeo_factor_angulo = m_Config.Eval( moR(KINECT_TRACKEO_FACTOR_ANGULO));
 
+        umbral_objeto_z_near = m_Config.Int( moR(KINECT_UMBRAL_OBJETO_Z_NEAR ) );
+
+        update_on = m_Config.Int( moR(KINECT_UPDATE_ON) );
+/*
+        moTexture Tex1( m_Config.Texture( moR(KINECT_OBJECT_TEXTURE1) ) );
+        moTexture Tex2( m_Config.Texture( moR(KINECT_OBJECT_TEXTURE2) ) );
+        moTexture Tex3(  m_Config.Texture( moR(KINECT_OBJECT_TEXTURE3) ) );
+
+
+        if ( id_tex1!=Tex1.GetMOId() ) {
+
+            id_tex1 = Tex1.GetMOId();
+
+            if ( pDataObj1!=NULL) delete [] pDataObj1;
+
+            pDataObj1 = new unsigned char [ Tex1.GetWidth()*Tex1.GetHeight()*3];
+
+            if (pDataObj1)
+                Tex1.GetBuffer( pDataObj1, GL_RGB, GL_UNSIGNED_BYTE );
+        }
+*/
+        //m_pResourceManager->GetTextureMan()->GetTexture();
+
+        m_Color1Bottom = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR1_BOTTOM ) );
+        m_Color1Top = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR1_TOP ) );
+
+        m_Color2Bottom = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR2_BOTTOM ) );
+        m_Color2Top = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR2_TOP ) );
+
+        m_Color3Bottom = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR3_BOTTOM ) );
+        m_Color3Top = m_Config.EvalColor( moR( KINECT_OBJECT_COLOR3_TOP ) );
+
+
+        m_MinSurface = m_Config.Double( moR(KINECT_OBJECT_MIN_SURFACE ) );
+        m_MaxSurface = m_Config.Double( moR(KINECT_OBJECT_MAX_SURFACE ) );
+
+        m_MinVolume = m_Config.Double( moR(KINECT_OBJECT_MIN_VOLUME ) );
+        m_MaxVolume = m_Config.Double( moR(KINECT_OBJECT_MAX_VOLUME ) );
+
+
+
     m_DataLock.Unlock();
 
     scaleFactor = m_Config.Eval( moR(KINECT_VIEW_SCALEFACTOR));
     fovy = m_Config.Eval( moR(KINECT_VIEW_FOVY));
+
+
 }
 
 MOboolean
@@ -278,10 +375,34 @@ moKinect::Init() {
     moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Z_FAR, moText("umbral_trackeo_z_far") );
     moDefineParamIndex( KINECT_TRACKEO_FACTOR_ANGULO, moText("trackeo_factor_angulo") );
 
+    moDefineParamIndex( KINECT_UMBRAL_OBJETO_Z_NEAR, moText("umbral_objeto_z_near") );
+
 	moDefineParamIndex( KINECT_VIEW_SCALEFACTOR, moText("view_scalefactor") );
 	moDefineParamIndex( KINECT_VIEW_FOVY, moText("view_fovy") );
 
 
+    moDefineParamIndex( KINECT_OBJECT_COLOR1_TOP, moText("object_color1_top") );
+    moDefineParamIndex( KINECT_OBJECT_COLOR1_BOTTOM, moText("object_color1_bottom") );
+
+    moDefineParamIndex( KINECT_OBJECT_COLOR2_TOP, moText("object_color2_top") );
+    moDefineParamIndex( KINECT_OBJECT_COLOR2_BOTTOM, moText("object_color2_bottom") );
+
+    moDefineParamIndex( KINECT_OBJECT_COLOR3_TOP, moText("object_color3_top") );
+    moDefineParamIndex( KINECT_OBJECT_COLOR3_BOTTOM, moText("object_color3_bottom") );
+
+
+    moDefineParamIndex( KINECT_OBJECT_MIN_SURFACE, moText("object_min_surface") );
+    moDefineParamIndex( KINECT_OBJECT_MAX_SURFACE, moText("object_max_surface") );
+
+    moDefineParamIndex( KINECT_OBJECT_MIN_VOLUME, moText("object_min_volume") );
+    moDefineParamIndex( KINECT_OBJECT_MAX_VOLUME, moText("object_max_volume") );
+
+
+	moDefineParamIndex( KINECT_OBJECT_TEXTURE1, moText("texture1") );
+    moDefineParamIndex( KINECT_OBJECT_TEXTURE2, moText("texture2") );
+    moDefineParamIndex( KINECT_OBJECT_TEXTURE3, moText("texture3") );
+
+    moDefineParamIndex( KINECT_UPDATE_ON, moText("update_on") );
 
     UpdateParameters();
 
@@ -664,6 +785,15 @@ moKinect::Update(moEventList *Events) {
 
     UpdateParameters();
 
+    if (update_on<1) {
+
+        if (interface  ) interface->stop();
+
+        return;
+    } else {
+        if (interface ) interface->start();
+    }
+
 #ifdef KINECT_OPENNI
 
     /** UPDATE DEPTH*/
@@ -963,7 +1093,26 @@ moKinect::Update(moEventList *Events) {
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
+        ancho = 80;
+        alto = 50;
+        glTranslatef( base_camera_i, base_camera_j, 0 );
+        glColor4f( 0,0.5,0.0,1 );
+        glBegin(GL_QUADS);
+          glTexCoord2f( 0.0, 1.0 );
+          glVertex3f( -0.5*ancho, -0.5*alto, 0 );
 
+          glTexCoord2f( 1.0, 1.0 );
+          glVertex3f(  0.5*ancho, -0.5*alto, 0);
+
+          glTexCoord2f( 1.0, 0.0 );
+          glVertex3f(  0.5*ancho,  0.5*alto, 0);
+
+          glTexCoord2f( 0.0, 0.0 );
+          glVertex3f( -0.5*ancho,  0.5*alto, 0);
+        glEnd();
+
+        ancho = 10;
+        alto = 10;
         glTranslatef( base_camera_i, base_camera_j, 0 );
         glColor4f( 1,1,1,1 );
         glBegin(GL_QUADS);
@@ -1078,6 +1227,8 @@ moKinect::Update(moEventList *Events) {
         m_BaseNormal = m_CenterNormal;
         m_BasePosition = m_TargetPosition;
         m_BaseRGB = m_TargetRGB;
+        moVector3d HSV = RGBtoHSV( (double)m_BaseRGB.X(), (double)m_BaseRGB.Y(), (double)m_BaseRGB.Z() );
+        m_BaseHSV = moVector3f( HSV.X(),HSV.Y(),HSV.Z() );
         moText texto;
         texto= moText("BasePosition: x:")+FloatToStr(m_BasePosition.X());
         texto+= moText(" y:")+FloatToStr(m_BasePosition.Y());
@@ -1085,8 +1236,16 @@ moKinect::Update(moEventList *Events) {
         texto+= moText(" Normal: x:")+FloatToStr( m_BaseNormal.normal[0] );
         texto+= moText(" y:")+FloatToStr(m_BaseNormal.normal[1]);
         texto+= moText(" z:")+FloatToStr(m_BaseNormal.normal[2]);
+        texto+= moText(" RGB: r:")+FloatToStr( m_BaseRGB.X() );
+        texto+= moText(" g:")+FloatToStr( m_BaseRGB.Y() );
+        texto+= moText(" b:")+FloatToStr( m_BaseRGB.Z() );
+        texto+= moText(" HSV: h:")+FloatToStr( m_BaseHSV.X() );
+        texto+= moText(" s:")+FloatToStr( m_BaseHSV.Y() );
+        texto+= moText(" v:")+FloatToStr( m_BaseHSV.Z() );
         MODebug2->Push(texto);
     }
+
+
 
     //m_CenterNormal.curvature = cloud_normals->points[ (_ww  >> 1) * (_hh + 1) ].curvature;
 
@@ -1097,6 +1256,8 @@ moKinect::Update(moEventList *Events) {
     moOutlet* outCurvature = m_Outlets.Get( curvature_index );
 
     if (outCurvature) {
+
+        if ( m_TargetPosition.Z() < 1.28 ) m_CenterNormal.curvature = -1;
 
         outCurvature->GetData()->SetLong( 100 * m_CenterNormal.curvature );
         outCurvature->Update(true);
@@ -1122,6 +1283,83 @@ moKinect::Update(moEventList *Events) {
         outB->GetData()->SetFloat( m_TargetRGB.Z() );
         outB->Update(true);
     }
+
+    int NDIF1_index = this->GetOutletIndex( moText("NDIF1") );
+    int NDIF2_index = this->GetOutletIndex( moText("NDIF2") );
+    int NDIF3_index = this->GetOutletIndex( moText("NDIF3") );
+
+    int SURFACE_index = this->GetOutletIndex( moText("SURFACE") );
+
+    int SURFACE1_index = this->GetOutletIndex( moText("SURFACE1") );
+    int SURFACE2_index = this->GetOutletIndex( moText("SURFACE2") );
+    int SURFACE3_index = this->GetOutletIndex( moText("SURFACE3") );
+
+    moOutlet* outNDIF1 = m_Outlets.Get( NDIF1_index );
+    moOutlet* outNDIF2 = m_Outlets.Get( NDIF2_index );
+    moOutlet* outNDIF3 = m_Outlets.Get( NDIF3_index );
+
+    moOutlet* outSURFACE = m_Outlets.Get( SURFACE_index );
+
+    moOutlet* outSURFACE1 = m_Outlets.Get( SURFACE1_index );
+    moOutlet* outSURFACE2 = m_Outlets.Get( SURFACE2_index );
+    moOutlet* outSURFACE3 = m_Outlets.Get( SURFACE3_index );
+////
+    if (outNDIF1) {
+        outNDIF1->GetData()->SetInt(NDIF1);
+        outNDIF1->Update();
+    }
+    if (outNDIF2) {
+        outNDIF2->GetData()->SetInt(NDIF2);
+        outNDIF2->Update();
+    }
+    if (outNDIF3) {
+        outNDIF3->GetData()->SetInt(NDIF3);
+        outNDIF3->Update();
+    }
+////
+    if (outSURFACE) {
+        outSURFACE->GetData()->SetInt(SURFACE);
+        outSURFACE->Update();
+    }
+////
+    if (outSURFACE1) {
+        outSURFACE1->GetData()->SetInt(SURFACE1);
+        outSURFACE1->Update();
+    }
+    if (outSURFACE2) {
+        outSURFACE2->GetData()->SetInt(SURFACE2);
+        outSURFACE2->Update();
+    }
+    if (outSURFACE3) {
+        outSURFACE3->GetData()->SetInt(SURFACE3);
+        outSURFACE3->Update();
+    }
+/*
+    int pomelo_index = this->GetOutletIndex( moText("POMELO") );
+    int naranja_index = this->GetOutletIndex( moText("NARANJA") );
+    int sandia_index = this->GetOutletIndex( moText("SANDIA") );
+
+    moOutlet* outPOMELO = m_Outlets.Get( pomelo_index );
+    moOutlet* outNARANJA = m_Outlets.Get( naranja_index );
+    moOutlet* outSANDIA = m_Outlets.Get( sandia_index );
+
+    if (outPOMELO) {
+        outPOMELO->GetData()->SetFloat( dif_tex1 );
+        outPOMELO->Update(true);
+        if (dif_tex1>-1) {
+            //MODebug2->Push( moText("dif_tex1:") + FloatToStr( dif_tex1 ) );
+        }
+    }
+    if (outNARANJA) {
+        outNARANJA->GetData()->SetFloat( dif_tex2 );
+        outNARANJA->Update(true);
+    }
+    if (outSANDIA) {
+        outSANDIA->GetData()->SetFloat( dif_tex3 );
+        outSANDIA->Update(true);
+    }
+*/
+
 
     moVector3d HSV = RGBtoHSV( m_TargetRGB.X(), m_TargetRGB.Y(), m_TargetRGB.Z() );
 
@@ -1284,6 +1522,26 @@ moKinect::Update(moEventList *Events) {
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
+        ancho = 80;
+        alto = 50;
+        glTranslatef( base_camera_i, base_camera_j, 0 );
+        glColor4f( 0.0,0.5,0.5, 0.5 );
+        glBegin(GL_QUADS);
+          glTexCoord2f( 0.0, 1.0 );
+          glVertex3f( -0.5*ancho, -0.5*alto, 0 );
+
+          glTexCoord2f( 1.0, 1.0 );
+          glVertex3f(  0.5*ancho, -0.5*alto, 0);
+
+          glTexCoord2f( 1.0, 0.0 );
+          glVertex3f(  0.5*ancho,  0.5*alto, 0);
+
+          glTexCoord2f( 0.0, 0.0 );
+          glVertex3f( -0.5*ancho,  0.5*alto, 0);
+        glEnd();
+
+        ancho = 10;
+        alto = 10;
         glTranslatef( base_camera_i, base_camera_j, 0 );
         glColor4f( 1,1,1,1 );
         glBegin(GL_QUADS);
@@ -1299,8 +1557,6 @@ moKinect::Update(moEventList *Events) {
           glTexCoord2f( 0.0, 0.0 );
           glVertex3f( -0.5*ancho,  0.5*alto, 0);
         glEnd();
-
-
 
         pFBO->Unbind();
 
@@ -1329,6 +1585,14 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
 
     m_DataLock.Lock();
 
+    moVector3d O1_HSV_low = RGBtoHSV( m_Color1Bottom.X(), m_Color1Bottom.Y(), m_Color1Bottom.Z());
+    moVector3d O1_HSV_high = RGBtoHSV( m_Color1Top.X(), m_Color1Top.Y(), m_Color1Top.Z());
+
+    moVector3d O2_HSV_low = RGBtoHSV( m_Color2Bottom.X(), m_Color2Bottom.Y(), m_Color2Bottom.Z());
+    moVector3d O2_HSV_high = RGBtoHSV( m_Color2Top.X(), m_Color2Top.Y(), m_Color2Top.Z());
+
+    moVector3d O3_HSV_low = RGBtoHSV( m_Color3Bottom.X(), m_Color3Bottom.Y(), m_Color3Bottom.Z());
+    moVector3d O3_HSV_high = RGBtoHSV( m_Color3Top.X(), m_Color3Top.Y(), m_Color3Top.Z());
 
     platform_i = base_camera_i;
     platform_j = base_camera_j;
@@ -1381,68 +1645,181 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
     //float tiltangulo = moMath.Tan( moMath.DegToRad((float) camera_angulo ) );
     m_haypresencia = 0; ///va sumando por cada punto que este dentro del rango...
 
-    if (pImage && pData && pData2)
-    for (size_t jj = 0; jj < m_OutputMode.nYRes; jj++) {
-        for (size_t ii = 0; ii < m_OutputMode.nXRes; ii++) {
+    int track_minz = 100000;
 
-            index_src = ii+jj*m_OutputMode.nXRes;
-            index_dst = ii*3+jj*m_OutputMode.nXRes*3;
+    if (pImage && pData && pData2) {
+        for (size_t jj = 0; jj < m_OutputMode.nYRes; jj++) {
+            for (size_t ii = 0; ii < m_OutputMode.nXRes; ii++) {
 
-            pImage[index_dst] = cloud->points[index_src].r;
-            pImage[index_dst+1] = cloud->points[index_src].g;
-            pImage[index_dst+2] = cloud->points[index_src].b;
+                index_src = ii+jj*m_OutputMode.nXRes;
+                index_dst = ii*3+jj*m_OutputMode.nXRes*3;
 
-            int zcol = (int)( (float) (cloud->points[index_src].z * 1000.0f) ) ;
-            pData[index_dst] = zcol % 255;
-            pData[index_dst+1] = 0;
-            pData[index_dst+2] = 0;
+                pImage[index_dst] = cloud->points[index_src].r;
+                pImage[index_dst+1] = cloud->points[index_src].g;
+                pImage[index_dst+2] = cloud->points[index_src].b;
 
-            /// calculo si hay presencia
+                int zcol = (int)( (float) (cloud->points[index_src].z * 1000.0f) ) ;
+                pData[index_dst] = zcol % 255;
+                pData[index_dst+1] = 0;
+                pData[index_dst+2] = 0;
 
-            if (  jj < ( platform_j - umbral_camera_presencia_y_offset )  ) {
+                /// calculo si hay presencia
 
-                if ( umbral_camera_presencia_z_near< zcol && zcol < umbral_camera_presencia_z_far) {
-                    m_haypresencia+= 1;
+                if (  jj < ( platform_j - umbral_camera_presencia_y_offset )  ) {
+
+                    if ( umbral_camera_presencia_z_near< zcol && zcol < umbral_camera_presencia_z_far) {
+                        m_haypresencia+= 1;
+                    }
                 }
-            }
 
-            /// calculamos la zona de trackeo
-            /// if < platform_j => el z se va alejando a medida que subimos proporcionalmente al angulo tilt...
-            int ztrack = 0;
-            pData2[index_dst] = 0;
-            pData2[index_dst+1] = 0;
-            pData2[index_dst+2] = 0;
+                /// calculamos la zona de trackeo
+                /// if < platform_j => el z se va alejando a medida que subimos proporcionalmente al angulo tilt...
+                int ztrack = 0;
 
-            if (  jj < ( platform_j - umbral_trackeo_y_offset )  ) {
-                ///calculamos el z nuevo, con tilt:
-                ztrack = zcol;
-                ztrack-= (platform_j - jj) * trackeo_factor_angulo;
+                pData2[index_dst] = 0;
+                pData2[index_dst+1] = 0;
+                pData2[index_dst+2] = 0;
 
-                if ( umbral_trackeo_z_near < ztrack   &&   ztrack < umbral_trackeo_z_far  ) {
 
-                    ///distancia al naranja
-                    ///distancia al amarillo
-                    ///distancia a la sandia: esto puede venir definido directamente desde la eleccion de (naranja,pomelo,sandia)
+                if (  jj < ( platform_j - umbral_trackeo_y_offset )  ) {
+                    ///calculamos el z nuevo, con tilt:
+                    ztrack = zcol;
+                    ztrack-= (platform_j - jj) * trackeo_factor_angulo;
 
-                    float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
+                    if ( umbral_trackeo_z_near < ztrack   &&   ztrack < umbral_trackeo_z_far  ) {
 
-                    float sum = 0.0;
+                         track_minz = momin( ztrack, track_minz );
 
-                    sum = (int) (alf * 255  * (ztrack - umbral_trackeo_z_near) / (  umbral_trackeo_z_far -  umbral_trackeo_z_near));
-                    sum+= (int) (alf * cloud->points[index_src].r);
-                    sum+= (int) (alf * cloud->points[index_src].g);
-                    (sum < 255) ? sum = 0.0 : sum = sum / 3;
+                        ///distancia al naranja
+                        ///distancia al amarillo
+                        ///distancia a la sandia: esto puede venir definido directamente desde la eleccion de (naranja,pomelo,sandia)
+/*
+                        float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
 
-                    pData2[index_dst] = sum;
-                    pData2[index_dst+1] = sum;
-                    pData2[index_dst+2] = sum;
+                        float sum = 0.0;
 
+                        sum = (int) (alf * 255  * (ztrack - umbral_trackeo_z_near) / (  umbral_trackeo_z_far -  umbral_trackeo_z_near));
+                        sum+= (int) (alf * cloud->points[index_src].r);
+                        sum+= (int) (alf * cloud->points[index_src].g);
+                        (sum < 255) ? sum = 0.0 : sum = sum / 3;
+
+                        pData2[index_dst] = sum;
+                        pData2[index_dst+1] = sum;
+                        pData2[index_dst+2] = sum;
+*/
+
+                    }
                 }
-            }
+
+            } //fin for 2
+        } //fin for1
 
 
-        }
-    }
+        /// SEGUNDA PASDADA PARA DEPTH2
+
+        for (size_t jj = 0; jj < m_OutputMode.nYRes; jj++) {
+
+            for (size_t ii = 0; ii < m_OutputMode.nXRes; ii++) {
+
+                index_src = ii+jj*m_OutputMode.nXRes;
+                index_dst = ii*3+jj*m_OutputMode.nXRes*3;
+
+                /// calculamos la zona de trackeo
+                /// if < platform_j => el z se va alejando a medida que subimos proporcionalmente al angulo tilt...
+                int ztrack = 0;
+
+                int zcol = (int)( (float) (cloud->points[index_src].z * 1000.0f) ) ;
+
+                pData2[index_dst] = 0;
+                pData2[index_dst+1] = 0;
+                pData2[index_dst+2] = 0;
+
+                if (  jj < ( platform_j - umbral_trackeo_y_offset )  ) {
+                    ///calculamos el z nuevo, con tilt:
+                    ztrack = zcol;
+                    ztrack-= (platform_j - jj) * trackeo_factor_angulo;
+
+                    if ( umbral_trackeo_z_near < ztrack   &&   ztrack < umbral_trackeo_z_far && (track_minz + 100 ) > ztrack ) {
+
+                        moVector3d iRGB = moVector3d( cloud->points[index_src].r, cloud->points[index_src].g, cloud->points[index_src].b );
+                        moVector3d iHSV = RGBtoHSV( iRGB.X(), iRGB.Y(), iRGB.Z()  );
+                        bool inrange = false;
+                        ///distancia al amarillo
+
+
+                        if (
+                             (O1_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O1_HSV_high.X())
+                            )
+                             {
+                                if ( ( O1_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O1_HSV_high.Y() ) )  {
+                                    if ( iHSV.Z() > 0.7 ) inrange = true;
+                                }
+
+                        }
+
+                        if (
+                             (O2_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O2_HSV_high.X())
+                            )
+                             {
+                                if ( ( O2_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O2_HSV_high.Y() ) )  {
+                                    if ( iHSV.Z() > 0.7 ) inrange = true;
+                                }
+                        }
+
+
+                        if (O3_HSV_low.X()>O3_HSV_high.X()) {
+                            O3_HSV_high.X()+= 360.0;
+                            iHSV.X()+= 360.0;
+                        }
+                        if (
+                             (O3_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O3_HSV_high.X())
+                            )
+                             {
+                                if ( ( O3_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O3_HSV_high.Y() ) )  {
+
+                                    if ( iHSV.Z() > 0.7 ) inrange = true;
+
+                                }
+                        }
+
+
+
+                        if (inrange) {
+                            ///distancia al naranja
+
+                            ///distancia a la sandia: esto puede venir definido directamente desde la eleccion de (naranja,pomelo,sandia)
+                            pData2[index_dst] = 255;
+                            pData2[index_dst+1] = 255;
+                            pData2[index_dst+2] = 255;
+                            /*
+
+                            float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
+
+                            float sum = 0.0;
+
+                            sum = (int) (alf * 255  * (ztrack - umbral_trackeo_z_near) / (  umbral_trackeo_z_far -  umbral_trackeo_z_near));
+                            sum+= (int) (alf * cloud->points[index_src].r);
+                            sum+= (int) (alf * cloud->points[index_src].g);
+                            (sum < 255) ? sum = 0.0 : sum = sum / 3;
+
+                            pData2[index_dst] = sum;
+                            pData2[index_dst+1] = sum;
+                            pData2[index_dst+2] = sum;
+                            */
+                        }
+                    }
+                }
+
+            } //fin for 2
+
+        } //fin for 1
+
+
+
+
+
+
+    } //fin pData && &&
 
     index_src = platform_i+platform_j*m_OutputMode.nXRes;
 
@@ -1451,6 +1828,13 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
 
     m_DataLock.Unlock();
 
+    float dif_H_object1;
+    float dif_S_object1;
+    float dif_L_object1;
+
+    int ndif_object1 = 0;
+    int ndif_object2 = 0;
+    int ndif_object3 = 0;
 
     if (++count2==60) {
 
@@ -1479,6 +1863,28 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
         por ahora en el centro
         */
 
+        dif_tex1 = 0.0;
+        int ndif = 0;
+        //dif_tex2
+
+        moVector3f vColDif;
+        float vColDifLen;
+        float minz = 10000.0;
+
+        float difH1;
+        float el_x = 0.0,el_y=0.0,el_z=0.0;
+
+        float O1_minx=1000,O1_maxx=0,O1_miny=1000,O1_maxy=0,O1_minz = 100000;
+        float O2_minx=1000,O2_maxx=0,O2_miny=1000,O2_maxy=0,O2_minz = 100000;
+        float O3_minx=1000,O3_maxx=0,O3_miny=1000,O3_maxy=0,O3_minz = 100000;
+
+
+
+
+        float H_mean = 0.0;
+        float S_mean = 0.0;
+        float L_mean = 0.0;
+
         for (size_t hh = 0; hh < _hh; hh++) {
 
             for (size_t ww = 0; ww < _ww; ww++) {
@@ -1493,11 +1899,180 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
                 cloudxyz->points[ index_dst ].x = cloud->points[index_src].x;
                 cloudxyz->points[ index_dst ].y = cloud->points[index_src].y;
                 cloudxyz->points[ index_dst ].z = cloud->points[index_src].z;
+
+                el_x = cloud->points[index_src].x*1000.0;
+                el_y = cloud->points[index_src].y*1000.0;
+                el_z = cloud->points[index_src].z*1000.0;
+                minz = momin( el_z, minz );
+
+                if (  (double) (minz)  > (double)umbral_objeto_z_near ) {
+
+                    moVector3d iRGB = moVector3d( cloud->points[index_src].r, cloud->points[index_src].g, cloud->points[index_src].b );
+                    moVector3d iHSV = RGBtoHSV( iRGB.X(), iRGB.Y(), iRGB.Z()  );
+                    moVector3f iHSVf = moVector3f( iHSV.X(), iHSV.Y(), iHSV.Z() );
+
+                    vColDif = m_BaseHSV - iHSVf;
+
+                    //saturacion muy baja el croma no cuenta...
+                    if (iHSVf.Y()<0.1) {
+                        //chroma cercano a 0 es grises
+                        if (iHSVf.X()<0.05) {
+                           vColDif.X() = 0; //chroma en 0
+                        }
+
+                        if (  179.95<=iHSVf.X() && iHSVf.X()<=180.05) {
+                            vColDif.X() = 0; //chroma en 0
+                        }
+
+                    }
+                    vColDifLen = vColDif.Length();
+
+                    if (vColDifLen>0.1) {
+
+                        dif_tex1+= vColDifLen;
+                        H_mean+= iHSV.X();
+                        S_mean+= iHSV.Y();
+                        L_mean+= iHSV.Z();
+                        ndif+= 1;
+                    }
+
+                    if (
+                         (O1_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O1_HSV_high.X())
+                        /*&& (O1_HSV_low.Y() <= iHSV.Y()) && (iHSV.Y() <= O1_HSV_high.Y())
+                        && (O1_HSV_low.Z() <= iHSV.Z()) && (iHSV.Z() <= O1_HSV_high.Z())*/
+                        )
+                         {
+                            if ( ( O1_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O1_HSV_high.Y() ) )  {
+                            //    if ( ( O1_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O1_HSV_high.Z() ) )  {
+
+                                    ndif_object1+= 1;
+                                    O1_minx = momin( el_x, O1_minx );
+                                    O1_miny = momin( el_y, O1_miny );
+                                    O1_minz = momin( el_z, O1_minz );
+                            //    }
+                            }
+
+                    }
+
+                    if (
+                         (O2_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O2_HSV_high.X())
+                        )
+                         {
+                            if ( ( O2_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O2_HSV_high.Y() ) )  {
+                               // if ( ( O2_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O2_HSV_high.Z() ) )  {
+                                    ndif_object2+= 1;
+                                    O2_minx = momin( el_x, O2_minx );
+                                    O2_miny = momin( el_y, O2_miny );
+                                    O2_minz = momin( el_z, O2_minz );
+                               // }
+                            }
+
+                    }
+
+                    if (O3_HSV_low.X()>O3_HSV_high.X()) {
+                        O3_HSV_high.X()+= 360.0;
+                        iHSV.X()+= 360.0;
+                    }
+
+                    if (
+                         (O3_HSV_low.X() <= iHSV.X() ) && (iHSV.X() <= O3_HSV_high.X())
+                        )
+                         {
+                            if ( ( O3_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O3_HSV_high.Y() ) )  {
+                               // if ( ( O2_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O2_HSV_high.Z() ) )  {
+                                    ndif_object3+= 1;
+                                    O3_minx = momin( el_x, O3_minx );
+                                    O3_miny = momin( el_y, O3_miny );
+                                    O3_minz = momin( el_z, O3_minz );
+                               // }
+                            }
+
+                    }
+
+
+                }
+
+/*
+                if (id_tex1!=-1 && pDataObj1) {
+                    size_t index_buf;
+                    index_buf = index_src*3;
+                    dif_tex1+= abs(cloud->points[index_src].r - pDataObj1[ index_buf ]);
+                    dif_tex1+= abs(cloud->points[index_src].g - pDataObj1[ index_buf + 1]);
+                    dif_tex1+= abs(cloud->points[index_src].b - pDataObj1[ index_buf + 2]);
+
+                }
+*/
+
             }
 
         }
 
+        /// presencia de objeto...
 
+        if (ndif>0) {
+            dif_tex1 = dif_tex1 / ndif;
+            H_mean = H_mean / (float)ndif;
+            S_mean = S_mean / (float)ndif;
+            L_mean = L_mean / (float)ndif;
+        }
+        texto = moText(" [vColDifLen]: ")
+                + FloatToStr( dif_tex1 )
+                + moText(" [ndif]: ")
+                + IntToStr( ndif )
+                + moText(" [minz]: ")
+                + FloatToStr( minz )
+                ;
+
+        MODebug2->Push( texto );
+        texto = moText(" [Mean]: [H]: ")
+                + FloatToStr( H_mean )
+                + moText(" [S]: ")
+                + FloatToStr( S_mean )
+                + moText(" [L]: ")
+                + FloatToStr( L_mean )
+                ;
+
+        MODebug2->Push( texto );
+
+        texto = moText(" ndif_object1: ")
+                + IntToStr(ndif_object1)
+                + moText(" ndif_object2: ")
+                + IntToStr(ndif_object2)
+                + moText(" ndif_object3: ")
+                + IntToStr(ndif_object3);
+        /*
+        texto =  moText("     bottom H:")
+                + FloatToStr( O1_HSV_low.X() )
+                + moText(" S:")
+                + FloatToStr( O1_HSV_low.Y() )
+                + moText(" L:")
+                + FloatToStr( O1_HSV_low.Z() )
+                ;
+        MODebug2->Push( texto );
+
+        texto = moText("top H:")
+                + FloatToStr( O1_HSV_high.X() )
+                + moText(" S:")
+                + FloatToStr( O1_HSV_high.Y() )
+                + moText(" L:")
+                + FloatToStr( O1_HSV_high.Z() )
+                ;
+                */
+        MODebug2->Push( texto );
+
+        texto = moText(" minx 1: ")
+                + FloatToStr(O1_minx)
+                + moText(" maxx 1: ")
+                + FloatToStr(O1_maxx)
+                + moText(" miny 1: ")
+                + FloatToStr(O1_miny)
+                + moText(" maxy 1: ")
+                + FloatToStr(O1_maxy)
+                + moText(" minz 1: ")
+                + FloatToStr(O1_minz)
+                + moText(" superficie: ")
+                + FloatToStr( (O1_maxy-O1_miny) * (O1_maxx-O1_minx));
+        MODebug2->Push( texto );
 
         //pcl::copyPointCloud( cloud_rgb->makeShared(),  cloudxyz->makeShared() );
 
@@ -1603,8 +2178,17 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
             Pos = m_BasePosition;
             Norm = m_BaseNormal;
 
-            m_DataLock.Unlock();
+            NDIF1 = ndif_object1;
+            NDIF2 = ndif_object2;
+            NDIF3 = ndif_object3;
+            SURFACE1 = (int) ( (O1_maxy-O1_miny) * (O1_maxx-O1_minx));
+            SURFACE2 = (int) ( (O2_maxy-O2_miny) * (O2_maxx-O2_minx));
+            SURFACE3 = (int) ( (O3_maxy-O3_miny) * (O3_maxx-O3_minx));
 
+            SURFACE = ndif;
+
+            m_DataLock.Unlock();
+/*
             float sumsca;
             float sumA;
             int pointUp;
@@ -1637,7 +2221,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
             MODebug2->Push( moText("PointCloud pointUp: ")
                        + IntToStr(pointUp)
                        + moText(" sumscalares: ") + FloatToStr(sumA)  );
-
+*/
 
         /// segunda pasada
         /// extraccion del volumen
