@@ -95,7 +95,14 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
                                      moText("Many (full textures from texturefolder)"),
                                      moText("Many 2 Patch (texture fragment from texturefolder - composition)") );
                                      */
-	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM") );
+	TextureModeOptions.Add( moText("UNIT<hint>Texture is each particle's image</hint>") );
+    TextureModeOptions.Add( moText("PATCH<hint>Texture is a patch of N particles</hint>") );
+    TextureModeOptions.Add( moText("MANY<hint>Texture is taken from texture folder parameter</hint>") );
+    TextureModeOptions.Add( moText("MANY2PATCH<hint>Texture is a patch of N particles where each image is taken from the texture folder parameter</hint>") );
+
+	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM"), TextureModeOptions );
+
+
 
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, PARTICLES_WIDTH, moValue( "9", "NUM") );
@@ -393,7 +400,7 @@ void moEffectParticlesSimple::Shot( moText source, int shot_type, int shot_file 
                 if (np>0) {
                     if (shot_type==0) {
                         /** Aleatorio*/
-                        ichosen = ( ::rand() * np )/ RAND_MAX;
+                        ichosen = (int)( moMathf::UnitRandom() * np );
                     } else {
                         /** Secuencial (ultimo ingresado)*/
                         if (shot_file<0) {
@@ -452,7 +459,7 @@ void moEffectParticlesSimple::Shot( moText source, int shot_type, int shot_file 
 
             alta = (this->GetLabelName()) + moText("ALTA");
             baja = (this->GetLabelName()) + moText("BAJA");
-            extension = moText(".tga");
+            extension = moText(".png");
 
             moText destalta;
             moText destbaja;
@@ -461,8 +468,8 @@ void moEffectParticlesSimple::Shot( moText source, int shot_type, int shot_file 
             destbaja = m_pResourceManager->GetDataMan()->GetDataPath() + (moText)baja;
             copyalta = m_pResourceManager->GetDataMan()->GetDataPath() + moText("cams/") + (moText)datetime + (moText)alta;
 
-            pTextureDest->CreateThumbnail( "TGA", pTextureDest->GetWidth(), pTextureDest->GetHeight(), destalta  );
-            pTextureDest->CreateThumbnail( "TGA", m_cols, m_rows, destbaja  );
+            pTextureDest->CreateThumbnail( "PNG", pTextureDest->GetWidth(), pTextureDest->GetHeight(), destalta  );
+            pTextureDest->CreateThumbnail( "PNG", m_cols, m_rows, destbaja  );
 
             if (source==moText("")) m_pResourceManager->GetFileMan()->CopyFile( destalta+(moText)extension , copyalta+(moText)extension );
 
@@ -593,7 +600,7 @@ void moEffectParticlesSimple::ReInit() {
                              int nc = pTextFrames.Count();
                              int irandom = -1;
 
-                             irandom = ( ::rand() * nc )/ RAND_MAX;
+                             irandom = (int)( moMathf::UnitRandom() * (double)nc );
                              //irandom = 0;
 
                             moTextureMemory* pTexMem = pTextFrames.Get( irandom );
@@ -1255,7 +1262,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
                          int nc = pTextFrames.Count();
                          int irandom = -1;
 
-                         irandom = ( ::rand() * nc )/ RAND_MAX;
+                         irandom = (int)(  moMathf::UnitRandom() * (double)nc );
 
                         moTextureMemory* pTexMem = pTextFrames.Get( irandom );
 
@@ -1331,8 +1338,12 @@ void moEffectParticlesSimple::Regenerate() {
     int i,j;
     float randommotionx,randommotiony,randommotionz;
 
-    //long emitiontimer_duration = m_Physics.EmitionTimer.Duration();
+    long emitiontimer_duration = m_Physics.EmitionTimer.Duration();
     //MODebug2->Message("dur:"+IntToStr(emitiontimer_duration));
+
+    if (emitiontimer_duration<0)
+        m_Physics.EmitionTimer.Start();
+
 
     for( j=0; j<m_rows ; j++) {
       for( i=0; i<m_cols ; i++) {
@@ -1439,14 +1450,19 @@ void moEffectParticlesSimple::Regenerate() {
                        //m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, NULL );
                        if (pTexBuf) {
                            int nim = pTexBuf->GetImagesProcessed();
+                           //MODebug2->Push( "nim: " + IntToStr(nim) );
 
                            pPar->ImageProportion = 1.0;
 
                            if (nim>0) {
 
-                               //float frandom = moMathf::UnitRandom( (float) 2.0 ) * nim;
-                               //srand(2);
-                               int irandom = ( ::rand() * nim )/ RAND_MAX;
+                               float frandom = moMathf::UnitRandom() * nim;
+
+                               //MODebug2->Push( "frandom: " + FloatToStr(frandom) );
+
+                               //int irandom = ( ::rand() * nim )/ RAND_MAX;
+                               int irandom = (int)frandom;
+                               //MODebug2->Push( "irandom: " + IntToStr(irandom) + " rand: " + IntToStr(::rand()) );
 
                                if (irandom>=nim) irandom = nim - 1;
 
@@ -2014,9 +2030,15 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
         InitParticlesSimple(cols2,rows2);
     }
 
+    /// TODO: what is this???? gross bug
+    /*
     if ( last_tick > tempogral->ticks || tempogral->ticks==0 ) {
         m_Physics.EmitionTimer.Start();
     }
+    */
+
+    if (!m_Physics.EmitionTimer.Started())
+        m_Physics.EmitionTimer.Start();
 
 
 
@@ -2055,7 +2077,9 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
     /// > 1 significa que el tiempo entre 2 cuadros supero el correspondiente a 60 fps
     /// > 4 significa que estamos por debajo de los 15 fps, pasada esta brecha deberiamos iterar N veces para obtener resultados correctos.
     double dtrel = (double) ( tempogral->ticks - last_tick ) / (double)16.666666;
-    if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
+
+    //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
+
     double dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
 
     UpdateParticles( dt, 0 );
@@ -2387,6 +2411,10 @@ void moEffectParticlesSimple::DrawTracker() {
         if (pInlet)
             if (pInlet->Updated()) {
                 m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
+                /* chequeando info
+                MODebug2->Push( moText("ParticlesSimple varX: ") + FloatToStr( m_pTrackerData->GetVariance().X())
+                       + moText(" varY: ") + FloatToStr(m_pTrackerData->GetVariance().Y()) );
+                */
             }
     }
 
@@ -2739,11 +2767,13 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     if (ortho) {
         glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
+        //glDepthMask(GL_FALSE);
         glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
         glLoadIdentity();									// Reset The Projection Matrix
         glOrtho(-0.5,0.5,-0.5*h/w,0.5*h/w,-1,1);                              // Set Up An Ortho Screen
     } else {
         glDisable(GL_DEPTH_TEST);
+        //glDepthMask(GL_FALSE);
         glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
         glLoadIdentity();									// Reset The Projection Matrix
         m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
@@ -2787,13 +2817,14 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
         }
     }
 
-    if (texture_mode==PARTICLES_TEXTUREMODE_UNIT) {
+    if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
       glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), &state.tempo);
     }
 
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glLoadIdentity();									// Reset The View
 
+    glEnable(GL_ALPHA);
     //glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
     //glClear( GL_DEPTH_BUFFER_BIT );
     //glEnable(GL_ALPHA_TEST);
@@ -2846,9 +2877,6 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     SetColor( m_Config[moR(PARTICLES_COLOR)][MO_SELECTED], m_Config[moR(PARTICLES_ALPHA)][MO_SELECTED], state );
 
 	moText Texto = m_Config.Text( moR(PARTICLES_TEXT) );
-
-	float r1;
-	r1 = 2.0 *((double)rand() /(double)(RAND_MAX+1));
 
 
 

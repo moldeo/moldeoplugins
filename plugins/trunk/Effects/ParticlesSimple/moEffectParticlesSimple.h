@@ -58,6 +58,8 @@
 #define MO_PARTICLES_SCALE_X 2
 #define MO_PARTICLES_SCALE_Y 3
 
+
+
 ///Emitter Type
 /**
 * simple geometry type emitters available
@@ -121,6 +123,8 @@ enum moParticlesSimpleTextureMode {
     PARTICLES_TEXTUREMODE_MANY = 2, /// Many Different Textures Image for each Particle ( taken from texturefolder )
     PARTICLES_TEXTUREMODE_MANY2PATCH = 3 /// Many textures/particle to construct a patched texture one ( taken from texturefolder, build the one defined on texture parameter, or from a folder, call to Shot(source) then ReInit to build... )
 };
+
+static moTextArray TextureModeOptions;
 
 ///Creation Method
 enum moParticlesCreationMethod {
