@@ -19,6 +19,7 @@ AC_CONFIG_SUBDIRS(
 	IODevices/NetOscIn 
 	IODevices/NetOscOut
 	IODevices/Serial
+	IODevices/Kinect
 	)
 #	 
 #	IODevices/Midi 
