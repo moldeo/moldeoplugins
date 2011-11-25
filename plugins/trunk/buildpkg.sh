@@ -64,13 +64,22 @@ echo "
 Now execute in deb folder:
  cd deb/moldeoplugins-*
  dh_make -l -e fabricio.costa@moldeointeractive.com.ar -p moldeoplugins
+
+in ubuntu 10.10:
  cp ../../control.amd64 debian/control
+
+in ubuntu 9.10:
  cp ../../rules.amd64 debian/rules
+
+in ubuntu 11.10:
+ cp ../../control.amd64.11.10 debian/control
+
+for all:
  cp ../../moldeoplugins1.dirs.amd64 debian/moldeoplugins.dirs 
  cp ../../moldeoplugins1.install.amd64 debian/moldeoplugins.install
  cp ../../moldeoplugins-dev.dirs.amd64 debian/moldeoplugins-dev.dirs
  cp ../../moldeoplugins-dev.install.amd64 debian/moldeoplugins-dev.install
- vi debian/changelog
+ gedit debian/changelog
  dpkg-buildpackage -us -uc -rfakeroot 2>&1 | tee ../../buildpkg_logs.txt
 "
 

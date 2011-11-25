@@ -35,13 +35,10 @@ POST_UNINSTALL = :
 build_triplet = x86_64-unknown-linux-gnu
 host_triplet = x86_64-unknown-linux-gnu
 subdir = .
-DIST_COMMON = README $(am__configure_deps) \
-	$(srcdir)/../../config.guess $(srcdir)/../../config.sub \
-	$(srcdir)/../../depcomp $(srcdir)/../../install-sh \
-	$(srcdir)/../../ltmain.sh $(srcdir)/../../missing \
-	$(srcdir)/Makefile.am $(srcdir)/Makefile.in \
-	$(srcdir)/config.h.in $(top_srcdir)/configure AUTHORS COPYING \
-	ChangeLog INSTALL NEWS ltmain.sh missing
+DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
+	$(top_srcdir)/configure AUTHORS COPYING ChangeLog INSTALL NEWS \
+	config.guess config.sub depcomp install-sh ltmain.sh missing
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -83,7 +80,7 @@ libmoldeo_mirrorg_la_LINK = $(LIBTOOL) --tag=CXX $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(libmoldeo_mirrorg_la_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.
-depcomp = $(SHELL) $(top_srcdir)/../../depcomp
+depcomp = $(SHELL) $(top_srcdir)/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
@@ -119,13 +116,13 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run aclocal-1.11
-AMTAR = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run tar
+ACLOCAL = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run aclocal-1.11
+AMTAR = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run autoconf
-AUTOHEADER = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run autoheader
-AUTOMAKE = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run automake-1.11
-AWK = gawk
+AUTOCONF = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run automake-1.11
+AWK = mawk
 CC = gcc -std=gnu99
 CCDEPMODE = depmode=gcc3
 CFLAGS = -g -O2
@@ -138,6 +135,7 @@ CXXFLAGS = -g -O2
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
+DLLTOOL = false
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
@@ -154,7 +152,7 @@ INSTALL_SCRIPT = ${INSTALL}
 INSTALL_STRIP_PROGRAM = $(install_sh) -c -s
 LD = /usr/bin/ld -m elf_x86_64
 LDFLAGS = 
-LIBMOLDEO_CFLAGS = -D_GNU_SOURCE=1 -D_REENTRANT -pthread -I/usr/include/libmoldeo -I/usr/include/muParser -I/usr/include/lua5.1 -I/usr/include/SDL -I/usr/include/FTGL -I/usr/include/gstreamer-0.10 -I/usr/include/freetype2 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/libxml2  
+LIBMOLDEO_CFLAGS = -pthread -D_GNU_SOURCE=1 -D_REENTRANT -I/usr/include/lua5.1 -I/usr/include/freetype2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/libmoldeo -I/usr/include/muParser -I/usr/include/SDL -I/usr/include/FTGL -I/usr/include/gstreamer-0.10 -I/usr/include/libxml2  
 LIBMOLDEO_LIBS = -pthread -lmoldeo -ltinyxml -lmuparser -llua5.1 -lSDL_image -lftgl -lalut -lgstreamer-0.10 -lfreetype -lcheck -lGL -lSDL -lopenal -lgobject-2.0 -lgmodule-2.0 -lxml2 -lgthread-2.0 -lrt -lglib-2.0  
 LIBOBJS = 
 LIBS = 
@@ -163,7 +161,8 @@ LIPO =
 LN_S = ln -s
 LTLIBOBJS = 
 MAINT = 
-MAKEINFO = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/missing --run makeinfo
+MANIFEST_TOOL = :
 MKDIR_P = /bin/mkdir -p
 NM = /usr/bin/nm -B
 NMEDIT = 
@@ -188,10 +187,11 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = strip
 VERSION = 0.7
-abs_builddir = /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/PreEffects/MirrorG
-abs_srcdir = /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/PreEffects/MirrorG
-abs_top_builddir = /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/PreEffects/MirrorG
-abs_top_srcdir = /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/PreEffects/MirrorG
+abs_builddir = /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG
+abs_srcdir = /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG
+abs_top_builddir = /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG
+abs_top_srcdir = /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG
+ac_ct_AR = ar
 ac_ct_CC = gcc
 ac_ct_CXX = g++
 ac_ct_DUMPBIN = 
@@ -220,12 +220,11 @@ host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /media/DATA/_data/proyectos/SINESTESIA/SVNSOURCEFORGE/plugins/trunk/install-sh
+install_sh = ${SHELL} /home/fabri/svnmoldeo/plugins/trunk/PreEffects/MirrorG/install-sh
 libdir = ${modulesdir}/${moduletype}
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
-lt_ECHO = echo
 mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
