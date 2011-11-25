@@ -31,10 +31,10 @@ PKG_CHECK_MODULES([OPENNI], [openni-dev] ,has_openni=yes)
 
 PKG_CHECK_MODULES([EIGEN3], [eigen3] ,has_eigen3=yes)
 
-PKG_CHECK_MODULES([PCLCOMMON], [pcl_common-1.3] ,has_pcl_common=yes)
-PKG_CHECK_MODULES([PCLIO], [pcl_io-1.3] ,has_pcl_io=yes)
-PKG_CHECK_MODULES([PCLFILTERS], [pcl_filters-1.3 ] ,has_pcl_filters=yes)
-PKG_CHECK_MODULES([PCLFEATURES], [pcl_features-1.3 ] ,has_pcl_features=yes)
+PKG_CHECK_MODULES([PCLCOMMON], [pcl_common-1.2] ,has_pcl_common=yes)
+PKG_CHECK_MODULES([PCLIO], [pcl_io-1.2] ,has_pcl_io=yes)
+PKG_CHECK_MODULES([PCLFILTERS], [pcl_filters-1.2 ] ,has_pcl_filters=yes)
+PKG_CHECK_MODULES([PCLFEATURES], [pcl_features-1.2 ] ,has_pcl_features=yes)
 
 
 
