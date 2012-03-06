@@ -30,15 +30,16 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
-			<Add directory="../../../inc" />
-			<Add directory="../../../inc/3ds" />
-			<Add directory="./inc" />
+			<Add option="`pkg-config --cflags libmoldeo`" />
 			<Add directory="/usr/include/freetype2" />
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moSerial.h" />
-		<Unit filename="src/moSerial.cpp" />
+		<Linker>
+			<Add option="`pkg-config --libs libmoldeo`" />
+		</Linker>
+		<Unit filename="moSerial.cpp" />
+		<Unit filename="moSerial.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

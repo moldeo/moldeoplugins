@@ -102,9 +102,21 @@ moEffectImageFlow::Init() {
 	    idx1 = 1;
 	}
 
+/*
 	Images.Init( GetConfig(), m_Config.GetParamIndex("images"), m_pResourceManager->GetTextureMan() );
 	tex0 = Images.GetGLId(1);
 	tex1 = Images.GetGLId(0);
+*/
+    moParam& Pimages( m_Config.GetParam( moR(IMAGEFLOW_IMAGES) ) );
+
+    tex0  = Pimages.GetValue(0).GetSubValue(0).GetGLId( &state.tempo );
+    tex1 = tex0;
+
+    if ( Pimages.GetValuesCount() > 1 ) {
+
+        tex1  = Pimages.GetValue(1).GetSubValue(0).GetGLId( &state.tempo );
+
+    }
 
     flow_velocity_bak = flow_velocity = flow_velocity0;
 
@@ -114,6 +126,8 @@ moEffectImageFlow::Init() {
 void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
     PreDraw(tempogral, parentstate);
+
+    moParam& Pimages( m_Config.GetParam( moR(IMAGEFLOW_IMAGES) ) );
 
 	minx = 0.0;
 	maxx = m_pResourceManager->GetRenderMan()->ScreenWidth();
@@ -152,15 +166,19 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 			if (0 < flow_velocity)
 			{
 				idx1 = idx0;
-				idx0 = (idx0 + 1) % Images.Count();
+				idx0 = (idx0 + 1) % Pimages.GetValuesCount();
 			}
 			else
 			{
                 idx0 = idx1;
-                idx1 = (idx1 + 1) % Images.Count();
+                idx1 = (idx1 + 1) % Pimages.GetValuesCount();
 			}
+			/*
             tex0 = Images.GetGLId(idx0);
             tex1 = Images.GetGLId(idx1);
+            */
+            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &state.tempo );
+            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &state.tempo );
 
 			if (flow_coord < minx) flow_coord = maxx;
 			if (maxx < flow_coord) flow_coord = minx;
@@ -173,10 +191,10 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
             glTexCoord2f(t, 0.0);
             glVertex2f(minx, miny);
 
-            glTexCoord2f(t, 1.0);
+            glTexCoord2f(t, -1.0);
             glVertex2f(minx, maxy);
 
-            glTexCoord2f(1.0, 1.0);
+            glTexCoord2f(1.0, -1.0);
             glVertex2f(flow_coord, maxy);
 
             glTexCoord2f(1.0, 0.0);
@@ -188,10 +206,10 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
             glTexCoord2f(0.0, 0.0);
             glVertex2f(flow_coord, miny);
 
-            glTexCoord2f(0.0, 1.0);
+            glTexCoord2f(0.0, -1.0);
             glVertex2f(flow_coord, maxy);
 
-		    glTexCoord2f(t, 1.0);
+		    glTexCoord2f(t, -1.0);
             glVertex2f(maxx, maxy);
 
             glTexCoord2f(t, 0.0);

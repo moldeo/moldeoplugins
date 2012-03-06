@@ -142,6 +142,7 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPushMatrix();										// Store The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
+
 	gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
 
     // Funcion de blending y de alpha channel //

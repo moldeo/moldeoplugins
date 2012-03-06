@@ -59,14 +59,14 @@ void moMasterEffectChannelFactory::Destroy(moMasterEffect* fx) {
 //========================
 //  EfectoMaestro
 //========================
-moMasterEffectChannel::moMasterEffectChannel() : moMasterEffect() {
+moMasterEffectChannel::moMasterEffectChannel() {
 	m_SelectedArray = NULL;
 	m_pEffectManager = NULL;
 	consolestate = NULL;
 	SetName("channel");
 }
 
-moMasterEffectChannel::moMasterEffectChannel(char *nom) : moMasterEffect() {
+moMasterEffectChannel::moMasterEffectChannel(char *nom) {
 	m_SelectedArray = NULL;
 	m_pEffectManager = NULL;
 	consolestate = NULL;

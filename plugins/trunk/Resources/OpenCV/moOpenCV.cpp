@@ -30,6 +30,11 @@
 
 #include "moOpenCV.h"
 
+#include "moArray.h"
+
+moDefineDynamicArray( moOpenCVSystems )
+
+
 /*********************
 
   NOTAS:

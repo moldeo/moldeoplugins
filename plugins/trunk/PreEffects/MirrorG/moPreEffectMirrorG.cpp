@@ -356,15 +356,29 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     glDisable(GL_DEPTH_TEST);
 
+/*
+    glDisable(GL_DEPTH_TEST);
+
     glAlphaFunc(GL_GREATER,0.0f);
     glEnable(GL_ALPHA_TEST);
-
+*/
 
     glMatrixMode(GL_PROJECTION);    // Select The Projection Matrix
     glLoadIdentity();               // Reset The Projection Matrix
     //glOrtho( -0.5, 0.5, -0.5*prop, 0.5*prop, -1, 1);          // Set Up An Ortho Screen
     gluOrtho2D( -0.5, 0.5, -0.5*prop, 0.5*prop );
 
+    glEnable(GL_ALPHA);
+    //glDepthMask(GL_FALSE);
+/*
+
+
+    //glDisable(GL_DEPTH_TEST);
+    //glClear(GL_DEPTH_BUFFER_BIT);
+
+    glColor4f(1.0*state.tint,1.0*state.tint,1.0*state.tint,1.0*state.alpha );
+    SetBlending( (moBlendingModes)0 );
+*/
 	SetColor( m_Config[moR(MIRRORG_COLOR)][MO_SELECTED], m_Config[moR(MIRRORG_ALPHA)][MO_SELECTED], state );
 
 	int i,j,bl;
@@ -394,6 +408,8 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
 	minorb = 0.5;//*(w/1024.0f);
 	majora = -0.5*prop;//0.6 600pix
 	majorb = 0.5*prop;
+
+
 	deltai =(minorb-minora) /(float)(wpoint2-1);
 	deltaj =(majorb-majora) /(float)(hpoint2-1);
 	//tdeltai = (w/1024.0f)/(float)(wpoint2-1);
@@ -477,8 +493,8 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
         glEnd();
     }
   }
-
 /*
+
     glBindTexture(GL_TEXTURE_2D, m_pResourceManager->GetRenderMan()->RenderTexGLId(MO_EFFECTS_TEX));
 
 
@@ -495,7 +511,7 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
       glTexCoord2f( 0.0, 0.0 );
       glVertex2f( minora,  majora);
     glEnd();
-    */
+*/
 
 	//glClear(GL_DEPTH_BUFFER_BIT);
 

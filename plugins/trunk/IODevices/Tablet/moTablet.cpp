@@ -88,16 +88,9 @@ MOboolean moTablet::Init()
 
 	// Levantamos el config del tablet
 	//levantamos el config del tablet
-	conf = m_pResourceManager->GetDataMan()->GetDataPath()+moText("/");
-    conf += GetConfigName();
-    conf += moText(".cfg");
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		text = "Couldn't load tablet config";
-		MODebug->Push(text);
-		return false;
-	}
-
-	moMoldeoObject::Init();
+    if (moMoldeoObject::Init()) {
+        moMoldeoObject::CreateConnectors();
+    } else return false;
 
 	//levantamos los codes definidos
 	coparam = m_Config.GetParamIndex("code");
@@ -183,7 +176,7 @@ MOboolean moTablet::Init()
 	}
 	else
 	{
-		MODebug2->Push("Tablet not detected.");
+		MODebug2->Error("Tablet not detected.");
 		return false;
 	}
 

@@ -97,6 +97,14 @@ moPostEffectVideoWallMorphing::Init() {
 	cf = 0;
 	Steps = 0;
 
+    InitGrid();
+
+	return true;
+}
+
+void
+moPostEffectVideoWallMorphing::InitGrid() {
+
 //glEnable(GL_BLEND);
 float tita,fi,R;
 int i,j;
@@ -146,7 +154,6 @@ for(i=0,tita=0.0;i<(MO_MESHA_WIDTH4+1);i++,tita+=2*moMathf::PI/(float)(MO_MESHA_
 	}
 	}
 
-	return true;
 }
 
 void
@@ -397,6 +404,10 @@ void moPostEffectVideoWallMorphing::Draw( moTempo* tempogral,moEffectState* pare
     MOint w = MORenderMan->RenderWidth();
     MOint h = MORenderMan->RenderHeight();
 
+    if ( MO_MESHA_WIDTH4 != w / MO_MESHA_TEX2 ) {
+        InitGrid();
+    }
+
 	MOfloat s0 = 0.35;
 	MOfloat s1 = 0.55;
 	MOfloat t0 = 0.35;
@@ -553,7 +564,7 @@ moConfigDefinition *
 moPostEffectVideoWallMorphing::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("configuration"), MO_PARAM_NUMERIC, VIDEOWALLMORPHING_CONFIGURATION );
+	p_configdefinition->Add( moText("configuration"), MO_PARAM_NUMERIC, VIDEOWALLMORPHING_CONFIGURATION, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, VIDEOWALLMORPHING_BLENDING );
 	p_configdefinition->Add( moText("radius"), MO_PARAM_FUNCTION, VIDEOWALLMORPHING_RADIUS );
 	p_configdefinition->Add( moText("aberration"), MO_PARAM_FUNCTION, VIDEOWALLMORPHING_ABERRATION );

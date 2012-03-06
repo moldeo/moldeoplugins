@@ -101,6 +101,8 @@ MOboolean moNetOSCOut::Init()
     moDefineParamIndex( NETOSCOUT_SENDEVENTS, moText("send_events") );
     moDefineParamIndex( NETOSCOUT_DELETEEVENTS, moText("delete_events") );
 
+
+
     // Reading list of devices which will be used as source of events to send over the network.
     /*
     for(dev = MO_IODEVICE_KEYBOARD; dev <= MO_IODEVICE_TABLET; dev++) recog_devices[dev] = false;
@@ -168,6 +170,7 @@ MOboolean moNetOSCOut::Init()
 
 	    //eventPacket[i] = new moEventPacket(sendInterval, maxEventNum);
 	}
+
 
     OUTPUT_BUFFER_SIZE = 1024; // 10 = maximum length of a 32 bit int in decimal rep.
     packetBuffer = new char[OUTPUT_BUFFER_SIZE];
@@ -238,6 +241,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
     // Sending over the network the events that correspond to recognized devices.
     //Eventos->Add( MO_IODEVICE_TRACKER, moGetTicks(), 112, 113, 114, 115 );
 
+
     if (m_SendEvents) {
         actual = Eventos->First;
         while(actual != NULL)
@@ -303,16 +307,22 @@ void moNetOSCOut::Update(moEventList *Eventos)
     //inlets outlets
     moMoldeoObject::Update(Eventos);
 
+
     moTrackerSystemData* m_pTrackerData = NULL;
     //bool m_bTrackerInit = false;
 	//Procesar Inlets
 
 	//MODebug2->Message("netoscout:  updating");
-
+/*
 	for(int i=0; i<m_Inlets.Count(); i++) {
 		moInlet* pInlet = m_Inlets[i];
-		if (pInlet->Updated() && ( pInlet->GetConnectorLabelName()==moText("TRACKERKLT") || pInlet->GetConnectorLabelName()==moText("TRACKERGPUKLT") || pInlet->GetConnectorLabelName()==moText("TRACKERGPUKLT2")) ) {
-
+		if (pInlet->Updated() && ( pInlet->GetConnectorLabelName()==moText("TRACKERKLT")) ) {
+*/
+    int Tracker = GetInletIndex("TRACKERKLT" );
+    if (Tracker > -1) {
+      moInlet* pInlet = GetInlets()->Get(Tracker);
+      if (pInlet ) {
+          if (pInlet->Updated()) {
             //MODebug2->Message("netoscout: receiving tracker data");
 
 			m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
@@ -369,21 +379,21 @@ void moNetOSCOut::Update(moEventList *Eventos)
 
                     pData.SetText( moText("MP") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<16;i++) {
+                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetPositionMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
 
                     pData.SetText( moText("MM") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<16;i++) {
+                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetMotionMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
 
                     pData.SetText( moText("MA") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<16;i++) {
+                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetAccelerationMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
@@ -408,14 +418,14 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     pData.SetFloat( m_pTrackerData->GetBarycenterAcceleration().Y() );
                     tracker_data_message.Add(pData);
 
-                    MODebug2->Message( moText("netoscout: receiving tracker data: bx:") + (moText)FloatToStr(m_pTrackerData->GetBarycenter().X()) );
+                    //MODebug2->Message( moText("netoscout: receiving tracker data: bx:") + (moText)FloatToStr(m_pTrackerData->GetBarycenter().X()) );
                     //MODebug2->Push( moText("N:") + (moText)IntToStr( m_pTrackerData->GetValidFeatures() ) );
                     for (i = 0; i < host_name.Count(); i++)
                     {
                         //res = eventPacket[i]->AddEvent(actual);
                         //if (eventPacket[i]->ReadyToSend())
                         {
-                            //MODebug2->Push( moText("I:") + (moText)IntToStr( i ) );
+                            //MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
                             SendDataMessage( i, tracker_data_message );
                             //eventPacket[i]->ClearPacket();
                             //if (!res) eventPacket[i]->AddEvent(actual);
@@ -424,7 +434,8 @@ void moNetOSCOut::Update(moEventList *Eventos)
                // }
 
 			}
-		}
+          }
+      }
 	}
 
 }
@@ -504,7 +515,7 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
     (*packetStream) << osc::EndBundle;
     if (transmitSockets[i]) {
         transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
-        MODebug2->Push(moText("sending") + IntToStr(i));
+        //MODebug2->Push(moText("sending") + IntToStr(i));
     }
 
     //MODebug2->Push(moText("sending"));

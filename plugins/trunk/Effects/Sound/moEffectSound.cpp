@@ -128,26 +128,7 @@ MOboolean moEffectSound::Init() {
 
 	moDefineParamIndex( SOUND_INLET, moText("inlet") );
 	moDefineParamIndex( SOUND_OUTLET, moText("outlet") );
-/*
-    Tx = Ty = Tz = Rx = Ry = Rz = 0.0;
-	Sx = Sy = Sz = 1.0;
 
-    m_SoundFilename = moText("");
-
-    m_Audio.InitGraph();
-    m_bAudioStarted = false;
-
-    if (m_SoundFilename!=m_Config[moParamReference(SOUND_SOUND)][MO_SELECTED][0].Text() ) {
-
-        m_SoundFilename = m_Config[moParamReference(SOUND_SOUND)][MO_SELECTED][0].Text();
-        m_SoundFilenameFull = (moText)m_pResourceManager->GetDataMan()->GetDataPath() + (moText)moSlash + (moText)m_SoundFilename;
-
-        m_Audio.BuildLiveSound( m_SoundFilenameFull );
-
-    }
-
-    last_ticks = 0;
-*/
   m_UserPosition = 0;
 	return true;
 }

@@ -107,6 +107,14 @@ MOboolean moEffectIcon::Init() {
 	moDefineParamIndex( ICON_INLET, moText("inlet") );
 	moDefineParamIndex( ICON_OUTLET, moText("outlet") );
 
+    Tx = 0.0;
+    Ty = 0.0;
+    iTx = 0.0;
+    iTy = 0.0;
+
+    Sx = 1.0;
+    Sy = 1.0;
+
 	return true;
 }
 
@@ -123,6 +131,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     glLoadIdentity();									// Reset The View
     // Cambiar la proyeccion para una vista ortogonal //
     glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
+    //glDepthMask(GL_FALSE);
 
     m_pResourceManager->GetGLMan()->SetOrthographicView();
 
@@ -132,15 +141,15 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     alto = m_Config.Eval( moR(ICON_HEIGHT));
 
     /// Draw //
-    glTranslatef(  m_Config.Eval( moR(ICON_TRANSLATEX)),
-                   m_Config.Eval( moR(ICON_TRANSLATEY)),
+    glTranslatef(  m_Config.Eval( moR(ICON_TRANSLATEX)) + Tx,
+                   m_Config.Eval( moR(ICON_TRANSLATEY)) + Ty,
                    0.0);
 
     ///solo rotamos en el eje Z (0,0,1) ya que siempre estaremos perpedicular al plano (X,Y)
     glRotatef(  m_Config.Eval( moR(ICON_ROTATE)), 0.0, 0.0, 1.0 );
 
-    glScalef(   m_Config.Eval( moR(ICON_SCALEX)),
-                m_Config.Eval( moR(ICON_SCALEY)),
+    glScalef(   m_Config.Eval( moR(ICON_SCALEX))*Sx,
+                m_Config.Eval( moR(ICON_SCALEY))*Sy,
                   1.0);
 
     //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
@@ -175,6 +184,11 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
             if (pData) {
                 //MODebug2->Message("Icon > Draw > Drawing Features");
                 pData->DrawFeatures( 1.0, -1.0, 0.5, 0.5 );
+
+                /* chequeando info
+                MODebug2->Push( moText("Icon varX: ") + FloatToStr( pData->GetVariance().X())
+                       + moText(" varY: ") + FloatToStr(pData->GetVariance().Y()) );
+                       */
             }
           }
       }
@@ -186,6 +200,82 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 MOboolean moEffectIcon::Finish()
 {
     return PreFinish();
+}
+
+
+void moEffectIcon::Interaction( moIODeviceManager *IODeviceManager ) {
+
+	moDeviceCode *temp;
+	MOint did,cid,state,valor;
+
+	moEffect::Interaction( IODeviceManager );
+
+    inc_iTx = 0;
+    inc_iTy = 0;
+
+	if (devicecode!=NULL)
+	for(int i=0; i<ncodes; i++) {
+
+		temp = devicecode[i].First;
+
+		while(temp!=NULL) {
+			did = temp->device;
+			cid = temp->devicecode;
+			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			if (state)
+			switch(i) {
+				case MO_ICON_TRANSLATE_X:
+					Tx = ((float) (valor- m_pResourceManager->GetRenderMan()->RenderWidth()/2) / (float) m_pResourceManager->GetRenderMan()->RenderWidth());
+					iTx = 0;//resetear incremento
+					MODebug2->Push(IntToStr(valor));
+					break;
+				case MO_ICON_TRANSLATE_Y:
+                    Ty = ( m_pResourceManager->GetRenderMan()->RenderHeight() - valor) - m_pResourceManager->GetRenderMan()->RenderHeight()/2;
+					Ty = ((float) Ty / (float) m_pResourceManager->GetRenderMan()->RenderHeight());
+					iTy = 0;//resetear incremento
+					MODebug2->Push(IntToStr(valor));
+					break;
+
+				case MO_ICON_SCALE_X:
+					Sx+=((float) valor / (float) m_pResourceManager->GetRenderMan()->RenderWidth()/2);
+					MODebug2->Push(IntToStr(valor));
+					break;
+				case MO_ICON_SCALE_Y:
+                    //float _sy = m_pResourceManager->GetRenderMan()->RenderHeight() - valor;
+					Sy-=((float) valor / (float) m_pResourceManager->GetRenderMan()->RenderHeight()/2);
+					MODebug2->Push(IntToStr(valor));
+					break;
+
+				case MO_ICON_INC_TRANSLATE_X:
+                    if (valor>0) inc_iTx = 1;
+                    else if (valor<0) inc_iTx = -1;
+                    if (inc_iTx!=inc_iTx_ant) {
+                        iTx = 0;
+                    }
+					iTx =((float) valor / (float) m_pResourceManager->GetRenderMan()->RenderWidth());
+					MODebug2->Push(IntToStr(valor));
+					Tx+= iTx / 8.0;
+					break;
+				case MO_ICON_INC_TRANSLATE_Y:
+                    //float _sy = m_pResourceManager->GetRenderMan()->RenderHeight() - valor;
+                    if (valor>0) inc_iTy = 1;
+                    else if (valor<0) inc_iTy = -1;
+                    if (inc_iTy!=inc_iTy_ant) {
+                        iTy = 0;
+                    }
+					iTy = - ((float) valor / (float) m_pResourceManager->GetRenderMan()->RenderHeight() );
+					MODebug2->Push(IntToStr(valor));
+					Ty+= iTy/8.0;
+					break;
+			}
+		temp = temp->next;
+		}
+	}
+
+    inc_iTx_ant = inc_iTx;
+    inc_iTy_ant = inc_iTy;
+
 }
 
 

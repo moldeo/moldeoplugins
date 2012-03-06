@@ -138,8 +138,8 @@ moEffectLiveDrawing2::Init() {
 	stretch_tex = false;
 
 	show_pen = true;
-	show_colorbx = true;
-	show_timerbx = true;
+	show_colorbx = false;
+	show_timerbx = false;
 
 	tex_tab = 0;
 
@@ -174,20 +174,36 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	}
     */
 
+	//m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight);
+    canvasWidth = m_pResourceManager->GetRenderMan()->ScreenWidth();
+    canvasHeight = m_pResourceManager->GetRenderMan()->ScreenHeight();
+
+	//version para Camino
+	//m_pResourceManager->GetGLMan()->SetPerspectiveView(canvasWidth, canvasHeight);
+
+	//version para Cuentos Animados
 	m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight);
 
     // Draw //
+    //float rectif_tx = -1024*(1.15-1.0)*0.5;
+    float sx = 1.14*m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang);
+    float sy = 1.14*m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang);
 
-	glTranslatef(   m_Config[moR(LIVEDRAW2_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(LIVEDRAW2_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
+    float rectif_tx = -canvasWidth*(sx-1.0)*0.5;
+    float rectif_ty = -canvasHeight*(sy-1.0)*0.5;
+
+	glTranslatef(   m_Config[moR(LIVEDRAW2_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang)+rectif_tx,
+					m_Config[moR(LIVEDRAW2_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang)+rectif_ty,
 					m_Config[moR(LIVEDRAW2_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
 
 	glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
     glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
     glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
+	glScalef(   sx,
+                sy,
                 m_Config[moR(LIVEDRAW2_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+
+
 
 	updateParameters();
 
@@ -244,8 +260,29 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	renderGestures();
 
 
-	if (show_pen) drawPen();
-	if (show_colorbx) drawPalette();
+	if (show_pen) {
+	    drawPen();
+    }
+	if (show_colorbx) {
+	    drawPalette();
+
+            glBindTexture( GL_TEXTURE_2D, 0 );
+            glColor4f( 1.0, 1.0, 1.0, 0.5 );
+            glBegin(GL_QUADS);
+                glTexCoord2f( 0.0, 0.0);
+                glVertex2i( -5.0, -5.0);
+
+                glTexCoord2f( 1.0, 0.0);
+                glVertex2i(  5.0, -5.0);
+
+                glTexCoord2f( 1.0, 1.0);
+                glVertex2i(  5.0,  5.0);
+
+                glTexCoord2f( 0.0, 1.0);
+                glVertex2i( -5.0,  5.0);
+            glEnd();
+
+	}
 	if (show_timerbx) drawTimer();
 
 
@@ -638,7 +675,7 @@ moEffectLiveDrawing2::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("back_textures"), MO_PARAM_TEXTURE, LIVEDRAW2_BACK_TEXTURES );
 	p_configdefinition->Add( moText("ico_textures"), MO_PARAM_TEXTURE, LIVEDRAW2_ICO_TEXTURES );
-	p_configdefinition->Add( moText("shaders"), MO_PARAM_TEXT, LIVEDRAW2_SHADERS );
+	p_configdefinition->Add( moText("shaders"), MO_PARAM_TEXT, LIVEDRAW2_SHADERS, moValue("shaders/livedrawing/LineAntialising.cfg","TXT") );
 	p_configdefinition->Add( moText("scripts"), MO_PARAM_TEXT, LIVEDRAW2_SCRIPTS );
 
 	p_configdefinition->Add( moText("canvas_margin"), MO_PARAM_NUMERIC, LIVEDRAW2_CANVAS_MARGIN, moValue("40","NUM").Ref() );
@@ -900,10 +937,10 @@ void moEffectLiveDrawing2::drawPen()
 	float l = 1.0;
 
     glBegin(GL_QUADS);
-	    glVertex2f(penX - 4, penY - 4);
-	    glVertex2f(penX - 4, penY + 4);
-	    glVertex2f(penX + 4, penY + 4);
-	    glVertex2f(penX + 4, penY - 4);
+	    glVertex2f(penX - 0.5, penY - 0.5);
+	    glVertex2f(penX - 0.5, penY + 0.5);
+	    glVertex2f(penX + 0.5, penY + 0.5);
+	    glVertex2f(penX + 0.5, penY - 0.5);
     glEnd();
 }
 

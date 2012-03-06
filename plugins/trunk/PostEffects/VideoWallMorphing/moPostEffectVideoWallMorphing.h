@@ -99,6 +99,7 @@ public:
     MOboolean Init();
     void Draw( moTempo*, moEffectState* parentstate = NULL);
     MOboolean Finish();
+    void InitGrid();
     void LoadConfiguration();
 	virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 };
