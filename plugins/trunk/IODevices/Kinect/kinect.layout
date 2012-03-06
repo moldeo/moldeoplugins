@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="release" />
-	<File name="moKinect.cpp" open="0" top="0" tabpos="1">
-		<Cursor position="12468" topLine="345" />
-	</File>
 	<File name="moKinect.h" open="0" top="0" tabpos="2">
 		<Cursor position="4124" topLine="134" />
 	</File>

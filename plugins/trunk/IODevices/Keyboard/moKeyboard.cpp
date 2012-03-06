@@ -413,6 +413,8 @@ moKeyboard::Update(moEventList *Events) {
 
 			switch(actual->devicecode) {
 				case SDL_KEYDOWN:
+                    MODebug2->Push( moText("val0:") + IntToStr(actual->reservedvalue0)
+                                   + moText(" val1:") + IntToStr(actual->reservedvalue1) );
 					Keys[actual->reservedvalue0].Push(actual->reservedvalue1);
 					//genero el evento virtual para la consola virtual(pushed de una key)
 					//disp,devcode,val0=botonid,val1=mod(keys especiales)

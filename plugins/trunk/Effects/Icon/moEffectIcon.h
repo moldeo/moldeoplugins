@@ -38,6 +38,8 @@
 #define MO_ICON_TRANSLATE_Y 1
 #define MO_ICON_SCALE_X 2
 #define MO_ICON_SCALE_Y 3
+#define MO_ICON_INC_TRANSLATE_X 4
+#define MO_ICON_INC_TRANSLATE_Y 5
 
 enum moIconParamIndex {
 	ICON_ALPHA,
@@ -68,8 +70,15 @@ public:
     MOboolean Finish();
 
     moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
+    void Interaction( moIODeviceManager *IODeviceManager );
 
     void Update( moEventList *Events );
+
+private:
+    float Tx, Ty; //Translation by user
+    float iTx, iTy; //Translation increment by user
+    int inc_iTx, inc_iTx_ant, inc_iTy, inc_iTy_ant;
+    float Sx, Sy; //Scale by user
 
 };
 

@@ -62,8 +62,8 @@
 			<Add directory="..\..\..\..\externlibs\cg\lib" />
 			<Add directory="..\..\..\..\externlibs\lua\lib" />
 		</Linker>
-		<Unit filename="moMasterEffectChannel.h" />
 		<Unit filename="moMasterEffectChannel.cpp" />
+		<Unit filename="moMasterEffectChannel.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

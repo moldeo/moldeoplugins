@@ -68,7 +68,7 @@ enum moOpenCVParamIndex {
 
 #define w 500
 
-class LIBMOLDEO_API moOpenCVSystem : public moAbstract {
+class moOpenCVSystem : public moAbstract {
 
 	public:
 
@@ -79,11 +79,14 @@ class LIBMOLDEO_API moOpenCVSystem : public moAbstract {
 
 
 typedef moOpenCVSystem* moOpenCVSystemPtr;
-
+/*
 template class LIBMOLDEO_API moDynamicArray<moOpenCVSystemPtr>;
 typedef  moDynamicArray<moOpenCVSystemPtr> moOpenCVSystems;
+*/
+moDeclareDynamicArray( moOpenCVSystemPtr, moOpenCVSystems );
 
-class LIBMOLDEO_API moOpenCV : public moResource
+
+class moOpenCV : public moResource
 {
 public:
     moOpenCV();
