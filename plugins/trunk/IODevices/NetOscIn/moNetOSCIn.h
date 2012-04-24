@@ -50,9 +50,11 @@
 enum moNetOSCInParamIndex {
     NETOSCIN_INLET,
     NETOSCIN_OUTLET,
+    NETOSCIN_SCRIPT,
     NETOSCIN_HOSTS,
 	NETOSCIN_PORT,
-	NETOSCIN_RECEIVEEVENTS
+	NETOSCIN_RECEIVEEVENTS,
+	NETOSCIN_DEBUG
 };
 
 
@@ -63,10 +65,13 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
 
 	public:
 
+        bool debug_is_on;
+
         moOscPacketListener() {
             m_pUdpRcv = NULL;
             pEvents = NULL;
             pTracker = NULL;
+            debug_is_on = false;
         }
 
         virtual int ThreadUserFunction() {
@@ -97,9 +102,11 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
             }
         }
 
-        void Update( moOutlets* pOutlets ) {
+        void Update( moOutlets* pOutlets, bool _debug_is_on ) {
             //block message
             m_Semaphore.Lock();
+
+            debug_is_on = _debug_is_on;
 
             moOutlet* poutlet = NULL;
 
@@ -239,7 +246,7 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
                     data = moData( pointer, size, dtype );
                     message.Add( data );
                 }
-                //moAbstract::MODebug2->Push( data.TypeToText()+ moText(": ") + data.ToText() );
+                if (debug_is_on) moAbstract::MODebug2->Push( data.TypeToText()+ moText(": ") + data.ToText() );
                 (arg++);
             }
 
@@ -284,6 +291,9 @@ private:
     // Parameters.
     moTextArray host_name;
     moIntArray host_port;
+    bool debug_is_on;
+
+    MOint   gen_port;
 
 	float sendInterval;
 	int maxEventNum;
