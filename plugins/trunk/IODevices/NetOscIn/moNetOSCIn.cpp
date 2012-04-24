@@ -65,7 +65,7 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
 
 moNetOSCIn::moNetOSCIn()
 {
-    SetName("net_osc_in");
+    SetName("netoscin");
     m_pEvents = NULL;
 }
 
@@ -95,9 +95,11 @@ MOboolean moNetOSCIn::Init()
 
 	moDefineParamIndex( NETOSCIN_INLET, moText("inlet") );
 	moDefineParamIndex( NETOSCIN_OUTLET, moText("outlet") );
+	moDefineParamIndex( NETOSCIN_SCRIPT , moText("script") );
 	moDefineParamIndex( NETOSCIN_HOSTS , moText("hosts") );
 	moDefineParamIndex( NETOSCIN_PORT , moText("port") );
 	moDefineParamIndex( NETOSCIN_RECEIVEEVENTS, moText("receive_events") );
+	moDefineParamIndex( NETOSCIN_DEBUG, moText("debug") );
 
     bool events_present;
     bool trackersystem_present;
@@ -138,7 +140,25 @@ MOboolean moNetOSCIn::Init()
     for(i = 0; i < n_hosts; i++)
     {
 		host_name.Set(i, m_Config.GetParam(n).GetValue(i).GetSubValue(0).Text());
-		host_port.Set(i, m_Config.GetParam(n).GetValue(i).GetSubValue(1).Int());
+		int nport;
+		nport = m_Config.GetParam(n).GetValue(i).GetSubValue(1).Int();
+
+		MODebug2->Push(moText(" NETOSCIN hosts: HOST NAME:")
+                                            + (moText)host_name[i]
+                                            + moText(" PORT:")
+                                            + IntToStr(nport)
+                 );
+
+		if (nport==0) {
+		    //nport = m_Config.Int( moText("port") );
+		    nport = m_Config.Int( moR(NETOSCIN_PORT) );
+            MODebug2->Push(moText(" NETOSCIN port 0: trying default port parameter")
+                                            + moText(" PORT:")
+                                            + IntToStr(nport)
+                 );
+
+		}
+		host_port.Set(i, nport);
 	}
 
 	for(i = 0; i < n_hosts; i++)
@@ -238,6 +258,7 @@ void
 moNetOSCIn::UpdateParameters() {
 
     m_ReceiveEvents = m_Config.Int( moR(NETOSCIN_RECEIVEEVENTS) );
+    debug_is_on = ( 0 != m_Config.Int( moR(NETOSCIN_DEBUG) ) );
 
 }
 
@@ -249,6 +270,7 @@ moNetOSCIn::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("hosts"), MO_PARAM_TEXT, NETOSCIN_HOSTS, moValue("127.0.0.1","TXT") );
 	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCIN_PORT, moValue("7400","INT") );
 	p_configdefinition->Add( moText("receive_events"), MO_PARAM_NUMERIC, NETOSCIN_RECEIVEEVENTS, moValue("0","INT") );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, NETOSCIN_DEBUG, moValue("0","INT") );
 
 	return p_configdefinition;
 }
@@ -304,7 +326,7 @@ void moNetOSCIn::Update(moEventList *Eventos)
 
         if (pListener) {
             //MODebug2->Push( moText("Updating outlets "));
-            pListener->Update( GetOutlets() );
+            pListener->Update( GetOutlets(), debug_is_on );
         }
 
 	}
