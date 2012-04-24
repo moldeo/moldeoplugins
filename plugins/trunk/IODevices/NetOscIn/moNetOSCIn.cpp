@@ -59,7 +59,193 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
 	delete fx;
 }
 
+//  Listener class *****************************************************
 
+ moOscPacketListener::moOscPacketListener() {
+    m_pUdpRcv = NULL;
+    pEvents = NULL;
+    pTracker = NULL;
+    debug_is_on = false;
+}
+
+int moOscPacketListener::ThreadUserFunction() {
+    if (m_pUdpRcv) {
+        moAbstract::MODebug2->Message(moText("Running listener..."));
+        m_pUdpRcv->Run();
+    }
+}
+
+void moOscPacketListener::Set( UdpListeningReceiveSocket* pudprcv ) {
+    moAbstract::MODebug2->Message(moText("Set listener"));
+    m_pUdpRcv = pudprcv;
+}
+
+void
+moOscPacketListener::Init( moOutlets* pOutlets ) {
+    moOutlet* pOutlet = NULL;
+    for( int i=0; i<pOutlets->Count(); i++) {
+            pOutlet = pOutlets->Get(i);
+            if (pOutlet) {
+                if (pOutlet->GetConnectorLabelName() == moText("EVENTS")) {
+                    pEvents = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("TRACKERSYSTEM")) {
+                    pTracker = pOutlet;
+                }
+            }
+
+    }
+}
+
+void
+moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
+    //block message
+    m_Semaphore.Lock();
+
+    debug_is_on = _debug_is_on;
+
+    moOutlet* poutlet = NULL;
+
+    if (pEvents==NULL) {
+        Init(pOutlets);
+    }
+
+    for( int j=0; j<Messages.Count();j++) {
+
+        moDataMessage& message( Messages.Get(j) );
+        poutlet = NULL;
+
+        //sumamos a los mensajes....
+        ///primer dato debe contener el codigo interno del evento
+        moData DataCode = message.Get(0);
+
+        if ( DataCode.Text() == moText("EVENT") ) {
+            poutlet = pEvents;
+            poutlet->GetMessages().Add( message );
+            //MODebug2->Push( moText("receiving event:") +  message.Get(1).ToText() );
+        } else if ( DataCode.Text() == moText("TRACKERSYSTEM") ) {
+            poutlet = pTracker;
+            poutlet->GetMessages().Add( message );
+        }
+        if (poutlet) {
+            poutlet->Update();
+            if (poutlet->GetType()==MO_DATA_MESSAGES)
+                poutlet->GetData()->SetMessages( &poutlet->GetMessages() );
+            if (poutlet->GetType()==MO_DATA_MESSAGE)
+                poutlet->GetData()->SetMessage( &poutlet->GetMessages().Get( poutlet->GetMessages().Count() - 1 ) );
+        }
+
+    }
+    Messages.Empty();
+
+    m_Semaphore.Unlock();
+}
+
+
+void
+moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
+				const IpEndpointName& remoteEndpoint )
+    {
+        m_Semaphore.Lock();
+        moDataMessage message;
+        try{
+            //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+
+            osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
+
+            for(int i = 0; i<m.ArgumentCount(); i++) {
+
+                const osc::ReceivedMessageArgument& rec((*arg));
+
+                moData  data;
+
+                //base.Copy( moData( (int)rec.AsBool() ) );
+                if (rec.TypeTag()==osc::TRUE_TYPE_TAG) {
+                    data = moData( (int)rec.AsBool() );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::FALSE_TYPE_TAG) {
+                    data = moData( (int)rec.AsBool() );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::NIL_TYPE_TAG) {
+                    data.Copy( moData( (int)rec.AsInt32() ) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::INFINITUM_TYPE_TAG) {
+                    data.Copy( moData( (int)rec.AsInt32() ) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::INT32_TYPE_TAG) {
+                    data.Copy( moData( (int)rec.AsInt32() ) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::CHAR_TYPE_TAG) {
+                    data.Copy( moData( rec.AsChar() ) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::RGBA_COLOR_TYPE_TAG) {
+                    int rgba = rec.AsRgbaColor();
+                    int r = rgba >> 24;
+                    int g = (rgba & 0x00FFFFFF) >> 16;
+                    int b = (rgba & 0x0000FFFF) >> 8;
+                    int a = (rgba & 0x000000FF);
+                    data = moData(rgba);
+                    message.Add(data);
+
+                } else if (rec.TypeTag()==osc::MIDI_MESSAGE_TYPE_TAG) {//uint32
+                    data = moData( (int)rec.AsMidiMessage() );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::INT64_TYPE_TAG) {//uint64
+                    data = moData( rec.AsInt64());
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::TIME_TAG_TYPE_TAG) {//uint64
+                    data = moData( (MOlonglong)rec.AsTimeTag());
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::FLOAT_TYPE_TAG) {
+                    data = moData( rec.AsFloat() );
+                    message.Add( data );
+                } else if (rec.TypeTag()==osc::DOUBLE_TYPE_TAG) {
+                    data = moData( rec.AsDouble() );
+                    message.Add( data );
+                } else if (rec.TypeTag()==osc::STRING_TYPE_TAG) {
+                    data = moData( moText( rec.AsString()) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::SYMBOL_TYPE_TAG) {
+                    data = moData( moText(rec.AsSymbol()) );
+                    message.Add( data );
+
+                } else if (rec.TypeTag()==osc::BLOB_TYPE_TAG) {
+                    //el BLOB deberá ser pasado como buffer...
+                    // habria que ver como reconocer si es Imagen o si es simplemente data
+                    // eso hay que tratarlo, ya sea con el FreeImage: que tratará de reconocer en memoria el tag
+                    // si falla podríamos ir pensando en una variante para esto...
+                    MOpointer   pointer;
+                    MOulong size;
+                    moDataType dtype = MO_DATA_POINTER;
+                    //dtype = MO_DATA_IMAGESAMPLE;
+                    //dtype = MO_DATA_SOUNDSAMPLE;
+                    rec.AsBlob( (const void*&)pointer, size );
+                    data = moData( pointer, size, dtype );
+                    message.Add( data );
+                }
+                if (debug_is_on) moAbstract::MODebug2->Push( data.TypeToText()+ moText(": ") + data.ToText() );
+                (arg++);
+            }
+
+        }catch( osc::Exception& e ){
+            // any parsing errors such as unexpected argument types, or
+            // missing arguments get thrown as exceptions.
+            std::cout << "error while parsing message: "
+                << m.AddressPattern() << ": " << e.what() << "\n";
+        }
+        Messages.Add(message);
+        m_Semaphore.Unlock();
+    }
 
 // moNetOSCIn class **************************************************
 
