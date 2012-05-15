@@ -146,8 +146,12 @@ void
 moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 				const IpEndpointName& remoteEndpoint )
     {
+
+        moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+
         m_Semaphore.Lock();
         moDataMessage message;
+
         try{
             //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
 
@@ -233,7 +237,7 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
                     data = moData( pointer, size, dtype );
                     message.Add( data );
                 }
-                if (debug_is_on) moAbstract::MODebug2->Push( data.TypeToText()+ moText(": ") + data.ToText() );
+                if (debug_is_on) moAbstract::MODebug2->Push( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
                 (arg++);
             }
 
@@ -519,7 +523,9 @@ void moNetOSCIn::Update(moEventList *Eventos)
 
     if (m_ReceiveEvents) {
         if (m_pEvents) {
+
             //MODebug2->Push( moText("Checking events "));
+
             for(int i = 0; i<m_pEvents->GetMessages().Count();  i++) {
                 moDataMessage& mess(m_pEvents->GetMessages().Get(i) );
 
