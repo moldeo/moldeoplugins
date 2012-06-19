@@ -63,8 +63,24 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
 
  moOscPacketListener::moOscPacketListener() {
     m_pUdpRcv = NULL;
-    pEvents = NULL;
-    pTracker = NULL;
+    pOutEvents = NULL;
+    pOutTracker = NULL;
+
+
+    pOutAndOsc = NULL;
+
+    pOutPositionX = NULL;
+    pOutPositionY = NULL;
+    pOutPositionZ = NULL;
+
+    pOutAccelerationX = NULL;
+    pOutAccelerationY = NULL;
+    pOutAccelerationZ = NULL;
+
+    pOutOrientationX = NULL;
+    pOutOrientationY = NULL;
+    pOutOrientationZ = NULL;
+
     debug_is_on = false;
 }
 
@@ -87,11 +103,45 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
             pOutlet = pOutlets->Get(i);
             if (pOutlet) {
                 if (pOutlet->GetConnectorLabelName() == moText("EVENTS")) {
-                    pEvents = pOutlet;
+                    pOutEvents = pOutlet;
                 }
                 if (pOutlet->GetConnectorLabelName() == moText("TRACKERSYSTEM")) {
-                    pTracker = pOutlet;
+                    pOutTracker = pOutlet;
                 }
+                if (pOutlet->GetConnectorLabelName() == moText("ANDOSC")) {
+                    pOutAndOsc = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("POSITIONX")) {
+                    pOutPositionX = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("POSITIONY")) {
+                    pOutPositionY = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("POSITIONZ")) {
+                    pOutPositionZ = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ORIENTATIONX")) {
+                    pOutOrientationX = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("ORIENTATIONY")) {
+                    pOutOrientationY = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("ORIENTATIONZ")) {
+                    pOutOrientationZ = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ACCELERATIONX")) {
+                    pOutAccelerationX = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("ACCELERATIONY")) {
+                    pOutAccelerationY = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("ACCELERATIONZ")) {
+                    pOutAccelerationZ = pOutlet;
+                }
+
             }
 
     }
@@ -106,7 +156,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
     moOutlet* poutlet = NULL;
 
-    if (pEvents==NULL) {
+    if (pOutEvents==NULL) {
         Init(pOutlets);
     }
 
@@ -116,21 +166,105 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
         poutlet = NULL;
 
         //sumamos a los mensajes....
-        ///primer dato debe contener el codigo interno del evento
+        ///primer dato debe contener el codigo interno del evento o palabra que lo represente
+        ///por ejemplo TRACKERSYSTEM, o EVENT, o POSITION, o ORIENTATION, etc...
+        ///luego el resto del mensaje contiene los datos adicionales X, Y, Z
         moData DataCode = message.Get(0);
 
         if ( DataCode.Text() == moText("EVENT") ) {
-            poutlet = pEvents;
+            poutlet = pOutEvents;
             poutlet->GetMessages().Add( message );
             //MODebug2->Push( moText("receiving event:") +  message.Get(1).ToText() );
         } else if ( DataCode.Text() == moText("TRACKERSYSTEM") ) {
-            poutlet = pTracker;
+            poutlet = pOutTracker;
             poutlet->GetMessages().Add( message );
+        } else if ( DataCode.Text() == moText("ANDOSC") ) {
+
+            poutlet = pOutAndOsc;
+            poutlet->GetMessages().Add( message );
+
+        } else if ( DataCode.Text() == moText("POSITION") ) {
+
+            int iref = 1;
+            bool multitouch = false;
+            moData PosI = message.Get(iref);
+
+            if (        PosI.Type()==MO_DATA_NUMBER_INT
+                    || PosI.Type()==MO_DATA_NUMBER_LONG ) {
+                iref+= 1;
+                multitouch = true;
+            }
+
+            if (message.Count()>=3 && pOutPositionX && pOutPositionY ) {
+                moData PosX = message.Get(iref++);
+                moData PosY = message.Get(iref++);
+
+                /*DEBDERIA CALIBRARSE.... o fijarse en el plugin*/
+                pOutPositionX->GetData()->SetDouble(  ( PosX.Double() -240 ) / 480.0 );
+                pOutPositionY->GetData()->SetDouble(  ( 400 - PosY.Double() ) / 800.0 );
+                pOutPositionX->Update();
+                pOutPositionY->Update();
+
+                //MODebug2->Push(moText("Pos X:") + FloatToStr(pOutPositionX->GetData()->Double()) );
+                //MODebug2->Push(moText("Pos Y:") + FloatToStr(pOutPositionY->GetData()->Double()) );
+            }
+            if (!multitouch) {
+                if (message.Count()>=4 && pOutPositionZ) {
+                    moData PosZ = message.Get(iref++);
+                    pOutPositionZ->GetData()->SetDouble(  PosZ.Double() );
+                    pOutPositionZ->Update();
+                }
+            } else {
+                //multitouch: procesar varios touchs
+                    //finger id:
+                    //finger pos x:
+                    //finger pos y:
+                    //finger size:
+
+            }
+        } else if ( DataCode.Text() == moText("ORIENTATION") ) {
+
+            if (message.Count()>=4 && pOutOrientationX && pOutOrientationY && pOutOrientationZ ) {
+
+                moData OriX = message.Get(1);
+                moData OriY = message.Get(2);
+                moData OriZ = message.Get(3);
+
+                pOutOrientationX->GetData()->SetDouble(  ( 45 - OriX.Double() ) );
+                pOutOrientationY->GetData()->SetDouble(  OriY.Double() );
+                pOutOrientationZ->GetData()->SetDouble(  OriZ.Double() );
+                pOutOrientationX->Update();
+                pOutOrientationY->Update();
+                pOutOrientationZ->Update();
+
+                //MODebug2->Push(moText("Ori X:") + FloatToStr(pOutOrientationX->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
+            }
+        } else if ( DataCode.Text() == moText("ACCELERATION") ) {
+
+            if (message.Count()>=4 && pOutAccelerationX && pOutAccelerationY && pOutAccelerationZ) {
+                moData AccelX = message.Get(1);
+                moData AccelY = message.Get(2);
+                moData AccelZ = message.Get(3);
+
+                pOutAccelerationX->GetData()->SetDouble(  AccelX.Double() );
+                pOutAccelerationY->GetData()->SetDouble(  AccelY.Double() );
+                pOutAccelerationZ->GetData()->SetDouble(  AccelZ.Double() );
+                pOutAccelerationX->Update();
+                pOutAccelerationY->Update();
+                pOutAccelerationZ->Update();
+
+            }
         }
+
         if (poutlet) {
+
             poutlet->Update();
+
             if (poutlet->GetType()==MO_DATA_MESSAGES)
                 poutlet->GetData()->SetMessages( &poutlet->GetMessages() );
+
             if (poutlet->GetType()==MO_DATA_MESSAGE)
                 poutlet->GetData()->SetMessage( &poutlet->GetMessages().Get( poutlet->GetMessages().Count() - 1 ) );
         }
@@ -144,13 +278,36 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
 void
 moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
-				const IpEndpointName& remoteEndpoint )
-    {
+				const IpEndpointName& remoteEndpoint ) {
 
-        moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+        if (debug_is_on) moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+        if (debug_is_on) moAbstract::MODebug2->Push(moText("TypeTag: ")+ moText(m.TypeTags()) );
+
 
         m_Semaphore.Lock();
         moDataMessage message;
+
+        moData  data0;
+
+        /*AND OSC*/
+        /// El primer dato corresponderá a una palabra que represente la secuencia de datos.
+        if (
+                moText( m.TypeTags() ) == moText("ff") /*andOSC*/
+            || moText( m.TypeTags() ) == moText("ifff") /*OSCTouch*/ /* i = finger_id, f: x f: y f:size  */
+
+            ) {
+
+            data0 = moData( moText( "POSITION" ) );
+            message.Add( data0 );
+        }
+        if ( moText( m.TypeTags() ) == moText("iii") ) {
+            data0 = moData( moText( "ORIENTATION" ) );
+            message.Add( data0 );
+        }
+        if ( moText( m.TypeTags() ) == moText("fff") ) {
+            data0 = moData( moText( "ACCELERATION" ) );
+            message.Add( data0 );
+        }
 
         try{
             //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
@@ -241,7 +398,8 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
                 (arg++);
             }
 
-        }catch( osc::Exception& e ){
+        }
+        catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
             std::cout << "error while parsing message: "
@@ -253,19 +411,16 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 
 // moNetOSCIn class **************************************************
 
-moNetOSCIn::moNetOSCIn()
-{
+moNetOSCIn::moNetOSCIn() {
     SetName("netoscin");
     m_pEvents = NULL;
 }
 
-moNetOSCIn::~moNetOSCIn()
-{
+moNetOSCIn::~moNetOSCIn() {
     Finish();
 }
 
-MOboolean moNetOSCIn::Init()
-{
+MOboolean moNetOSCIn::Init() {
     int dev;
     MOuint i, n, n_dev, n_hosts;
     moText conf, dev_name;
@@ -465,28 +620,23 @@ moNetOSCIn::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	return p_configdefinition;
 }
 
-MOswitch moNetOSCIn::SetStatus(MOdevcode codisp, MOswitch state)
-{
+MOswitch moNetOSCIn::SetStatus(MOdevcode codisp, MOswitch state) {
     return true;
 }
 
-MOswitch moNetOSCIn::GetStatus(MOdevcode codisp)
-{
+MOswitch moNetOSCIn::GetStatus(MOdevcode codisp) {
     return(-1);
 }
 
-MOint moNetOSCIn::GetValue(MOdevcode codisp)
-{
+MOint moNetOSCIn::GetValue(MOdevcode codisp) {
     return(-1);
 }
 
-MOdevcode moNetOSCIn::GetCode(moText strcod)
-{
+MOdevcode moNetOSCIn::GetCode(moText strcod) {
     return(-1);
 }
 
-void moNetOSCIn::Update(moEventList *Eventos)
-{
+void moNetOSCIn::Update(moEventList *Eventos) {
 
     MOuint i;
 
@@ -579,13 +729,11 @@ void moNetOSCIn::Update(moEventList *Eventos)
 
 }
 
-MOboolean moNetOSCIn::Finish()
-{
+MOboolean moNetOSCIn::Finish() {
 
 	return true;
 }
 
-void moNetOSCIn::SendEvent(int i)
-{
+void moNetOSCIn::SendEvent(int i) {
 
 }

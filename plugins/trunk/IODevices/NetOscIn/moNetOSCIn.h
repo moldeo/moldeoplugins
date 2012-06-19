@@ -81,10 +81,25 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
     protected:
         moLock  m_Semaphore;
 
-        moOutlet*   pEvents;
-        moOutlet*   pTracker;
-        moOutlet*   pTuio;
-        moOutlet*   pData;
+        moOutlet*   pOutEvents;
+        moOutlet*   pOutTracker;
+        moOutlet*   pOutTuio;
+        moOutlet*   pOutData;
+
+        moOutlet*   pOutAndOsc;
+
+        moOutlet*   pOutPositionX;
+        moOutlet*   pOutPositionY;
+        moOutlet*   pOutPositionZ;
+
+        moOutlet*   pOutAccelerationX;
+        moOutlet*   pOutAccelerationY;
+        moOutlet*   pOutAccelerationZ;
+
+        moOutlet*   pOutOrientationX; //pitch
+        moOutlet*   pOutOrientationY; //roll
+        moOutlet*   pOutOrientationZ; //azimuth
+
         bool debug_is_on;
 
     virtual void ProcessMessage( const osc::ReceivedMessage& m,
