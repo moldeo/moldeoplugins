@@ -47,6 +47,7 @@ class moMasterEffectLigia : public moMasterEffect
 {
 public:
     bool done;
+    bool m_capture_mode;
 
     //config
     MOint sounds;

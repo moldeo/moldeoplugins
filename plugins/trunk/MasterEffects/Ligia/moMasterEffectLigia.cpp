@@ -67,6 +67,7 @@ moMasterEffectLigia::moMasterEffectLigia() {
 
 	preview = stream = -1;
 
+    m_capture_mode = false;
 
 	done = false;
 
@@ -88,12 +89,58 @@ void moMasterEffectLigia::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
     PreDraw( tempogral, parentstate);
 
+    int ancho = 1;
+
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
     // Aca van los comandos OpenGL del efecto.
 	//if(welcome==MO_FALSE) Welcome();
 
+		glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
+		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+		glPushMatrix();										// Store The Projection Matrix
+		glLoadIdentity();									// Reset The Projection Matrix
+		glOrtho(0,800,0,600,-1,1);							// Set Up An Ortho Screen
+
+		glPointSize(4);
+		//glBindTexture(GL_TEXTURE_2D, 0);
+		glDisable(GL_TEXTURE_2D);
+		glColor4f(1.0,0.0,0.0,1.0);
+    /**
+        Dibujar el control del F11
+        un punto rojo a la izquierda
+    */
+        if (m_capture_mode) {
+					glBegin(GL_QUADS);
+						glTexCoord2f(1.0,1.0);
+						glVertex2i(-ancho,0-ancho);
+
+						glTexCoord2f(0.0,1.0);
+						glVertex2i(ancho,0-ancho);
+
+						glTexCoord2f(0.0,0.0);
+						glVertex2i(ancho,0+ancho);
+
+						glTexCoord2f(1.0,0.0);
+						glVertex2i(-ancho,0+ancho);
+					glEnd();
+        }
+
+
+	/**
+        Dibujar el canal 0: el efecto seleccionado: LABEL > parametros + valor seleccionado...
+
+	*/
+
+        glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+		glPopMatrix();
+
+	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+	glPopMatrix();										// Restore The Old Projection Matrix
+
+
+	glEnable(GL_TEXTURE_2D);
 }
 
 
@@ -168,6 +215,7 @@ moMasterEffectLigia::Interaction(moIODeviceManager *IODeviceManager) {
                                 (stricmp( pMEF->GetName(),"masterchannel")!=0) &&
                                 (stricmp( pMEF->GetName(),"presetpanel")!=0)) {
                                 pMEF->state.on*=-1;
+                                m_capture_mode = (pMEF->state.on == -1);
                             }
 					    }
 
