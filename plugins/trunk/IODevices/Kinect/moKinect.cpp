@@ -137,13 +137,15 @@ moKinect::moKinect() {
     dif_tex3 = -1;
 
 	show_callback = false;
-	m_center_curvature = 0.0;
-	m_CenterNormal.normal[0] = 0.0;
-	m_CenterNormal.normal[1] = 0.0;
-	m_CenterNormal.normal[2] = 0.0;
-	m_CenterNormal.normal[3] = 0.0;
+	#ifdef KINECT_PCL
+        m_center_curvature = 0.0;
+        m_CenterNormal.normal[0] = 0.0;
+        m_CenterNormal.normal[1] = 0.0;
+        m_CenterNormal.normal[2] = 0.0;
+        m_CenterNormal.normal[3] = 0.0;
 
-	m_ReferenceNormal = m_CenterNormal;
+        m_ReferenceNormal = m_CenterNormal;
+	#endif
 }
 
 moKinect::~moKinect() {
@@ -151,11 +153,13 @@ moKinect::~moKinect() {
 }
 
 bool moKinect::CheckError() {
+    #ifdef KINECT_OPENNI
     if (m_nRetVal != XN_STATUS_OK)
     {
         MODebug2->Error( moText("OpenNI Status Error:") + xnGetStatusString(m_nRetVal) );
         return false;
     }
+    #endif
     return true;
 
 }
@@ -173,7 +177,12 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("reference_point_tilt"), MO_PARAM_FUNCTION, KINECT_REF_POINT_TILT, moValue( "0.0", "FUNCTION").Ref() );
 
 	p_configdefinition->Add( moText("offset_min"), MO_PARAM_FUNCTION, KINECT_OFFSET_MIN, moValue( "0.0", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("offset_max"), MO_PARAM_FUNCTION, KINECT_OFFSET_MAX, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_max"), MO_PARAM_FUNCTION, KINECT_OFFSET_MAX, moValue( "10000.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_left"), MO_PARAM_FUNCTION, KINECT_OFFSET_LEFT, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_right"), MO_PARAM_FUNCTION, KINECT_OFFSET_RIGHT, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_top"), MO_PARAM_FUNCTION, KINECT_OFFSET_TOP, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_bottom"), MO_PARAM_FUNCTION, KINECT_OFFSET_BOTTOM, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("offset_radius"), MO_PARAM_FUNCTION, KINECT_OFFSET_RADIUS, moValue( "1000.0", "FUNCTION").Ref() );
 
 	p_configdefinition->Add( moText("reference_point_deep"), MO_PARAM_FUNCTION, KINECT_REF_POINT_DEEP, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("reference_point_width"), MO_PARAM_FUNCTION, KINECT_REF_POINT_WIDTH, moValue( "0.0", "FUNCTION").Ref() );
@@ -214,7 +223,9 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	KINECT_OBJECT_MAX_SURFACE,
 
 	KINECT_OBJECT_MIN_VOLUME,
-	KINECT_OBJECT_MAX_VOLUME,*/
+	KINECT_OBJECT_MAX_VOLUME,
+*/
+
     p_configdefinition->Add( moText("object_color1_bottom"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR1_BOTTOM );
     p_configdefinition->Add( moText("object_color1_top"), MO_PARAM_COLOR, KINECT_OBJECT_COLOR1_TOP );
 
@@ -237,7 +248,6 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
     p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, KINECT_UPDATE_ON, moValue( "0", "INT") );
 
-
 	return p_configdefinition;
 }
 
@@ -248,6 +258,16 @@ void moKinect::UpdateParameters() {
                             m_Config.Eval( moR(KINECT_OFFSET_MIN) ),
                             m_Config.Eval( moR(KINECT_OFFSET_MAX) )
                           );
+
+    m_OffsetBox = moVector4f(
+                            m_Config.Eval( moR(KINECT_OFFSET_LEFT) ),
+                            m_Config.Eval( moR(KINECT_OFFSET_RIGHT) ),
+                            m_Config.Eval( moR(KINECT_OFFSET_TOP) ),
+                            m_Config.Eval( moR(KINECT_OFFSET_BOTTOM) )
+                          );
+
+    m_OffsetRadius = m_Config.Eval( moR(KINECT_OFFSET_RADIUS) );
+
     m_RadMin = m_Config.Eval( moR(KINECT_OBJECT_RAD_MIN));
     m_RadMax = m_Config.Eval( moR(KINECT_OBJECT_RAD_MAX));
 
@@ -349,6 +369,12 @@ moKinect::Init() {
 
 	moDefineParamIndex( KINECT_OFFSET_MIN, moText("offset_min") );
 	moDefineParamIndex( KINECT_OFFSET_MAX, moText("offset_max") );
+	moDefineParamIndex( KINECT_OFFSET_LEFT, moText("offset_left") );
+	moDefineParamIndex( KINECT_OFFSET_RIGHT, moText("offset_right") );
+	moDefineParamIndex( KINECT_OFFSET_TOP, moText("offset_top") );
+	moDefineParamIndex( KINECT_OFFSET_BOTTOM, moText("offset_bottom") );
+	moDefineParamIndex( KINECT_OFFSET_RADIUS, moText("offset_radius") );
+
 
     moDefineParamIndex( KINECT_REF_POINT_DEEP, moText("reference_point_deep") );
 	moDefineParamIndex( KINECT_REF_POINT_WIDTH, moText("reference_point_width") );
@@ -412,17 +438,22 @@ moKinect::Init() {
     moTexParam tparam = MODefTex2DParams;
     //tparam.internal_format = GL_RGBA32F_ARB;
     tparam.internal_format = GL_RGB;
-
+/*
+    m_OutputMode.nXRes = 640;
+    m_OutputMode.nYRes = 480;*/
     m_OutputMode.nXRes = 640;
     m_OutputMode.nYRes = 480;
     m_OutputMode.nFPS = 30;
 
     int Mid = -1;
 
+
+#ifdef KINECT_PCL
     /** RGB texture*/
     Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTRGB", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
     if (Mid>0) {
         m_pRGBTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pRGBTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
     } else {
         MODebug2->Error("Couldn't create texture: KINECTRGB");
     }
@@ -445,7 +476,7 @@ moKinect::Init() {
     }
 
 
-
+/*
         m_fbo_idx = m_pResourceManager->GetFBMan()->CreateFBO();
         pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
 
@@ -457,8 +488,8 @@ moKinect::Init() {
 
         m_pDepthTexture->SetFBO( pFBO );
         m_pDepthTexture->SetFBOAttachPoint( attach_point );
-
-
+*/
+#endif
 
 
 
@@ -470,10 +501,7 @@ moKinect::Init() {
     } else {
         MODebug2->Message("Kinect Context Initialized!!");
     }
-#endif
 
-
-#ifdef KINECT_OPENNI
     /** Create a DepthGenerator node */
 
     m_nRetVal = m_Depth.Create(m_Context);
@@ -489,10 +517,6 @@ moKinect::Init() {
         m_DepthPixel = m_Depth.GetDeviceMaxDepth();
 
         MODebug2->Message( moText("m_DepthPixel:") + IntToStr(m_DepthPixel) );
-
-        m_OutputMode.nXRes = 640;
-        m_OutputMode.nYRes = 480;
-        m_OutputMode.nFPS = 30;
 
         m_nRetVal = m_Depth.SetMapOutputMode(m_OutputMode);
         if (!CheckError()) {
@@ -510,6 +534,9 @@ moKinect::Init() {
         Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTDEPTH", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
         if (Mid>0) {
             m_pDepthTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+
+            MODebug2->Message("KINECTDEPTH texture created!!");
+
             m_pDepthTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
 
             Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTDEPTH2", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
@@ -520,7 +547,7 @@ moKinect::Init() {
             pCloud = new moVector3f [m_OutputMode.nXRes*m_OutputMode.nYRes];
             //pCloudDif = new moVector3f[m_OutputMode.nXRes*m_OutputMode.nYRes];
             pCloudDif = new moVector3f [m_OutputMode.nXRes*m_OutputMode.nYRes];
-
+/*
             m_fbo_idx = m_pResourceManager->GetFBMan()->CreateFBO();
 			pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
 
@@ -532,13 +559,7 @@ moKinect::Init() {
 
             m_pDepthTexture->SetFBO( pFBO );
             m_pDepthTexture->SetFBOAttachPoint( attach_point );
-
-            ///now we can draw:
-            //m_pResourceManager->GetFBMan()->BindFBO( m_fbo_idx, attach_point );
-
-            //pFBO->Bind();
-            //pFBO->SetDrawTexture( m_pDepthTexture->GetFBOAttachPoint() );
-
+*/
 
         } else {
             MODebug2->Error("Couldn't create texture: KINECTDEPTH");
@@ -556,6 +577,8 @@ moKinect::Init() {
 
     } else {
 
+        MODebug2->Message("Kinect ImageGenerator Created!!");
+
         /** WE CREATE THE 640x480 TEXTURE*/
         moTexParam tparam = MODefTex2DParams;
         //tparam.internal_format = GL_RGBA32F_ARB;
@@ -566,6 +589,9 @@ moKinect::Init() {
         Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTRGB", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
         if (Mid>0) {
             m_pRGBTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+            m_pRGBTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
+
+            MODebug2->Message("KINECTRGB texture created!!");
         } else {
             MODebug2->Error("Couldn't create texture: KINECTRGB");
         }
@@ -672,57 +698,6 @@ moKinect::Init() {
 		}
 	}
 
-
-
-#ifdef KINECT_PCL
-/*
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr msg(new pcl::PointCloud<pcl::PointXYZRGB>);
-
-    PclMsg = msg;
-*/
-/*
-    //pcl::PCDReader reader;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    //reader.read ("table_scene_lms400.pcd", *cloud);
-
-    pcl::VoxelGrid<pcl::PointXYZ> vg;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-    //vg.setInputCloud (cloud);
-    //vg.setLeafSize (0.01, 0.01, 0.01);
-
-    //vg.filter (*cloud_filtered);
-
-    MODebug2->Push( moText("point size:") + IntToStr(cloud->points.size() )   );
-*/
-
-/*
-    msg->header.frame_id = "some_tf_frame";
-    msg->height = 480;
-    msg->width = 640;
-     //msg->fields.resize(4);
-     //msg->fields[0].name = "x";
-     //msg->fields[1].name = "y";
-     //msg->fields[2].name = "z";
-     //msg->fields[3].name = "rgb";
-    msg->is_dense = true;
-    msg->points.resize(640*480);
-
-    for( int v=0,i=0;v<480;v++)
-    {
-      for ( int u = 0; u<640;u++,i++)
-       {
-        pcl::PointXYZ result;
-        result.x = 0.0;  //(u-cx)*(RawDepthtoMeters(depth[i]) + minDistance*scaleFactor*(cx/cy);
-        result.y = 0.0;  //(v-cy)*(RawDepthtoMeters(depth[i]) + minDistance*scaleFactor;
-        result.z = 100.0; //RawDepethtoMeters(depth[i]);
-        msg->points.push.back(result);
-       }
-    }
-*/
-
-    //v.run ();
-#endif
-
 	return true;
 }
 
@@ -785,16 +760,54 @@ moKinect::Update(moEventList *Events) {
 
     UpdateParameters();
 
+#ifdef KINECT_PCL
     if (update_on<1) {
 
         if (interface  ) interface->stop();
-
         return;
     } else {
         if (interface ) interface->start();
     }
+#endif
 
 #ifdef KINECT_OPENNI
+
+if (update_on>0) {
+
+    /** UPDATE IMAGE*/
+    m_nRetVal = m_Context.WaitOneUpdateAll(m_RGBImage);
+    if (!CheckError()) {
+        MODebug2->Error("Kinect Failed to update data.");
+    } else {
+        const XnRGB24Pixel*    pImageMap = m_RGBImage.GetRGB24ImageMap();
+        if (pImageMap) {
+
+            if (!pImage) {
+                pImage =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
+
+            }
+
+            if (pImage) {
+                for( int j=0; j<m_OutputMode.nYRes; j++ ) {
+                    for( int i=0; i<m_OutputMode.nXRes; i++ ) {
+                            pImage[i*3+j*m_OutputMode.nXRes*3] = (*pImageMap).nRed;
+                            pImage[i*3+1+j*m_OutputMode.nXRes*3] = (*pImageMap).nGreen;
+                            pImage[i*3+2+j*m_OutputMode.nXRes*3] = (*pImageMap).nBlue;
+                            if (i==m_OutputMode.nXRes/2 && j==m_OutputMode.nYRes/2) {
+                                //MODebug2->Push( IntToStr((*pImageMap).nRed) + moText(" > ") + IntToStr(pImage[i*3+j*3*m_OutputMode.nXRes]) );
+                            }
+                            pImageMap++;
+                        }
+                }
+
+                if (m_pRGBTexture) {
+                    //MODebug2->Push("Building");
+                    m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImage, GL_RGB, GL_UNSIGNED_BYTE );
+                }
+            }
+        }
+
+    }
 
     /** UPDATE DEPTH*/
     m_nRetVal = m_Context.WaitOneUpdateAll(m_Depth);
@@ -827,15 +840,6 @@ moKinect::Update(moEventList *Events) {
 
             float distance_r = 0.0;
 
-            /*moVector3f ReferencePointDimensionAux;
-            if (m_ReferencePointDimension.Z()>0.01) {
-                ReferencePointDimensionAux = moVector3f( m_ReferencePointDimension.X()/m_ReferencePointDimension.Z(),
-                                                   m_ReferencePointDimension.Y()/m_ReferencePointDimension.Z(),
-                                                   m_ReferencePointDimension.Z() );
-            } else {
-                ReferencePointDimensionAux = moVector3f( 0.0, 0.0, 0.0);
-            }*/
-
             int n_base_max = 9;
             float minDistance = -10;
             float x,y,z;
@@ -849,6 +853,7 @@ moKinect::Update(moEventList *Events) {
             n_base_v = 0;
             ical = 0;
             jcal = 0;
+            if (disoff==0) disoff=1.0;
 
             if (pData && pData2) {
                 for( int j=0; j<m_OutputMode.nYRes; j++ ) {
@@ -860,13 +865,28 @@ moKinect::Update(moEventList *Events) {
                         //pData[i*3+2+j*m_OutputMode.nXRes*3] = *pDepthMap % 255;
                         z = (float)(*pDepthMap);
 
-                        if ( m_Offset.X()<(*pDepthMap) && (*pDepthMap)<m_Offset.Y()) {
+                        float radi = 0.0;
 
-                            pData[i*3+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;//(*pDepthMap - disoff) % 255;
+                        if (
+
+                                m_Offset.X()<(*pDepthMap)
+                            && (*pDepthMap)<m_Offset.Y()
+
+                            && (int)(m_OffsetBox.X())<=i
+                            && i<=(int)(m_OffsetBox.Y())
+                            && (int)(m_OffsetBox.Z())<=j
+                            && j<=(int)(m_OffsetBox.W())
+
+                            && radi<=m_OffsetRadius
+
+                            ) {
+
+                            pData[i*3+j*m_OutputMode.nXRes*3] = (*pDepthMap - (int)m_Offset.X() );
+                            pData[i*3+j*m_OutputMode.nXRes*3] = ( pData[i*3+j*m_OutputMode.nXRes*3] >> 1 ) % 255;
                             //pData[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
                             //pData[i*3+2+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
-                            pData[i*3+1+j*m_OutputMode.nXRes*3] = 0;
-                            pData[i*3+2+j*m_OutputMode.nXRes*3] = 0;
+                            pData[i*3+1+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
+                            pData[i*3+2+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
 
                             pData2[i*3+j*m_OutputMode.nXRes*3] = 0;
                             pData2[i*3+1+j*m_OutputMode.nXRes*3] = 0;
@@ -875,8 +895,8 @@ moKinect::Update(moEventList *Events) {
                             float z2 = ( (float) z * scaleFactor );
                             //x = (i - 320) * (z2 + minDistance) * scaleFactor;
                             //y = (240 - j) * (z2 + minDistance) * scaleFactor;
-                            x = (i - 320) * z2 / 320;
-                            y = (240 - j) * z2 / 240;
+                            x = ( i - m_OutputMode.nXRes/2 ) * z2 / (m_OutputMode.nXRes/2);
+                            y = ( m_OutputMode.nYRes/2 - j ) * z2 / (m_OutputMode.nYRes/2);
 
 
                             if (pCloud && pCloudDif) {
@@ -887,6 +907,8 @@ moKinect::Update(moEventList *Events) {
                                 pCloudDif[i+j*m_OutputMode.nXRes] = pCloud[i+j*m_OutputMode.nXRes] - m_ReferencePoint;
 
                                 distance_r = pCloudDif[i+j*m_OutputMode.nXRes].Length();
+
+                                /*
 
                                 if (distance_r > m_RadMax ) {
                                     //pData[i*3+1+j*m_OutputMode.nXRes*3] = 0;
@@ -911,13 +933,15 @@ moKinect::Update(moEventList *Events) {
                                         ical = 0;
                                     }
                                 }
+                                */
 
                                 /*si ya sacamos una normal*/
+                                /*
                                 if (BaseNormal.Length() > 0.01) {
-                                    /**calculamos los puntos que estan sobre la base*/
+                                    //calculamos los puntos que estan sobre la base
                                     moVector3f ResV = pCloud[i+j*m_OutputMode.nXRes] - m_ReferencePoint;
                                     float res = BaseNormal.Dot( ResV );
-                                    /*si ya tenemos un resultado del escalar, si enegativo esta por encima...*/
+                                    //si ya tenemos un resultado del escalar, si enegativo esta por encima...
                                     if ( res < 0.1 ) {
                                          pData[i*3+j*m_OutputMode.nXRes*3] = 0;
                                          pData[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
@@ -929,19 +953,21 @@ moKinect::Update(moEventList *Events) {
                                     }
 
                                 }
+                                */
 
-                                if ( i>=319 && i<=321 && j>=239 && j<=241) {
+                                /*
+                                if ( i>=(m_OutputMode.nXRes/2-1) && i<=(m_OutputMode.nXRes/2+1) && j>=(m_OutputMode.nYRes/2-1) && j<=(m_OutputMode.nYRes/2+1)) {
 
                                     pData[i*3+j*m_OutputMode.nXRes*3] = 0;
                                     pData[i*3+1+j*m_OutputMode.nXRes*3] = 255;
                                     pData[i*3+2+j*m_OutputMode.nXRes*3] = 0;
-                                    if (i==320 && j==240) {
-                                        /*
-                                        MODebug2->Push( IntToStr(*pDepthMap) + moText("(0,0) <x> ") + FloatToStr(x)
-                                                   + moText(" <y> ") + FloatToStr(y)
-                                                   + moText(" <z> ") + FloatToStr(z)
-                                                   + moText(" <d> ") + FloatToStr(distance_r) );
-                                                   */
+                                    if (i== m_OutputMode.nXRes/2 && j== m_OutputMode.nYRes/2) {
+                                        //
+                                        //MODebug2->Push( IntToStr(*pDepthMap) + moText("(0,0) <x> ") + FloatToStr(x)
+                                        //           + moText(" <y> ") + FloatToStr(y)
+                                        //           + moText(" <z> ") + FloatToStr(z)
+                                        //           + moText(" <d> ") + FloatToStr(distance_r) );
+
                                     }
                                 }
 
@@ -950,13 +976,14 @@ moKinect::Update(moEventList *Events) {
                                     pData[i*3+1+j*m_OutputMode.nXRes*3] = 255;
                                     pData[i*3+2+j*m_OutputMode.nXRes*3] = 255;
                                     if (i==70 && j==70) {
-                                        /*
-                                        MODebug2->Push( IntToStr(*pDepthMap) + moText("(70,70) <x> ") + FloatToStr(x)
-                                                   + moText(" <y> ") + FloatToStr(y)
-                                                   + moText(" <z> ") + FloatToStr(z)
-                                                   + moText(" <d> ") + FloatToStr(distance_r) );*/
+
+                                        //MODebug2->Push( IntToStr(*pDepthMap) + moText("(70,70) <x> ") + FloatToStr(x)
+                                          //         + moText(" <y> ") + FloatToStr(y)
+                                            //       + moText(" <z> ") + FloatToStr(z)
+                                              //     + moText(" <d> ") + FloatToStr(distance_r) );
                                      }
                                 }
+                                */
                             } //fin analisis
 
                         } else {
@@ -1018,7 +1045,7 @@ moKinect::Update(moEventList *Events) {
     /** Draw some 3d Stuff */
 
     if (pFBO && m_pDepthTexture) {
-
+/*
         pFBO->Bind();
         pFBO->SetDrawTexture( m_pDepthTexture->GetFBOAttachPoint() );
 
@@ -1084,11 +1111,7 @@ moKinect::Update(moEventList *Events) {
             glVertex3f( -m_ReferencePoint.X()-BaseNormal.X()*100, -m_ReferencePoint.Y()-BaseNormal.Y()*100, m_ReferencePoint.Z()+BaseNormal.Z()*100 );
         glEnd();
 
-        /**
-        *
-        *   PRINTING ADDITIONAL
-        *
-        */
+        //PRINTING ADDITIONAL
         m_pResourceManager->GetGLMan()->SetOrthographicView( m_pDepthTexture->GetWidth(), m_pDepthTexture->GetHeight() );
 
         glMatrixMode(GL_MODELVIEW);
@@ -1132,42 +1155,11 @@ moKinect::Update(moEventList *Events) {
 
 
         pFBO->Unbind();
-
+*/
     }
 
 
-    m_nRetVal = m_Context.WaitOneUpdateAll(m_RGBImage);
-    if (!CheckError()) {
-        MODebug2->Error("Kinect Failed to update data.");
-    } else {
-        const XnRGB24Pixel*    pImageMap = m_RGBImage.GetRGB24ImageMap();
-        if (pImageMap) {
 
-            if (!pImage) {
-                pImage =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
-
-            }
-
-            if (pImage) {
-                for( int j=0; j<m_OutputMode.nYRes; j++ ) {
-                    for( int i=0; i<m_OutputMode.nXRes; i++ ) {
-                            pImage[i*3+j*m_OutputMode.nXRes*3] = (*pImageMap).nRed;
-                            pImage[i*3+1+j*m_OutputMode.nXRes*3] = (*pImageMap).nGreen;
-                            pImage[i*3+2+j*m_OutputMode.nXRes*3] = (*pImageMap).nBlue;
-                            if (i==320 && j==240) {
-                                //MODebug2->Push( IntToStr((*pImageMap).nRed) + moText(" > ") + IntToStr(pImage[i*3+j*3*m_OutputMode.nXRes]) );
-                            }
-                            pImageMap++;
-                        }
-                }
-
-                if (m_pRGBTexture) {
-                    m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImage, GL_RGB, GL_UNSIGNED_BYTE );
-                }
-            }
-        }
-
-    }
 
 /*
     m_nRetVal = m_Context.WaitOneUpdateAll(m_IRImage);
@@ -1204,7 +1196,7 @@ moKinect::Update(moEventList *Events) {
     }
 
 */
-
+} //FIN updateon < 1
 #endif
 
 
@@ -1570,18 +1562,19 @@ moKinect::Update(moEventList *Events) {
 
 }
 
+#ifdef KINECT_PCL
 
 void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud)
 {
 
         /// 100 x 100 pixels , centered on platform: coordinate: platform_i, platform_j
-    size_t _ww = 80;
-    size_t _hh = 50;
-    size_t platform_i = 320;
-    size_t platform_j = 240;
+
+    size_t _ww = 80; /// ancho en pixeles de la zona de sensado de objeto
+    size_t _hh = 50; /// alto en pixeles de la zona de sensado de objeto
+    size_t platform_i = m_OutputMode.nXRes / 2; /// punto medio i
+    size_t platform_j = m_OutputMode.nYRes / 2; /// punto medio j
     size_t left_src_i = 0;
     size_t top_src_j = 0;
-
 
     m_DataLock.Lock();
 
@@ -1598,8 +1591,6 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
     platform_j = base_camera_j;
 
     m_DataLock.Unlock();
-
-
 
     static unsigned count = 0;
     static unsigned count2 = 0;
@@ -1791,7 +1782,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
                             pData2[index_dst] = 255;
                             pData2[index_dst+1] = 255;
                             pData2[index_dst+2] = 255;
-                            /*
+/*
 
                             float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
 
@@ -1805,7 +1796,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
                             pData2[index_dst] = sum;
                             pData2[index_dst+1] = sum;
                             pData2[index_dst+2] = sum;
-                            */
+ */
                         }
                     }
                 }
@@ -1841,7 +1832,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloudxyz (new pcl::PointCloud<pcl::PointXYZ> ());
 
         ///esto se podria acelerar
-        /**creando el análisis únicamente sobre la plataforma*/
+        //creando el análisis únicamente sobre la plataforma
 /*
         size_t _ww = cloud->width;
         size_t _hh = cloud->height;
@@ -1858,10 +1849,9 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
         left_src_i = platform_i - _ww / 2;
         top_src_j = platform_j - _hh / 2;
 
-        /*
-        medimos ancho y alto de los objetos ??
-        por ahora en el centro
-        */
+        // medimos ancho y alto de los objetos ??
+        //por ahora en el centro
+
 
         dif_tex1 = 0.0;
         int ndif = 0;
@@ -1938,8 +1928,8 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
 
                     if (
                          (O1_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O1_HSV_high.X())
-                        /*&& (O1_HSV_low.Y() <= iHSV.Y()) && (iHSV.Y() <= O1_HSV_high.Y())
-                        && (O1_HSV_low.Z() <= iHSV.Z()) && (iHSV.Z() <= O1_HSV_high.Z())*/
+                        //&& (O1_HSV_low.Y() <= iHSV.Y()) && (iHSV.Y() <= O1_HSV_high.Y())
+                        //&& (O1_HSV_low.Z() <= iHSV.Z()) && (iHSV.Z() <= O1_HSV_high.Z())
                         )
                          {
                             if ( ( O1_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O1_HSV_high.Y() ) )  {
@@ -2040,7 +2030,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
                 + IntToStr(ndif_object2)
                 + moText(" ndif_object3: ")
                 + IntToStr(ndif_object3);
-        /*
+/*
         texto =  moText("     bottom H:")
                 + FloatToStr( O1_HSV_low.X() )
                 + moText(" S:")
@@ -2057,7 +2047,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
                 + moText(" L:")
                 + FloatToStr( O1_HSV_high.Z() )
                 ;
-                */
+*/
         MODebug2->Push( texto );
 
         texto = moText(" minx 1: ")
@@ -2160,7 +2150,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
         texto+= moText(" Cluster:") + IntToStr( cluster_p );
         texto+= moText(" Curvature:") + FloatToStr( curv );
         MODebug2->Push(texto);
-        */
+*/
 
         //if (cloud_normals) {
             texto= moText(" normals size: ") + IntToStr( cloud_normals->size() );
@@ -2344,7 +2334,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
     }
 
 
-    /**Show Cloud*/
+    //Show Cloud
 
     if (pFBO && m_pDepthTexture && m_pResourceManager
         && m_pResourceManager->GetRenderMan()
@@ -2431,6 +2421,7 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
 
 }
 
+#endif
 
 MOboolean
 moKinect::Finish() {
