@@ -54,7 +54,7 @@ _KLT_FloatImage _KLTCreateFloatImage(
 void _KLTFreeFloatImage(
   _KLT_FloatImage floatimg)
 {
-  free(floatimg);
+  if (floatimg) free(floatimg);
 }
 
 
@@ -86,7 +86,7 @@ void _KLTPrintSubFloatImage(
   }
   fprintf(stderr, "\n");
 }
-	
+
 
 /*********************************************************************
  * _KLTWriteFloatImageToPGM
@@ -110,7 +110,7 @@ void _KLTWriteFloatImageToPGM(
     mmin = min(mmin, *ptr);
     ptr++;
   }
-	
+
   /* Allocate memory to hold converted image */
   byteimg = (uchar *) malloc(npixs * sizeof(uchar));
 
@@ -143,7 +143,7 @@ void _KLTWriteAbsFloatImageToPGM(
   uchar *byteimg, *ptrout;
   int i;
   float tmp;
-	
+
   /* Allocate memory to hold converted image */
   byteimg = (uchar *) malloc(npixs * sizeof(uchar));
 
