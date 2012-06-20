@@ -160,7 +160,7 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
   glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
 
 	glScalef(   m_Config.Eval( moR(PLANE_SCALEX)),
-              m_Config.Eval( moR(PLANE_SCALEX)),
+              m_Config.Eval( moR(PLANE_SCALEY)),
               m_Config.Eval( moR(PLANE_SCALEZ))
             );
 
