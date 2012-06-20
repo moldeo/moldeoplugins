@@ -243,9 +243,11 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
       NextSound = m_Config[ moR(SOUND_SOUND) ].GetData()->Sound();
 
     if (NextSound && Sound) {
+
+      ///si se cambió de película
       if ( Sound->GetName() != NextSound->GetName() ) {
 
-        ///si se cambió de película
+
         if (Sound->Initialized()) {
           ///parar o pausar...
           ///faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
@@ -376,9 +378,11 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
     moText textaudio = tPosition + " / " + tDuration;
 
     if (pFont) {
+        /*
         pFont->Draw(    0.0,
                         0.0,
                         textaudio );
+                        */
     }
 
 }
