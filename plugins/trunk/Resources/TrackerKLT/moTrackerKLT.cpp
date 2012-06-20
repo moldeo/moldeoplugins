@@ -1616,7 +1616,11 @@ void moTrackerKLT::UpdateParameters() {
 	diff_mode = m_Config.GetParam(m_Config.GetParamIndex("diff_mode")).GetValue().GetSubValue(0).Int();
 	num_samples = m_Config.GetParam(m_Config.GetParamIndex("num_samples")).GetValue().GetSubValue(0).Int();
 	min_dist = m_Config.GetParam(m_Config.GetParamIndex("min_dist")).GetValue().GetSubValue(0).Float();
-	min_eigen = m_Config.GetParam(m_Config.GetParamIndex("min_eigen")).GetValue().GetSubValue(0).Float();
+
+	//min_eigen = m_Config.GetParam(m_Config.GetParamIndex("min_eigen")).GetValue().GetSubValue(0).Float();
+	//min_eigen = (float) m_Config.Int( moR(TRACKERKLT_MIN_EIGEN) );
+	min_eigen = m_Config.GetParam(m_Config.GetParamIndex("min_eigen")).GetData()->Float();
+
 	light_sens = m_Config.GetParam(m_Config.GetParamIndex("light_sens")).GetValue().GetSubValue(0).Int();
 	num_frames = m_Config.GetParam(m_Config.GetParamIndex("num_frames")).GetValue().GetSubValue(0).Int();
 	m_SampleRate = m_Config.GetParam(m_Config.GetParamIndex("sample_rate")).GetValue().GetSubValue().Int();
