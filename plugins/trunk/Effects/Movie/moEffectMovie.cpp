@@ -78,13 +78,12 @@ moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("sounds"), MO_PARAM_SOUND, MOVIE_SOUNDS );
 	p_configdefinition->Add( moText("position"), MO_PARAM_FUNCTION, MOVIE_POSITION, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("speed"), MO_PARAM_FUNCTION, MOVIE_SPEED, moValue( "1.0","FUNCTION").Ref() );
-  p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, MOVIE_VOLUME, moValue( "1.0","FUNCTION").Ref() );
+    p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, MOVIE_VOLUME, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("balance"), MO_PARAM_FUNCTION, MOVIE_BALANCE, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("brightness"), MO_PARAM_FUNCTION, MOVIE_BRIGHTNESS, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("contrast"), MO_PARAM_FUNCTION, MOVIE_CONTRAST, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("saturation"), MO_PARAM_FUNCTION, MOVIE_SATURATION, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("hue"), MO_PARAM_FUNCTION, MOVIE_HUE, moValue( "0.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("script"), MO_PARAM_SCRIPT, MOVIE_SCRIPT );
 	p_configdefinition->Add( moText("moviemode"), MO_PARAM_NUMERIC, MOVIE_MODE, moValue( "0","NUM").Ref() );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, MOVIE_BLENDING);
 	p_configdefinition->Add( moText("startplaying"), MO_PARAM_NUMERIC, MOVIE_STARTPLAYING, moValue( "0","NUM").Ref() );
@@ -119,7 +118,7 @@ moEffectMovie::Init() {
 	moDefineParamIndex( MOVIE_ALPHA, moText("alpha") );
 	moDefineParamIndex( MOVIE_COLOR, moText("color") );
 	moDefineParamIndex( MOVIE_SYNC, moText("syncro") );
-	moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
+	//moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
 	moDefineParamIndex( MOVIE_MOVIES, moText("movies") );
 	moDefineParamIndex( MOVIE_SOUNDS, moText("sounds") );
 	moDefineParamIndex( MOVIE_MODE, moText("moviemode") );
