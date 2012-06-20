@@ -104,6 +104,7 @@ moEffectLiveDrawing2::Init() {
 	moDefineParamIndex( LIVEDRAW2_SCALEX, moText("scalex") );
 	moDefineParamIndex( LIVEDRAW2_SCALEY, moText("scaley") );
 	moDefineParamIndex( LIVEDRAW2_SCALEZ, moText("scalez") );
+	moDefineParamIndex( LIVEDRAW2_PERSPECTIVE, moText("perspective") );
 
 	//backTextures.MODebug = MODebug;
 	//backTextures.Init(GetConfig(), moParamReference(LIVEDRAW2_BACK_TEXTURES), m_pResourceManager->GetTextureMan() );
@@ -142,6 +143,7 @@ moEffectLiveDrawing2::Init() {
 	show_timerbx = false;
 
 	tex_tab = 0;
+	perspective = 0;
 
     canvasWidth = m_pResourceManager->GetRenderMan()->ScreenWidth();
     canvasHeight = m_pResourceManager->GetRenderMan()->ScreenHeight();
@@ -179,10 +181,10 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
     canvasHeight = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
 	//version para Camino
-	//m_pResourceManager->GetGLMan()->SetPerspectiveView(canvasWidth, canvasHeight);
+	if (perspective!=0) m_pResourceManager->GetGLMan()->SetPerspectiveView(canvasWidth, canvasHeight);
 
 	//version para Cuentos Animados
-	m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight);
+	if (perspective==0) m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight);
 
     // Draw //
     //float rectif_tx = -1024*(1.15-1.0)*0.5;
@@ -286,7 +288,7 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if (show_timerbx) drawTimer();
 
 
-DrawTracker();//este debe ejecutarse para tomar los datos de trackeo
+    DrawTracker();//este debe ejecutarse para tomar los datos de trackeo
 
     //DrawCalibrationGrid();
 
@@ -709,6 +711,7 @@ moEffectLiveDrawing2::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("scalex"), MO_PARAM_SCALEX, LIVEDRAW2_SCALEX );
 	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, LIVEDRAW2_SCALEY );
 	p_configdefinition->Add( moText("scalez"), MO_PARAM_SCALEZ, LIVEDRAW2_SCALEZ );
+	p_configdefinition->Add( moText("perspective"), MO_PARAM_NUMERIC, LIVEDRAW2_PERSPECTIVE, moValue("0","INT") );
 
 	return p_configdefinition;
 }
@@ -725,6 +728,7 @@ void moEffectLiveDrawing2::updateParameters()
 	flow_period = m_Config[moR(LIVEDRAW2_FLOW_PERIOD)].GetData()->Int();
 	color_sens = m_Config[moR(LIVEDRAW2_COLOR_SENSIBILITY)].GetData()->Fun()->Eval(state.tempo.ang);
 	blending = m_Config[moR(LIVEDRAW2_BLENDING)].GetData()->Int();
+	perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
 }
 
 void moEffectLiveDrawing2::updateInteractionParameters()
