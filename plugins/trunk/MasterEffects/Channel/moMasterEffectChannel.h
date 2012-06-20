@@ -34,6 +34,15 @@
 
 #include "moMasterPlugin.h"
 
+enum moIconParamIndex {
+	CHANNEL_ALPHA,
+	CHANNEL_COLOR,
+    CHANNEL_SYNC,
+	CHANNEL_PHASE,
+	CHANNEL_INLET,
+	CHANNEL_OUTLET
+};
+
 //esto debe tener el mismo orden que en el config
 #define MO_ACTION_SEL_EFFECT_0			0
 #define MO_ACTION_SEL_EFFECT_1			1
