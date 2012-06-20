@@ -80,6 +80,7 @@ moEffectImageFlow::Init() {
 	moDefineParamIndex( IMAGEFLOW_BLENDING, moText("blending") );
 	moDefineParamIndex( IMAGEFLOW_IMAGES, moText("images") );
 	moDefineParamIndex( IMAGEFLOW_VELOCITY, moText("velocity") );
+	moDefineParamIndex( IMAGEFLOW_FLOW_MODE, moText("flow_mode") );
 
 	updateParameters();
 
@@ -88,18 +89,35 @@ moEffectImageFlow::Init() {
 	miny = 0.0;
 	maxy = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
-	flow_mode = 0;
-	if (0 < flow_velocity0)
-	{
-		flow_coord = minx;
-	    idx0 = 1;
-	    idx1 = 0;
-	}
-	else
-	{
-		flow_coord = maxx;
-	    idx0 = 0;
-	    idx1 = 1;
+    if (flow_mode == 0) {
+	    /*horizontal flow*/
+        if (0 < flow_velocity0)
+        {
+            flow_coord = minx;
+            idx0 = 1;
+            idx1 = 0;
+        }
+        else
+        {
+            flow_coord = maxx;
+            idx0 = 0;
+            idx1 = 1;
+        }
+	} else {
+        /*vertical flow*/
+        if (0 < flow_velocity0)
+        {
+            flow_coord = maxy;
+            idx0 = 1;
+            idx1 = 0;
+        }
+        else
+        {
+            flow_coord = miny;
+            idx0 = 0;
+            idx1 = 1;
+        }
+
 	}
 
 /*
@@ -222,6 +240,65 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 	{
 
         // vertical flow.
+        flow_coord = flow_coord + flow_velocity;
+
+		if ((flow_coord < miny) || (maxy < flow_coord))
+		{
+			if (0 < flow_velocity)
+			{
+				idx1 = idx0;
+				idx0 = (idx0 + 1) % Pimages.GetValuesCount();
+			}
+			else
+			{
+                idx0 = idx1;
+                idx1 = (idx1 + 1) % Pimages.GetValuesCount();
+			}
+			/*
+            tex0 = Images.GetGLId(idx0);
+            tex1 = Images.GetGLId(idx1);
+            */
+            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &state.tempo );
+            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &state.tempo );
+
+			if (flow_coord < miny) flow_coord = maxy;
+			if (maxy < flow_coord) flow_coord = miny;
+		}
+
+        t = 1.0 - (flow_coord  - miny) / (maxy - miny);
+
+		glBindTexture(GL_TEXTURE_2D, tex0);
+		//glColor4f(1.0,0.0,0.0,1.0);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0.0, 1-t);
+            glVertex2f(minx, miny);
+
+            glTexCoord2f(0.0, 0.0);
+            glVertex2f(minx, flow_coord);
+
+            glTexCoord2f(1.0, 0.0);
+            glVertex2f(maxx, flow_coord);
+
+            glTexCoord2f(1.0, 1-t);
+            glVertex2f(maxx, miny);
+		glEnd();
+
+		glBindTexture(GL_TEXTURE_2D, tex1);
+		//glColor4f(0.0,1.0,0.0,1.0);
+        glBegin(GL_QUADS);
+            glTexCoord2f(0.0, 1.0);
+            glVertex2f(minx, flow_coord);
+
+            glTexCoord2f(0.0, 1-t);
+            glVertex2f(minx, maxy);
+
+		    glTexCoord2f(1.0, 1-t);
+            glVertex2f(maxx, maxy);
+
+            glTexCoord2f(1.0, 1.0);
+            glVertex2f(maxx, flow_coord);
+		glEnd();
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 
 }
@@ -237,7 +314,9 @@ MOboolean moEffectImageFlow::Finish()
 
 void moEffectImageFlow::updateParameters()
 {
-	flow_velocity0 = m_Config[moR(IMAGEFLOW_VELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
+	//flow_velocity0 = m_Config[moR(IMAGEFLOW_VELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
+	flow_velocity0 = m_Config.Eval(moR(IMAGEFLOW_VELOCITY),state.tempo.ang );
+	flow_mode = m_Config.Int(moR(IMAGEFLOW_FLOW_MODE) );
 }
 
 moConfigDefinition *
@@ -247,5 +326,6 @@ moEffectImageFlow::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("images"), MO_PARAM_TEXTURE, IMAGEFLOW_IMAGES );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, IMAGEFLOW_BLENDING );
 	p_configdefinition->Add( moText("velocity"), MO_PARAM_FUNCTION, IMAGEFLOW_VELOCITY, moValue("2.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("flow_mode"), MO_PARAM_NUMERIC, IMAGEFLOW_FLOW_MODE, moValue("0", "INT").Ref() );
 	return p_configdefinition;
 }
