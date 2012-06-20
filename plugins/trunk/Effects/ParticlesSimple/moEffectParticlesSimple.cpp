@@ -1443,7 +1443,7 @@ void moEffectParticlesSimple::Regenerate() {
                   //regenerate
 
                    //moTexture* pTex = ; //m_pResourceManager->GetTextureMan()->GetTexture();
-                   ///asigna un id al azar!!!! de todos los que componen ell moTextureBuffer
+                   ///asigna un id al azar!!!! de todos los que componen el moTextureBuffer
                    ///hay q pedir el moTextureBuffer
                    if ( texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
                        moTextureBuffer* pTexBuf = m_Config[moR(PARTICLES_FOLDERS)].GetData()->TextureBuffer();
