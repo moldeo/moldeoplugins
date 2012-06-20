@@ -1,0 +1,682 @@
+# depslib dependency file v1.0
+1340227135 source:d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\effects\imageflow3d\moeffectimageflow3d.cpp
+	"moEffectImageFlow3D.h"
+
+1340209564 d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\effects\imageflow3d\moeffectimageflow3d.h
+	"moPlugin.h"
+	"moTextureIndex.h"
+	"moMathFunction.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moplugin.h
+	"moBasePlugin.h"
+	"moEffect.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mobaseplugin.h
+	"moText.h"
+	<windows.h>
+	<dlfcn.h>
+
+1296943876 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motext.h
+	"moTypes.h"
+	"moArray.h"
+	<stdio.h>
+	<string.h>
+
+1296910461 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motypes.h
+	<math.h>
+	<limits.h>
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<float.h>
+	<time.h>
+	<string>
+	<vector>
+	<fstream>
+	"SDL.h"
+	"SDL_thread.h"
+	"SDL_mutex.h"
+	"SDL_net.h"
+	"SDL_image.h"
+	<GL/glew.h>
+	"OpenGL/gl.h"
+	"OpenGL/glu.h"
+	"OpenGL/glext.h"
+	"GLUT/glut.h"
+	"X11/X.h"
+	<SDL/SDL.h>
+	<SDL/SDL_thread.h>
+	<SDL/SDL_mutex.h>
+	<SDL/SDL_net.h>
+	<SDL/SDL_image.h>
+	<SDL/SDL_syswm.h>
+	<GL/glew.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<GL/glext.h>
+	<GL/glut.h>
+	<windows.h>
+	<SDL.h>
+	<SDL_thread.h>
+	<SDL_mutex.h>
+	<SDL_syswm.h>
+	<GL/glew.h>
+	"GL/gl.h"
+	"GL/glu.h"
+	"GL/glext.h"
+	"GL/glut.h"
+	"moPort.h"
+	"port/stricmp.h"
+	"moText.h"
+	"moTempo.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_getenv.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"SDL_timer.h"
+	"SDL_audio.h"
+	"SDL_cdrom.h"
+	"SDL_joystick.h"
+	"SDL_events.h"
+	"SDL_video.h"
+	"SDL_byteorder.h"
+	"SDL_version.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_main.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_types.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\begin_code.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\close_code.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_getenv.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_error.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_rwops.h
+	<stdio.h>
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_timer.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_audio.h
+	<stdio.h>
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"SDL_byteorder.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_byteorder.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_cdrom.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_joystick.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_events.h
+	"SDL_types.h"
+	"SDL_active.h"
+	"SDL_keyboard.h"
+	"SDL_mouse.h"
+	"SDL_joystick.h"
+	"SDL_quit.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_active.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_keyboard.h
+	"SDL_types.h"
+	"SDL_keysym.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_keysym.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_mouse.h
+	"SDL_types.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_video.h
+	<stdio.h>
+	"SDL_types.h"
+	"SDL_mutex.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_mutex.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_quit.h
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_version.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_thread.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_mutex.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218108 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl_net\include\sdl_net.h
+	"SDL.h"
+	"SDL_endian.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_endian.h
+	<stdio.h>
+	"SDL_types.h"
+	"SDL_rwops.h"
+	"SDL_byteorder.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218042 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl_image\include\sdl_image.h
+	"SDL.h"
+	"begin_code.h"
+	"close_code.h"
+
+1192534892 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\glew\include\gl\glew.h
+	<stddef.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+
+1150218042 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\opengl\include\gl\glu.h
+	<GL/gl.h>
+
+1150218042 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\opengl\include\gl\gl.h
+
+1150218042 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\opengl\include\gl\glext.h
+	<windows.h>
+
+1203564061 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\opengl\include\gl\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
+1150218036 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\sdl\include\sdl_syswm.h
+	"SDL_version.h"
+	"begin_code.h"
+	<X11/Xlib.h>
+	<X11/Xatom.h>
+	<microwin/nano-X.h>
+	<windows.h>
+	<sys/neutrino.h>
+	<Ph.h>
+	"close_code.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moport.h
+	<stdio.h>
+	<cstdio>
+	<string>
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motempo.h
+	"moTypes.h"
+	"moMath.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momath.h
+	"moTypes.h"
+	"moAbstract.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moabstract.h
+	"moTypes.h"
+	"moText.h"
+	"moLock.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\molock.h
+	"moTypes.h"
+
+1299600381 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moarray.h
+	"moArrayH.h"
+	<stdarg.h>
+
+1299600381 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moarrayh.h
+	"moTypes.h"
+	"moArray.h"
+	"moArray.cpp"
+
+1297557894 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moeffect.h
+	"moAbstract.h"
+	"moArray.h"
+	"moMathFunctionIndex.h"
+	"moIODeviceManager.h"
+	"moConfig.h"
+	"moEffectState.h"
+	"moPreConfig.h"
+	"moPresets.h"
+	"moMotion.h"
+	"moText.h"
+	"moMoldeoObject.h"
+	"moResourceManager.h"
+	"moRenderManager.h"
+	"moMathManager.h"
+	"moTextureManager.h"
+	"moFontManager.h"
+	"moSoundManager.h"
+	"moScriptManager.h"
+	"mo3dModelManager.h"
+	"moRenderManager.h"
+	"moGUIManager.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathfunctionindex.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moParam.h"
+	"moMathManager.h"
+
+1321251069 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moconfig.h
+	"moTypes.h"
+	"moText.h"
+	"moParam.h"
+	"moArray.h"
+	"moPreConfig.h"
+
+1298268720 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moparam.h
+	"moTypes.h"
+	"moText.h"
+	"moValue.h"
+
+1298268720 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\movalue.h
+	"moTypes.h"
+	"moText.h"
+	"moArray.h"
+	"moMathFunction.h"
+	"moMathVector.h"
+	"moMathVector3.h"
+	"moMathVector4.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathfunction.h
+	"moTypes.h"
+	"moArray.h"
+	"moAbstract.h"
+	"moMath.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathvector.h
+	"moMath.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathvector3.h
+	"moMath.h"
+
+1296269034 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathvector4.h
+	"moMath.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mopreconfig.h
+	"moTypes.h"
+	"moValue.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momathmanager.h
+	"moTypes.h"
+	"moText.h"
+	"moConfig.h"
+	"moLock.h"
+	"moResourceManager.h"
+	"moMath.h"
+	"moMathFunction.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moresourcemanager.h
+	"moTypes.h"
+	"moArray.h"
+	"moMoldeoObject.h"
+	"moResourcePlugin.h"
+
+1297479099 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momoldeoobject.h
+	"moTypes.h"
+	"moText.h"
+	"moAbstract.h"
+	"moScript.h"
+	"moEventList.h"
+	"moConfig.h"
+	"moArray.h"
+	"moConnectors.h"
+	"moResourceManager.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moscript.h
+	"moLuaBase.h"
+
+1297481932 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moluabase.h
+	"moTypes.h"
+	"moText.h"
+	<lua.h>
+	<lauxlib.h>
+	<lualib.h>
+
+1174666350 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\lua\include\lua.h
+	<stdarg.h>
+	<stddef.h>
+	"luaconf.h"
+
+1174701714 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\lua\include\luaconf.h
+	<limits.h>
+	<stddef.h>
+	<unistd.h>
+	<io.h>
+	<stdio.h>
+	<stdio.h>
+	<readline/readline.h>
+	<readline/history.h>
+	<assert.h>
+	<math.h>
+	<unistd.h>
+
+1144870274 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\lua\include\lauxlib.h
+	<stddef.h>
+	<stdio.h>
+	"lua.h"
+
+1135707120 d:\_data\proyectos\sinestesia\svnsourceforge\externlibs\lua\include\lualib.h
+	"lua.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moeventlist.h
+	"moValue.h"
+	"moLock.h"
+
+1336263475 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moconnectors.h
+	"moTypes.h"
+	"moText.h"
+	"moAbstract.h"
+	"moEventList.h"
+	"moConfig.h"
+	"moArray.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moresourceplugin.h
+	"moBasePlugin.h"
+	"moResourceManager.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moiodevicemanager.h
+	"moTypes.h"
+	"moText.h"
+	"moMoldeoObject.h"
+	"moDeviceCode.h"
+	"moEventList.h"
+	"moRenderManager.h"
+	"moIODevicePlugin.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\modevicecode.h
+	"moTypes.h"
+	"moAbstract.h"
+
+1320841565 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\morendermanager.h
+	<moTextureManager.h>
+	<moBuckets.h>
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motexturemanager.h
+	"moTexture.h"
+	"moResourceManager.h"
+	<moFileManager.h>
+
+1297722922 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motexture.h
+	"moTypes.h"
+	"moText.h"
+	"moParam.h"
+	"moBuckets.h"
+	"moVideoGraph.h"
+	"moGsGraph.h"
+	"moDsGraph.h"
+	"moMathVector3.h"
+	"moTextureIndex.h"
+	"moFBO.h"
+	"moGLManager.h"
+	"moTextureFilter.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mobuckets.h
+	"moTypes.h"
+	"moLock.h"
+
+1296978984 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\movideograph.h
+	"moTypes.h"
+	"moText.h"
+	"moBuckets.h"
+	"moArray.h"
+	"moAbstract.h"
+
+1315767648 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mogsgraph.h
+	"moConfig.h"
+	"moTypes.h"
+	"moThread.h"
+	"moBuckets.h"
+	"moVideoGraph.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mothread.h
+	"moTypes.h"
+	"moLock.h"
+
+1296978983 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\modsgraph.h
+	"moTypes.h"
+	"streams.h"
+	"qedit.h"
+	"dvdmedia.h"
+	"moVideoGraph.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motextureindex.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moParam.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mofbo.h
+	"moTypes.h"
+	"moGLManager.h"
+
+1296598477 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moglmanager.h
+	"moTypes.h"
+	"moText.h"
+	"moFBO.h"
+	"moResourceManager.h"
+
+1320815434 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motexturefilter.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moParam.h"
+	"moShader.h"
+	"moShaderGLSL.h"
+	"moTextFilterParam.h"
+	"moVideoManager.h"
+	"moVideoManager.h"
+	"moShaderManager.h"
+	"moTextureManager.h"
+	"moGLManager.h"
+	"moRenderManager.h"
+
+1320818578 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moshader.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moArray.h"
+
+1320818578 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moshaderglsl.h
+	"moShader.h"
+
+1321715425 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motextfilterparam.h
+	"moShader.h"
+	"moShaderCG.h"
+	"moShaderGLSL.h"
+
+1320818578 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moshadercg.h
+	"moShader.h"
+	<cg.h>
+	<cgGL.h>
+	<Cg/cg.h>
+	<Cg/cgGL.h>
+
+1296865678 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\movideomanager.h
+	<moGsGraph.h>
+	<moDsGraph.h>
+	<moFBO.h>
+	<moTexture.h>
+	<moVideoGraph.h>
+	<moDebugManager.h>
+	<moDataManager.h>
+	<moTimeManager.h>
+	"moIODeviceManager.h"
+	"moResourceManager.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\modebugmanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moParam.h"
+	"moResourceManager.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\modatamanager.h
+	<moActions.h>
+	<moValue.h>
+	<moParam.h>
+	<moEventList.h>
+	<moResourceManager.h>
+
+1296406799 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moactions.h
+	"moTypes.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\motimemanager.h
+	"moTypes.h"
+	"moText.h"
+	"moConfig.h"
+	"moLock.h"
+	"moResourceManager.h"
+
+1320240074 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moshadermanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moParam.h"
+	"moConfig.h"
+	"moShader.h"
+	"moShaderGLSL.h"
+	"moShaderCG.h"
+	"moResourceManager.h"
+	"moGLManager.h"
+	"moFBManager.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mofbmanager.h
+	"moTypes.h"
+	"moText.h"
+	"moLock.h"
+	"moFBO.h"
+	"moTexture.h"
+	"moResourceManager.h"
+	"moGLManager.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mofilemanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moResourceManager.h"
+	"moBuckets.h"
+	"moParam.h"
+	"io.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moiodeviceplugin.h
+	"moTypes.h"
+	"moArray.h"
+	"moBasePlugin.h"
+	"moIODeviceManager.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moeffectstate.h
+	"moTypes.h"
+	"moAbstract.h"
+
+1296583957 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mopresets.h
+	"moTypes.h"
+	"moConfig.h"
+	"moEffectState.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\momotion.h
+	"moParam.h"
+	"moTypes.h"
+
+1296269034 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mofontmanager.h
+	"moTypes.h"
+	"moResourceManager.h"
+
+1336430905 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mosoundmanager.h
+	<moTypes.h>
+	<moText.h>
+	<moConfig.h>
+	<moResourceManager.h>
+	<moFileManager.h>
+	<moDataManager.h>
+	<moGsGraph.h>
+
+1297484608 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moscriptmanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moParam.h"
+	"moLunaClasses.h"
+	"moResourceManager.h"
+
+1296601500 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\molunaclasses.h
+	"moLuna.h"
+	"moMath.h"
+	"moMathFunction.h"
+	"moP5.h"
+	"moSoundManager.h"
+	"moVideoManager.h"
+	"moResourceManager.h"
+
+1296323100 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moluna.h
+	"moTypes.h"
+	<string>
+	<vector>
+	<list>
+	"lua.h"
+	"lauxlib.h"
+	"lualib.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mop5.h
+	"moAbstract.h"
+
+1295989618 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\mo3dmodelmanager.h
+	<moTypes.h>
+	<moResourceManager.h>
+	<moEffectState.h>
+	"moMathVector.h"
+	"moMathVector3.h"
+
+1295989619 d:\_data\proyectos\sinestesia\svnsourceforge\binaries\include\moguimanager.h
+	<mo3dModelManager.h>
+
