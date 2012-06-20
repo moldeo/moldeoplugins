@@ -66,7 +66,8 @@ enum moLiveDraw2ParamIndex {
 	LIVEDRAW2_ROTATEZ,
 	LIVEDRAW2_SCALEX,
 	LIVEDRAW2_SCALEY,
-	LIVEDRAW2_SCALEZ
+	LIVEDRAW2_SCALEZ,
+	LIVEDRAW2_PERSPECTIVE
 };
 
 #define MO_DRAW_TRANSLATE_X		0
@@ -296,6 +297,7 @@ public:
 	int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
 	void HandleReturns(moLuaVirtualMachine& vm, const char *strFunc);
 protected:
+
 	int dissolve_start, dissolve_time;
 	int rotosketch_start;
 	int rotosketch_duration;
@@ -320,6 +322,8 @@ protected:
 
 	MOint sel_tex;
 	MOint tex_tab;
+
+	MOint perspective;
 
 	MOint line_shader;
 	MOint line_shader_tex_unit;
