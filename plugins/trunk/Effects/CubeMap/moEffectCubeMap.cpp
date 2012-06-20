@@ -134,89 +134,90 @@ void moEffectCubeMap::Draw( moTempo* tempogral,moEffectState* parentstate)
 				m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
 				m_Config[moR(CUBEMAP_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
 
-    moTexture* pImageLeft = (moTexture*) m_Config[moR(CUBEMAP_TEXTURELEFT)].GetData()->Pointer();
-    moTexture* pImageRight = (moTexture*) m_Config[moR(CUBEMAP_TEXTURERIGHT)].GetData()->Pointer();
-    moTexture* pImageFront = (moTexture*) m_Config[moR(CUBEMAP_TEXTUREFRONT)].GetData()->Pointer();
-    moTexture* pImageBack = (moTexture*) m_Config[moR(CUBEMAP_TEXTUREBACK)].GetData()->Pointer();
-    moTexture* pImageTop = (moTexture*) m_Config[moR(CUBEMAP_TEXTURETOP)].GetData()->Pointer();
-    moTexture* pImageBottom = (moTexture*) m_Config[moR(CUBEMAP_TEXTUREBOTTOM)].GetData()->Pointer();
+    MOuint ILeft = m_Config.GetGLId( moR(  CUBEMAP_TEXTURELEFT ), &state.tempo );
+    MOuint IRight = m_Config.GetGLId( moR(  CUBEMAP_TEXTURERIGHT ), &state.tempo );
+    MOuint IFront = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREFRONT ), &state.tempo );
+    MOuint IBack = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBACK ), &state.tempo );
+    MOuint ITop = m_Config.GetGLId( moR(  CUBEMAP_TEXTURETOP ), &state.tempo );
+    MOuint IBottom = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBOTTOM ), &state.tempo );
+
 
   //front
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTUREFRONT)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+  glBindTexture( GL_TEXTURE_2D, IFront );
   glBegin(GL_QUADS);
-    glTexCoord2f(pImageFront->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(-1,-1,-1);
     glTexCoord2f(0,0);
     glVertex3f(1,-1,-1);
-    glTexCoord2f(0,pImageFront->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(1,1,-1);
-    glTexCoord2f(pImageFront->GetMaxCoordS(),pImageFront->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(-1,1,-1);
   glEnd();
 
-//up
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTURETOP)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+//top
+  glBindTexture( GL_TEXTURE_2D, ITop );
   glBegin(GL_QUADS);
-    glTexCoord2f(pImageTop->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(-1,1,-1);
     glTexCoord2f(0,0);
     glVertex3f(1,1,-1);
-    glTexCoord2f(0,pImageTop->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(1,1,1);
-    glTexCoord2f(pImageTop->GetMaxCoordS(),pImageTop->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(-1,1,1);
   glEnd();
 
   //left
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTURELEFT)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+  glBindTexture( GL_TEXTURE_2D, ILeft );
   glBegin(GL_QUADS);
-    glTexCoord2f(pImageLeft->GetMaxCoordS(),pImageLeft->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(-1,1,1);
-    glTexCoord2f(0,pImageLeft->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(-1,1,-1);
     glTexCoord2f(0,0);
     glVertex3f(-1,-1,-1);
-    glTexCoord2f(pImageLeft->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(-1,-1,1);
   glEnd();
 
   //right
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTURERIGHT)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+  glBindTexture( GL_TEXTURE_2D, IRight );
   glBegin(GL_QUADS);
-    glTexCoord2f(0,pImageRight->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(1,1,1);
-    glTexCoord2f(pImageRight->GetMaxCoordS(),pImageRight->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(1,1,-1);
-    glTexCoord2f(pImageRight->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(1,-1,-1);
     glTexCoord2f(0,0);
     glVertex3f(1,-1,1);
   glEnd();
 
-  //down
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTUREBOTTOM)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+  //bottom
+  glBindTexture( GL_TEXTURE_2D, IBottom );
   glBegin(GL_QUADS);
-    glTexCoord2f(pImageBottom->GetMaxCoordS(),pImageBottom->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(-1,-1,-1);
-    glTexCoord2f(0,pImageBottom->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(1,-1,-1);
     glTexCoord2f(0,0);
     glVertex3f(1,-1,1);
-    glTexCoord2f(pImageBottom->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(-1,-1,1);
   glEnd();
 
 
   //back
-  glBindTexture( GL_TEXTURE_2D, m_Config[moR(CUBEMAP_TEXTUREBACK)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+  glBindTexture( GL_TEXTURE_2D, IBack );
   glBegin(GL_QUADS);
     glTexCoord2f(0,0);
     glVertex3f(-1,-1,1);
-    glTexCoord2f(pImageBack->GetMaxCoordS(),0);
+    glTexCoord2f(1,0);
     glVertex3f(1,-1,1);
-    glTexCoord2f(pImageBack->GetMaxCoordS(),pImageBack->GetMaxCoordT());
+    glTexCoord2f(1,1);
     glVertex3f(1,1,1);
-    glTexCoord2f(0,pImageBack->GetMaxCoordT());
+    glTexCoord2f(0,1);
     glVertex3f(-1,1,1);
   glEnd();
 
@@ -237,12 +238,12 @@ moEffectCubeMap::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("texturefront"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREFRONT, moValue( "iconos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("textureright"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURERIGHT, moValue( "iconos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("textureback"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREBACK, moValue( "iconos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("textureleft"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURELEFT, moValue( "iconos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("texturetop"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURETOP, moValue( "iconos/estrellas/star.tga", "TXT") );
-	p_configdefinition->Add( moText("texturebottom"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREBOTTOM, moValue( "iconos/estrellas/star.tga", "TXT") );
+	p_configdefinition->Add( moText("texturefront"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREFRONT, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("textureright"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURERIGHT, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("textureback"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREBACK, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("textureleft"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURELEFT, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("texturetop"), MO_PARAM_TEXTURE, CUBEMAP_TEXTURETOP, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("texturebottom"), MO_PARAM_TEXTURE, CUBEMAP_TEXTUREBOTTOM, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, CUBEMAP_TRANSLATEX );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, CUBEMAP_TRANSLATEY );
 	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, CUBEMAP_TRANSLATEZ );
