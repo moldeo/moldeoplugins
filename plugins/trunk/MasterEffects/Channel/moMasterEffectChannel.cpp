@@ -101,6 +101,11 @@ MOboolean moMasterEffectChannel::Init()
 
 	}
 
+    moDefineParamIndex( CHANNEL_ALPHA, moText("alpha") );
+	moDefineParamIndex( CHANNEL_COLOR, moText("color") );
+	moDefineParamIndex( CHANNEL_SYNC, moText("syncro") );
+	moDefineParamIndex( CHANNEL_PHASE, moText("phase") );
+
 
     /*
     color = m_Config.GetParamIndex("color");
@@ -175,7 +180,8 @@ void moMasterEffectChannel::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glPointSize(1);
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		glDisable(GL_TEXTURE_2D);
-		glColor4f(1.0,1.0,1.0,1.0);
+
+		SetColor( m_Config[moR(CHANNEL_COLOR)], m_Config[moR(CHANNEL_ALPHA)], state );
 
 		moEffect*	peffect = NULL;
 
