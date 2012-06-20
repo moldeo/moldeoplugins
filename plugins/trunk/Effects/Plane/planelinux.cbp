@@ -37,8 +37,8 @@
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
 		</Compiler>
-		<Unit filename="inc/moEffectPlane.h" />
-		<Unit filename="src/moEffectPlane.cpp" />
+		<Unit filename="moEffectPlane.cpp" />
+		<Unit filename="moEffectPlane.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
