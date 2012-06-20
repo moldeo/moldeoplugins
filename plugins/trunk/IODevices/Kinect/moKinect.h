@@ -33,8 +33,8 @@
 #define __MO_KINECT_H
 
 
-#define KINECT_PCL
-//#define KINECT_OPENNI
+//#define KINECT_PCL
+#define KINECT_OPENNI
 
 /**
 
@@ -51,18 +51,20 @@ using Eigen::MatrixXd;
 
 
 /**
-*  KINECT
+*  KINECT OPENNI
 */
+#ifdef KINECT_OPENNI
 /*C wrapper*/
 #include "XnOpenNI.h"
-
 /*C** wrapper*/
 #include "XnCppWrapper.h"
-
+#endif
 
 /**
     PCL Library
 */
+
+#ifdef KINECT_PCL
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -84,6 +86,7 @@ using Eigen::MatrixXd;
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/segmentation/extract_clusters.h>
 
+#endif
 
 /**
 
@@ -106,7 +109,7 @@ MOLDEO
   #include "SDL/SDL.h"
 #endif
 
-
+#ifdef KINECT_PCL
 class SimpleOpenNIProcessor
 {
 public:
@@ -155,11 +158,20 @@ public:
   }
 };
 
-
+#endif
 
 enum moKinectParamIndex {
+
 	KINECT_OFFSET_MIN=0,
 	KINECT_OFFSET_MAX,
+
+	KINECT_OFFSET_LEFT,
+	KINECT_OFFSET_RIGHT,
+	KINECT_OFFSET_TOP,
+	KINECT_OFFSET_BOTTOM,
+
+	KINECT_OFFSET_RADIUS,
+
 
 	KINECT_REF_POINT_DEEP,
 	KINECT_REF_POINT_WIDTH,
@@ -374,7 +386,11 @@ public:
 
     moVector3f  m_ReferencePoint;
     moVector3f  m_ReferencePointDimension;
+
     moVector2f  m_Offset;
+    moVector4f  m_OffsetBox;
+    float  m_OffsetRadius;
+
     float       m_RadMin,m_RadMax;
 
     moVector3f  m_CenterPoint;
@@ -403,12 +419,18 @@ public:
 
     int m_haypresencia;
 
-    pcl::Normal m_BaseNormal;
+    #ifdef KINECT_PCL
+        pcl::Normal m_BaseNormal;
+    #else
+        moVector3f BaseNormal;
+    #endif
     moVector3f m_BasePosition;
     moVector3f m_BaseRGB;
     moVector3f m_BaseHSV;
 
-    pcl::Normal m_TargetNormal;
+    #ifdef KINECT_PCL
+        pcl::Normal m_TargetNormal;
+    #endif
     moVector3f m_TargetPosition;
     moVector3f m_TargetRGB;
     moVector3f m_TargetHSV;
@@ -433,7 +455,11 @@ public:
     MOuint attach_point;
     moFBO* pFBO;
 
+#ifdef KINECT_PCL
+    /*ATENCION: esta función es la que procesa la PCL */
     void cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud);
+#endif
+
     bool show_callback;
 
     moLock  m_DataLock;
@@ -456,16 +482,18 @@ private:
 
 
     /**  PCL */
-    pcl::Grabber* interface;
+    #ifdef KINECT_PCL
+        pcl::Grabber* interface;
 
-    SimpleOpenNIProcessor v;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz;
-    pcl::PointCloud<pcl::PointXYZRGB>::Ptr PclMsg;
-    pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
+        SimpleOpenNIProcessor v;
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_xyz;
+        pcl::PointCloud<pcl::PointXYZRGB>::Ptr PclMsg;
+        pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> ne;
 
-    float m_center_curvature;
-    pcl::Normal m_CenterNormal;
-    pcl::Normal m_ReferenceNormal;
+        float m_center_curvature;
+        pcl::Normal m_CenterNormal;
+        pcl::Normal m_ReferenceNormal;
+    #endif
 
 	/** OPENNI KINECT*/
 	moKinectButton Buttons[3];
@@ -485,7 +513,7 @@ private:
 	MOuint channel0virtual[6];//simulamos rueditas para el channel virtual
 	MOuint masterchannelvirtual[6];//simulamos rueditas para el channel virtual
 
-
+#ifdef KINECT_OPENNI
     xn::Context m_Context;
     xn::DepthGenerator m_Depth;
     xn::ImageGenerator m_RGBImage;
@@ -493,6 +521,7 @@ private:
 
     XnDepthPixel m_DepthPixel;
     XnStatus m_nRetVal;
+#endif
     XnMapOutputMode m_OutputMode;
 
     moTexture* m_pDepthTexture;
