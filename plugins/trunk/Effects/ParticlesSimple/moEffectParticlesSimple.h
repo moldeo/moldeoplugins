@@ -368,7 +368,7 @@ class moParticlesSimple : public moAbstract {
     moVector3f      Rotation;
 
     ///Unique ID of OpenGL Texture
-    MOint       GLId;///para asociar la textura al momento de la creaci�n
+    MOint       GLId;///para asociar la textura al momento de la creación
     MOint       GLId2;
     moTextureMemory *pTextureMemory;
 
@@ -506,27 +506,50 @@ enum enumRevelationStatus {
 
 
 
-moDeclareDynamicArray( moParticlesSimple*, moParticlesSimpleArray )
+moDeclareDynamicArray( moParticlesSimple*, moParticlesSimpleArray );
 
+
+/// Clase Particle Simple
+/**
+ *
+ *
+ * @see moEffect
+ */
 class moEffectParticlesSimple : public moEffect
 {
     public:
 
-
+        ///Constructor
         moEffectParticlesSimple();
+
+        ///Destructor
         virtual ~moEffectParticlesSimple();
 
+        ///Inicialización
         MOboolean Init();
+
+        ///Dibujado
         void Draw(moTempo*, moEffectState* parentstate = NULL);
+
+        ///Finalizacion
         MOboolean Finish();
 
+        ///Reiniciar el analisis de la imagen
         void ReInit();
+
+        ///Foto de la cámara
         void Shot( moText source = moText(""), int shot_type = 0, int shot_file=0  );
 
+        ///Interacción
         void Interaction( moIODeviceManager * );
+
+        ///Actualización del ciclo de eventos
         void Update( moEventList * p_eventlist);
+
+        ///Definicion de campos
         moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 
+        ///Llamada de scripts
         int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
 
         void TrackParticle( int partid );
@@ -534,31 +557,46 @@ class moEffectParticlesSimple : public moEffect
 
     private:
 
+        ///Actualizar los parametros de configuración
         void UpdateParameters();
 
+        ///Resetear el temporizador
         void ResetTimers();
+        ///Revelar
         void RevealingAll();
+        ///
         void RestoringAll();
 
-
+        ///Inicio del sistema de partículas
         void InitParticlesSimple( int p_cols, int p_rows , bool p_forced = true  );
 
+        ///Calcular las fuerzas sobre las partículas
         void CalculateForces( bool tmparray = false );
+
+        ///Calcular los incrementos
         void CalculateDerivatives( bool tmparray = false, double dt = 0.0 );
 
+        ///Actualizar todas las particulas
         void UpdateParticles( double dt, int method );
+
+        ///Regeneración de particulas muertas....
         void Regenerate();
+
+        ///Resolvedor de ecuación
         double Solver1D( double h, double y0, int method, double (*fcn)(double) );
 
+        ///Fija la posicion de la particula que se genera
         void SetParticlePosition( moParticlesSimple* pParticle );
 
 
         void ParticlesSimpleInfluence( float posx, float posy, float velx, float vely, float veln );
         void ParticlesSimpleAnimation( moTempo* tempogral, moEffectState* parentstate );
+
+        ///Dibuja la particula simple
         void DrawParticlesSimple( moTempo* tempogral, moEffectState* parentstate );
         void DrawTracker();
 
-        /// Script functions.
+        /// Funciones para la escritura de scripts específicos de particulas
         void RegisterFunctions();
 
         int luaGetParticle(moLuaVirtualMachine& vm);
