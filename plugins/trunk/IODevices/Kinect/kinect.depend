@@ -1,11 +1,13 @@
 # depslib dependency file v1.0
-1334954629 source:d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinect.cpp
+1340252940 source:d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinect.cpp
 	"moKinect.h"
+	"moKinectUserGenerator.cpp"
 
-1338923481 d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinect.h
+1340253147 d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinect.h
 	<iostream>
 	<Eigen/Dense>
 	"XnOpenNI.h"
+	<XnCodecIDs.h>
 	"XnCppWrapper.h"
 	<pcl/point_cloud.h>
 	<pcl/point_types.h>
@@ -31,6 +33,7 @@
 	"moTypes.h"
 	"SDL.h"
 	"SDL/SDL.h"
+	"moKinectUserGenerator.h"
 
 1303258304 c:\program files\eigen 3.0.0\include\eigen3\eigen\dense
 	"Core"
@@ -8759,4 +8762,17 @@
 	"moArray.h"
 	"moBasePlugin.h"
 	"moIODeviceManager.h"
+
+1340250488 source:d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinectusergenerator.cpp
+	"moKinectUserGenerator.h"
+	"moDebugManager.h"
+	<map>
+
+1340253055 d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinectusergenerator.h
+	"XnOpenNI.h"
+	<XnCodecIDs.h>
+	"XnCppWrapper.h"
+
+1340252912 d:\_data\proyectos\sinestesia\svnsourceforge\plugins\trunk\iodevices\kinect\mokinectusergenerator.cpp
+	<map>
 
