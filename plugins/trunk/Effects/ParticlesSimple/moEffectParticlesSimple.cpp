@@ -854,7 +854,7 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
     randomvelz = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Z() : m_Physics.m_VelocityVector.Z();
 
     moVector4d fullcolor;
-    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , state.tempo.ang);
+    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , state.tempo.ang );
     pParticle->Color = moVector3f(
                               fullcolor.X(),
                               fullcolor.Y(),
@@ -2118,6 +2118,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                     if (ScriptHasFunction("RunParticle")) {
                         SelectScriptFunction("RunParticle");
                         AddFunctionParam( (int) ( i + j*m_cols ) );
+                        AddFunctionParam( (float)dt );
                         if (!RunSelectedFunction(1)) {
                             MODebug2->Error( moText("RunParticle function not executed") );
                         }
@@ -2128,19 +2129,20 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                 sizeyd2 = pPar->Size.Y()/2.0;
                 tsizex = pPar->TSize.X();
                 tsizey = pPar->TSize.Y();
+                double part_timer = 0.001f * (double)(pPar->Age.Duration());
 
                 glPushMatrix();
 
                 glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
 
-                glRotatef(  m_Config[moR(PARTICLES_ROTATEZ_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)+pPar->Rotation.Z(), 0.0, 0.0, 1.0 );
-                glRotatef(  m_Config[moR(PARTICLES_ROTATEY_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)+pPar->Rotation.Y(), 0.0, 1.0, 0.0 );
-                glRotatef(  m_Config[moR(PARTICLES_ROTATEX_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)+pPar->Rotation.X(), 1.0, 0.0, 0.0 );
+                glRotatef(  m_Config[moR(PARTICLES_ROTATEZ_PARTICLE)].GetData()->Fun()->Eval(part_timer)+pPar->Rotation.Z(), 0.0, 0.0, 1.0 );
+                glRotatef(  m_Config[moR(PARTICLES_ROTATEY_PARTICLE)].GetData()->Fun()->Eval(part_timer)+pPar->Rotation.Y(), 0.0, 1.0, 0.0 );
+                glRotatef(  m_Config[moR(PARTICLES_ROTATEX_PARTICLE)].GetData()->Fun()->Eval(part_timer)+pPar->Rotation.X(), 1.0, 0.0, 0.0 );
 
                 //scale
-                glScalef(   m_Config[moR(PARTICLES_SCALEX_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)*pPar->Scale,
-                            m_Config[moR(PARTICLES_SCALEY_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)*pPar->Scale,
-                            m_Config[moR(PARTICLES_SCALEZ_PARTICLE)].GetData()->Fun()->Eval(state.tempo.ang)*pPar->Scale);
+                glScalef(   m_Config[moR(PARTICLES_SCALEX_PARTICLE)].GetData()->Fun()->Eval(part_timer)*pPar->Scale,
+                            m_Config[moR(PARTICLES_SCALEY_PARTICLE)].GetData()->Fun()->Eval(part_timer)*pPar->Scale,
+                            m_Config[moR(PARTICLES_SCALEZ_PARTICLE)].GetData()->Fun()->Eval(part_timer)*pPar->Scale);
 
 
                 glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * pPar->Color.X() * state.tintr,
