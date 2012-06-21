@@ -57,7 +57,9 @@ using Eigen::MatrixXd;
 /*C wrapper*/
 #include "XnOpenNI.h"
 /*C** wrapper*/
+#include <XnCodecIDs.h>
 #include "XnCppWrapper.h"
+
 #endif
 
 /**
@@ -108,6 +110,14 @@ MOLDEO
 #else
   #include "SDL/SDL.h"
 #endif
+
+
+#ifdef KINECT_OPENNI
+
+    #include "moKinectUserGenerator.h"
+
+#endif
+
 
 #ifdef KINECT_PCL
 class SimpleOpenNIProcessor
@@ -364,6 +374,7 @@ public:
 	MOint value;//depende
 };
 
+
 class  moKinect : public moIODevice {
 
 public:
@@ -521,6 +532,7 @@ private:
 
     XnDepthPixel m_DepthPixel;
     XnStatus m_nRetVal;
+
 #endif
     XnMapOutputMode m_OutputMode;
 

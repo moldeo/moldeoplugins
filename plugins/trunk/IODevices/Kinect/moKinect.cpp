@@ -35,6 +35,7 @@
 #define MO_KINECT_CFG_TYPE 1
 #define MO_KINECT_CFG_KINECTCOD 2
 
+
 //========================
 //  Factory
 //========================
@@ -475,7 +476,6 @@ moKinect::Init() {
         MODebug2->Error("Couldn't create texture: KINECTDEPTH2");
     }
 
-
 /*
         m_fbo_idx = m_pResourceManager->GetFBMan()->CreateFBO();
         pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
@@ -494,12 +494,62 @@ moKinect::Init() {
 
 
 #ifdef KINECT_OPENNI
+
     m_nRetVal = m_Context.Init();
     if (!CheckError()) {
         MODebug2->Error("Couldn't initialize Kinect Context");
         return false;
     } else {
         MODebug2->Message("Kinect Context Initialized!!");
+    }
+
+
+    m_nRetVal = m_UserGenerator.Create(m_Context);
+    if (!CheckError()) {
+        MODebug2->Error("Couldn't initialize Kinect User Generator");
+        return false;
+    } else {
+
+        MODebug2->Message("Kinect User Generator Initialized!!");
+
+
+        if (!m_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
+        {
+            MODebug2->Error( moText("Supplied user generator doesn't support skeleton") );
+            return false;
+        }
+
+
+        m_nRetVal = m_UserGenerator.RegisterUserCallbacks( User_NewUser, User_LostUser, (void*)NULL, hUserCallbacks);
+        //CHECK_RC(m_nRetVal, "Register to user callbacks");
+
+        m_nRetVal = m_UserGenerator.GetSkeletonCap().RegisterToCalibrationStart(UserCalibration_CalibrationStart, NULL, hCalibrationStart);
+        //CHECK_RC(nRetVal, "Register to calibration start");
+
+        m_nRetVal = m_UserGenerator.GetSkeletonCap().RegisterToCalibrationComplete(UserCalibration_CalibrationComplete, NULL, hCalibrationComplete);
+        //CHECK_RC(m_nRetVal, "Register to calibration complete");
+
+        if (m_UserGenerator.GetSkeletonCap().NeedPoseForCalibration())
+        {
+            m_bNeedPose = TRUE;
+            if (!m_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_POSE_DETECTION))
+            {
+                MODebug2->Error( moText("Pose required, but not supported"));
+                return false;
+            }
+            m_nRetVal = m_UserGenerator.GetPoseDetectionCap().RegisterToPoseDetected(UserPose_PoseDetected, NULL, hPoseDetected);
+            //CHECK_RC(nRetVal, "Register to Pose Detected");
+            m_UserGenerator.GetSkeletonCap().GetCalibrationPose(m_strPose);
+        }
+
+        m_UserGenerator.GetSkeletonCap().SetSkeletonProfile(XN_SKEL_PROFILE_ALL);
+
+        m_nRetVal = m_UserGenerator.GetSkeletonCap().RegisterToCalibrationInProgress(MyCalibrationInProgress, NULL, hCalibrationInProgress);
+        //CHECK_RC(nRetVal, "Register to calibration in progress");
+
+        m_nRetVal = m_UserGenerator.GetPoseDetectionCap().RegisterToPoseInProgress(MyPoseInProgress, NULL, hPoseInProgress);
+        //CHECK_RC(nRetVal, "Register to pose in progress");
+
     }
 
     /** Create a DepthGenerator node */
@@ -631,10 +681,10 @@ moKinect::Init() {
 
     m_nRetVal = m_Context.StartGeneratingAll();
     if (!CheckError()) {
-        MODebug2->Error("Couldn't start DepthGenerator");
+        MODebug2->Error("Couldn't start all generators");
         return false;
     } else {
-        MODebug2->Message("Kinect DepthGenerator Started!!");
+        MODebug2->Message("Kinect All Generators Started!!");
     }
 #endif
 
@@ -770,9 +820,25 @@ moKinect::Update(moEventList *Events) {
     }
 #endif
 
+
+
 #ifdef KINECT_OPENNI
 
 if (update_on>0) {
+
+
+    /** USER GENERATOR */
+
+    //m_UserGenerator
+    m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
+    if (!CheckError()) {
+        MODebug2->Error("Kinect Failed to update data.");
+    } else {
+
+        /**  TODO: hahcer algo aqui (dibujar los esqueletos ? ) */
+
+
+    }
 
     /** UPDATE IMAGE*/
     m_nRetVal = m_Context.WaitOneUpdateAll(m_RGBImage);
@@ -2433,6 +2499,14 @@ moKinect::Finish() {
 
 	return true;
 }
+
+
+#ifdef KINECT_OPENNI
+
+#include "moKinectUserGenerator.cpp"
+
+
+#endif
 
 
 
