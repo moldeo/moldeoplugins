@@ -3273,6 +3273,9 @@ int moEffectParticlesSimple::luaGetParticleRotation(moLuaVirtualMachine& vm)
     return 3;
 }
 
+//TODO: do an absolute version, who calculates also the system translation and rotation....
+//this is a relative version o particle position
+
 int moEffectParticlesSimple::luaGetParticlePosition(moLuaVirtualMachine& vm)
 {
     lua_State *state = (lua_State *) vm;
@@ -3286,6 +3289,7 @@ int moEffectParticlesSimple::luaGetParticlePosition(moLuaVirtualMachine& vm)
     Par = m_ParticlesSimpleArray[i];
 
     if (Par) {
+
         Position = Par->Pos3d;
         lua_pushnumber(state, (lua_Number) Position.X() );
         lua_pushnumber(state, (lua_Number) Position.Y() );
@@ -3314,8 +3318,12 @@ int moEffectParticlesSimple::luaGetParticleSize(moLuaVirtualMachine& vm)
 
     if (Par) {
         Size = Par->Size;
-        lua_pushnumber(state, (lua_Number) Size.X() );
-        lua_pushnumber(state, (lua_Number) Size.Y() );
+        double part_timer = 0.001f * (double)(Par->Age.Duration());
+        double sx = m_Config[moR(PARTICLES_SCALEX_PARTICLE)].GetData()->Fun()->Eval(part_timer)*Par->Scale*Par->ImageProportion;
+        double sy = m_Config[moR(PARTICLES_SCALEY_PARTICLE)].GetData()->Fun()->Eval(part_timer)*Par->Scale;
+
+        lua_pushnumber(state, (lua_Number) Size.X()*sx );
+        lua_pushnumber(state, (lua_Number) Size.Y()*sy );
 
     } else {
         lua_pushnumber(state, (lua_Number) 0 );
