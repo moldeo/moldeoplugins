@@ -169,7 +169,8 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 	flow_velocity_bak = flow_velocity;
 	if (state.tempo.delta <= 1.0) flow_velocity = state.tempo.delta * flow_velocity0;
 	else flow_velocity = (1.0 + 10.0 * (state.tempo.delta - 1.0)) * flow_velocity0;
-	if (flow_velocity != flow_velocity_bak) MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
+
+	//if (flow_velocity != flow_velocity_bak) MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
 
     //MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
 
@@ -315,8 +316,7 @@ MOboolean moEffectImageFlow::Finish()
 void moEffectImageFlow::updateParameters()
 {
 	//flow_velocity0 = m_Config[moR(IMAGEFLOW_VELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
-	flow_velocity0 = m_Config.Eval(moR(IMAGEFLOW_VELOCITY),state.tempo.ang );
-	flow_mode = m_Config.Int(moR(IMAGEFLOW_FLOW_MODE) );
+	flow_velocity0 = m_Config.Eval(moR(IMAGEFLOW_VELOCITY),state.tempo.ang);
 }
 
 moConfigDefinition *
