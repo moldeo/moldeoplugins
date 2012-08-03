@@ -687,8 +687,46 @@ void moEffectParticlesSimple::ReInit() {
 
 }
 
+void moEffectParticlesSimple::UpdateDt() {
+
+    ///CONSTANTE
+    ///version dt = constante por cuadro
+    //double dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * (double)(state.tempo.delta) /  (double)100.0;
+
+
+    ///VARIABLE
+    ///relativo al timecode...
+    ///dt relativo al tempo (variable)
+    /// entre 0 y inf.
+    /// 0 significa que casi no hubo lapso de tiempo medible entre el cuadro anterior y este, por lo tanto no hay animacion
+    /// 1 significa que el lapso de tiempo entre el evento anterior y el actual coincide con 1 cuadro cada 16.6 ms ( 60 fps )
+    /// > 1 significa que el tiempo entre 2 cuadros supero el correspondiente a 60 fps
+    /// > 4 significa que estamos por debajo de los 15 fps, pasada esta brecha deberiamos iterar N veces para obtener resultados correctos.
+    //
+/*
+    dtrel = (double) ( gral_ticks - last_tick ) / (double)16.666666;
+            //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+
+    if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dt:"+FloatToStr(dt));
+
+    last_tick = gral_ticks;
+    */
+
+    dtrel = (double) ( state.tempo.ticks - last_tick ) / (double)16.666666;
+
+    //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
+
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+
+    last_tick = state.tempo.ticks;
+
+}
+
 void moEffectParticlesSimple::UpdateParameters() {
 
+
+    this->UpdateDt();  // now in ::Update()
 
     time_tofull_restoration = m_Config[moR(PARTICLES_TIMETORESTORATION)][MO_SELECTED][0].Int();
     time_of_restoration = m_Config[moR(PARTICLES_TIMEOFRESTORATION)][MO_SELECTED][0].Int();
@@ -725,6 +763,7 @@ void moEffectParticlesSimple::UpdateParameters() {
             SelectScriptFunction("RunSystem");
             //passing number of particles
             AddFunctionParam( (int) ( m_rows*m_cols ) );
+            AddFunctionParam( (float) dt );
             RunSelectedFunction(1);
         }
     }
@@ -2016,6 +2055,7 @@ void moEffectParticlesSimple::TrackParticle( int partid ) {
 
 }
 
+
 void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectState* parentstate ) {
 
     int i,j;
@@ -2036,6 +2076,17 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
         m_Physics.EmitionTimer.Start();
     }
     */
+
+/*
+    dtrel = (double) ( tempogral->ticks - last_tick ) / (double)16.666666;
+            //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+
+    last_tick = tempogral->ticks;
+    */
+    gral_ticks  = tempogral->ticks;
+
+
 
     if (!m_Physics.EmitionTimer.Started())
         m_Physics.EmitionTimer.Start();
@@ -2062,25 +2113,6 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
     moFont* pFont = m_Config[moR(PARTICLES_FONT)].GetData()->Font();
     moText Texto;
-
-    ///CONSTANTE
-    ///version dt = constante por cuadro
-    //double dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * (double)(state.tempo.delta) /  (double)100.0;
-
-
-    ///VARIABLE
-    ///relativo al timecode...
-    ///dt relativo al tempo (variable)
-    /// entre 0 y inf.
-    /// 0 significa que casi no hubo lapso de tiempo medible entre el cuadro anterior y este, por lo tanto no hay animacion
-    /// 1 significa que el lapso de tiempo entre el evento anterior y el actual coincide con 1 cuadro cada 16.6 ms ( 60 fps )
-    /// > 1 significa que el tiempo entre 2 cuadros supero el correspondiente a 60 fps
-    /// > 4 significa que estamos por debajo de los 15 fps, pasada esta brecha deberiamos iterar N veces para obtener resultados correctos.
-    double dtrel = (double) ( tempogral->ticks - last_tick ) / (double)16.666666;
-
-    //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
-
-    double dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
 
     UpdateParticles( dt, 0 );
     ParticlesSimpleAnimation( tempogral, parentstate );
@@ -2390,8 +2422,6 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                              13.0f,
                              Texto );
     }
-
-    last_tick = tempogral->ticks;
 
 }
 
@@ -2899,7 +2929,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 
-
+    EndDraw();
 }
 
 void moEffectParticlesSimple::setUpLighting()
@@ -3082,11 +3112,17 @@ void moEffectParticlesSimple::Update( moEventList *p_eventlist ) {
 
     moMoldeoObject::Update( p_eventlist );
 
+
+
+    /** TODO: Obsolete > use  luaGetTrackerFeaturesCount and luaGetTrackerValidFeatures */
+    /*
     if (moScript::IsInitialized()) {
         if (ScriptHasFunction("Update")) {
             SelectScriptFunction("Update");
             //passing number of particles
             AddFunctionParam( (int) ( m_rows*m_cols ) );
+            //passing dt
+            AddFunctionParam( (float) dt );
             if (m_pTrackerData) {
                 AddFunctionParam(m_pTrackerData->GetFeaturesCount());
                 AddFunctionParam(m_pTrackerData->GetValidFeatures());
@@ -3102,40 +3138,36 @@ void moEffectParticlesSimple::Update( moEventList *p_eventlist ) {
             }
         }
     }
-
-
-
-
-
-
-
+    */
 }
 
 void moEffectParticlesSimple::RegisterFunctions()
 {
     moMoldeoObject::RegisterFunctions();
 
-    RegisterBaseFunction("GetParticle"); //0
-    RegisterFunction("GetParticlePosition");//1
-    RegisterFunction("GetParticleSize");//2
-    RegisterFunction("GetParticleScale");//3
-    RegisterFunction("GetParticleVelocity");//4
-    RegisterFunction("GetParticleRotation");//5
+    RegisterBaseFunction("GetDelta"); //0
+    RegisterFunction("GetParticleCount"); //1
+    RegisterFunction("GetParticle"); //2
+    RegisterFunction("GetParticlePosition");//3
+    RegisterFunction("GetParticleSize");//4
+    RegisterFunction("GetParticleScale");//5
+    RegisterFunction("GetParticleVelocity");//6
+    RegisterFunction("GetParticleRotation");//7
 
-    RegisterFunction("UpdateParticle");//6
-    RegisterFunction("UpdateParticlePosition");//7
-    RegisterFunction("UpdateParticleSize");//8
-    RegisterFunction("UpdateParticleScale");//9
-    RegisterFunction("UpdateParticleVelocity");//10
-    RegisterFunction("UpdateParticleRotation");//11
+    RegisterFunction("UpdateParticle");//8
+    RegisterFunction("UpdateParticlePosition");//9
+    RegisterFunction("UpdateParticleSize");//10
+    RegisterFunction("UpdateParticleScale");//11
+    RegisterFunction("UpdateParticleVelocity");//12
+    RegisterFunction("UpdateParticleRotation");//13
 
-	RegisterFunction("UpdateForce");//12
+	RegisterFunction("UpdateForce");//14
 
-	RegisterFunction("Shot");//13
-	RegisterFunction("ReInit");//14
+	RegisterFunction("Shot");//15
+	RegisterFunction("ReInit");//16
 
-    RegisterFunction("DrawPoint");//15
-    RegisterFunction("GetParticleIntersection");//16
+    RegisterFunction("DrawPoint");//17
+    RegisterFunction("GetParticleIntersection");//18
 
     ResetScriptCalling();
 }
@@ -3146,60 +3178,66 @@ int moEffectParticlesSimple::ScriptCalling(moLuaVirtualMachine& vm, int iFunctio
     {
         case 0:
             ResetScriptCalling();
-            return luaGetParticle(vm);
+            return luaGetDelta(vm);
         case 1:
             ResetScriptCalling();
-            return luaGetParticlePosition(vm);
+            return luaGetParticleCount(vm);
         case 2:
             ResetScriptCalling();
-            return luaGetParticleSize(vm);
+            return luaGetParticle(vm);
         case 3:
             ResetScriptCalling();
-            return luaGetParticleScale(vm);
+            return luaGetParticlePosition(vm);
         case 4:
             ResetScriptCalling();
-            return luaGetParticleVelocity(vm);
+            return luaGetParticleSize(vm);
         case 5:
+            ResetScriptCalling();
+            return luaGetParticleScale(vm);
+        case 6:
+            ResetScriptCalling();
+            return luaGetParticleVelocity(vm);
+        case 7:
             ResetScriptCalling();
             return luaGetParticleRotation(vm);
 
 
-        case 6:
-            ResetScriptCalling();
-            return luaUpdateParticle(vm);
-        case 7:
-            ResetScriptCalling();
-            return luaUpdateParticlePosition(vm);
         case 8:
             ResetScriptCalling();
-            return luaUpdateParticleSize(vm);
+            return luaUpdateParticle(vm);
         case 9:
             ResetScriptCalling();
-            return luaUpdateParticleScale(vm);
+            return luaUpdateParticlePosition(vm);
         case 10:
             ResetScriptCalling();
-            return luaUpdateParticleVelocity(vm);
+            return luaUpdateParticleSize(vm);
         case 11:
             ResetScriptCalling();
-            return luaUpdateParticleRotation(vm);
+            return luaUpdateParticleScale(vm);
         case 12:
+            ResetScriptCalling();
+            return luaUpdateParticleVelocity(vm);
+        case 13:
+            ResetScriptCalling();
+            return luaUpdateParticleRotation(vm);
+        case 14:
             ResetScriptCalling();
             return luaUpdateForce(vm);
 
 
-        case 13:
+        case 15:
             ResetScriptCalling();
             return luaShot(vm);
 
-        case 14:
+        case 16:
             ResetScriptCalling();
             return luaReInit(vm);
 
-        case 15:
+        case 17:
             ResetScriptCalling();
             return luaDrawPoint(vm);
 
-        case 16:
+        case 18:
             ResetScriptCalling();
             return luaGetParticleIntersection(vm);
 
@@ -3229,6 +3267,26 @@ int moEffectParticlesSimple::luaDrawPoint(moLuaVirtualMachine& vm)
 
     return 0;
 }
+
+int moEffectParticlesSimple::luaGetDelta(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+
+    lua_pushnumber(state, (lua_Number) dt );
+
+    return 1;
+}
+
+int moEffectParticlesSimple::luaGetParticleCount(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+
+    lua_pushnumber(state, (lua_Number) m_ParticlesSimpleArray.Count() );
+
+    return 1;
+}
+
+
 
 int moEffectParticlesSimple::luaGetParticle(moLuaVirtualMachine& vm)
 {
