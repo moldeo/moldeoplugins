@@ -557,6 +557,9 @@ class moEffectParticlesSimple : public moEffect
 
     private:
 
+        ///Actualizar el dt para iteracion de particulas
+        void UpdateDt();
+
         ///Actualizar los parametros de configuración
         void UpdateParameters();
 
@@ -599,6 +602,8 @@ class moEffectParticlesSimple : public moEffect
         /// Funciones para la escritura de scripts específicos de particulas
         void RegisterFunctions();
 
+        int luaGetDelta(moLuaVirtualMachine& vm);
+        int luaGetParticleCount(moLuaVirtualMachine& vm);
         int luaGetParticle(moLuaVirtualMachine& vm);
         int luaGetParticlePosition(moLuaVirtualMachine& vm);
         int luaGetParticleSize(moLuaVirtualMachine& vm);
@@ -697,6 +702,10 @@ class moEffectParticlesSimple : public moEffect
         float tx,ty,tz;
         float sx,sy,sz;
         float rx,ry,rz;
+
+        double dtrel;
+        double dt;
+        long gral_ticks;
 
 };
 
