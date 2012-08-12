@@ -49,6 +49,9 @@
 #ifndef __MO_EFFECT_PARTICLES_H__
 #define __MO_EFFECT_PARTICLES_H__
 
+#include "moTypes.h"
+#include "moTimer.h"
+#include "moTempo.h"
 #include "moPlugin.h"
 #include "moTimeManager.h"
 #include "moFilterManager.h"

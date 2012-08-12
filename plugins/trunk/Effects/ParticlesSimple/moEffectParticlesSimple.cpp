@@ -353,6 +353,7 @@ void moEffectParticlesSimple::ResetTimers() {
       for ( int i=0; i < m_ParticlesSimpleArray.Count(); i++ ) {
             moParticlesSimple* pPar = m_ParticlesSimpleArray[i];
             pPar->Age.Stop();
+            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&state.tempo );
             pPar->Visible = false;
       }
 
@@ -736,7 +737,7 @@ void moEffectParticlesSimple::UpdateParameters() {
 
     ortho = (bool)m_Config[moR(PARTICLES_ORTHO)][MO_SELECTED][0].Int();
 
-    if (!moTimeManager::MoldeoTimer->Started()) {
+    if ( moIsTimerStopped() || !state.tempo.Started() ) {
         ResetTimers();
         //MODebug2->Message("moEffectParticlesSimple::UpdateParameters  > ResetTimers!!!");
     }
@@ -1352,6 +1353,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
             ///Set Timer management
             pPar->Age.SetObjectId( this->GetId() );
             pPar->Age.SetTimerId( i + j*p_cols );
+            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&state.tempo );
             m_pResourceManager->GetTimeMan()->AddTimer( &pPar->Age );
 
             m_ParticlesSimpleArray.Set( i + j*p_cols, pPar );
@@ -2246,6 +2248,15 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
                 //cuadrado centrado en Pos3d....
 
+                //TODO: dirty code here!!!
+                if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
+                    MOfloat cycleage = state.tempo.ang;
+                    if (m_Physics.m_MaxAge>0) cycleage = (float) ((double)pPar->Age.Duration() /  (double)m_Physics.m_MaxAge );
+
+                    int glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, NULL );
+                    glBindTexture( GL_TEXTURE_2D , glid );
+                }
+
 
                 glBegin(GL_QUADS);
                     //glColor4f( 1.0, 0.5, 0.5, idxt );
@@ -2790,6 +2801,14 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     UpdateParameters();
 
+    /*
+    MODebug2->Push( "sync: " + IntToStr((int)state.synchronized)
+                    +" tempo.on: " + IntToStr( (int)state.tempo.Started() )
+                    +" tempo.pause_on: " + IntToStr( (int)state.tempo.Paused())
+                    + " tempo.ticks: " + IntToStr( state.tempo.ticks )
+                    + " tempo.ang: " + FloatToStr( state.tempo.ang ) );
+
+*/
     PreDraw( tempogral, parentstate);
 
     // Cambiar la proyeccion para una vista ortogonal //
