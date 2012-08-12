@@ -282,17 +282,17 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
       }
 
       ///estamos en syncro de todas maneras con el clock de la Consola...
-      if (moTimeManager::MoldeoTimer->Paused()) {
+      if ( moIsTimerPaused() ) {
         Sound->Pause();
       }
 
       /// caso por Timer PARADO (NOT STARTED)
-      if (!moTimeManager::MoldeoTimer->Started()) {
+      if ( moIsTimerStopped() ) {
         if (Sound->IsPlaying())
           Sound->Stop();
       }
 
-      if (!Sound->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+      if (!Sound->IsPlaying() && moIsTimerPlaying() ) {
          Sound->Play();
       }
 

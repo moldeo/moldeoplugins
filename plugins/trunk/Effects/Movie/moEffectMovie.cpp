@@ -359,19 +359,19 @@ void moEffectMovie::UpdateParameters() {
         ///estamos en syncro de todas maneras con el clock de la Consola...
         if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
           /// caso por Timer PAUSADO
-          if (moTimeManager::MoldeoTimer->Paused()) {
+          if (moIsTimerPaused()) {
             m_pMovie->Pause();
           }
           /// caso por Timer PARADO (NOT STARTED)
-          if (!moTimeManager::MoldeoTimer->Started()) {
+          if (moIsTimerStopped()) {
             if (m_pMovie->IsPlaying())
               m_pMovie->Stop();
           }
         } else {
-          if (!m_pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+          if (!m_pMovie->IsPlaying() && moIsTimerPlaying()) {
              m_pMovie->Play();
              MODebug2->Push(moText("Timer is started, movie not: Play()"));
-          } else if(m_pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+          } else if(m_pMovie->IsPlaying() && moIsTimerPlaying() ) {
               if (m_pMovie->GetPosition()==0) {
                   m_pMovie->Play();
               }
