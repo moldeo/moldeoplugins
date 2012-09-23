@@ -236,7 +236,7 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 	glDisable(GL_ALPHA);
 
-    SetColor( m_Config[moR(SOUND_COLOR)][MO_SELECTED], m_Config[moR(SOUND_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(SOUND_COLOR)][MO_SELECTED], m_Config[moR(SOUND_ALPHA)][MO_SELECTED], m_EffectState );
 
     moSound* NextSound = NULL;
     if (m_Config[ moR(SOUND_SOUND) ].GetData())
@@ -409,9 +409,9 @@ moEffectSound::Update( moEventList *Events ) {
 
   ///SE APAGA EL SONIDO SI EL EFECTO ESTA DESACTIVADO
 
-  if ( state.on==MO_ON && m_Config.Sound( moR(SOUND_SOUND) ).State()!=MO_STREAMSTATE_PLAYING ) {
+  if ( Activated() && m_Config.Sound( moR(SOUND_SOUND) ).State()!=MO_STREAMSTATE_PLAYING ) {
     m_Config.Sound( moR(SOUND_SOUND) ).Play();
-  } else if ( state.on==MO_OFF  && m_Config.Sound( moR(SOUND_SOUND) ).State()==MO_STREAMSTATE_PLAYING ) {
+  } else if ( !Activated()  && m_Config.Sound( moR(SOUND_SOUND) ).State()==MO_STREAMSTATE_PLAYING ) {
     m_Config.Sound( moR(SOUND_SOUND) ).Pause();
   }
 

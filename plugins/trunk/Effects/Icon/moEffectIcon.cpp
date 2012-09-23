@@ -153,11 +153,11 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
                   1.0);
 
     //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
-    SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], state );
+    SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
-    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &state.tempo) );
+    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo) );
 
 
     glBegin(GL_QUADS);
@@ -221,8 +221,8 @@ void moEffectIcon::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 				case MO_ICON_TRANSLATE_X:

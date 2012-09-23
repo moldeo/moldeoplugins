@@ -117,29 +117,33 @@ void moEffectCubeMap::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glLoadIdentity();									// Reset The Modelview Matrix
 
 
-	glTranslatef(   m_Config[moR(CUBEMAP_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(CUBEMAP_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(CUBEMAP_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(CUBEMAP_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(CUBEMAP_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(CUBEMAP_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(CUBEMAP_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(CUBEMAP_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(CUBEMAP_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(CUBEMAP_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(CUBEMAP_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(CUBEMAP_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glRotatef(  m_Config[moR(CUBEMAP_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(CUBEMAP_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(CUBEMAP_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(CUBEMAP_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(CUBEMAP_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(CUBEMAP_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glColor4f(  m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * state.tintr,
-                m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * state.tintg,
-                m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * state.tintb,
-				m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
-				m_Config[moR(CUBEMAP_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
+/*
+	glColor4f(  m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang) * state.tintr,
+                m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang) * state.tintg,
+                m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang) * state.tintb,
+				m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang) *
+				m_Config[moR(CUBEMAP_ALPHA)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * state.alpha);
+*/
 
-    MOuint ILeft = m_Config.GetGLId( moR(  CUBEMAP_TEXTURELEFT ), &state.tempo );
-    MOuint IRight = m_Config.GetGLId( moR(  CUBEMAP_TEXTURERIGHT ), &state.tempo );
-    MOuint IFront = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREFRONT ), &state.tempo );
-    MOuint IBack = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBACK ), &state.tempo );
-    MOuint ITop = m_Config.GetGLId( moR(  CUBEMAP_TEXTURETOP ), &state.tempo );
-    MOuint IBottom = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBOTTOM ), &state.tempo );
+    SetColor( m_Config[moR(CUBEMAP_COLOR)], m_Config[moR(CUBEMAP_ALPHA)], m_EffectState );
+
+    MOuint ILeft = m_Config.GetGLId( moR(  CUBEMAP_TEXTURELEFT ), &m_EffectState.tempo );
+    MOuint IRight = m_Config.GetGLId( moR(  CUBEMAP_TEXTURERIGHT ), &m_EffectState.tempo );
+    MOuint IFront = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREFRONT ), &m_EffectState.tempo );
+    MOuint IBack = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBACK ), &m_EffectState.tempo );
+    MOuint ITop = m_Config.GetGLId( moR(  CUBEMAP_TEXTURETOP ), &m_EffectState.tempo );
+    MOuint IBottom = m_Config.GetGLId( moR(  CUBEMAP_TEXTUREBOTTOM ), &m_EffectState.tempo );
 
 
   //front

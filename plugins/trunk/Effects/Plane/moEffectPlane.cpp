@@ -164,15 +164,11 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
               m_Config.Eval( moR(PLANE_SCALEZ))
             );
 
-  moVector4d color = m_Config.EvalColor(moR(PLANE_COLOR));
+  //moVector4d color = m_Config.EvalColor(moR(PLANE_COLOR));
 
-	glColor4f(  color.X() * state.tintr,
-              color.Y() * state.tintg,
-              color.Z() * state.tintb,
-              color.W() *
-              m_Config.Eval( moR(PLANE_ALPHA) ) * state.alpha );
+  SetColor( m_Config[moR(PLANE_COLOR)], m_Config[moR(PLANE_ALPHA)], m_EffectState );
 
-  glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PLANE_TEXTURE), &state.tempo ) );
+  glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PLANE_TEXTURE), &m_EffectState.tempo ) );
 
   SetBlending( (moBlendingModes) m_Config.Int( moR(PLANE_BLENDING) ) );
 

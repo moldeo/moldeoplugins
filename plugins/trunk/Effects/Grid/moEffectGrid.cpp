@@ -159,10 +159,10 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 
-    glColor4f(  m_Config.GetParam(color).GetValue().GetSubValue(MO_RED).Float()*state.tintr,
-                    m_Config.GetParam(color).GetValue().GetSubValue(MO_GREEN).Float()*state.tintg,
-                    m_Config.GetParam(color).GetValue().GetSubValue(MO_BLUE).Float()*state.tintb,
-                    m_Config.GetParam(color).GetValue().GetSubValue(MO_ALPHA).Float()*state.alpha);
+    glColor4f(  m_Config.GetParam(color).GetValue().GetSubValue(MO_RED).Float()*m_EffectState.tintr,
+                    m_Config.GetParam(color).GetValue().GetSubValue(MO_GREEN).Float()*m_EffectState.tintg,
+                    m_Config.GetParam(color).GetValue().GetSubValue(MO_BLUE).Float()*m_EffectState.tintb,
+                    m_Config.GetParam(color).GetValue().GetSubValue(MO_ALPHA).Float()*m_EffectState.alpha);
 
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
@@ -198,8 +198,8 @@ moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if(state)
 			switch(i) {
 				case MO_GRID_PITCH:

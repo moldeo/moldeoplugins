@@ -68,7 +68,7 @@ moEffectParticlesSimple::moEffectParticlesSimple() {
 	SetName("particlessimple");
 
 	///stereo for this effect is activated by default
-	state.stereo = MO_ACTIVATED;
+	//m_EffectState.stereo = MO_ACTIVATED;
 }
 
 moEffectParticlesSimple::~moEffectParticlesSimple() {
@@ -353,7 +353,7 @@ void moEffectParticlesSimple::ResetTimers() {
       for ( int i=0; i < m_ParticlesSimpleArray.Count(); i++ ) {
             moParticlesSimple* pPar = m_ParticlesSimpleArray[i];
             pPar->Age.Stop();
-            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&state.tempo );
+            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&m_EffectState.tempo );
             pPar->Visible = false;
       }
 
@@ -604,7 +604,7 @@ void moEffectParticlesSimple::ReInit() {
                              irandom = (int)( moMathf::UnitRandom() * (double)nc );
                              //irandom = 0;
 
-                            moTextureMemory* pTexMem = pTextFrames.Get( irandom );
+                            moTextureMemory* pTexMem = pTextFrames.GetRef( irandom );
 
                             if (pTexMem) {
                                 pPar->GLId = glidori;
@@ -692,7 +692,7 @@ void moEffectParticlesSimple::UpdateDt() {
 
     ///CONSTANTE
     ///version dt = constante por cuadro
-    //double dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * (double)(state.tempo.delta) /  (double)100.0;
+    //double dt = m_Config.Eval( moR(PARTICLES_SYNC),m_EffectState.tempo.ang) * (double)(m_EffectState.tempo.delta) /  (double)100.0;
 
 
     ///VARIABLE
@@ -707,20 +707,20 @@ void moEffectParticlesSimple::UpdateDt() {
 /*
     dtrel = (double) ( gral_ticks - last_tick ) / (double)16.666666;
             //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
-    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),m_EffectState.tempo.ang) * dtrel * (double)(m_EffectState.tempo.delta) /  (double)100.0;
 
     if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dt:"+FloatToStr(dt));
 
     last_tick = gral_ticks;
     */
 
-    dtrel = (double) ( state.tempo.ticks - last_tick ) / (double)16.666666;
+    dtrel = (double) ( m_EffectState.tempo.ticks - last_tick ) / (double)16.666666;
 
     //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
 
-    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),m_EffectState.tempo.ang) * dtrel * (double)(m_EffectState.tempo.delta) /  (double)100.0;
 
-    last_tick = state.tempo.ticks;
+    last_tick = m_EffectState.tempo.ticks;
 
 }
 
@@ -737,7 +737,7 @@ void moEffectParticlesSimple::UpdateParameters() {
 
     ortho = (bool)m_Config[moR(PARTICLES_ORTHO)][MO_SELECTED][0].Int();
 
-    if ( moIsTimerStopped() || !state.tempo.Started() ) {
+    if ( moIsTimerStopped() || !m_EffectState.tempo.Started() ) {
         ResetTimers();
         //MODebug2->Message("moEffectParticlesSimple::UpdateParameters  > ResetTimers!!!");
     }
@@ -772,13 +772,13 @@ void moEffectParticlesSimple::UpdateParameters() {
     drawing_features = m_Config[moR(PARTICLES_DRAWINGFEATURES)][MO_SELECTED][0].Int();
     texture_mode = m_Config[moR(PARTICLES_TEXTUREMODE)][MO_SELECTED][0].Int();
 
-    m_Physics.m_EyeVector = moVector3f(m_Config[moR(PARTICLES_EYEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                                        m_Config[moR(PARTICLES_EYEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                                        m_Config[moR(PARTICLES_EYEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_EyeVector = moVector3f(m_Config[moR(PARTICLES_EYEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                        m_Config[moR(PARTICLES_EYEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                        m_Config[moR(PARTICLES_EYEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
-    m_Physics.gravitational = m_Config[moR(PARTICLES_GRAVITY)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.viscousdrag = m_Config[moR(PARTICLES_VISCOSITY)].GetData()->Fun()->Eval(state.tempo.ang);
+    m_Physics.gravitational = m_Config[moR(PARTICLES_GRAVITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.viscousdrag = m_Config[moR(PARTICLES_VISCOSITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 
     /*
@@ -809,53 +809,53 @@ void moEffectParticlesSimple::UpdateParameters() {
 
     m_Physics.m_OrientationMode = (moParticlesOrientationMode) m_Config[moR(PARTICLES_ORIENTATIONMODE)][MO_SELECTED][0].Int();
 
-    m_Physics.m_FadeIn = m_Config[moR(PARTICLES_FADEIN)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_FadeOut = m_Config[moR(PARTICLES_FADEOUT)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_SizeIn = m_Config[moR(PARTICLES_SIZEIN)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_SizeOut = m_Config[moR(PARTICLES_SIZEOUT)].GetData()->Fun()->Eval(state.tempo.ang);
+    m_Physics.m_FadeIn = m_Config[moR(PARTICLES_FADEIN)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_FadeOut = m_Config[moR(PARTICLES_FADEOUT)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_SizeIn = m_Config[moR(PARTICLES_SIZEIN)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_SizeOut = m_Config[moR(PARTICLES_SIZEOUT)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 
     /*
-    m_Physics.m_RandomPosition = m_Config[moR(PARTICLES_RANDOMPOSITION)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_RandomVelocity = m_Config[moR(PARTICLES_RANDOMVELOCITY)].GetData()->Fun()->Eval(state.tempo.ang) * midi_randomvelocity;
-    m_Physics.m_RandomMotion = m_Config[moR(PARTICLES_RANDOMMOTION)].GetData()->Fun()->Eval(state.tempo.ang) * midi_randommotion;
+    m_Physics.m_RandomPosition = m_Config[moR(PARTICLES_RANDOMPOSITION)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_RandomVelocity = m_Config[moR(PARTICLES_RANDOMVELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_randomvelocity;
+    m_Physics.m_RandomMotion = m_Config[moR(PARTICLES_RANDOMMOTION)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_randommotion;
     */
-    m_Physics.m_RandomPosition = m_Config[moR(PARTICLES_RANDOMPOSITION)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_RandomVelocity = m_Config[moR(PARTICLES_RANDOMVELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
-    m_Physics.m_RandomMotion = m_Config[moR(PARTICLES_RANDOMMOTION)].GetData()->Fun()->Eval(state.tempo.ang);
+    m_Physics.m_RandomPosition = m_Config[moR(PARTICLES_RANDOMPOSITION)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_RandomVelocity = m_Config[moR(PARTICLES_RANDOMVELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    m_Physics.m_RandomMotion = m_Config[moR(PARTICLES_RANDOMMOTION)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 
     m_Physics.m_EmitterType = (moParticlesSimpleEmitterType) m_Config[moR(PARTICLES_EMITTERTYPE)][MO_SELECTED][0].Int();
     m_Physics.m_AttractorType = (moParticlesSimpleAttractorType) m_Config[moR(PARTICLES_ATTRACTORTYPE)][MO_SELECTED][0].Int();
 
-    m_Physics.m_PositionVector = moVector3f(m_Config[moR(PARTICLES_RANDOMPOSITION_X)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMPOSITION_Y)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMPOSITION_Z)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_PositionVector = moVector3f(m_Config[moR(PARTICLES_RANDOMPOSITION_X)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMPOSITION_Y)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMPOSITION_Z)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-    m_Physics.m_EmitterSize = moVector3f( m_Config[moR(PARTICLES_SIZEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_SIZEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_SIZEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_EmitterSize = moVector3f( m_Config[moR(PARTICLES_SIZEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_SIZEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_SIZEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-    m_Physics.m_VelocityVector =  moVector3f( m_Config[moR(PARTICLES_RANDOMVELOCITY_X)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMVELOCITY_Y)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMVELOCITY_Z)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_VelocityVector =  moVector3f( m_Config[moR(PARTICLES_RANDOMVELOCITY_X)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMVELOCITY_Y)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMVELOCITY_Z)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-    m_Physics.m_MotionVector =  moVector3f( m_Config[moR(PARTICLES_RANDOMMOTION_X)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMMOTION_Y)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_RANDOMMOTION_Z)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_MotionVector =  moVector3f( m_Config[moR(PARTICLES_RANDOMMOTION_X)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMMOTION_Y)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_RANDOMMOTION_Z)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-    m_Physics.m_EmitterVector = moVector3f( m_Config[moR(PARTICLES_EMITTERVECTOR_X)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_EMITTERVECTOR_Y)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_EMITTERVECTOR_Z)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_EmitterVector = moVector3f( m_Config[moR(PARTICLES_EMITTERVECTOR_X)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_EMITTERVECTOR_Y)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_EMITTERVECTOR_Z)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
     if (m_bTrackerInit && m_Physics.m_EmitterType==PARTICLES_EMITTERTYPE_TRACKER2) {
         m_Physics.m_EmitterVector = moVector3f( m_TrackerBarycenter.X()*normalf, m_TrackerBarycenter.Y()*normalf, 0.0f );
     }
 
     m_Physics.m_AttractorMode = (moParticlesSimpleAttractorMode) m_Config[moR(PARTICLES_ATTRACTORMODE)][MO_SELECTED][0].Int();
-    m_Physics.m_AttractorVector = moVector3f( m_Config[moR(PARTICLES_ATTRACTORVECTOR_X)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_ATTRACTORVECTOR_Y)].GetData()->Fun()->Eval(state.tempo.ang),
-                                            m_Config[moR(PARTICLES_ATTRACTORVECTOR_Z)].GetData()->Fun()->Eval(state.tempo.ang));
+    m_Physics.m_AttractorVector = moVector3f( m_Config[moR(PARTICLES_ATTRACTORVECTOR_X)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_ATTRACTORVECTOR_Y)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                                            m_Config[moR(PARTICLES_ATTRACTORVECTOR_Z)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
     if (original_proportion!=1.0f) {
             if (original_proportion>1.0f) {
@@ -894,7 +894,7 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
     randomvelz = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Z() : m_Physics.m_VelocityVector.Z();
 
     moVector4d fullcolor;
-    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , state.tempo.ang );
+    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , m_EffectState.tempo.ang );
     pParticle->Color = moVector3f(
                               fullcolor.X(),
                               fullcolor.Y(),
@@ -1235,7 +1235,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
             pPar->ImageProportion = 1.0;
             //pPar->Color = moVector3f(1.0,1.0,1.0);
             moVector4d fullcolor;
-            fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , state.tempo.ang);
+            fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , m_EffectState.tempo.ang);
             pPar->Color = moVector3f(
                                       fullcolor.X(),
                                       fullcolor.Y(),
@@ -1304,7 +1304,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
 
                          irandom = (int)(  moMathf::UnitRandom() * (double)nc );
 
-                        moTextureMemory* pTexMem = pTextFrames.Get( irandom );
+                        moTextureMemory* pTexMem = pTextFrames.GetRef( irandom );
 
                         if (pTexMem) {
                             pPar->GLId = glidori;
@@ -1353,7 +1353,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
             ///Set Timer management
             pPar->Age.SetObjectId( this->GetId() );
             pPar->Age.SetTimerId( i + j*p_cols );
-            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&state.tempo );
+            pPar->Age.SetRelativeTimer( (moTimerAbsolute*)&m_EffectState.tempo );
             m_pResourceManager->GetTimeMan()->AddTimer( &pPar->Age );
 
             m_ParticlesSimpleArray.Set( i + j*p_cols, pPar );
@@ -1488,7 +1488,7 @@ void moEffectParticlesSimple::Regenerate() {
                    ///hay q pedir el moTextureBuffer
                    if ( texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
                        moTextureBuffer* pTexBuf = m_Config[moR(PARTICLES_FOLDERS)].GetData()->TextureBuffer();
-                       //m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, NULL );
+                       //m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL );
                        if (pTexBuf) {
                            int nim = pTexBuf->GetImagesProcessed();
                            //MODebug2->Push( "nim: " + IntToStr(nim) );
@@ -1633,7 +1633,7 @@ void moEffectParticlesSimple::ParticlesSimpleInfluence( float posx, float posy, 
 
     if (0<=II && II<m_cols && 0<=JJ && JJ<m_rows) {
 
-        moParticlesSimple* pPar = m_ParticlesSimpleArray.Get( II + JJ*m_cols );
+        moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( II + JJ*m_cols );
 
         //pBal->Size[0] = pBal->Size[0] / 1.1;
         //pBal->Size[1] = pBal->Size[1] / 1.1;
@@ -1655,7 +1655,7 @@ void moEffectParticlesSimple::ParticlesSimpleInfluence( float posx, float posy, 
 
             for( I=Ileft; I<Iright; I++) {
                 for( J=Jbottom; J<Jtop; J++) {
-                    m_ParticlesSimpleArray.Get( I + J*m_cols )->Force = moVector3f( 0.0, 0.0, 1.01f );
+                    m_ParticlesSimpleArray.GetRef( I + J*m_cols )->Force = moVector3f( 0.0, 0.0, 1.01f );
                 }
             }
 
@@ -2023,7 +2023,7 @@ void moEffectParticlesSimple::ParticlesSimpleAnimation( moTempo* tempogral, moEf
             for( i = 0; i<m_cols ; i++) {
                 for( j = 0; j<m_rows ; j++) {
 
-                    moParticlesSimple* pPar = m_ParticlesSimpleArray.Get( i + j*m_cols );
+                    moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( i + j*m_cols );
 
 
 
@@ -2039,7 +2039,7 @@ void moEffectParticlesSimple::ParticlesSimpleAnimation( moTempo* tempogral, moEf
 
 void moEffectParticlesSimple::TrackParticle( int partid ) {
     moParticlesSimple* pPar = NULL;
-    pPar =  m_ParticlesSimpleArray.Get( partid );
+    pPar =  m_ParticlesSimpleArray.GetRef( partid );
     int i = partid;
     int j = 0;
     if (pPar) {
@@ -2082,7 +2082,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 /*
     dtrel = (double) ( tempogral->ticks - last_tick ) / (double)16.666666;
             //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
-    dt = m_Config.Eval( moR(PARTICLES_SYNC),state.tempo.ang) * dtrel * (double)(state.tempo.delta) /  (double)100.0;
+    dt = m_Config.Eval( moR(PARTICLES_SYNC),m_EffectState.tempo.ang) * dtrel * (double)(m_EffectState.tempo.delta) /  (double)100.0;
 
     last_tick = tempogral->ticks;
     */
@@ -2097,7 +2097,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
     //glBindTexture( GL_TEXTURE_2D, 0 );
     if ( texture_mode!=PARTICLES_TEXTUREMODE_MANY && texture_mode!=PARTICLES_TEXTUREMODE_MANY2PATCH ) {
-        //glBindTexture( GL_TEXTURE_2D, /*m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, NULL )*/0 );
+        //glBindTexture( GL_TEXTURE_2D, /*m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL )*/0 );
         if (glid>=0) glBindTexture( GL_TEXTURE_2D, glid );
         else glBindTexture( GL_TEXTURE_2D, 0);
     }
@@ -2127,7 +2127,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
             idxt = 0.5 + (float)( i + j * m_cols ) / (float)( m_cols * m_rows * 2 );
 
-            moParticlesSimple* pPar = m_ParticlesSimpleArray.Get( i + j*m_cols );
+            moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( i + j*m_cols );
 
             if (pPar->Visible) {
 
@@ -2179,13 +2179,13 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                             m_Config[moR(PARTICLES_SCALEZ_PARTICLE)].GetData()->Fun()->Eval(part_timer)*pPar->Scale);
 
 
-                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * pPar->Color.X() * state.tintr,
+                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang) * pPar->Color.X() * m_EffectState.tintr,
 
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * pPar->Color.Y() * state.tintg,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang) * pPar->Color.Y() * m_EffectState.tintg,
 
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * pPar->Color.Z() * state.tintb,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang) * pPar->Color.Z() * m_EffectState.tintb,
 
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) * m_Config[moR(PARTICLES_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha * pPar->Alpha );
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang) * m_Config[moR(PARTICLES_ALPHA)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * m_EffectState.alpha * pPar->Alpha );
 
 
                 moVector3f CO(m_Physics.m_EyeVector - pPar->Pos3d);
@@ -2250,7 +2250,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
                 //TODO: dirty code here!!!
                 if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
-                    MOfloat cycleage = state.tempo.ang;
+                    MOfloat cycleage = m_EffectState.tempo.ang;
                     if (m_Physics.m_MaxAge>0) cycleage = (float) ((double)pPar->Age.Duration() /  (double)m_Physics.m_MaxAge );
 
                     int glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, NULL );
@@ -2339,7 +2339,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
         for( i = 0; i<m_cols ; i++) {
             for( j = 0; j<m_rows ; j++) {
 
-                moParticlesSimple* pPar = m_ParticlesSimpleArray.Get( i + j*m_cols );
+                moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( i + j*m_cols );
                 if ((i + j*m_cols) % 10 == 0 ) {
                     Texto = moText( IntToStr(i + j*m_cols));
                     Texto.Left(5);
@@ -2450,7 +2450,7 @@ void moEffectParticlesSimple::DrawTracker() {
     bool has_features = false;
 
     if (m_InletTrackerSystemIndex>-1) {
-        moInlet* pInlet = m_Inlets.Get(m_InletTrackerSystemIndex);
+        moInlet* pInlet = m_Inlets.GetRef(m_InletTrackerSystemIndex);
         if (pInlet)
             if (pInlet->Updated()) {
                 m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
@@ -2462,7 +2462,7 @@ void moEffectParticlesSimple::DrawTracker() {
     }
 
     if (m_InletTuioSystemIndex>-1) {
-        moInlet* pInlet = m_Inlets.Get(m_InletTuioSystemIndex);
+        moInlet* pInlet = m_Inlets.GetRef(m_InletTuioSystemIndex);
         if (pInlet)
             if (pInlet->Updated()) {
                 m_pTUIOData = (moTUIOSystemData *)pInlet->GetData()->Pointer();
@@ -2803,10 +2803,10 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     /*
     MODebug2->Push( "sync: " + IntToStr((int)state.synchronized)
-                    +" tempo.on: " + IntToStr( (int)state.tempo.Started() )
-                    +" tempo.pause_on: " + IntToStr( (int)state.tempo.Paused())
-                    + " tempo.ticks: " + IntToStr( state.tempo.ticks )
-                    + " tempo.ang: " + FloatToStr( state.tempo.ang ) );
+                    +" tempo.on: " + IntToStr( (int)m_EffectState.tempo.Started() )
+                    +" tempo.pause_on: " + IntToStr( (int)m_EffectState.tempo.Paused())
+                    + " tempo.ticks: " + IntToStr( m_EffectState.tempo.ticks )
+                    + " tempo.ang: " + FloatToStr( m_EffectState.tempo.ang ) );
 
 */
     PreDraw( tempogral, parentstate);
@@ -2833,35 +2833,35 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     glMatrixMode(GL_PROJECTION);
 
     if (!ortho) {
-        if ( state.stereoside == MO_STEREO_NONE ) {
+        if ( m_EffectState.stereoside == MO_STEREO_NONE ) {
 
             gluLookAt(		m_Physics.m_EyeVector.X(),
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)
-                            m_Config.Eval( moR(PARTICLES_VIEWX), state.tempo.ang),
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang)
-                            m_Config.Eval( moR(PARTICLES_VIEWY), state.tempo.ang),
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang)
-                            m_Config.Eval( moR(PARTICLES_VIEWZ), state.tempo.ang),
+                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
+                            m_Config.Eval( moR(PARTICLES_VIEWX), m_EffectState.tempo.ang),
+                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
+                            m_Config.Eval( moR(PARTICLES_VIEWY), m_EffectState.tempo.ang),
+                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
+                            m_Config.Eval( moR(PARTICLES_VIEWZ), m_EffectState.tempo.ang),
                             0, 1, 0);
 
         } else {
-            if ( state.stereoside == MO_STEREO_LEFT ) {
+            if ( m_EffectState.stereoside == MO_STEREO_LEFT ) {
                gluLookAt(	m_Physics.m_EyeVector.X()-0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)-0.1,
-                            m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang),
-                            m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang),
+                            m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)-0.1,
+                            m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                            m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
                             0, 1, 0);
-            } else if ( state.stereoside == MO_STEREO_RIGHT ) {
+            } else if ( m_EffectState.stereoside == MO_STEREO_RIGHT ) {
                 gluLookAt(	m_Physics.m_EyeVector.X()+0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)+0.1,
-                            m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang),
-                            m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang),
+                            m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+0.1,
+                            m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                            m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
                             0, 1, 0);
             }
 
@@ -2869,7 +2869,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     }
 
     if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
-      glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), &state.tempo);
+      glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), &m_EffectState.tempo);
     }
 
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
@@ -2893,16 +2893,16 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     //setUpLighting();
 
-    tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX), state.tempo.ang);
-    ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY), state.tempo.ang);
-    tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ), state.tempo.ang);
+    tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX), m_EffectState.tempo.ang);
+    ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY), m_EffectState.tempo.ang);
+    tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ), m_EffectState.tempo.ang);
 
 
-    rz = m_Config.Eval( moR(PARTICLES_ROTATEZ), state.tempo.ang);
+    rz = m_Config.Eval( moR(PARTICLES_ROTATEZ), m_EffectState.tempo.ang);
 
-    sx = m_Config.Eval( moR(PARTICLES_SCALEX), state.tempo.ang);
-    sy = m_Config.Eval( moR(PARTICLES_SCALEY), state.tempo.ang);
-    sz = m_Config.Eval( moR(PARTICLES_SCALEZ), state.tempo.ang);
+    sx = m_Config.Eval( moR(PARTICLES_SCALEX), m_EffectState.tempo.ang);
+    sy = m_Config.Eval( moR(PARTICLES_SCALEY), m_EffectState.tempo.ang);
+    sz = m_Config.Eval( moR(PARTICLES_SCALEZ), m_EffectState.tempo.ang);
 
     glTranslatef(   tx,
                     ty,
@@ -2910,8 +2910,8 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     //rotation
     glRotatef(  rz, 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY), state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX), state.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY), m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX), m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
 
 	//scale
 	glScalef(   sx,
@@ -2925,7 +2925,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     moTexture* pImage = (moTexture*) m_Config[moR(PARTICLES_TEXTURE)].GetData()->Pointer();
 */
     //color
-    SetColor( m_Config[moR(PARTICLES_COLOR)][MO_SELECTED], m_Config[moR(PARTICLES_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(PARTICLES_COLOR)][MO_SELECTED], m_Config[moR(PARTICLES_ALPHA)][MO_SELECTED], m_EffectState );
 
 	moText Texto = m_Config.Text( moR(PARTICLES_TEXT) );
 
@@ -3019,8 +3019,8 @@ void moEffectParticlesSimple::Interaction( moIODeviceManager *IODeviceManager ) 
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 				case 0:
