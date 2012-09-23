@@ -89,7 +89,7 @@ void moMasterEffectLigia::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
     PreDraw( tempogral, parentstate);
 
-    int ancho = 1;
+    int ancho = 5;
 
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -101,12 +101,16 @@ void moMasterEffectLigia::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 		glPushMatrix();										// Store The Projection Matrix
 		glLoadIdentity();									// Reset The Projection Matrix
+
+		float w = m_pResourceManager->GetRenderMan()->ScreenWidth();
+        float h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+		glViewport( 0.0, 0.0, 1.0*w, 0.1*h );
 		glOrtho(0,800,0,600,-1,1);							// Set Up An Ortho Screen
 
 		glPointSize(4);
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		glDisable(GL_TEXTURE_2D);
-		glColor4f(1.0,0.0,0.0,1.0);
+		glColor4f(1.0,0.0,0.5,1.0);
     /**
         Dibujar el control del F11
         un punto rojo a la izquierda
@@ -157,7 +161,20 @@ moMasterEffectLigia::Interaction(moIODeviceManager *IODeviceManager) {
 	moDeviceCode *temp;
 	MOint did,cid,state,valor;
 
-	MOuint j;
+	MOuint j,e;
+
+    if (!m_pEffectManager) return;
+
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects());
+
+    moEffectsArray& Fx( m_pEffectManager->Effects());
+    moPreEffectsArray& PreFx( m_pEffectManager->PreEffects());
+    moPostEffectsArray& PostFx( m_pEffectManager->PostEffects());
+    moMasterEffectsArray& MastFx( m_pEffectManager->MasterEffects());
+
+	moEffect* pFx = NULL;
+	moEffectState fxstate;
+
 
 	if(devicecode!=NULL)
 	for(int i=0; i<ncodes;i++) {
@@ -165,8 +182,8 @@ moMasterEffectLigia::Interaction(moIODeviceManager *IODeviceManager) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 
 			if(state)
 			switch(i) {
@@ -189,37 +206,32 @@ moMasterEffectLigia::Interaction(moIODeviceManager *IODeviceManager) {
 					consolestate->setfps*=-1;
 					break;
 				case MO_ACTION_SHUTDOWN_EFFECTS:
-					for( j = 0; j < consolestate->m_nEffects; j++) {
-						if(m_pEffectManager->AllEffects().Get( j + m_pEffectManager->PreEffects().Count() + m_pEffectManager->PostEffects().Count() )!=NULL) {
-							m_pEffectManager->AllEffects().Get( j + m_pEffectManager->PreEffects().Count() + m_pEffectManager->PostEffects().Count() )->state.on = MO_OFF;
-						}
-					}
+                    for( e=0; e<Fx.Count() && (pFx=Fx.GetRef(e))  && pFx;e++)
+                        pFx->Deactivate();
 					break;
 				case MO_ACTION_SHUTDOWN_PREPOST_EFFECTS:
-					for( j = 0; j < consolestate->m_nPreEffects; j++) {
-						if(m_pEffectManager->AllEffects().Get(j)!=NULL) {
-							m_pEffectManager->AllEffects().Get(j)->state.on = MO_OFF;
-						}
-					}
-					for( j = 0; j < consolestate->m_nPostEffects; j++) {
-						if(m_pEffectManager->AllEffects().Get( j + m_pEffectManager->PreEffects().Count() )!=NULL) {
-							m_pEffectManager->AllEffects().Get( j + m_pEffectManager->PreEffects().Count() )->state.on = MO_OFF;
-						}
-					}
+
+                    for( e=0; e<PreFx.Count() && (pFx=PreFx.GetRef(e)) && pFx;e++)
+                        pFx->Deactivate();
+
+                    for( e=0; e<PostFx.Count() && (pFx=PostFx.GetRef(e)) && pFx;e++)
+                        pFx->Deactivate();
+
+                    for( e=0; e<PreFx.Count() && (pFx=PreFx.GetRef(e)) && pFx;e++)
+                        if (pFx->GetName()=="erase") pFx->Activate();
+
 					break;
 				case MO_ACTION_SHUTDOWN_MASTER_EFFECTS:
-					for( j = 0; j < consolestate->m_nMasterEffects;j++) {
-					    moEffect* pMEF = m_pEffectManager->AllEffects().Get( m_pEffectManager->AllEffects().Count() - m_pEffectManager->MasterEffects().Count() + j );
-					    if (pMEF!=NULL) {
-                            if((stricmp( pMEF->GetName(),"ligia")!=0) &&
-                                (stricmp( pMEF->GetName(),"masterchannel")!=0) &&
-                                (stricmp( pMEF->GetName(),"presetpanel")!=0)) {
-                                pMEF->state.on*=-1;
-                                m_capture_mode = (pMEF->state.on == -1);
-                            }
-					    }
 
-					}
+                    for( e=0; e<MastFx.Count() && (pFx=MastFx.GetRef(e))  && pFx;e++) {
+                        if (
+                                !(pFx->GetName()=="ligia") &&
+                                !(pFx->GetName()=="masterchannel") &&
+                                !(pFx->GetName()=="presetpanel")
+                            )
+                            (pFx->Activated())? pFx->Deactivate() : pFx->Activate();
+                            m_capture_mode = (!pFx->Activated());
+                    }
 					break;
 				default:
 					break;
@@ -235,6 +247,6 @@ moMasterEffectLigia::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("codes"), MO_PARAM_TEXTURE );
+	p_configdefinition->Add( moText("codes"), MO_PARAM_TEXT );
 	return p_configdefinition;
 }

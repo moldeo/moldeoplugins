@@ -34,6 +34,60 @@
 
 #include "moMasterPlugin.h"
 
+enum moPanelParamIndex {
+	/** MOB */
+	PANEL_INLET,
+	PANEL_OUTLET,
+	PANEL_SCRIPT,
+
+	/** FX: ALPHA, COLOR, SYNC, PHASE */
+	PANEL_ALPHA,
+	PANEL_COLOR,
+    PANEL_SYNC,
+	PANEL_PHASE,
+
+	/** MFX: CLIP_VIEWPORT */
+	PANEL_VIEWPORT_LEFT,
+	PANEL_VIEWPORT_TOP,
+	PANEL_VIEWPORT_WIDTH,
+	PANEL_VIEWPORT_HEIGHT,
+
+
+    /** TEXTURING */
+	PANEL_TEXTURE,
+	PANEL_BLENDING,
+
+	/** FX: 3D TRANSFORM */
+	PANEL_TRANSLATEX,
+	PANEL_TRANSLATEY,
+	PANEL_TRANSLATEZ,
+	PANEL_ROTATEX,
+	PANEL_ROTATEY,
+	PANEL_ROTATEZ,
+	PANEL_SCALEX,
+	PANEL_SCALEY,
+	PANEL_SCALEZ,
+
+
+    /** ROWSxCOLS*/
+    PANEL_ROWS,
+    PANEL_COLUMNS,
+
+	/** ICONS */
+	PANEL_ICON_ONOFF,
+	PANEL_ICON_ALPHA,
+	PANEL_ICON_SELECTED,
+	PANEL_ICON_TEMPO,
+
+	/** BACKGROUNDS */
+	PANEL_ICON_BACKGROUND,
+	PANEL_ICON_CLASS_BACKGROUND,
+	PANEL_ICON_SEPARATION,
+	PANEL_ICON_CLASS_SEPARATION
+
+
+};
+
 #define MO_ACTION_SWITCH_EFFECT_0 0
 #define MO_ACTION_SWITCH_EFFECT_1 1
 #define MO_ACTION_SWITCH_EFFECT_2 2
@@ -111,6 +165,10 @@ public:
     void Draw(moTempo*, moEffectState* parentstate = NULL);
     MOboolean Finish();
     void Interaction(moIODeviceManager *);
+   	virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
+
+    void DrawObject( float x, float y, float w, float h, moEffect* p_Fx, float r, float g, float b, float alpha );
+
 };
 
 class moMasterEffectPanelFactory : public moMasterEffectFactory

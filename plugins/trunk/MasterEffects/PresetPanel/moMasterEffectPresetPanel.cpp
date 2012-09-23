@@ -82,8 +82,8 @@ moMasterEffectPresetPanel::Init() {
 		states[i].Init();
 	}
 	for( i=0; i<m_pEffectManager->AllEffects().Count(); i++) {
-		if(m_pEffectManager->AllEffects().Get(i)!=NULL)
-			presets[i] = new moPresets(MO_MAX_PRESETS,m_pEffectManager->AllEffects().Get(i)->GetConfig()->GetParamsCount());
+		if(m_pEffectManager->AllEffects().GetRef(i))
+			presets[i] = new moPresets(MO_MAX_PRESETS,m_pEffectManager->AllEffects().GetRef(i)->GetConfig()->GetParamsCount());
 		else
 			presets[i] = NULL;
 
@@ -136,12 +136,17 @@ void moMasterEffectPresetPanel::Draw( moTempo* tempogral,moEffectState* parentst
 void
 moMasterEffectPresetPanel::SavePreset(MOint presetid) {
     MOuint i;
+
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+	moEffect* pFx = NULL;
+
     //Consola.SalvarEstado(preset);
     //for(i=0;i<nm_pEffectManager;i++) m_pEffectManager[i]->SalvarEstado(preset);
     states[presetid]  = *consolestate;
-	for(i=0; i < m_pEffectManager->AllEffects().Count(); i++) {
-		if(presets[i]!=NULL)
-		presets[i]->Save(presetid,m_pEffectManager->AllEffects().Get(i)->GetConfig(),&m_pEffectManager->AllEffects().Get(i)->state);
+
+	for(i=0; i < AllFx.Count() && (pFx=AllFx.GetRef(i)) && pFx; i++) {
+		if(presets[i])
+            presets[i]->Save( presetid, pFx->GetConfig(), pFx->GetEffectState() );
 	}
 
 }
@@ -149,11 +154,13 @@ moMasterEffectPresetPanel::SavePreset(MOint presetid) {
 void
 moMasterEffectPresetPanel::LoadPreset(MOint presetid) {
 	MOuint i;
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+	moEffect* pFx = NULL;
 
-	for(i=0; i<m_pEffectManager->AllEffects().Count(); i++) {
-		if(presets[i]!=NULL) {
-				if(presets[i]->setting[presetid]) *consolestate = states[presetid];
-				presets[i]->Load(presetid,m_pEffectManager->AllEffects().Get(i)->GetConfig(),&m_pEffectManager->AllEffects().Get(i)->state);
+	for(i=0; i < AllFx.Count() && (pFx=AllFx.GetRef(i)) && pFx; i++) {
+		if(presets[i]) {
+            if(presets[i]->setting[presetid]) *consolestate = states[presetid];
+			pFx->SetEffectState( presets[i]->Load( presetid, pFx->GetConfig(), pFx->GetEffectState() ) );
 		}
 	}
 }
@@ -185,7 +192,7 @@ moMasterEffectPresetPanel::Interaction(moIODeviceManager *IODeviceManager) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
 			if(state) {
 			//switch(i) {
 			//	default:

@@ -84,13 +84,14 @@ MOboolean moMasterEffectChannel::Init()
     if (!PreInit()) return false;
 
 	//inicializacion de los m_SelectedArray!! y puesta a -1(INDEF o DESACT)
-	m_SelectedArray = new MOswitch [m_pEffectManager->AllEffects().Count()];
-	for(i=0; i < m_pEffectManager->AllEffects().Count() ; i++) m_SelectedArray[i] = MO_DEACTIVATED;
+	m_SelectedArray = new MOswitch [ m_pEffectManager->AllEffects().Count() ];
+	for(i=0; i < m_pEffectManager->AllEffects().Count() ; i++) {
+	    m_SelectedArray[i] = MO_DEACTIVATED;
+	}
 
 	m_bFirstSelected = m_Config.GetParam( m_Config.GetParamIndex( moText("firstselected") )).GetValue().GetSubValue(0).Int();
 
 	if ( m_bFirstSelected ) {
-
 		//m_Selected = ;
 		//m_SelectedArray[12] = MO_ACTIVATED;//?QUIEN ES, el Effect 1???
 		m_Selected = -1;
@@ -181,13 +182,16 @@ void moMasterEffectChannel::Draw( moTempo* tempogral,moEffectState* parentstate)
 		//glBindTexture(GL_TEXTURE_2D, 0);
 		glDisable(GL_TEXTURE_2D);
 
-		SetColor( m_Config[moR(CHANNEL_COLOR)], m_Config[moR(CHANNEL_ALPHA)], state );
+		SetColor( m_Config[moR(CHANNEL_COLOR)], m_Config[moR(CHANNEL_ALPHA)], m_EffectState );
 
 		moEffect*	peffect = NULL;
 
-		if (m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-			peffect = m_pEffectManager->AllEffects().Get(m_Selected);
+		if ( m_pEffectManager != NULL ) {
+
+            peffect = m_pEffectManager->AllEffects().GetRef( m_Selected );
+
 			if (peffect!=NULL) {
+
 				cantparam = peffect->GetConfig()->GetParams().Count();
 				paramselected = peffect->GetConfig()->GetCurrentParamIndex();
 
@@ -280,24 +284,71 @@ void moMasterEffectChannel::Update( moEventList *p_eventlist ) {
 	}
 }
 */
+
+
+void moMasterEffectChannel::UnselectAll() {
+
+        moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+        moEffect* pFx = NULL;
+
+        for( MOuint e=0; e < AllFx.Count() && ( pFx = AllFx.GetRef(e) ) && pFx; e++) {
+                m_SelectedArray[e] = MO_OFF;
+                m_Selected = -1;
+                pFx->Unselect();
+        }
+
+}
+
+
+void moMasterEffectChannel::UpdateMultipleSelection() {
+
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+	moEffect* pFx = NULL;
+
+    for(MOuint e=0; e < AllFx.Count() && (pFx = AllFx.GetRef(e) ); e++ ) {
+        if( pFx )
+            if ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e )
+                pFx->Select();
+            else
+                pFx->Unselect();
+
+    }
+
+
+}
+
+
+
+
 void
 moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 	//aqui se parsean los codisp
-	moDeviceCode *temp,*aux;
-	MOuint e;
-	MOint did,cid,state,valor,estaux,elaux;
+	moDeviceCode *temp,*aux,*aux2;
+	MOuint e,sel;
+	MOint did,cid,status,valor,estaux,estaux2,elaux;
 
-	if((this->state.on != MO_ACTIVATED) && (m_Selected>=0)) {
+    if (!m_pEffectManager)
+        return;
+
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+	moEffect* pFx = NULL;
+	moEffectState fxstate;
+
+
+	if( !Activated()  && (m_Selected>=0) ) {
 		//BYPASSING INTERACTIONS TO SELECTED EFFECT
 
 		/// TODO: la seleccion de efectos basado en el array general ya no es conveniente!!!!
 		/// TODO: esto ya se volvio obsoleto, hay que pasar a eventos por outlets-inlets....
+        pFx = (moEffect*)AllFx.GetRef(m_Selected);
 
-		if (m_pEffectManager->AllEffects().Get(m_Selected)!=NULL && m_pEffectManager->AllEffects().Get(m_Selected)!=this) {
-				m_pEffectManager->AllEffects().Get(m_Selected)->Interaction(IODeviceManager);
+		if (pFx && pFx!=this) {
+            pFx->Interaction(IODeviceManager);
 		}
 		return;
 	}
+
+
 
 	if(devicecode!=NULL)
 	for(int i=0; i<ncodes;i++) {
@@ -305,524 +356,166 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
-			if(state)
+			status = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
+
+            float wheel_valor = (float) valor /(float) 256.0;
+
+			if(status)
 			switch(i) {
 				case MO_ACTION_SYNCHRO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e)
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_ACTIVATED;
-							}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_ACTIVATED;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Synchronize();
 					break;
+
+/**BEAT PULSE*/
 				case MO_ACTION_BEAT_PULSE_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e)
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL)
-							{
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.BeatPulse(moGetTicksAbsolute());
-								//OJO
-								//if(m_pEffectManager->AllEffects().Get(e)->state.tempo.beatpulsecount==0)
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-							}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL)
-						{
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.BeatPulse(moGetTicksAbsolute());
-							//OJO
-							//if(m_pEffectManager->AllEffects().Get(e)->state.tempo.beatpulsecount==0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-						}
-					}
-					break;
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->BeatPulse();
+                    break;
+
+/**TEMPO DELTA*/
 				case MO_ACTION_TEMPO_DELTA_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta+=0.005;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta>2.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta< 0.005)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta+=0.005;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta>2.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta<0.005)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 0.005;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TempoDelta(+0.005);
 					break;
 				case MO_ACTION_TEMPO_DELTA_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta-= 0.005;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta> 2.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta< 0.005)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta-= 0.005;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta> 2.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta< 0.005)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 0.005;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TempoDelta(-0.005);
 					break;
 				case MO_ACTION_TEMPO_PITCH_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta+=((float) valor /(float) 256.0);
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta> 2.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta< 0.005)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta+=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta> 2.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta< 0.005)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.delta = 0.005;
+					for( e=0; e<AllFx.Count() && (pFx = AllFx.GetRef(e)); e++ ) {
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) ) {
+						    pFx->TempoDelta( wheel_valor );
+						    /*
+                            MODebug2->Push( "MO_ACTION_TEMPO_PITCH_EFFECT  " + pFx->GetLabelName()
+                                           + "valor anterior:" + FloatToStr(pFx->GetEffectState().tempo.delta )
+                                           + " valor agregado:" + FloatToStr(wheel_valor)
+                                           + " valor actual:" + FloatToStr(pFx->TempoDelta( wheel_valor )) );
+                            */
 						}
 					}
 					break;
+
+/**TEMPO FACTOR*/
 				case MO_ACTION_TEMPO_FACTOR_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor+=1.0;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor>50.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 50.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor<1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 1.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor+=1.0;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor>50.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor = 50.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor<1.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor = 1.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TempoFactor(1.0);
 					break;
 				case MO_ACTION_TEMPO_FACTOR_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_DEACTIVATED;
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor-=1.0;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor>50.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 50.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor<1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 1.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.synchronized = MO_DEACTIVATED;
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor-=1.0;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor>50.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor = 50.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor<1.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.tempo.factor = 1.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TempoFactor(-1.0);
 					break;
+
+/**ALPHA*/
 				case MO_ACTION_ALPHA_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.alpha+=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.alpha>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.alpha = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.alpha<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.alpha = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha+=0.05;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Alpha(0.05);
 					break;
 				case MO_ACTION_ALPHA_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.alpha-=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.alpha>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.alpha=1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.alpha<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.alpha=0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha-=0.05;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.alpha=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Alpha(-0.05);
 					break;
 				case MO_ACTION_WHEEL_ALPHA:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							moEffect* pf = m_pEffectManager->AllEffects().Get(e);
-							if(pf!=NULL) {
-								pf->state.alpha+=((float) valor /(float) 256.0);
-								if(pf->state.alpha>1.0)
-								pf->state.alpha=1.0;
-								else
-								if(pf->state.alpha<0.0)
-									pf->state.alpha=0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						moEffect* pf = m_pEffectManager->AllEffects().Get(m_Selected);
-						if(pf!=NULL) {
-							pf->state.alpha+=((float) valor /(float) 256.0);
-							if (pf->state.alpha>1.0)
-							pf->state.alpha=1.0;
-							else
-							if(pf->state.alpha<0.0)
-								pf->state.alpha=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) ) {
+						    pFx->Alpha( wheel_valor );
+						    /*
+                            MODebug2->Push( "MO_ACTION_WHEEL_ALPHA  " + pFx->GetLabelName()
+                                           + "valor anterior:" + FloatToStr(pFx->GetEffectState().alpha)
+                                           + " valor agregado:" + FloatToStr(wheel_valor)
+                                           + " valor actual:" + FloatToStr(pFx->Alpha( wheel_valor )) );
+                                           */
+                        }
 					break;
+
+/**AMPLITUDE*/
 				case MO_ACTION_AMPLITUDE_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.amplitude+=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.amplitude = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.amplitude = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude+=0.5;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=0.0;
-						}
-					}
-					break;
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Amplitude(0.05);
 				case MO_ACTION_AMPLITUDE_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.amplitude-=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.amplitude = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.amplitude = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude-=0.5;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Amplitude(-0.05);
 					break;
 				case MO_ACTION_WHEEL_AMPLITUDE:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.amplitude+=((float) valor /(float) 256.0);
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.amplitude=1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.amplitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.amplitude=0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude+=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.amplitude=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Amplitude( wheel_valor );
 					break;
+
+/**MAGNITUDE*/
 				case MO_ACTION_MAGNITUDE_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.magnitude+=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.magnitude = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.magnitude = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude+=0.5;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Magnitude(0.05);
 					break;
 				case MO_ACTION_MAGNITUDE_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.magnitude-=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.magnitude = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.magnitude = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude-=0.5;
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Magnitude(-0.05);
 					break;
 				case MO_ACTION_WHEEL_MAGNITUDE:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.magnitude-=((float) valor /(float) 256.0);
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.magnitude=1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.magnitude<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.magnitude=0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude-=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude<0.0)
-								m_pEffectManager->AllEffects().Get(m_Selected)->state.magnitude=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->Magnitude( wheel_valor );
 					break;
+
+/**TINT*/
 				case MO_ACTION_TINT_SUB_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.tint+=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tint = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tint = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tint+=0.5;
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=1.0;
-						else
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint<0.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TintCSV( 0.0, 0.0, 0.05 );
 					break;
 				case MO_ACTION_TINT_BMO_EFFECT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.tint-=0.05;
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint>1.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tint = 1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tint = 0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tint-= 0.5;
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint>1.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=1.0;
-						else
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint<0.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=0.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            pFx->TintCSV( 0.0, 0.0, -0.05 );
 					break;
 				case MO_ACTION_WHEEL_TINT:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.tint-=((float) valor /(float) 256.0);
-								m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tint=1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tint<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tint=0.0;
-							}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) ) {
+                            pFx->TintCSV( 0.0, 0.0, -wheel_valor );
+                            //MODebug2->Push( "MO_ACTION_WHEEL_TINT  " + pFx->GetLabelName() + " valor:" + FloatToStr(-wheel_valor) );
 						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tint-=((float) valor /(float) 256.0);
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.CSV2RGB();
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint>1.0)
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=1.0;
-						else
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tint<0.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tint=0.0;
-						}
-					}
 					break;
+
+/**TINT CHROMINANCE*/
 				case MO_ACTION_WHEEL_CHROMANCY:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.tintc-=((float) valor /(float) 1024.0);
-								m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-								if(m_pEffectManager->AllEffects().Get(e)->state.tintc>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tintc=0.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tintc<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tintc=1.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tintc-=((float) valor /(float) 1024.0);
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.CSV2RGB();
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tintc>1.0)
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tintc=0.0;
-						else
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tintc<0.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tintc=1.0;
-						}
-					}
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) ) {
+                            pFx->TintCSV( wheel_valor*0.25, 0.0, 0.0 );
+                            MODebug2->Push( "MO_ACTION_WHEEL_CHROMANCY  " + pFx->GetLabelName() + " valor:" + FloatToStr(wheel_valor) );
+                        }
 					break;
+
+
+/**TINT SATURATION*/
 				case MO_ACTION_WHEEL_SATURATION:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->state.tints-=((float) valor /(float) 512.0);
-								m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-								if(m_pEffectManager->AllEffects().Get(e)->state.tints>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tints=1.0;
-								else
-								if(m_pEffectManager->AllEffects().Get(e)->state.tints<0.0)
-									m_pEffectManager->AllEffects().Get(e)->state.tints=0.0;
-							}
-						}
-					}
-					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tints-=((float) valor /(float) 512.0);
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.CSV2RGB();
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tints>1.0)
-						m_pEffectManager->AllEffects().Get(m_Selected)->state.tints=1.0;
-						else
-						if(m_pEffectManager->AllEffects().Get(m_Selected)->state.tints<0.0)
-							m_pEffectManager->AllEffects().Get(m_Selected)->state.tints=0.0;
-						}
-					}
-					break;
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) ) {
+                            pFx->TintCSV( 0.0, -wheel_valor*0.25, 0.0 );
+                            //MODebug2->Push( "MO_ACTION_WHEEL_CHROMANCY  " + pFx->GetLabelName() + " valor:" + FloatToStr(wheel_valor) );
+                        }
+                    break;
+
+
+/** NEXT EFFECT*/
 				case MO_ACTION_PARAM_NEXT_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->NextParam();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->NextParam();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -830,17 +523,17 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->NextParam();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+                            AllFx.GetRef(m_Selected)->GetConfig()->NextParam();
 						}
 					}
 					break;
 				case MO_ACTION_PARAM_PREV_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->PrevParam();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->PrevParam();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -848,17 +541,17 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->PrevParam();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+						AllFx.GetRef(m_Selected)->GetConfig()->PrevParam();
 						}
 					}
 					break;
 				case MO_ACTION_VALOR_NEXT_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->NextValue();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->NextValue();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -866,17 +559,17 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->NextValue();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+						AllFx.GetRef(m_Selected)->GetConfig()->NextValue();
 						}
 					}
 					break;
 				case MO_ACTION_VALOR_PREV_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->PreviousValue();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->PreviousValue();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -884,17 +577,17 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->PreviousValue();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+						AllFx.GetRef(m_Selected)->GetConfig()->PreviousValue();
 						}
 					}
 					break;
 				case MO_ACTION_PARAMSET_NEXT_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->PreConfNext();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->PreConfNext();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -902,17 +595,17 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->PreConfNext();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+						AllFx.GetRef(m_Selected)->GetConfig()->PreConfNext();
 						}
 					}
 					break;
 				case MO_ACTION_PARAMSET_PREV_EFFECT:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
+					for(e=0; e<AllFx.Count(); e++) {
 						//lo hace con el primer elegido
 						if(m_SelectedArray[e]==MO_ON && m_Selected!=(MOint)e) {
-							if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-								m_pEffectManager->AllEffects().Get(e)->GetConfig()->PreConfPrev();
+							if(AllFx.GetRef(e)!=NULL) {
+								AllFx.GetRef(e)->GetConfig()->PreConfPrev();
 								//OJO
 								//aca deberiamos actualizar E/S(para que se vea el parametro elegido)
 							}
@@ -920,22 +613,46 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 					}
 					if(m_Selected>-1) {
-						if(m_pEffectManager->AllEffects().Get(m_Selected)!=NULL) {
-						m_pEffectManager->AllEffects().Get(m_Selected)->GetConfig()->PreConfPrev();
+						if(AllFx.GetRef(m_Selected)!=NULL) {
+						AllFx.GetRef(m_Selected)->GetConfig()->PreConfPrev();
 						}
 					}
 					break;
 				case MO_ACTION_UNSELECT_EFFECTS:
-					for(e=0; e<m_pEffectManager->AllEffects().Count(); e++) {
-							m_SelectedArray[e] = MO_OFF;
-							m_Selected = -1;
-					}
+					UnselectAll();
 					break;
+
+                case MO_ACTION_PLAY:
+                    MODebug2->Push("MO_ACTION_PLAY");
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            { pFx->Unsynchronize();pFx->Play();}
+                    break;
+
+                case MO_ACTION_PAUSE:
+                    MODebug2->Push("MO_ACTION_PAUSE");
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            { pFx->Unsynchronize();pFx->Pause();}
+                    break;
+
+                case MO_ACTION_STOP:
+                    MODebug2->Push("MO_ACTION_STOP");
+                    for(e=0;e<AllFx.Count() && (pFx = AllFx.GetRef(e));e++)
+						if( pFx && ( m_SelectedArray[e]==MO_ON || m_Selected==(MOint)e ) )
+                            { pFx->Unsynchronize();pFx->Stop();}
+                    break;
+
+
 				default:
 					aux = devicecode[MO_ACTION_SEL_UNIQUE].First;
-					estaux = IODeviceManager->IODevices().Get(aux->device)->GetStatus(aux->devicecode);
+					aux2 = devicecode[MO_ACTION_SEL_MULTIPLE].First;
+					estaux = IODeviceManager->IODevices().GetRef(aux->device)->GetStatus(aux->devicecode);
+					estaux2 = IODeviceManager->IODevices().GetRef(aux2->device)->GetStatus(aux->devicecode);
 
 					if(MO_ACTION_SEL_EFFECT_0<=i && i<=MO_ACTION_SEL_EFFECT_39) {
+
+					    MODebug2->Push("sel fx:" + IntToStr(i)+ " estaux:"+IntToStr(estaux) + " estaux2:" + IntToStr(estaux2) ) ;
 
 						// Sucio codigo agregado rapidamente para poder asignar los efectos a teclas arbitrarias de las 4 filas
 						// del teclado:
@@ -946,7 +663,7 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						int i0 = -1;
 						int n = m_pEffectManager->Effects().Count();
 						for(int j = 0; j < n; j++) {
-							pEffect = m_pEffectManager->Effects().Get(j);
+							pEffect = m_pEffectManager->Effects().GetRef(j);
 							if(pEffect!=NULL) {
 								if(pEffect->keyidx == i) {
 									i0=j;
@@ -956,44 +673,31 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 						}
 						if (i0 == -1) return;
 						*/
-						// Fabri, despues implementa mejor esto... ;-)
 
 
-						if(!estaux) {
-							m_SelectedArray[m_pEffectManager->PreEffects().Count() + m_pEffectManager->PostEffects().Count() +(i-MO_ACTION_SEL_EFFECT_0)]*=-1;
-						} else {
-							elaux = m_Selected;
-							m_Selected = m_pEffectManager->PreEffects().Count() + m_pEffectManager->PostEffects().Count() +(i-MO_ACTION_SEL_EFFECT_0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected) == NULL) {
-								m_Selected = -1;
-							}
-						}
-
+					    sel = m_pEffectManager->PreEffects().Count() + m_pEffectManager->PostEffects().Count() +(i-MO_ACTION_SEL_EFFECT_0);
+                        pFx = AllFx.GetRef(sel);
+						if (estaux) { UnselectAll(); m_Selected = sel; } else { m_SelectedArray[sel]*=-1;}
+                        if (!pFx) m_Selected = -1;
+                        UpdateMultipleSelection();
 					}
 					else
 					if(MO_ACTION_SEL_PRE_EFFECT_0<=i && i<=MO_ACTION_SEL_PRE_EFFECT_3) {
-						if(!estaux) {
-							m_SelectedArray[(i-MO_ACTION_SEL_PRE_EFFECT_0)]*=-1;
-						} else {
-							elaux = m_Selected;
-							m_Selected =(i-MO_ACTION_SEL_PRE_EFFECT_0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected) == NULL) {
-								m_Selected = -1;
-							}
-						}
+
+					    sel = (i-MO_ACTION_SEL_PRE_EFFECT_0);
+                        pFx = AllFx.GetRef(sel);
+						if (estaux) { UnselectAll(); m_Selected = sel; } else { m_SelectedArray[sel]*=-1;}
+                        if (!pFx) m_Selected = -1;
+                         UpdateMultipleSelection();
 					}
 					else
 					if(MO_ACTION_SEL_POST_EFFECT_0<=i && i<=MO_ACTION_SEL_POST_EFFECT_3) {
-						if(!estaux) {
-							m_SelectedArray[m_pEffectManager->PreEffects().Count()+(i-MO_ACTION_SEL_POST_EFFECT_0)]*=-1;
-						} else {
-							elaux = m_Selected;
-							m_Selected = m_pEffectManager->PreEffects().Count() + (i-MO_ACTION_SEL_POST_EFFECT_0);
-							if(m_pEffectManager->AllEffects().Get(m_Selected) == NULL) {
-								m_Selected = -1;
-							}
-						}
 
+					    sel = m_pEffectManager->PreEffects().Count()+(i-MO_ACTION_SEL_POST_EFFECT_0);
+                        pFx = AllFx.GetRef(sel);
+						if (estaux) { UnselectAll(); m_Selected = sel; } else { m_SelectedArray[sel]*=-1;}
+                        if (!pFx) m_Selected = -1;
+                        UpdateMultipleSelection();
 					}
 					break;
 			}
