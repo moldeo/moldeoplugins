@@ -162,7 +162,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
     for( int j=0; j<Messages.Count();j++) {
 
-        moDataMessage& message( Messages.Get(j) );
+        moDataMessage message = Messages.Get(j);
         poutlet = NULL;
 
         //sumamos a los mensajes....
@@ -265,8 +265,12 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
             if (poutlet->GetType()==MO_DATA_MESSAGES)
                 poutlet->GetData()->SetMessages( &poutlet->GetMessages() );
 
-            if (poutlet->GetType()==MO_DATA_MESSAGE)
-                poutlet->GetData()->SetMessage( &poutlet->GetMessages().Get( poutlet->GetMessages().Count() - 1 ) );
+            if (poutlet->GetType()==MO_DATA_MESSAGE) {
+
+                moDataMessages& msgs( poutlet->GetMessages() );
+
+                poutlet->GetData()->SetMessage( & msgs[ msgs.Count() - 1 ] );
+            }
         }
 
     }
@@ -677,16 +681,17 @@ void moNetOSCIn::Update(moEventList *Eventos) {
             //MODebug2->Push( moText("Checking events "));
 
             for(int i = 0; i<m_pEvents->GetMessages().Count();  i++) {
-                moDataMessage& mess(m_pEvents->GetMessages().Get(i) );
+
+                moDataMessage& mess( m_pEvents->GetMessages().GetRef(i) );
 
                 moData data;
                 ///atencion el primer dato es "EVENT"
-                int did = mess.Get(1).Int();
-                int cid = mess.Get(2).Int();
-                int val0 = mess.Get(3).Int();
-                int val1 = mess.Get(4).Int();
-                int val2 = mess.Get(5).Int();
-                int val3 = mess.Get(6).Int();
+                int did = mess[1].Int();
+                int cid = mess[2].Int();
+                int val0 = mess[3].Int();
+                int val1 = mess[4].Int();
+                int val2 = mess[5].Int();
+                int val3 = mess[6].Int();
 
 
                 MODebug2->Push( moText("Receiving events: ")
@@ -718,9 +723,9 @@ void moNetOSCIn::Update(moEventList *Eventos) {
             if (pOutlet->Updated()) {
                 /*
                 MODebug2->Push(moText("NetOscIn messages: ")+IntToStr(pOutlet->GetMessages().Count() )
-                             +moText(" [1s int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(0).Int())
-                             +moText(" [2d int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(1).Int())
-                             +moText(" [3rd int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(2).Int())
+                             +moText(" [1s int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).GetRef(0).Int())
+                             +moText(" [2d int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).GetRef(1).Int())
+                             +moText(" [3rd int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).GetRef(2).Int())
                              );
                              */
             }

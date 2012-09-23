@@ -1128,11 +1128,11 @@ if (update_on>0) {
         gluLookAt(		0.0,
                             0.0,
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             1000.0,
                             0, 1, 0);
 
@@ -1311,7 +1311,7 @@ if (update_on>0) {
     static unsigned int cc = 0;
 
     int curvature_index = this->GetOutletIndex( moText("CURVATURE") );
-    moOutlet* outCurvature = m_Outlets.Get( curvature_index );
+    moOutlet* outCurvature = m_Outlets.GetRef( curvature_index );
 
     if (outCurvature) {
 
@@ -1325,9 +1325,9 @@ if (update_on>0) {
     int g_index = this->GetOutletIndex( moText("G") );
     int b_index = this->GetOutletIndex( moText("B") );
 
-    moOutlet* outR = m_Outlets.Get( r_index );
-    moOutlet* outG = m_Outlets.Get( g_index );
-    moOutlet* outB = m_Outlets.Get( b_index );
+    moOutlet* outR = m_Outlets.GetRef( r_index );
+    moOutlet* outG = m_Outlets.GetRef( g_index );
+    moOutlet* outB = m_Outlets.GetRef( b_index );
 
     if (outR) {
         outR->GetData()->SetFloat( m_TargetRGB.X() );
@@ -1352,15 +1352,15 @@ if (update_on>0) {
     int SURFACE2_index = this->GetOutletIndex( moText("SURFACE2") );
     int SURFACE3_index = this->GetOutletIndex( moText("SURFACE3") );
 
-    moOutlet* outNDIF1 = m_Outlets.Get( NDIF1_index );
-    moOutlet* outNDIF2 = m_Outlets.Get( NDIF2_index );
-    moOutlet* outNDIF3 = m_Outlets.Get( NDIF3_index );
+    moOutlet* outNDIF1 = m_Outlets.GetRef( NDIF1_index );
+    moOutlet* outNDIF2 = m_Outlets.GetRef( NDIF2_index );
+    moOutlet* outNDIF3 = m_Outlets.GetRef( NDIF3_index );
 
-    moOutlet* outSURFACE = m_Outlets.Get( SURFACE_index );
+    moOutlet* outSURFACE = m_Outlets.GetRef( SURFACE_index );
 
-    moOutlet* outSURFACE1 = m_Outlets.Get( SURFACE1_index );
-    moOutlet* outSURFACE2 = m_Outlets.Get( SURFACE2_index );
-    moOutlet* outSURFACE3 = m_Outlets.Get( SURFACE3_index );
+    moOutlet* outSURFACE1 = m_Outlets.GetRef( SURFACE1_index );
+    moOutlet* outSURFACE2 = m_Outlets.GetRef( SURFACE2_index );
+    moOutlet* outSURFACE3 = m_Outlets.GetRef( SURFACE3_index );
 ////
     if (outNDIF1) {
         outNDIF1->GetData()->SetInt(NDIF1);
@@ -1397,9 +1397,9 @@ if (update_on>0) {
     int naranja_index = this->GetOutletIndex( moText("NARANJA") );
     int sandia_index = this->GetOutletIndex( moText("SANDIA") );
 
-    moOutlet* outPOMELO = m_Outlets.Get( pomelo_index );
-    moOutlet* outNARANJA = m_Outlets.Get( naranja_index );
-    moOutlet* outSANDIA = m_Outlets.Get( sandia_index );
+    moOutlet* outPOMELO = m_Outlets.GetRef( pomelo_index );
+    moOutlet* outNARANJA = m_Outlets.GetRef( naranja_index );
+    moOutlet* outSANDIA = m_Outlets.GetRef( sandia_index );
 
     if (outPOMELO) {
         outPOMELO->GetData()->SetFloat( dif_tex1 );
@@ -1427,9 +1427,9 @@ if (update_on>0) {
     int s_index = this->GetOutletIndex( moText("S") );
     int v_index = this->GetOutletIndex( moText("V") );
 
-    moOutlet* outH = m_Outlets.Get( h_index );
-    moOutlet* outS = m_Outlets.Get( s_index );
-    moOutlet* outV = m_Outlets.Get( v_index );
+    moOutlet* outH = m_Outlets.GetRef( h_index );
+    moOutlet* outS = m_Outlets.GetRef( s_index );
+    moOutlet* outV = m_Outlets.GetRef( v_index );
 
     if (outH) {
         outH->GetData()->SetFloat( m_TargetHSV.X() );
@@ -1447,7 +1447,7 @@ if (update_on>0) {
 
     ///si es superior a 0  o max  es que hay presencia
     int hay_presencia_index = this->GetOutletIndex( moText("HAY_PRESENCIA") );
-    moOutlet* outHayPresencia = m_Outlets.Get( hay_presencia_index );
+    moOutlet* outHayPresencia = m_Outlets.GetRef( hay_presencia_index );
     if (outHayPresencia) {
         outHayPresencia->GetData()->SetLong( m_haypresencia );
         outHayPresencia->Update(true);
@@ -1521,11 +1521,11 @@ if (update_on>0) {
         gluLookAt(		0.0,
                             0.0,
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             1000.0,
                             0, 1, 0);
 
@@ -2428,11 +2428,11 @@ void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &clo
         gluLookAt(		0.0,
                             0.0,
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             0.0,
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang)
+                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
                             1000.0,
                             0, 1, 0);
 
