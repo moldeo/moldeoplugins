@@ -133,10 +133,10 @@ void moDeformationGrid::UpdateParameters() {
     clear = m_Config.Int( moR(DEFORMATIONGRID_CLEAR) );
 
     pImage = (moTexture*) m_Config[moR(DEFORMATIONGRID_TEXTURE)].GetData()->Pointer();
-    PosTextX0 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_X1)].GetData()->Fun()->Eval(state.tempo.ang);
-    PosTextX1 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_X2)].GetData()->Fun()->Eval(state.tempo.ang) * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
-    PosTextY0 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_Y1)].GetData()->Fun()->Eval(state.tempo.ang);
-    PosTextY1 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_Y2)].GetData()->Fun()->Eval(state.tempo.ang) * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
+    PosTextX0 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_X1)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    PosTextX1 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_X2)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
+    PosTextY0 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_Y1)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    PosTextY1 = m_Config[moR(DEFORMATIONGRID_TEXCOORD_Y2)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
 
 
     moParam& PointParam = m_Config[moR(DEFORMATIONGRID_POINTS)];
@@ -288,24 +288,24 @@ void moDeformationGrid::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 
 
-	glTranslatef(   m_Config[moR(DEFORMATIONGRID_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(DEFORMATIONGRID_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(DEFORMATIONGRID_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(DEFORMATIONGRID_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(DEFORMATIONGRID_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(DEFORMATIONGRID_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
+	glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(DEFORMATIONGRID_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
 
-	glScalef(   m_Config[moR(DEFORMATIONGRID_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(DEFORMATIONGRID_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(DEFORMATIONGRID_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glScalef(   m_Config[moR(DEFORMATIONGRID_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(DEFORMATIONGRID_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(DEFORMATIONGRID_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
-    SetColor( m_Config[moR(DEFORMATIONGRID_COLOR)][MO_SELECTED], m_Config[moR(DEFORMATIONGRID_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(DEFORMATIONGRID_COLOR)][MO_SELECTED], m_Config[moR(DEFORMATIONGRID_ALPHA)][MO_SELECTED], m_EffectState );
 
     glEnable( GL_TEXTURE_2D );
 
-    glBindTexture( GL_TEXTURE_2D,m_Config[moR(DEFORMATIONGRID_TEXTURE)].GetData()->GetGLId(&state.tempo) );
+    glBindTexture( GL_TEXTURE_2D,m_Config[moR(DEFORMATIONGRID_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo) );
 
     if (m_Points && m_TPoints)
     for(int j=0; j< (m_Height-1); j++) {
@@ -583,8 +583,8 @@ void moDeformationGrid::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 

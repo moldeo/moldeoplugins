@@ -417,11 +417,13 @@ void moPostEffectVideoWallMorphing::Draw( moTempo* tempogral,moEffectState* pare
     glLoadIdentity();
 
 
-	MOfloat r = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_RED).GetData()->Fun()->Eval(state.tempo.ang)*state.tintr;
-    MOfloat g = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_GREEN).GetData()->Fun()->Eval(state.tempo.ang)*state.tintg;
-    MOfloat b = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_BLUE).GetData()->Fun()->Eval(state.tempo.ang)*state.tintb;
-	MOfloat a = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_ALPHA).GetData()->Fun()->Eval(state.tempo.ang)*state.alpha;
-    glColor4f(r, g, b, a);
+	//MOfloat r = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_RED).GetData()->Fun()->Eval(m_EffectState.tempo.ang)*m_EffectState.tintr;
+    //MOfloat g = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_GREEN).GetData()->Fun()->Eval(m_EffectState.tempo.ang)*m_EffectState.tintg;
+    //MOfloat b = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_BLUE).GetData()->Fun()->Eval(m_EffectState.tempo.ang)*m_EffectState.tintb;
+	//MOfloat a = m_Config.GetParam(moR(VIDEOWALLMORPHING_COLOR)).GetValue().GetSubValue(MO_ALPHA).GetData()->Fun()->Eval(m_EffectState.tempo.ang)*m_EffectState.alpha;
+    //glColor4f(r, g, b, a);
+
+    SetColor( m_Config[moR(VIDEOWALLMORPHING_COLOR)], m_Config[moR(VIDEOWALLMORPHING_ALPHA)], m_EffectState );
 
 	//DETECTA UN CAMBIO
 	cf = m_Config.GetParam(moR(VIDEOWALLMORPHING_CONFIGURATION)).GetValue().GetSubValue(0).Int();
@@ -447,30 +449,30 @@ void moPostEffectVideoWallMorphing::Draw( moTempo* tempogral,moEffectState* pare
 
 	glEnable(GL_BLEND);
 
-	glTranslatef(   m_Config[moR(VIDEOWALLMORPHING_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                    m_Config[moR(VIDEOWALLMORPHING_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                    m_Config[moR(VIDEOWALLMORPHING_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(VIDEOWALLMORPHING_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                    m_Config[moR(VIDEOWALLMORPHING_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                    m_Config[moR(VIDEOWALLMORPHING_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(VIDEOWALLMORPHING_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(VIDEOWALLMORPHING_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(VIDEOWALLMORPHING_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(VIDEOWALLMORPHING_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(VIDEOWALLMORPHING_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(VIDEOWALLMORPHING_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(VIDEOWALLMORPHING_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
     // Agregado el parametro state.
-    SetColor( m_Config[moR(VIDEOWALLMORPHING_COLOR)][MO_SELECTED], m_Config[moR(VIDEOWALLMORPHING_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(VIDEOWALLMORPHING_COLOR)][MO_SELECTED], m_Config[moR(VIDEOWALLMORPHING_ALPHA)][MO_SELECTED], m_EffectState );
 
 	SetBlending( (moBlendingModes)m_Config[moR(VIDEOWALLMORPHING_BLENDING)].GetData()->Int() );
 
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 
 	/*
-	glTranslatef(0.0,0.0,-300.0+10*cos(state.tempo.ang));
-	glRotatef(state.tempo.ang*5.0,0.0,0.0,1.0);
-	glRotatef(state.tempo.ang*5.0,0.0,1.0,1.0);
-	glRotatef(state.tempo.ang*5.0,1.0,1.0,1.0);
+	glTranslatef(0.0,0.0,-300.0+10*cos(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*5.0,0.0,0.0,1.0);
+	glRotatef(m_EffectState.tempo.ang*5.0,0.0,1.0,1.0);
+	glRotatef(m_EffectState.tempo.ang*5.0,1.0,1.0,1.0);
 */
 
 
@@ -511,7 +513,7 @@ void moPostEffectVideoWallMorphing::Draw( moTempo* tempogral,moEffectState* pare
 	if(cf==0) {
 	for(i=0,tita=0.0;i<(MO_MESHA_WIDTH4);i++,tita+=2*moMathf::PI/(float)(MO_MESHA_WIDTH4)) {
 	for(j=0,fi=0.0;j<(MO_MESHA_HEIGHT4);j++,fi+=moMathf::PI/(float)(MO_MESHA_HEIGHT4)) {
-				glColor4f(0.97*(0.95+cos(state.tempo.ang/8)/20.0), 0.97*(0.95+cos(state.tempo.ang/8)/20.0), 0.97*(0.95+sin(state.tempo.ang/8)/20.0), 1.0*state.alpha);
+				glColor4f(0.97*(0.95+cos(m_EffectState.tempo.ang/8)/20.0), 0.97*(0.95+cos(m_EffectState.tempo.ang/8)/20.0), 0.97*(0.95+sin(m_EffectState.tempo.ang/8)/20.0), 1.0*m_EffectState.alpha);
 				glBegin(GL_TRIANGLE_STRIP);
 					//glNormal3f(MESHAG[i][j].NX,MESHAG[i][j].NY,MESHAG[i][j].NZ);
 					glTexCoord2f(s0, t0); glVertex3f(MESHAMORPH[i][j].PAUXX,MESHAMORPH[i][j].PAUXY,MESHAMORPH[i][j].PAUXZ);
@@ -528,7 +530,7 @@ void moPostEffectVideoWallMorphing::Draw( moTempo* tempogral,moEffectState* pare
 	for(i=0,tita=0.0;i<(MO_MESHA_WIDTH4);i++,tita+=2*moMathf::PI/(float)(MO_MESHA_WIDTH4)) {
 	for(j=0,fi=0.0;j<(MO_MESHA_HEIGHT4);j++,fi+=moMathf::PI/(float)(MO_MESHA_HEIGHT4)) {
 				glPushMatrix();
-				glTranslatef(MESHAMORPH[i][j].PAUXX*(1.0+cos(state.tempo.ang)/50),MESHAMORPH[i][j].PAUXY*(1.0+cos(state.tempo.ang)/50),MESHAMORPH[i][j].PAUXZ*(1.0+cos(state.tempo.ang)/50));
+				glTranslatef(MESHAMORPH[i][j].PAUXX*(1.0+cos(m_EffectState.tempo.ang)/50),MESHAMORPH[i][j].PAUXY*(1.0+cos(m_EffectState.tempo.ang)/50),MESHAMORPH[i][j].PAUXZ*(1.0+cos(m_EffectState.tempo.ang)/50));
 				glRotatef(tita*180.0/(float)moMathf::PI,0.0,1.0,0.0);
 				glRotatef(fi*180.0/(float)moMathf::PI,1.0,0.0,0.0);
 				glScalef(30.0,30.0,30.0);
