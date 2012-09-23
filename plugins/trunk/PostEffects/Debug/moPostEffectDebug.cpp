@@ -139,9 +139,9 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 	state_datos+= "SINC: ";
 	state_datos+= IntToStr(state.synchronized);
 	state_datos+= " FAC: ";
-	state_datos+= FloatToStr(state.tempo.factor,4);
+	state_datos+= FloatToStr(m_EffectState.tempo.factor,4);
 	state_datos+= " SYNCRO: ";
-	state_datos+= FloatToStr(state.tempo.syncro,4);
+	state_datos+= FloatToStr(m_EffectState.tempo.syncro,4);
 
 	state_luminosidad+="ALPHA:";
 	state_luminosidad+= FloatToStr(state.alpha,4);
@@ -154,7 +154,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 	state_colorido+= FloatToStr(state.tints,4);
 
 	state_magnitude+="DELTA:";
-	state_magnitude+= FloatToStr(state.tempo.delta,4);
+	state_magnitude+= FloatToStr(m_EffectState.tempo.delta,4);
 	state_magnitude+="AMP:";
 	state_magnitude+= FloatToStr(state.amplitude,4);
 
@@ -182,36 +182,41 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
     glEnable(GL_BLEND);
 
     //color
-    SetColor( m_Config[moR(DEBUG_COLOR)][MO_SELECTED], m_Config[moR(DEBUG_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(DEBUG_COLOR)][MO_SELECTED], m_Config[moR(DEBUG_ALPHA)][MO_SELECTED], m_EffectState );
 
     moText Texto = moText("");
-    Texto+= fps_text;
+
 
     int minutes;
     int seconds;
     int frames;
 
     if (pFont) {
+        /*
         pFont->Draw(    0.0,
                         0.0,
                         Texto,
                         m_Config[moR(DEBUG_FONT)][MO_SELECTED][2].Int(),
                         0 );
+                        */
+
+        Texto+= fps_text;
 
         timecodeticks = moGetTicks();
         minutes = timecodeticks / (1000*60);
         seconds = (timecodeticks - minutes*1000*60) / 1000;
         frames = (timecodeticks - minutes*1000*60 - seconds*1000 ) * 25 / 1000;
 
-        Texto = moText("");
-        /*Texto = moText(" ticks: ") + (moText)IntToStr(timecodeticks) +
-                moText(" ang: ") + (moText)FloatToStr(tempogral->ang) +
-                moText(" timecode: ") + (moText)IntToStr(minutes) + moText(":") + (moText)IntToStr(seconds) + moText(":") + (moText)IntToStr(frames);
-*/
+        Texto+= moText(" ticks: ") + (moText)IntToStr(timecodeticks,10) +
+                moText(" ang: ") + (moText)FloatToStr((float)tempogral->ang) +
+                moText(" timecode: ") + (moText)IntToStr(minutes, 2) + moText(":") + (moText)IntToStr(seconds,2) + moText(":") + (moText)IntToStr(frames,2);
+
         //glTranslatef( 0.0, 2.0, 0.0 );
         pFont->Draw(    0.0,
-                        16.0,
-                        Texto);
+                        0.0,
+                        Texto,
+                        m_Config[moR(DEBUG_FONT)][MO_SELECTED][2].Int(),
+                        0 );
 
 
         moText  Final;

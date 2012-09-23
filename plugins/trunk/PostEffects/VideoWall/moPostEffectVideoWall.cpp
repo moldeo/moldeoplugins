@@ -72,7 +72,12 @@ moPostEffectVideoWall::Init()
 {
     if (!PreInit()) return false;
 
+    moDefineParamIndex( VIDEOWALL_INLET, moText("inlets") );
+    moDefineParamIndex( VIDEOWALL_OUTLET, moText("outlets") );
+    moDefineParamIndex( VIDEOWALL_SCRIPT, moText("script") );
     moDefineParamIndex( VIDEOWALL_ALPHA, moText("alpha") );
+    moDefineParamIndex( VIDEOWALL_SYNCRO, moText("syncro") );
+    moDefineParamIndex( VIDEOWALL_PHASE, moText("phase") );
 	moDefineParamIndex( VIDEOWALL_COLOR, moText("color") );
 	moDefineParamIndex( VIDEOWALL_CONFIGURATION, moText("configuration") );
 	moDefineParamIndex( VIDEOWALL_TRANSLATEZ, moText("translatez") );
@@ -87,12 +92,15 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
+/*
+	glColor4f(  m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang) * state.tintr,
+                m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang) * state.tintg,
+                m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang) * state.tintb,
+				m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang) *
+				m_Config[moR(VIDEOWALL_ALPHA)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * state.alpha);
+*/
 
-	glColor4f(  m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * state.tintr,
-                m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * state.tintg,
-                m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * state.tintb,
-				m_Config[moR(VIDEOWALL_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
-				m_Config[moR(VIDEOWALL_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
+    SetColor(  m_Config[moR(VIDEOWALL_COLOR)], m_Config[moR(VIDEOWALL_ALPHA)], m_EffectState );
 
 	MOint cf,i,j;
 
@@ -119,10 +127,10 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
  	if(cf==0) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	//glRotatef(state.tempo.ang * 30.0, 1, 0, 0);
-	//glRotatef(state.tempo.ang * 40.0, 0, 1, 0);
-	//glRotatef(state.tempo.ang * 50.0, 0, 0, 1);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	//glRotatef(m_EffectState.tempo.ang * 30.0, 1, 0, 0);
+	//glRotatef(m_EffectState.tempo.ang * 40.0, 0, 1, 0);
+	//glRotatef(m_EffectState.tempo.ang * 50.0, 0, 0, 1);
 	glBegin(GL_QUADS);
 	glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -132,7 +140,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(0.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -143,7 +151,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	// Update the modelview matrix
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(1.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(1.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -153,7 +161,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(1.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(1.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -163,7 +171,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(1.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(1.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -173,7 +181,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(-1.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(-1.0, 1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -183,7 +191,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(-1.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(-1.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -193,7 +201,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(-1.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(-1.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -203,7 +211,7 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(0.0, -1.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 	glBegin(GL_QUADS);
     glTexCoord2f(s0, t0); glVertex2f(-0.5, -0.5);
     glTexCoord2f(s0, t1); glVertex2f(-0.5,  0.5);
@@ -217,8 +225,8 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if(cf==1) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*2*15.0,0.0,0.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*2*15.0,0.0,0.0,1.0);
 	glBegin(GL_QUADS);
 	glTexCoord2f(s0, t0); glVertex2f(-1.0, 0.0);
     glTexCoord2f(s0, t1); glVertex2f(-1.0,  1.0);
@@ -246,8 +254,8 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if(cf==2) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*2.0*15,0.0,0.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*2.0*15,0.0,0.0,1.0);
 	glBegin(GL_QUADS);
 	glTexCoord2f(s0, t0); glVertex2f(-1.0-1.0, 0.0+1.0);
     glTexCoord2f(s0, t1); glVertex2f(-1.0-1.0,  1.0+1.0);
@@ -293,8 +301,8 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if(cf==3) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*2.0*15,0.0,0.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*2.0*15,0.0,0.0,1.0);
 	glBegin(GL_TRIANGLES);
 	for(i=0;i<4;i++) {
 		for(j=0;j<4;j++) {
@@ -341,13 +349,13 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	float an,an2,rad;
 
-	rad = 2.0 * state.amplitude;
+	rad = 2.0 * m_EffectState.amplitude;
 
 	if(cf==4) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*2.0*15,0.0,0.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*2.0*15,0.0,0.0,1.0);
 	glBegin(GL_TRIANGLE_FAN);
 	//el centro
 	glTexCoord2f(s0, t0); glVertex2f(0.0,0.0);
@@ -371,8 +379,8 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if(cf==5) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*2.0*15,1.0,1.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*2.0*15,1.0,1.0,1.0);
 	glBegin(GL_TRIANGLE_FAN);
 	//el centro
 	glTexCoord2f(s0, t0); glVertex2f(0.0,0.0);
@@ -396,8 +404,8 @@ void moPostEffectVideoWall::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if(cf==6) {
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity();
-	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
-	glRotatef(state.tempo.ang*togra,1.0,0.0,1.0);
+	glTranslatef(0.0, 0.0, -2.5+m_Config[moR(VIDEOWALL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(m_EffectState.tempo.ang*togra,1.0,0.0,1.0);
 	glBegin(GL_QUADS);
 	glTexCoord2f(s0, t0); glVertex2f(-1.0-1.0, 0.0+1.0);
     glTexCoord2f(s0, t1); glVertex2f(-1.0-1.0,  1.0+1.0);

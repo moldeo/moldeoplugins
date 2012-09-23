@@ -138,19 +138,19 @@ void moCalibrationGrid::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 
 
-	glTranslatef(   m_Config[moR(CALIBRATIONGRID_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(CALIBRATIONGRID_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(CALIBRATIONGRID_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(CALIBRATIONGRID_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(CALIBRATIONGRID_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(CALIBRATIONGRID_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(CALIBRATIONGRID_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(CALIBRATIONGRID_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(CALIBRATIONGRID_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(CALIBRATIONGRID_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(CALIBRATIONGRID_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(CALIBRATIONGRID_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(CALIBRATIONGRID_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
-    SetColor( m_Config[moR(CALIBRATIONGRID_COLOR)][MO_SELECTED], m_Config[moR(CALIBRATIONGRID_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(CALIBRATIONGRID_COLOR)][MO_SELECTED], m_Config[moR(CALIBRATIONGRID_ALPHA)][MO_SELECTED], m_EffectState );
 
     glEnable( GL_TEXTURE_2D );
 
@@ -161,7 +161,7 @@ void moCalibrationGrid::Draw( moTempo* tempogral, moEffectState* parentstate )
     PosTextY0 = 0.0;
     PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(CALIBRATIONGRID_TEXTURE)].GetData()->GetGLId(&state.tempo) );
+    glBindTexture( GL_TEXTURE_2D, m_Config[moR(CALIBRATIONGRID_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo) );
 
     glBegin (GL_QUADS);
           glTexCoord2f( PosTextX0, PosTextY1);
