@@ -122,7 +122,15 @@ void moMasterEffectMasterChannel::Draw( moTempo* tempogral,moEffectState* parent
 void
 moMasterEffectMasterChannel::Synchronize() {
 	MOuint i;
-	for(i=0;i<m_pEffectManager->AllEffects().Count();i++) m_pEffectManager->AllEffects().Get(i)->state.synchronized = MO_ACTIVATED;
+	for(i=0;i<m_pEffectManager->AllEffects().Count();i++) {
+
+        moEffectState fxstate = m_pEffectManager->AllEffects().GetRef(i)->GetEffectState();
+
+        fxstate.synchronized = MO_ACTIVATED;
+
+        m_pEffectManager->AllEffects().GetRef(i)->SetEffectState(fxstate);
+
+	}
 }
 
 MOboolean moMasterEffectMasterChannel::Finish()
@@ -139,33 +147,31 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 	MOuint e;
 	MOint did,cid,state,valor;
 
+    moEffectsArray& AllFx( m_pEffectManager->AllEffects() );
+	moEffect* pFx = NULL;
+	moEffectState fxstate;
+
 	if(devicecode!=NULL)
 	for(int i=0; i<ncodes;i++) {
 		temp = devicecode[i].First;
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
+
+			float wheel_valor = (float) valor /(float) 256.0;
+
 			if(state)
 			switch(i) {
 				case MO_ACTION_SYNCHRONIZE_ALL:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL)
-							m_pEffectManager->AllEffects().Get(e)->state.synchronized = MO_ACTIVATED;
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Synchronize();
 					break;
 				case MO_ACTION_TEMPO_DELTA_SUB_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tempo.delta+=0.005;
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta>2.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta<0.005)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TempoDelta( +0.005 );
+
 					consolestate->tempo.delta+=0.005;
 					if(consolestate->tempo.delta>2.0)
 						consolestate->tempo.delta = 2.0;
@@ -174,53 +180,35 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 						consolestate->tempo.delta = 0.005;
 					break;
 				case MO_ACTION_TEMPO_DELTA_BMO_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tempo.delta-=0.005;
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta>2.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta<0.005)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-						}
-					}
-					consolestate->tempo.delta-=0.005;
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TempoDelta( -0.005 );
+
+                    consolestate->tempo.delta-=0.005;
 					if(consolestate->tempo.delta>2.0)
 						consolestate->tempo.delta = 2.0;
 					else
 					if(consolestate->tempo.delta<0.005)
 						consolestate->tempo.delta = 0.005;
 					break;
+
 				case MO_ACTION_TEMPO_PITCH_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tempo.delta+=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta>2.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 2.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.delta<0.005)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.delta = 0.005;
-						}
-					}
-					consolestate->tempo.delta+=((float) valor /(float) 256.0);
+
+                    for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TempoDelta( wheel_valor );
+
+					consolestate->tempo.delta+=wheel_valor;
 					if(consolestate->tempo.delta>2.0)
 						consolestate->tempo.delta = 2.0;
 					else
 					if(consolestate->tempo.delta<0.005)
 						consolestate->tempo.delta = 0.005;
 					break;
+
 				case MO_ACTION_TEMPO_FACTOR_SUB_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tempo.factor+=1.0;
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor>50.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 50.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor<1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 1.0;
-						}
-					}
-					consolestate->tempo.factor+=1.0;
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TempoFactor( +1.0 );
+
+                    consolestate->tempo.factor+=1.0;
 					if(consolestate->tempo.factor>50.0)
 						consolestate->tempo.factor = 50.0;
 					else
@@ -228,16 +216,9 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 						consolestate->tempo.factor = 1.0;
 					break;
 				case MO_ACTION_TEMPO_FACTOR_BMO_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tempo.factor-=1.0;
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor>50.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 50.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tempo.factor<1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tempo.factor = 1.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TempoFactor( -1.0 );
+
 					consolestate->tempo.factor-=1.0;
 					if(consolestate->tempo.factor>50.0)
 						consolestate->tempo.factor = 50.0;
@@ -246,41 +227,16 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 						consolestate->tempo.factor = 1.0;
 					break;
 				case MO_ACTION_ALPHA_SUB_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.alpha+=0.05;
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.alpha = 1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.alpha = 0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Alpha( 0.005 );
 					break;
 				case MO_ACTION_ALPHA_BMO_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.alpha-=0.05;
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha>1.0)
-								m_pEffectManager->AllEffects().Get(e)->state.alpha = 1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.alpha = 0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Alpha( -0.005 );
 					break;
 				case MO_ACTION_WHEEL_ALPHA_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.alpha+=((float) valor /(float) 256.0);
-							//m_pEffectManager->AllEffects().Get(e)->state.alpha =((float) valor /(float) 127.0);
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.alpha=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.alpha<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.alpha=0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Alpha( wheel_valor );
 					break;
 				case MO_ACTION_AMPLITUDE_SUB_MASTER:
 					//niente por ahora
@@ -289,16 +245,8 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 					//niente por ahora
 					break;
 				case MO_ACTION_WHEEL_AMPLITUDE_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.amplitude+=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(e)->state.amplitude>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.amplitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.amplitude<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.amplitude=0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Amplitude( wheel_valor );
 					break;
 				case MO_ACTION_MAGNITUDE_SUB_MASTER:
 					//niente por ahora
@@ -307,16 +255,8 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 					//niente por ahora
 					break;
 				case MO_ACTION_WHEEL_MAGNITUDE_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.magnitude-=((float) valor /(float) 256.0);
-							if(m_pEffectManager->AllEffects().Get(e)->state.magnitude>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.magnitude=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.magnitude<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.magnitude=0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->Magnitude( wheel_valor );
 					break;
 				case MO_ACTION_TINT_SUB_MASTER:
 					//niente por ahora
@@ -325,43 +265,16 @@ moMasterEffectMasterChannel::Interaction(moIODeviceManager *IODeviceManager) {
 					//niente por ahora
 					break;
 				case MO_ACTION_WHEEL_TINT_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tint-=((float) valor /(float) 256.0);
-							m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-							if(m_pEffectManager->AllEffects().Get(e)->state.tint>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.tint=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tint<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tint=0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TintCSV( 0.0, 0.0, wheel_valor );
 					break;
 				case MO_ACTION_WHEEL_CHROMANCY_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tintc-=((float) valor /(float) 1024.0);
-							m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-							if(m_pEffectManager->AllEffects().Get(e)->state.tintc>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.tintc=0.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tintc<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tintc=1.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TintCSV( wheel_valor, 0.0, 0.0  );
 					break;
 				case MO_ACTION_WHEEL_SATURATION_MASTER:
-					for(e=0;e<m_pEffectManager->AllEffects().Count();e++) {
-						if(m_pEffectManager->AllEffects().Get(e)!=NULL) {
-							m_pEffectManager->AllEffects().Get(e)->state.tints-=((float) valor /(float) 512.0);
-							m_pEffectManager->AllEffects().Get(e)->state.CSV2RGB();
-							if(m_pEffectManager->AllEffects().Get(e)->state.tints>1.0)
-							m_pEffectManager->AllEffects().Get(e)->state.tints=1.0;
-							else
-							if(m_pEffectManager->AllEffects().Get(e)->state.tints<0.0)
-								m_pEffectManager->AllEffects().Get(e)->state.tints=0.0;
-						}
-					}
+					for(e=0;e<AllFx.Count() && (pFx=AllFx.GetRef(e)) && pFx;e++)
+						pFx->TintCSV( 0.0, wheel_valor, 0.0  );
 					break;
 				case MO_ACTION_BEAT_PULSE_MASTER:
 					consolestate->tempo.BeatPulse(moGetTicksAbsolute());

@@ -121,7 +121,10 @@ enum moIconParamIndex {
 #define MO_ACTION_PARAMSET_PREV_EFFECT		74
 #define MO_ACTION_UNSELECT_EFFECTS		75
 #define MO_ACTION_SEL_UNIQUE			76
-
+#define MO_ACTION_PLAY              77
+#define MO_ACTION_STOP              78
+#define MO_ACTION_PAUSE              79
+#define MO_ACTION_SEL_MULTIPLE			80
 
 #define MO_EFFECT_PREEFFECT		0
 #define MO_EFFECT_EFFECT		4
@@ -147,6 +150,11 @@ public:
     MOboolean Finish();
     void Interaction(moIODeviceManager *);
     //void Update( moEventList *p_eventlist );
+
+    void UnselectAll();
+    void UpdateMultipleSelection();
+
+
 
 };
 
