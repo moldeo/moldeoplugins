@@ -435,9 +435,9 @@ void moNetTUIOIn::Update(moEventList *Eventos)
             if (pOutlet->Updated()) {
                 /*
                 MODebug2->Push(moText("NetOscIn messages: ")+IntToStr(pOutlet->GetMessages().Count() )
-                             +moText(" [1s int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(0).Int())
-                             +moText(" [2d int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(1).Int())
-                             +moText(" [3rd int]: ")+IntToStr(pOutlet->GetMessages().Get(0).Get(2).Int())
+                             +moText(" [1s int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(0).Int())
+                             +moText(" [2d int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(1).Int())
+                             +moText(" [3rd int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(2).Int())
                              );
                              */
             }
