@@ -279,11 +279,11 @@ moPreEffectMirrorG::Calculate(void) {
 	NpointsG = mValuePoints.GetSubValueCount() / (MO_MIRRORG_POINTG_FIXED+1);
 
 	for(i=0;i<NpointsG;i++) {
-        pointsG[i].amplitude = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_AMPLITUDE + i*6).Fun()->Eval(state.tempo.ang);
+        pointsG[i].amplitude = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_AMPLITUDE + i*6).Fun()->Eval(m_EffectState.tempo.ang);
         pointsG[i].atenuationfunction = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_ATENUATION_FUNCTION+i*6).Text();
-        pointsG[i].amplitudeatenuation = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_ATENUATION_AMPLITUDE+i*6).Fun()->Eval(state.tempo.ang);
-        pointsG[i].x = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_X+i*6).Fun()->Eval(state.tempo.ang)*0.78125f + 0.390625;
-        pointsG[i].y = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_Y+i*6).Fun()->Eval(state.tempo.ang)*0.5859375f + 0.29296875;
+        pointsG[i].amplitudeatenuation = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_ATENUATION_AMPLITUDE+i*6).Fun()->Eval(m_EffectState.tempo.ang);
+        pointsG[i].x = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_X+i*6).Fun()->Eval(m_EffectState.tempo.ang)*0.78125f + 0.390625;
+        pointsG[i].y = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_Y+i*6).Fun()->Eval(m_EffectState.tempo.ang)*0.5859375f + 0.29296875;
         pointsG[i].fixed = mValuePoints.GetSubValue( MO_MIRRORG_POINTG_FIXED+i*6).Text();
 	}
 
@@ -292,21 +292,21 @@ moPreEffectMirrorG::Calculate(void) {
 	NlinesG = mValueLines.GetSubValueCount() / (MO_MIRRORG_LINEG_FIXED+1);
 
 	for(i=0;i<NlinesG;i++) {
-        linesG[i].amplitude = mValueLines.GetSubValue( MO_MIRRORG_LINEG_AMPLITUDE + i*8  ).Fun()->Eval(state.tempo.ang);
+        linesG[i].amplitude = mValueLines.GetSubValue( MO_MIRRORG_LINEG_AMPLITUDE + i*8  ).Fun()->Eval(m_EffectState.tempo.ang);
         linesG[i].atenuationfunction = mValueLines.GetSubValue( MO_MIRRORG_LINEG_ATENUATION_FUNCTION + i*8 ).Text();
-        linesG[i].amplitudeatenuation = mValueLines.GetSubValue( MO_MIRRORG_LINEG_ATENUATION_AMPLITUDE + i*8 ).Fun()->Eval(state.tempo.ang);
-        linesG[i].directionx = mValueLines.GetSubValue( MO_MIRRORG_LINEG_DIRECTIONX + i*8 ).Fun()->Eval(state.tempo.ang);
-        linesG[i].directiony = mValueLines.GetSubValue( MO_MIRRORG_LINEG_DIRECTIONY + i*8 ).Fun()->Eval(state.tempo.ang);
+        linesG[i].amplitudeatenuation = mValueLines.GetSubValue( MO_MIRRORG_LINEG_ATENUATION_AMPLITUDE + i*8 ).Fun()->Eval(m_EffectState.tempo.ang);
+        linesG[i].directionx = mValueLines.GetSubValue( MO_MIRRORG_LINEG_DIRECTIONX + i*8 ).Fun()->Eval(m_EffectState.tempo.ang);
+        linesG[i].directiony = mValueLines.GetSubValue( MO_MIRRORG_LINEG_DIRECTIONY + i*8 ).Fun()->Eval(m_EffectState.tempo.ang);
         linesG[i].Normalizar();
-        linesG[i].positionx = mValueLines.GetSubValue( MO_MIRRORG_LINEG_POSITIONX + i*8 ).Fun()->Eval(state.tempo.ang)*0.78125f + 0.390625;
-        linesG[i].positiony = mValueLines.GetSubValue( MO_MIRRORG_LINEG_POSITIONY + i*8 ).Fun()->Eval(state.tempo.ang)*0.5859375 + 0.29296875;
+        linesG[i].positionx = mValueLines.GetSubValue( MO_MIRRORG_LINEG_POSITIONX + i*8 ).Fun()->Eval(m_EffectState.tempo.ang)*0.78125f + 0.390625;
+        linesG[i].positiony = mValueLines.GetSubValue( MO_MIRRORG_LINEG_POSITIONY + i*8 ).Fun()->Eval(m_EffectState.tempo.ang)*0.5859375 + 0.29296875;
         linesG[i].fixed = mValueLines.GetSubValue( MO_MIRRORG_LINEG_FIXED + i*8 ).Text();
 	}
 
 
 	//carga valroes generales
-	generalx = m_Config[moR(MIRRORG_GENERALX)][MO_SELECTED][0].Fun()->Eval(state.tempo.ang);
-	generaly = m_Config[moR(MIRRORG_GENERALY)][MO_SELECTED][0].Fun()->Eval(state.tempo.ang);
+	generalx = m_Config[moR(MIRRORG_GENERALX)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	generaly = m_Config[moR(MIRRORG_GENERALY)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
 
 	for(j=0; j<hpoint2; j++) {
 			for(i=0; i<wpoint2; i++) {
@@ -379,12 +379,12 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
     glColor4f(1.0*state.tint,1.0*state.tint,1.0*state.tint,1.0*state.alpha );
     SetBlending( (moBlendingModes)0 );
 */
-	SetColor( m_Config[moR(MIRRORG_COLOR)][MO_SELECTED], m_Config[moR(MIRRORG_ALPHA)][MO_SELECTED], state );
+	SetColor( m_Config[moR(MIRRORG_COLOR)][MO_SELECTED], m_Config[moR(MIRRORG_ALPHA)][MO_SELECTED], m_EffectState );
 
 	int i,j,bl;
 	float ab;
 
-	ab = m_Config[moR(MIRRORG_ABERRATION)][MO_SELECTED][0].Fun()->Eval(state.tempo.ang);
+	ab = m_Config[moR(MIRRORG_ABERRATION)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
 	bl = m_Config.GetParam(moR(MIRRORG_BLENDING)).GetValue().GetSubValue(0).Int();
 
     // Aca van los comandos OpenGL del efecto.

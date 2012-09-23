@@ -177,8 +177,8 @@ void moPreEffectMirror::Draw( moTempo* tempogral,moEffectState* parentstate)
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
 
-	ra = m_Config[moR(MIRROR_RADIUS)][MO_SELECTED][0].Fun()->Eval(state.tempo.ang);
-	ab = m_Config[moR(MIRROR_ABERRATION)][MO_SELECTED][0].Fun()->Eval(state.tempo.ang);
+	ra = m_Config[moR(MIRROR_RADIUS)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	ab = m_Config[moR(MIRROR_ABERRATION)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
 
 	bl = m_Config.GetParam(moR(MIRROR_BLENDING)).GetValue().GetSubValue(0).Int();
 	cf = m_Config[moR(MIRROR_CONFIGURATION)][MO_SELECTED][0].Int();
@@ -200,23 +200,23 @@ void moPreEffectMirror::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 			if(i>1 && i<(MO_MESHA_WIDTH-1)) {
 				switch(cf) {
-					case 0:	MESHAG[i][j].XN = MESHAG[i][j].X*ab;//*(ab+0.3*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 0:	MESHAG[i][j].XN = MESHAG[i][j].X*ab;//*(ab+0.3*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 1: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*sin(state.tempo.ang*0.5));
+					case 1: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*sin(m_EffectState.tempo.ang*0.5));
 						break;
-					case 2: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*sin(state.tempo.ang*0.5));
+					case 2: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*sin(m_EffectState.tempo.ang*0.5));
 						break;
-					case 3: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 3: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.3*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 4: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.9*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 4: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.9*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 5: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.4*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 5: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.4*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 6: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.1*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 6: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.1*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 7: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.2*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 7: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.2*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 8: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.7*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 8: MESHAG[i][j].XN = MESHAG[i][j].X*(ab+0.7*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
 				}
 			}
@@ -227,23 +227,23 @@ void moPreEffectMirror::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 			if(j>1 && j<(MO_MESHA_HEIGHT-1)) {
 				switch(cf) {
-					case 0:	MESHAG[i][j].YN = MESHAG[i][j].Y*ab;//*(ab+0.3*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 0:	MESHAG[i][j].YN = MESHAG[i][j].Y*ab;//*(ab+0.3*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 1: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.3*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 1: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.3*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 2: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.3*(dist/ra)*sin(state.tempo.ang*0.5));
+					case 2: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.3*(dist/ra)*sin(m_EffectState.tempo.ang*0.5));
 						break;
-					case 3: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.35*(dist/ra)*sin(state.tempo.ang*0.1));
+					case 3: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.35*(dist/ra)*sin(m_EffectState.tempo.ang*0.1));
 						break;
-					case 4: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.2*(dist/ra)*sin(state.tempo.ang*2.5));
+					case 4: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.2*(dist/ra)*sin(m_EffectState.tempo.ang*2.5));
 						break;
-					case 5: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.12*(dist/ra)*sin(state.tempo.ang*4.5));
+					case 5: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.12*(dist/ra)*sin(m_EffectState.tempo.ang*4.5));
 						break;
-					case 6: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.18*(dist/ra)*sin(state.tempo.ang*10.5));
+					case 6: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.18*(dist/ra)*sin(m_EffectState.tempo.ang*10.5));
 						break;
-					case 7: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.6*(dist/ra)*cos(state.tempo.ang*0.5));
+					case 7: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.6*(dist/ra)*cos(m_EffectState.tempo.ang*0.5));
 						break;
-					case 8: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.1*(dist/ra)*sin(state.tempo.ang*0.1));
+					case 8: MESHAG[i][j].YN = MESHAG[i][j].Y*(ab+0.1*(dist/ra)*sin(m_EffectState.tempo.ang*0.1));
 						break;
 				}
 			}
@@ -257,7 +257,7 @@ void moPreEffectMirror::Draw( moTempo* tempogral,moEffectState* parentstate)
 		}
 	}
 
-    SetColor( m_Config[moR(MIRROR_COLOR)][MO_SELECTED], m_Config[moR(MIRROR_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(MIRROR_COLOR)][MO_SELECTED], m_Config[moR(MIRROR_ALPHA)][MO_SELECTED], m_EffectState );
 
     if ( pmode == MO_POLYGONMODE_FILL ) {
         glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
