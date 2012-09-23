@@ -150,32 +150,32 @@ void moEffectDraw::Draw( moTempo* tempogral, moEffectState* parentstate )
 	glDisable(GL_ALPHA);
 
     // Draw //
-	glTranslatef(  ( m_Config[moR(DRAW_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang)+Tx )*w,
-                   ( m_Config[moR(DRAW_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang)+Ty )*h,
-					m_Config[moR(DRAW_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang)+Tz);
+	glTranslatef(  ( m_Config[moR(DRAW_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tx )*w,
+                   ( m_Config[moR(DRAW_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Ty )*h,
+					m_Config[moR(DRAW_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tz);
 
-	glRotatef(  m_Config[moR(DRAW_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(DRAW_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(DRAW_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(DRAW_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang)*Sx,
-                m_Config[moR(DRAW_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang)*Sy,
-                m_Config[moR(DRAW_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang)*Sz);
+	glRotatef(  m_Config[moR(DRAW_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(DRAW_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(DRAW_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(DRAW_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sx,
+                m_Config[moR(DRAW_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sy,
+                m_Config[moR(DRAW_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sz);
 
-    SetColor( m_Config[moR(DRAW_COLOR)][MO_SELECTED], m_Config[moR(DRAW_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(DRAW_COLOR)][MO_SELECTED], m_Config[moR(DRAW_ALPHA)][MO_SELECTED], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config[moR(DRAW_BLENDING)][MO_SELECTED][0].Int() );
 
     moTexture* pImage = (moTexture*) m_Config[moR(DRAW_TEXTURE)].GetData()->Pointer();
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(DRAW_TEXTURE)].GetData()->GetGLId(&state.tempo) );
+    glBindTexture( GL_TEXTURE_2D, m_Config[moR(DRAW_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo) );
 
     PosTextX0 = 0.0;
 	PosTextX1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
     PosTextY0 = 0.0;
     PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
 
-	ancho = (int)m_Config[ moR(DRAW_WIDTH) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(w/800.0);
-	alto = (int)m_Config[ moR(DRAW_HEIGHT) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(h/600.0);
+	ancho = (int)m_Config[ moR(DRAW_WIDTH) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(w/800.0);
+	alto = (int)m_Config[ moR(DRAW_HEIGHT) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(h/600.0);
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
@@ -212,8 +212,8 @@ void moEffectDraw::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 				case MO_DRAW_TRANSLATE_X:

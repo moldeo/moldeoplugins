@@ -188,22 +188,22 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     // Draw //
     //float rectif_tx = -1024*(1.15-1.0)*0.5;
-    float sx = 1.14*m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang);
-    float sy = 1.14*m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang);
+    float sx = 1.14*m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    float sy = 1.14*m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
     float rectif_tx = -canvasWidth*(sx-1.0)*0.5;
     float rectif_ty = -canvasHeight*(sy-1.0)*0.5;
 
-	glTranslatef(   m_Config[moR(LIVEDRAW2_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang)+rectif_tx,
-					m_Config[moR(LIVEDRAW2_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang)+rectif_ty,
-					m_Config[moR(LIVEDRAW2_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(LIVEDRAW2_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+rectif_tx,
+					m_Config[moR(LIVEDRAW2_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+rectif_ty,
+					m_Config[moR(LIVEDRAW2_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
+	glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(LIVEDRAW2_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
 	glScalef(   sx,
                 sy,
-                m_Config[moR(LIVEDRAW2_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+                m_Config[moR(LIVEDRAW2_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
 
@@ -342,9 +342,9 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
-			nval = IODeviceManager->IODevices().Get(did)->GetNValues(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
+			nval = IODeviceManager->IODevices().GetRef(did)->GetNValues(cid);
 
 			if (state)
 				if (i == MO_DRAW_TRANSLATE_X)
@@ -352,7 +352,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0 < nval)
 					{
 						penX0 = penX;
-						penX = (float) IODeviceManager->IODevices().Get(did)->GetValue(cid, nval - 1);
+						penX = (float) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 						penX = momin(penX, canvasWidth - canvas_margin);
 						penX = momax(penX, canvas_margin);
 						//MODebug2->Push(IntToStr(penX));
@@ -364,7 +364,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 					if (0 < nval)
 					{
 						penY0 = penY;
-						penY = (int) IODeviceManager->IODevices().Get(did)->GetValue(cid, nval - 1);
+						penY = (int) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 						penY = momin(penY, canvasHeight - canvas_margin);
 						penY = momax(penY, canvas_margin);
 					}
@@ -377,7 +377,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 						pressure = max_pressure;
 						for (int n = 0; n < nval; n++)
 						{
-							valor = (float) IODeviceManager->IODevices().Get(did)->GetValue(cid, n);
+							valor = (float) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, n);
 							if (valor < pressure) pressure = valor;
 						}
 
@@ -401,7 +401,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 				}
 				else if (i == MO_DRAW_CURSOR)
 				{
-					if (0 < nval) pentip = (int) IODeviceManager->IODevices().Get(did)->GetValue(cid, nval - 1);
+					if (0 < nval) pentip = (int) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 					tabletDetected = true;
 				}
 				else if (i == MO_DRAW_BUTTON)
@@ -721,12 +721,12 @@ void moEffectLiveDrawing2::updateParameters()
 	canvas_margin = m_Config[moR(LIVEDRAW2_CANVAS_MARGIN)].GetData()->Int();
 	min_pressure = m_Config[moR(LIVEDRAW2_MIN_PRESSURE)].GetData()->Int();
 	max_pressure = m_Config[moR(LIVEDRAW2_MAX_PRESSURE)].GetData()->Int();
-	max_thickness = m_Config[moR(LIVEDRAW2_MAX_THICKNESS)].GetData()->Fun()->Eval(state.tempo.ang) * midi_line_width;
-	max_line_length = m_Config[moR(LIVEDRAW2_MAX_LINE_LENGTH)].GetData()->Fun()->Eval(state.tempo.ang);
-	min_line_length = m_Config[moR(LIVEDRAW2_MIN_LINE_LENGTH)].GetData()->Fun()->Eval(state.tempo.ang);
-	flow_velocity0 = m_Config[moR(LIVEDRAW2_FLOW_VELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
+	max_thickness = m_Config[moR(LIVEDRAW2_MAX_THICKNESS)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_line_width;
+	max_line_length = m_Config[moR(LIVEDRAW2_MAX_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	min_line_length = m_Config[moR(LIVEDRAW2_MIN_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	flow_velocity0 = m_Config[moR(LIVEDRAW2_FLOW_VELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 	flow_period = m_Config[moR(LIVEDRAW2_FLOW_PERIOD)].GetData()->Int();
-	color_sens = m_Config[moR(LIVEDRAW2_COLOR_SENSIBILITY)].GetData()->Fun()->Eval(state.tempo.ang);
+	color_sens = m_Config[moR(LIVEDRAW2_COLOR_SENSIBILITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 	blending = m_Config[moR(LIVEDRAW2_BLENDING)].GetData()->Int();
 	perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
 }
@@ -734,10 +734,10 @@ void moEffectLiveDrawing2::updateParameters()
 void moEffectLiveDrawing2::updateInteractionParameters()
 {
 	//for (int i = MO_RED; i <= MO_ALPHA; i++)
-    pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(state.tempo.ang)*midi_red;
-    pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(state.tempo.ang)*midi_green;
-    pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(state.tempo.ang)*midi_blue;
-    pen_color_rgb[3] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][3].GetData()->Fun()->Eval(state.tempo.ang);
+    pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_red;
+    pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_green;
+    pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_blue;
+    pen_color_rgb[3] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][3].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 	ConvertRGBtoHSL();
 	rotosketch_duration = m_Config[moR(LIVEDRAW2_ROTOSKETCH_DURATION)].GetData()->Int();
@@ -1033,8 +1033,8 @@ void moEffectLiveDrawing2::drawTimer(float box0, float box1, float time0, float 
 void moEffectLiveDrawing2::updateFlowVelocity()
 {
 	flow_velocity_bak = flow_velocity;
-	if (state.tempo.delta <= 1.0) flow_velocity = state.tempo.delta * flow_velocity0;
-	else flow_velocity = (1.0 + 10.0 * (state.tempo.delta - 1.0)) * flow_velocity0;
+	if (m_EffectState.tempo.delta <= 1.0) flow_velocity = m_EffectState.tempo.delta * flow_velocity0;
+	else flow_velocity = (1.0 + 10.0 * (m_EffectState.tempo.delta - 1.0)) * flow_velocity0;
 	//if (flow_velocity != flow_velocity_bak) MODebug2->Push("Flow velocity: " + FloatToStr(flow_velocity));
 }
 
@@ -1117,13 +1117,13 @@ void moEffectLiveDrawing2::addGesture()
 	{
 		if (icon_mode)
 			gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-									stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &state,
+									stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
 									rotosketch_duration, rotosketch_start,
 									dissolve_time, dissolve_start,
 									pglsl, -1, -1, -1, -1, -1, -1, -1, -1);
 		else
 			gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-									stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &state,
+									stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
 									rotosketch_duration, rotosketch_start,
 									dissolve_time, dissolve_start,
 									pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,
@@ -1135,13 +1135,13 @@ void moEffectLiveDrawing2::addGesture()
 	{
 		if (icon_mode)
 			lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-											stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &state,
+											stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
 											rotosketch_duration, rotosketch_start,
 											dissolve_time, dissolve_start,
 											NULL, -1, -1, -1, -1, -1, -1, -1, -1);
 		else
 			lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-											stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &state,
+											stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
 											rotosketch_duration, rotosketch_start,
 											dissolve_time, dissolve_start,
 											pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,

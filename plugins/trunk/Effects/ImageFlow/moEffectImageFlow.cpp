@@ -127,12 +127,12 @@ moEffectImageFlow::Init() {
 */
     moParam& Pimages( m_Config.GetParam( moR(IMAGEFLOW_IMAGES) ) );
 
-    tex0  = Pimages.GetValue(0).GetSubValue(0).GetGLId( &state.tempo );
+    tex0  = Pimages.GetValue(0).GetSubValue(0).GetGLId( &m_EffectState.tempo );
     tex1 = tex0;
 
     if ( Pimages.GetValuesCount() > 1 ) {
 
-        tex1  = Pimages.GetValue(1).GetSubValue(0).GetGLId( &state.tempo );
+        tex1  = Pimages.GetValue(1).GetSubValue(0).GetGLId( &m_EffectState.tempo );
 
     }
 
@@ -158,7 +158,7 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glClear ( GL_DEPTH_BUFFER_BIT );
 	m_pResourceManager->GetGLMan()->SetOrthographicView(maxx, maxy);
 
-    SetColor( m_Config[moR(IMAGEFLOW_COLOR)][MO_SELECTED], m_Config[moR(IMAGEFLOW_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(IMAGEFLOW_COLOR)][MO_SELECTED], m_Config[moR(IMAGEFLOW_ALPHA)][MO_SELECTED], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config[moR(IMAGEFLOW_BLENDING)][MO_SELECTED][0].Int() );
 
@@ -167,10 +167,9 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
 	updateParameters( );
 
 	flow_velocity_bak = flow_velocity;
-	if (state.tempo.delta <= 1.0) flow_velocity = state.tempo.delta * flow_velocity0;
-	else flow_velocity = (1.0 + 10.0 * (state.tempo.delta - 1.0)) * flow_velocity0;
-
-	//if (flow_velocity != flow_velocity_bak) MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
+	if (m_EffectState.tempo.delta <= 1.0) flow_velocity = m_EffectState.tempo.delta * flow_velocity0;
+	else flow_velocity = (1.0 + 10.0 * (m_EffectState.tempo.delta - 1.0)) * flow_velocity0;
+	if (flow_velocity != flow_velocity_bak) MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
 
     //MODebug2->Push(moText("Flow velocity: ") + FloatToStr(flow_velocity));
 
@@ -196,8 +195,8 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
             tex0 = Images.GetGLId(idx0);
             tex1 = Images.GetGLId(idx1);
             */
-            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &state.tempo );
-            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &state.tempo );
+            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &m_EffectState.tempo );
+            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &m_EffectState.tempo );
 
 			if (flow_coord < minx) flow_coord = maxx;
 			if (maxx < flow_coord) flow_coord = minx;
@@ -259,8 +258,8 @@ void moEffectImageFlow::Draw( moTempo* tempogral,moEffectState* parentstate)
             tex0 = Images.GetGLId(idx0);
             tex1 = Images.GetGLId(idx1);
             */
-            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &state.tempo );
-            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &state.tempo );
+            tex0 = Pimages.GetValue(idx0).GetSubValue(0).GetGLId( &m_EffectState.tempo );
+            tex1 = Pimages.GetValue(idx1).GetSubValue(0).GetGLId( &m_EffectState.tempo );
 
 			if (flow_coord < miny) flow_coord = maxy;
 			if (maxy < flow_coord) flow_coord = miny;
@@ -315,8 +314,9 @@ MOboolean moEffectImageFlow::Finish()
 
 void moEffectImageFlow::updateParameters()
 {
-	//flow_velocity0 = m_Config[moR(IMAGEFLOW_VELOCITY)].GetData()->Fun()->Eval(state.tempo.ang);
-	flow_velocity0 = m_Config.Eval(moR(IMAGEFLOW_VELOCITY),state.tempo.ang);
+	//flow_velocity0 = m_Config[moR(IMAGEFLOW_VELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	flow_velocity0 = m_Config.Eval(moR(IMAGEFLOW_VELOCITY),m_EffectState.tempo.ang );
+	flow_mode = m_Config.Int(moR(IMAGEFLOW_FLOW_MODE) );
 }
 
 moConfigDefinition *

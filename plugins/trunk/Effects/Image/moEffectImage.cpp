@@ -146,7 +146,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 	/*if (using_filter)
-		Filters.Apply(&state.tempo, FilterParams);
+		Filters.Apply(&m_EffectState.tempo, FilterParams);
 */
     glMatrixMode( GL_MODELVIEW );
     glLoadIdentity();
@@ -160,7 +160,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	SetBlending( (moBlendingModes) m_Config[moR(IMAGE_BLENDING)][MO_SELECTED][0].Int() );
 
-	SetColor( MOValue( IMAGE_COLOR, MO_SELECTED ), MOValue( IMAGE_ALPHA, MO_SELECTED ), state  );
+	SetColor( MOValue( IMAGE_COLOR, MO_SELECTED ), MOValue( IMAGE_ALPHA, MO_SELECTED ), m_EffectState  );
 
 	//source: GL_ZERO, GL_ONE, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, and GL_SRC_ALPHA_SATURATE
 	//destination: GL_ZERO, GL_ONE, GL_SCR_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, and GL_ONE_MINUS_DST_ALPHA.
@@ -182,18 +182,18 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
 
-	glBindTexture( GL_TEXTURE_2D, m_Config[moR(IMAGE_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, &FilterParams ) );
+	glBindTexture( GL_TEXTURE_2D, m_Config[moR(IMAGE_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, &FilterParams ) );
 
 
-	PosTextX = m_Config[moR(IMAGE_POSTEXX)].GetData()->Fun()->Eval(state.tempo.ang);
-    AncTextX = m_Config[moR(IMAGE_ANCTEXX)].GetData()->Fun()->Eval(state.tempo.ang);
-	PosTextY = m_Config[moR(IMAGE_POSTEXY)].GetData()->Fun()->Eval(state.tempo.ang);
-    AltTextY = m_Config[moR(IMAGE_ALTTEXY)].GetData()->Fun()->Eval(state.tempo.ang);
+	PosTextX = m_Config[moR(IMAGE_POSTEXX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    AncTextX = m_Config[moR(IMAGE_ANCTEXX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	PosTextY = m_Config[moR(IMAGE_POSTEXY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    AltTextY = m_Config[moR(IMAGE_ALTTEXY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
-	PosCuadX = m_Config[moR(IMAGE_POSCUADX)].GetData()->Fun()->Eval(state.tempo.ang);
-    AncCuadX = m_Config[moR(IMAGE_ANCCUADX)].GetData()->Fun()->Eval(state.tempo.ang);
-	PosCuadY = m_Config[moR(IMAGE_POSCUADY)].GetData()->Fun()->Eval(state.tempo.ang);
-    AltCuadY = m_Config[moR(IMAGE_ALTCUADY)].GetData()->Fun()->Eval(state.tempo.ang);
+	PosCuadX = m_Config[moR(IMAGE_POSCUADX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    AncCuadX = m_Config[moR(IMAGE_ANCCUADX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	PosCuadY = m_Config[moR(IMAGE_POSCUADY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    AltCuadY = m_Config[moR(IMAGE_ALTCUADY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 	if (pImage) {
 		PosTextX0 = PosTextX * pImage->GetMaxCoordS();
@@ -250,8 +250,8 @@ void moEffectImage::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 				case MO_FILTER_PAR1:

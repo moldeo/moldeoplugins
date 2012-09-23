@@ -250,11 +250,11 @@ void moEffectLightDrawing::Draw( moTempo* tempogral, moEffectState* parentstate 
                   1.0);
 
     //SetColor( m_Config[moR(LIGHTDRAWING_COLOR)][MO_SELECTED], m_Config[moR(LIGHTDRAWING_ALPHA)][MO_SELECTED], state );
-    SetColor( m_Config[moR(LIGHTDRAWING_COLOR)], m_Config[moR(LIGHTDRAWING_ALPHA)], state );
+    SetColor( m_Config[moR(LIGHTDRAWING_COLOR)], m_Config[moR(LIGHTDRAWING_ALPHA)], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(LIGHTDRAWING_BLENDING) ) );
 
-    //glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(LIGHTDRAWING_TEXTURE), &state.tempo) );
+    //glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(LIGHTDRAWING_TEXTURE), &m_EffectState.tempo) );
     if (m_pLightTexture) {
         glBindTexture( GL_TEXTURE_2D, m_pLightTexture->GetGLId() );
     }

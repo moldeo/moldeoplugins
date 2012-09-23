@@ -223,7 +223,7 @@ moEffectMovie::Init() {
 	m_pTrackerData = NULL;
 	//m_pTrackerGpuData = NULL;
 
-	m_TicksAux = state.tempo.ticks;
+	m_TicksAux = m_EffectState.tempo.ticks;
 	m_Ticks = m_TicksAux;
 
 	return true;
@@ -256,7 +256,7 @@ void moEffectMovie::UpdateParameters() {
 
 	//registro de los dos ticks correspondientes a un Frame
 	m_TicksAux = m_Ticks;
-	m_Ticks = state.tempo.ticks;
+	m_Ticks = m_EffectState.tempo.ticks;
 
 	pTexture = m_Config[moR(MOVIE_MOVIES)].GetData()->Texture();
 
@@ -359,19 +359,21 @@ void moEffectMovie::UpdateParameters() {
         ///estamos en syncro de todas maneras con el clock de la Consola...
         if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
           /// caso por Timer PAUSADO
-          if (moIsTimerPaused()) {
+
+          if (moIsTimerPaused() || m_EffectState.tempo.Paused() ) {
             m_pMovie->Pause();
           }
+
           /// caso por Timer PARADO (NOT STARTED)
-          if (moIsTimerStopped()) {
+          if (moIsTimerStopped()  || m_EffectState.tempo.State()==MO_TIMERSTATE_STOPPED ) {
             if (m_pMovie->IsPlaying())
               m_pMovie->Stop();
           }
         } else {
-          if (!m_pMovie->IsPlaying() && moIsTimerPlaying()) {
+          if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
              m_pMovie->Play();
              MODebug2->Push(moText("Timer is started, movie not: Play()"));
-          } else if(m_pMovie->IsPlaying() && moIsTimerPlaying() ) {
+          } else if(m_pMovie->IsPlaying() && (moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING  ) ) {
               if (m_pMovie->GetPosition()==0) {
                   m_pMovie->Play();
               }
@@ -443,11 +445,11 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 	moviemode = m_Config.Int(moR(MOVIE_MODE));
 
   //SetColor( m_Config[moR(MOVIE_COLOR)][MO_SELECTED], m_Config[moR(MOVIE_ALPHA)][MO_SELECTED], state );
-  SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], state );
+  SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
 
   SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
 
-	//aquí debemos modificar Images.Get(Image,&state.tempo) para los distintos modos de reproduccion
+	//aquí debemos modificar Images.Get(Image,&m_EffectState.tempo) para los distintos modos de reproduccion
 	//0: PLAY NORMAL 1X [25 fps o 29.97]
 	//1: FF 2X []
 	//2: RW -2X []
@@ -470,7 +472,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
                 m_FramePositionAux = 0;
                 m_FramePositionF = 0.0;
                 m_FramePositionFAux = 0.0;
-                m_Ticks = state.tempo.ticks;
+                m_Ticks = m_EffectState.tempo.ticks;
                 m_TicksAux = m_Ticks;
 				VCRCommand( MO_MOVIE_VCR_PLAY );
 				///TODO: ver bien como usar esto del play cuando arranca...
@@ -567,8 +569,8 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 			break;
 
 		case MO_MOVIE_MODE_CYCLE:
-			 //FrameGLid = Images.GetGLId(Image, &state.tempo);
-			 //FrameGLid = m_Config[moR(MOVIE_MOVIE)].GetData()->GetGLId(&state.tempo);
+			 //FrameGLid = Images.GetGLId(Image, &m_EffectState.tempo);
+			 //FrameGLid = m_Config[moR(MOVIE_MOVIE)].GetData()->GetGLId(&m_EffectState.tempo);
 			 //FrameGLid = MovieGLId();
 			break;
 
@@ -726,9 +728,9 @@ MOuint moEffectMovie::MovieGLId() {
 
     case MO_MOVIE_MODE_CYCLE:
       //if (m_pAnim) {
-        //glid = m_pAnim->GetGLId( &state.tempo );
-        glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &state.tempo );
-        //MODebug2->Push("glid CYCLE:"+IntToStr(glid)+" tempo:"+FloatToStr(state.tempo.ang));
+        //glid = m_pAnim->GetGLId( &m_EffectState.tempo );
+        glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &m_EffectState.tempo );
+        //MODebug2->Push("glid CYCLE:"+IntToStr(glid)+" tempo:"+FloatToStr(m_EffectState.tempo.ang));
       //}
       break;
 
@@ -778,7 +780,7 @@ MOuint moEffectMovie::MovieGLId() {
 
   if ( glid<=0 ) {
     //glid = m_pTexture->GetGLId();
-    glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &state.tempo );
+    glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &m_EffectState.tempo );
   }
   return glid;
 }
@@ -883,8 +885,8 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 		while(temp!=NULL) {
 			did = temp->device;
 			cid = temp->devicecode;
-			state = IODeviceManager->IODevices().Get(did)->GetStatus(cid);
-			valor = IODeviceManager->IODevices().Get(did)->GetValue(cid);
+			state = IODeviceManager->IODevices().GetRef(did)->GetStatus(cid);
+			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if (state)
 			switch(i) {
 				//VCR COMMANDS
