@@ -29,11 +29,12 @@
 
 *******************************************************************************/
 
+#include "moTypes.h"
+#include "moTimer.h"
 #include "moConfig.h"
 #include "moDeviceCode.h"
 #include "moEventList.h"
 #include "moIODeviceManager.h"
-#include "moTypes.h"
 #include "moVideoGraph.h"
 //#include "moLive.h"  //reemplazar esto
 #include "moFilterManager.h"
