@@ -793,8 +793,8 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
 	//trasnform data:
 
 	for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-	    if (m_pTrackerSystemData->GetFeatures().Get(i)!=NULL)
-        delete m_pTrackerSystemData->GetFeatures().Get(i);
+	    if (m_pTrackerSystemData->GetFeatures().GetRef(i)!=NULL)
+        delete m_pTrackerSystemData->GetFeatures().GetRef(i);
 	}
 
 
@@ -1356,7 +1356,7 @@ if ( m_pTUIOSystemData ) {
 
         moVector2f Bar = m_pTrackerSystemData->GetBarycenter();
         for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-            TF = m_pTrackerSystemData->GetFeatures().Get(i);
+            TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
             if (TF) {
                 if (TF->val>=0) {
                     varX+= moMathf::Sqr( TF->x - Bar.X() );
@@ -1374,7 +1374,7 @@ if ( m_pTUIOSystemData ) {
 
         ///CALCULATE CIRCULAR MATRIX
         for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-            TF = m_pTrackerSystemData->GetFeatures().Get(i);
+            TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
             if (TF) {
                 if (TF->val>=0) {
                     m_pTrackerSystemData->SetPositionMatrixC( TF->x, TF->y, 1 );
@@ -1839,12 +1839,12 @@ void moTrackerKLT::Update(moEventList *Events)
                     if (pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
 
                         /// caso por Timer PAUSADO
-                        if (moTimeManager::MoldeoTimer->Paused()) {
+                        if (moIsTimerPaused()) {
                           pMovie->Pause();
                           MODebug2->Push("TRACKER PAUSE MOVIE!!");
                         }
                         /// caso por Timer PARADO (NOT STARTED)
-                        if (!moTimeManager::MoldeoTimer->Started()) {
+                        if (moIsTimerStopped()) {
                           if (pMovie->IsPlaying()) {
                             pMovie->Stop();
                             MODebug2->Push("TRACKER STOP MOVIE!!");
@@ -1860,7 +1860,7 @@ void moTrackerKLT::Update(moEventList *Events)
                         }
 
                         /// PLAY !!
-                        if (!pMovie->IsPlaying() && moTimeManager::MoldeoTimer->Started()) {
+                        if (!pMovie->IsPlaying() && moIsTimerPlaying() ) {
                           pMovie->Play();
                           MODebug2->Push("TRACKER PLAY MOVIE!!");
                         }
