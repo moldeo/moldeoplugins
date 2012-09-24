@@ -97,8 +97,8 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     PreDraw( tempogral, parentstate);
 
-	Angle =(state.tempo.getTempo()/2.0);
-	Speed =(state.tempo.getTempo()/2.0)*TEXTURE_SPEED;
+	Angle =(m_EffectState.tempo.getTempo()/2.0);
+	Speed =(m_EffectState.tempo.getTempo()/2.0)*TEXTURE_SPEED;
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
@@ -118,9 +118,9 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
     // Draw
-	glTranslatef(   m_Config[moR(TUNEL_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(TUNEL_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(TUNEL_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(TUNEL_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(TUNEL_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(TUNEL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
     moTexture* pImage = (moTexture*) m_Config[moR(TUNEL_TEXTURE)].GetData()->Pointer();
     if (pImage!=NULL) {
@@ -130,7 +130,7 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
             glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         }
     }
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(TUNEL_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+    glBindTexture( GL_TEXTURE_2D, m_Config[moR(TUNEL_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL ) );
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
@@ -157,11 +157,7 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 		else
 			C = 1.0;
 
-	glColor4f(  m_Config[moR(TUNEL_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * state.tintr,
-                m_Config[moR(TUNEL_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * state.tintg,
-                m_Config[moR(TUNEL_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * state.tintb,
-				m_Config[moR(TUNEL_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
-				m_Config[moR(TUNEL_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
+	SetColor( m_Config[moR(TUNEL_COLOR)][MO_SELECTED], m_Config[moR(TUNEL_ALPHA)][MO_SELECTED], m_EffectState );
 
 		glBegin(GL_QUADS);
 		for( I=0; I<=11; I++)
