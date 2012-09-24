@@ -134,32 +134,32 @@ void moEffectSampleTest::Draw( moTempo* tempogral, moEffectState* parentstate )
 	glDisable(GL_ALPHA);
 
     // Draw //
-	glTranslatef(  ( m_Config[moR(SAMPLETEST_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang)+Tx )*w,
-                   ( m_Config[moR(SAMPLETEST_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang)+Ty )*h,
-					m_Config[moR(SAMPLETEST_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang)+Tz);
+	glTranslatef(  ( m_Config[moR(SAMPLETEST_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tx )*w,
+                   ( m_Config[moR(SAMPLETEST_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Ty )*h,
+					m_Config[moR(SAMPLETEST_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tz);
 
-	glRotatef(  m_Config[moR(SAMPLETEST_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(SAMPLETEST_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(SAMPLETEST_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(SAMPLETEST_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang)*Sx,
-                m_Config[moR(SAMPLETEST_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang)*Sy,
-                m_Config[moR(SAMPLETEST_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang)*Sz);
+	glRotatef(  m_Config[moR(SAMPLETEST_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(SAMPLETEST_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(SAMPLETEST_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(SAMPLETEST_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sx,
+                m_Config[moR(SAMPLETEST_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sy,
+                m_Config[moR(SAMPLETEST_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sz);
 
-    SetColor( m_Config[moR(SAMPLETEST_COLOR)][MO_SELECTED], m_Config[moR(SAMPLETEST_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(SAMPLETEST_COLOR)][MO_SELECTED], m_Config[moR(SAMPLETEST_ALPHA)][MO_SELECTED], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config[moR(SAMPLETEST_BLENDING)][MO_SELECTED][0].Int() );
 
     moTexture* pImage = (moTexture*) m_Config[moR(SAMPLETEST_TEXTURE)].GetData()->Pointer();
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(SAMPLETEST_TEXTURE)].GetData()->GetGLId(&state.tempo) );
+    glBindTexture( GL_TEXTURE_2D, m_Config[moR(SAMPLETEST_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo) );
 
     PosTextX0 = 0.0;
 	PosTextX1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
     PosTextY0 = 0.0;
     PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
 
-	//ancho = (int)m_Config[ moR(SAMPLETEST_WIDTH) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(w/800.0);
-	//alto = (int)m_Config[ moR(SAMPLETEST_HEIGHT) ].GetData()->Fun()->Eval(state.tempo.ang)* (float)(h/600.0);
+	//ancho = (int)m_Config[ moR(SAMPLETEST_WIDTH) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(w/800.0);
+	//alto = (int)m_Config[ moR(SAMPLETEST_HEIGHT) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(h/600.0);
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
