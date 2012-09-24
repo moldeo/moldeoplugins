@@ -155,10 +155,10 @@ void moEffectIcon3D::Draw( moTempo* tempogral,moEffectState* parentstate)
 	// GL_FRONT_AND_BACK says that we want this applied to both sides of the polygons.
 	// GL_SPECULAR say that we want to set the specular color.
 	// specularColor is our color array, so we pass that in lastly.
-	specularColor[0] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang);
-	specularColor[1] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang);
-	specularColor[2] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang);
-	specularColor[3] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang);
+	specularColor[0] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang);
+	specularColor[1] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang);
+	specularColor[2] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang);
+	specularColor[3] = m_Config[moR(ICON3D_SPECULAR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularColor);
 
 
@@ -177,53 +177,53 @@ void moEffectIcon3D::Draw( moTempo* tempogral,moEffectState* parentstate)
 	gluPerspective(45.0f,(float)m_pResourceManager->GetRenderMan()->ScreenWidth() / (float)m_pResourceManager->GetRenderMan()->ScreenHeight(), 4.0f ,4000.0f);
 	//m_pResourceManager->GetGLMan()->SetPerspectiveView(m_pResourceManager->GetRenderMan()->ScreenWidth(),m_pResourceManager->GetRenderMan()->ScreenHeight());
 
-	gluLookAt(		m_Config[moR(ICON3D_EYEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_EYEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_EYEZ)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_VIEWX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_VIEWY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_VIEWZ)].GetData()->Fun()->Eval(state.tempo.ang),
+	gluLookAt(		m_Config[moR(ICON3D_EYEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_EYEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_EYEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
 					0, 1, 0);
 
-	LightPos[0] = m_Config[moR(ICON3D_LIGHTX)].GetData()->Fun()->Eval(state.tempo.ang);
-	LightPos[1] = m_Config[moR(ICON3D_LIGHTY)].GetData()->Fun()->Eval(state.tempo.ang);
-	LightPos[2] = m_Config[moR(ICON3D_LIGHTZ)].GetData()->Fun()->Eval(state.tempo.ang);
+	LightPos[0] = m_Config[moR(ICON3D_LIGHTX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	LightPos[1] = m_Config[moR(ICON3D_LIGHTY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	LightPos[2] = m_Config[moR(ICON3D_LIGHTZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 	glLightfv(GL_LIGHT0,GL_POSITION,LightPos);
 
 
-	LightDif[0] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang);
-	LightDif[1] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang);
-	LightDif[2] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang);
-	LightDif[3] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang);
+	LightDif[0] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang);
+	LightDif[1] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang);
+	LightDif[2] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang);
+	LightDif[3] = m_Config[moR(ICON3D_DIFFUSE)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang);
 	glLightfv(GL_LIGHT0,GL_DIFFUSE,LightDif);
 
-	LightAmb[0] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang);
-	LightAmb[1] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang);
-	LightAmb[2] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang);
-	LightAmb[3] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang);
+	LightAmb[0] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang);
+	LightAmb[1] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_GREEN].Fun()->Eval(m_EffectState.tempo.ang);
+	LightAmb[2] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_BLUE].Fun()->Eval(m_EffectState.tempo.ang);
+	LightAmb[3] = m_Config[moR(ICON3D_AMBIENT)][MO_SELECTED][MO_ALPHA].Fun()->Eval(m_EffectState.tempo.ang);
 	glLightfv(GL_LIGHT0,GL_AMBIENT,LightAmb);
 
 
 */
     // Draw //
 	//BEGIN
-	//glBindTexture(GL_TEXTURE_2D, Images.Get(Image,&state.tempo));
+	//glBindTexture(GL_TEXTURE_2D, Images.Get(Image,&m_EffectState.tempo));
                   // Select The Modelview Matrix
 
 	SetPolygonMode( (moPolygonModes)m_Config[moR(ICON3D_POLYGONMODE)].GetValue().GetSubValue(0).Int());
 	//SetBlending( );
 
-	glTranslatef(   m_Config[moR(ICON3D_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(ICON3D_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(ICON3D_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(ICON3D_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(ICON3D_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(ICON3D_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(ICON3D_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
+	glRotatef(  m_Config[moR(ICON3D_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(ICON3D_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(ICON3D_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
 
-	glScalef(   m_Config[moR(ICON3D_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(ICON3D_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(ICON3D_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glScalef(   m_Config[moR(ICON3D_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(ICON3D_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(ICON3D_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
 
 
@@ -238,7 +238,7 @@ void moEffectIcon3D::Draw( moTempo* tempogral,moEffectState* parentstate)
 	//Models3d.Draw( m_Config[ moParamReference(ICON3D_OBJECT) ].GetIndexValue(), &state, GL_TRIANGLES);
 	mo3DModelSceneNode* pSceneNode = (mo3DModelSceneNode*) m_Config[moR(ICON3D_OBJECT)].GetData()->Pointer();
 	if (pSceneNode) {
-	    pSceneNode->Draw(&state, GL_TRIANGLES);
+	    pSceneNode->Draw(&m_EffectState, GL_TRIANGLES);
     }
 
 /*
