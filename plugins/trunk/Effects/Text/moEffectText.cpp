@@ -118,18 +118,18 @@ void moEffectText::Draw( moTempo* tempogral, moEffectState* parentstate)
 
 
     /// Draw //
-    glTranslatef(  m_Config.Eval( moR(TEXT_TRANSLATEX), state.tempo.ang),
-                   m_Config.Eval( moR(TEXT_TRANSLATEY), state.tempo.ang),
+    glTranslatef(  m_Config.Eval( moR(TEXT_TRANSLATEX), m_EffectState.tempo.ang),
+                   m_Config.Eval( moR(TEXT_TRANSLATEY), m_EffectState.tempo.ang),
                    0.0);
 
     ///solo rotamos en el eje Z (0,0,1) ya que siempre estaremos perpedicular al plano (X,Y)
-    glRotatef(  m_Config.Eval( moR(TEXT_ROTATE), state.tempo.ang), 0.0, 0.0, 1.0 );
+    glRotatef(  m_Config.Eval( moR(TEXT_ROTATE), m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
 
-    glScalef(   m_Config.Eval( moR(TEXT_SCALEX), state.tempo.ang ),
-                m_Config.Eval( moR(TEXT_SCALEY), state.tempo.ang ),
+    glScalef(   m_Config.Eval( moR(TEXT_SCALEX), m_EffectState.tempo.ang ),
+                m_Config.Eval( moR(TEXT_SCALEY), m_EffectState.tempo.ang ),
                   1.0);
 
-    SetColor( m_Config[moR(TEXT_COLOR)][MO_SELECTED], m_Config[moR(TEXT_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(TEXT_COLOR)][MO_SELECTED], m_Config[moR(TEXT_ALPHA)][MO_SELECTED], m_EffectState );
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(TEXT_BLENDING) ) );
 
@@ -145,9 +145,9 @@ void moEffectText::Draw( moTempo* tempogral, moEffectState* parentstate)
                         Texto,
                         m_Config[moR(TEXT_FONT)][MO_SELECTED][2].Int(), ///inner font size
                         0,
-                        m_Config.Eval( moR(TEXT_SCALEX), state.tempo.ang ),
-                        m_Config.Eval( moR(TEXT_SCALEY), state.tempo.ang ),
-                        m_Config.Eval( moR(TEXT_ROTATE), state.tempo.ang ) );
+                        m_Config.Eval( moR(TEXT_SCALEX), m_EffectState.tempo.ang ),
+                        m_Config.Eval( moR(TEXT_SCALEY), m_EffectState.tempo.ang ),
+                        m_Config.Eval( moR(TEXT_ROTATE), m_EffectState.tempo.ang ) );
 
         //moText infod = moText("screen width:")+IntToStr(w)+moText(" screen height:")+IntToStr(h);
         //pFont->Draw( 0, 0, infod, m_Config[moR(TEXT_FONT)][MO_SELECTED][2].Int(), 0, 2.0, 2.0, 0.0);
