@@ -583,9 +583,31 @@ class moEffectParticlesSimple : public moEffect
         void CalculateDerivatives( bool tmparray = false, double dt = 0.0 );
 
         ///Actualizar todas las particulas
+        /**
+        *   Calcula la nueva posición de las partículas utilizando el diferencial de tiempo "dt"
+        *   Llama a Regenerate() para la regeneración de partículas muertas.
+        *
+        *   @see Regenerate
+        *   @see moParticlesSimplePhysics
+        *
+        *   @param dt diferencial de tiempo en milisegundos
+        *   @param method método de cálculo de la posición, Euler o Midpoint (Punto medio)
+        */
         void UpdateParticles( double dt, int method );
 
-        ///Regeneración de particulas muertas....
+        ///Regeneración de partículas
+        /**
+        *   Mata aquellas que superaron su tiempo de vida
+        *   Regenera las muertas en función del intervalo de emisión (en milisegundos)
+        *   y la tasa de generación (cantidad de particulas por intervalo)
+        *
+        *
+        *
+        *   @see Regenerate
+        *   @see moParticlesSimplePhysics (m_EmitionPeriod, m_EmitionRate, m_CreationMethod )
+        *   @see moEffectParticlesSimple (texture_mode)
+        *
+        */
         void Regenerate();
 
         ///Resolvedor de ecuación
@@ -639,10 +661,14 @@ class moEffectParticlesSimple : public moEffect
         bool                    m_bTrackerInit;
 
         moTrackerSystemData*    m_pTrackerData;
-        moTUIOSystemData*       m_pTUIOData;
-
-        MOint                   m_InletTuioSystemIndex;
         MOint                   m_InletTrackerSystemIndex;
+
+        #ifdef USE_TUIO
+        moTUIOSystemData*       m_pTUIOData;
+        MOint                   m_InletTuioSystemIndex;
+        #endif
+
+
 
         moVector2f              m_TrackerBarycenter;
 
