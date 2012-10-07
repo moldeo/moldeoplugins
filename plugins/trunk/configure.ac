@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MoldeoPlugins], [0.7.9.5], [info@moldeointeractive.com.ar], [moldeoplugins])
+AC_INIT([MoldeoPlugins], [0.7.9.7], [info@moldeointeractive.com.ar], [moldeoplugins])
 
 AM_INIT_AUTOMAKE
 AC_CONFIG_MACRO_DIR([m4])
