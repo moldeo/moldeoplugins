@@ -31,8 +31,10 @@
 
 #include "moTrackerKLT.h"
 #include "moArray.h"
-using namespace TUIO;
 
+#ifdef USE_TUIO
+using namespace TUIO;
+#endif
 
 
 /*********************
@@ -95,10 +97,13 @@ moTrackerKLTSystem::moTrackerKLTSystem()
     tracker_input_id = -1;
     attach_point = -1;
 
+#ifdef USE_TUIO
     m_pTUIOSystemData = NULL;
     m_pTUIOSystemData = new moTUIOSystemData();
-
     m_Objects.Init( 0 , NULL );
+#endif
+
+
 
     Uplas = NULL;
 
@@ -590,7 +595,7 @@ void moTrackerKLTSystem::ContinueTracking(GLubyte *p_pBuffer, MOuint p_RGB_mode)
 }
 
 
-
+#ifdef USE_TUIO
 void moTrackerKLTSystem::SystemData2TUIO() {
 
     //Ahora con nzuestro algoritmo creamos los Cursores y los Objetos en TUIO
@@ -639,6 +644,7 @@ void moTrackerKLTSystem::SystemData2TUIO() {
     }
 */
 }
+#endif
 
 moVector2f AverageSystem( moTrackerFeature* pFeature ) {
 
@@ -1003,7 +1009,7 @@ void moTrackerKLTSystem::NewData( moVideoSample* p_pVideoSample )
         }
     }
 
-
+#ifdef USE_TUIO
     /** ===========================================================================
 
     TUIO SYSTEM
@@ -1309,7 +1315,7 @@ if ( m_pTUIOSystemData ) {
 //    MODebug2->Push(moText("objects size") + IntToStr(m_pTUIOSystemData->getTuioObjects().size()));
 
 }///FIN DE TUIO!!!!
-
+#endif
 
 
     moVector2f previous_B = m_pTrackerSystemData->GetBarycenter();
