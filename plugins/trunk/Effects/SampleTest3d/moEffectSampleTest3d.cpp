@@ -120,24 +120,22 @@ void moEffectSampleTest3d::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	glDisable(GL_ALPHA);
 
-	glTranslatef(   m_Config[moR(SAMPLETEST3D_TRANSLATEX)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(SAMPLETEST3D_TRANSLATEY)].GetData()->Fun()->Eval(state.tempo.ang),
-					m_Config[moR(SAMPLETEST3D_TRANSLATEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glTranslatef(   m_Config[moR(SAMPLETEST3D_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(SAMPLETEST3D_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+					m_Config[moR(SAMPLETEST3D_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEX)].GetData()->Fun()->Eval(state.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEY)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEZ)].GetData()->Fun()->Eval(state.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(SAMPLETEST3D_SCALEX)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(SAMPLETEST3D_SCALEY)].GetData()->Fun()->Eval(state.tempo.ang),
-                m_Config[moR(SAMPLETEST3D_SCALEZ)].GetData()->Fun()->Eval(state.tempo.ang));
+	glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config[moR(SAMPLETEST3D_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
+	glScalef(   m_Config[moR(SAMPLETEST3D_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(SAMPLETEST3D_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+                m_Config[moR(SAMPLETEST3D_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
 
-	glColor4f(  m_Config[moR(SAMPLETEST3D_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(state.tempo.ang) * state.tintr,
-                m_Config[moR(SAMPLETEST3D_COLOR)][MO_SELECTED][MO_GREEN].Fun()->Eval(state.tempo.ang) * state.tintg,
-                m_Config[moR(SAMPLETEST3D_COLOR)][MO_SELECTED][MO_BLUE].Fun()->Eval(state.tempo.ang) * state.tintb,
-				m_Config[moR(SAMPLETEST3D_COLOR)][MO_SELECTED][MO_ALPHA].Fun()->Eval(state.tempo.ang) *
-				m_Config[moR(SAMPLETEST3D_ALPHA)].GetData()->Fun()->Eval(state.tempo.ang) * state.alpha);
+	SetColor( m_Config[moR(SAMPLETEST3D_COLOR)][MO_SELECTED], m_Config[moR(SAMPLETEST3D_ALPHA)][MO_SELECTED], m_EffectState );
 
-    //glBindTexture( GL_TEXTURE_2D, Images.GetGLId(indeximage,&state.tempo) );
+   // SetBlending( (moBlendingModes) m_Config[moR(SAMPLETEST3D_BLENDING)][MO_SELECTED][0].Int() );
+
+    //glBindTexture( GL_TEXTURE_2D, Images.GetGLId(indeximage,&m_EffectState.tempo) );
     moTexture* pImage = (moTexture*) m_Config[moR(SAMPLETEST3D_TEXTURE)].GetData()->Pointer();
     if (pImage!=NULL) {
         if (pImage->GetType()==MO_TYPE_MOVIE) {
@@ -147,7 +145,7 @@ void moEffectSampleTest3d::Draw( moTempo* tempogral,moEffectState* parentstate)
         }
     }
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(SAMPLETEST3D_TEXTURE)].GetData()->GetGLId(&state.tempo, 1, NULL ) );
+    glBindTexture( GL_TEXTURE_2D, m_Config[moR(SAMPLETEST3D_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL ) );
 
 
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -158,8 +156,8 @@ void moEffectSampleTest3d::Draw( moTempo* tempogral,moEffectState* parentstate)
     PosTextY0 = 0.0;
     PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
 
-	ancho = (int)m_Config[ moR(SAMPLETEST3D_WIDTH) ].GetData()->Fun()->Eval(state.tempo.ang);
-	alto = (int)m_Config[ moR(SAMPLETEST3D_HEIGHT) ].GetData()->Fun()->Eval(state.tempo.ang);
+	ancho = (int)m_Config[ moR(SAMPLETEST3D_WIDTH) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+	alto = (int)m_Config[ moR(SAMPLETEST3D_HEIGHT) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);

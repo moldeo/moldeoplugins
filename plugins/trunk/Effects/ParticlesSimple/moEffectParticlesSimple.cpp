@@ -329,8 +329,9 @@ moEffectParticlesSimple::Init()
     midi_emitionrate = 1.0; // n per emitionperiod
     midi_randomvelocity = 1.0; //inicial vel
     midi_randommotion = 1.0; //motion dynamic
-
+    #ifdef USE_TUIO
     m_InletTuioSystemIndex = GetInletIndex("TUIOSYSTEM");
+    #endif
     m_InletTrackerSystemIndex = GetInletIndex("TRACKERKLT");
 
 	return true;
@@ -1253,21 +1254,23 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
                 pPar->TSize = moVector2f( 1.0f / (float) p_cols, 1.0f / (float) p_rows );
 
             } else if (texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
+
                 pPar->TCoord = moVector2f( 0.0, 0.0 );
                 pPar->TSize = moVector2f( 1.0f, 1.0f );
+
             } else if (texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH) {
 
                 ///take the texture preselected
                 moTextureBuffer* pTexBuf = m_Config[moR(PARTICLES_FOLDERS)].GetData()->TextureBuffer();
 
-                pPar->GLId = glidori;
-                pPar->GLId2 = glid;
+                pPar->GLId = glidori; //first id for Image reference to patch (and blend after)
+                pPar->GLId2 = glid; //second id for each patch image
 
-                pPar->TCoord2 = moVector2f( 0.0, 0.0 );
+                pPar->TCoord2 = moVector2f( 0.0, 0.0 ); //coords for patch
                 pPar->TSize2 = moVector2f( 1.0f, 1.0f );
 
-                pPar->TCoord = moVector2f( (float) (i ) / (float) p_cols, (float) (j) / (float) p_rows );
-                pPar->TSize = moVector2f( 1.0f / (float) p_cols, 1.0f / (float) p_rows );
+                pPar->TCoord = moVector2f( (float) (i ) / (float) p_cols, (float) (j) / (float) p_rows );//grid
+                pPar->TSize = moVector2f( 1.0f / (float) p_cols, 1.0f / (float) p_rows );//sizes
 
                 ///calculamos la luminancia del cuadro correspondiente
                 //int x0, y0, x1, y1;
@@ -1275,10 +1278,15 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
                 int lumindex = 0;
                 int contrast = 0;
 
+                ///samplebuffer en la posicion i,j ?
                 if (pSubSample && samplebuffer) {
 
-                    lum = (samplebuffer[ (i + j*pSubSample->GetWidth() ) *3 ] + samplebuffer[ (i+1 + j*pSubSample->GetWidth() ) *3 ] + samplebuffer[ (i+2 + j*pSubSample->GetWidth() ) *3 ]) / 3;
+                    lum = (samplebuffer[ (i + j*pSubSample->GetWidth() ) *3 ]
+                           + samplebuffer[ (i+1 + j*pSubSample->GetWidth() ) *3 ]
+                           + samplebuffer[ (i+2 + j*pSubSample->GetWidth() ) *3 ]) / 3;
+
                     if (lum<0) lum = -lum;
+                    ///pasamos de color a porcentaje 0..255 a 0..99
                     if (lum>=0) {
                         lumindex = (int)( 100.0 * (float)lum / (float)256)  - 1;
                         if (lumindex>99) lumindex = 99;
@@ -1290,12 +1298,15 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
 
                  if (pTexBuf) {
 
+                     ///cantidad de imagenes en el buffer
                      int nim = pTexBuf->GetImagesProcessed();
 
                      pPar->ImageProportion = 1.0;
 
 
                      if (nim>0) {
+
+                        ///Tomamos de GetBufferLevels...
 
                          moTextureFrames& pTextFrames(pTexBuf->GetBufferLevels( lumindex, 0 ) );
 
@@ -1374,6 +1385,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
 
 }
 
+/// Mata y regenera particulas
 void moEffectParticlesSimple::Regenerate() {
 
     int i,j;
@@ -2116,7 +2128,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
     moFont* pFont = m_Config[moR(PARTICLES_FONT)].GetData()->Font();
     moText Texto;
 
-    UpdateParticles( dt, 0 );
+    UpdateParticles( dt, 0 ); //Euler mode
     ParticlesSimpleAnimation( tempogral, parentstate );
 
     float idxt = 0.0;
@@ -2435,16 +2447,15 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
     }
 
 }
-
+#ifdef USE_TUIO
 using namespace TUIO;
-
+#endif
 void moEffectParticlesSimple::DrawTracker() {
 
     int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
     m_pTrackerData = NULL;
-    m_pTUIOData = NULL;
 
     bool has_motion = false;
     bool has_features = false;
@@ -2454,13 +2465,14 @@ void moEffectParticlesSimple::DrawTracker() {
         if (pInlet)
             if (pInlet->Updated()) {
                 m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
-                /* chequeando info
+                // chequeando info
                 MODebug2->Push( moText("ParticlesSimple varX: ") + FloatToStr( m_pTrackerData->GetVariance().X())
                        + moText(" varY: ") + FloatToStr(m_pTrackerData->GetVariance().Y()) );
-                */
+
             }
     }
-
+#ifdef USE_TUIO
+    m_pTUIOData = NULL;
     if (m_InletTuioSystemIndex>-1) {
         moInlet* pInlet = m_Inlets.GetRef(m_InletTuioSystemIndex);
         if (pInlet)
@@ -2489,10 +2501,10 @@ if (drawing_features > 0  ) {
                             //int u = pObject->getSymbolID();
 
                             //moTrackerFeature* NF = NULL;
-                            /*
-                            if (m_pTrackerData) {
-                                NF = m_pTrackerData->GetFeature(u);
-                            }*/
+
+                            //if (m_pTrackerData) {
+                            //    NF = m_pTrackerData->GetFeature(u);
+                            //}
 
 
                             ///DRAW ANGLE CENTER
@@ -2524,29 +2536,27 @@ if (drawing_features > 0  ) {
                             glEnd();
 
                             ///rotation speed
-                            /*
-                            glColor4f( 1.0,0.0,0.0,1.0);
-                            glLineWidth(8.0);
-                            glBegin(GL_LINES);
-                                glVertex2f( position.X(), position.Y());
-                                glVertex2f( position.X(), position.Y() + pObject->getRotationSpeed()*0.0001 );
-                            glEnd();
-                            */
+
+                            //glColor4f( 1.0,0.0,0.0,1.0);
+                            //glLineWidth(8.0);
+                            //glBegin(GL_LINES);
+                            //    glVertex2f( position.X(), position.Y());
+                            //    glVertex2f( position.X(), position.Y() + pObject->getRotationSpeed()*0.0001 );
+                            //glEnd();
+
                             //MODebug2->Push(moText("rspeed:")+IntToStr( (int)(pObject->getRotationSpeed()/10.0))  );
 
-                            /*
+                            //if (NF) {
+                            //    moVector2f pu( NF->x - 0.5, (-NF->y + 0.5) * h / w);
+                            //    glColor4f( 0.5,0.0,0.0,1.0);
+                            //    glBegin(GL_QUADS);
+                            //        glVertex2f( ( pu.X() - 0.01)*normalf, (pu.Y() - 0.01)*normalf);
+                            //        glVertex2f((pu.X() - 0.01)*normalf, (pu.Y() + 0.01)*normalf);
+                            //        glVertex2f((pu.X() + 0.01)*normalf, (pu.Y() + 0.01)*normalf);
+                            //        glVertex2f((pu.X() + 0.01)*normalf, (pu.Y() - 0.01)*normalf);
+                            //    glEnd();
+                            //}
 
-                            if (NF) {
-                                moVector2f pu( NF->x - 0.5, (-NF->y + 0.5) * h / w);
-                                glColor4f( 0.5,0.0,0.0,1.0);
-                                glBegin(GL_QUADS);
-                                    glVertex2f( ( pu.X() - 0.01)*normalf, (pu.Y() - 0.01)*normalf);
-                                    glVertex2f((pu.X() - 0.01)*normalf, (pu.Y() + 0.01)*normalf);
-                                    glVertex2f((pu.X() + 0.01)*normalf, (pu.Y() + 0.01)*normalf);
-                                    glVertex2f((pu.X() + 0.01)*normalf, (pu.Y() - 0.01)*normalf);
-                                glEnd();
-                            }
-                            */
 
 
                         }
@@ -2581,19 +2591,19 @@ if (drawing_features > 0  ) {
 
             }
     }
+#endif
 
-    /*
-    if (m_pTUIOData) {
-        int nobjects = m_pTUIOData->getTuioObjects().size();
-        //MODebug2->Push( moText(" NOBJECTS: ") + IntToStr(nobjects) );
+    //if (m_pTUIOData) {
+    //    int nobjects = m_pTUIOData->getTuioObjects().size();
+    //    //MODebug2->Push( moText(" NOBJECTS: ") + IntToStr(nobjects) );
 
-            for (int f = 0; f < m_pTUIOData->getTuioObjects().size(); f++)
-            {
+    //        for (int f = 0; f < m_pTUIOData->getTuioObjects().size(); f++)
+    //        {
 
-            }
+    //        }
 
-    }
-    */
+    //}
+
 
     if (m_pTrackerData ) {
 
@@ -2943,12 +2953,13 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
         pFont->Draw( 0.0, 0.0, infod );
     }
 
+    EndDraw();
+
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 
-    EndDraw();
 }
 
 void moEffectParticlesSimple::setUpLighting()
@@ -3337,14 +3348,21 @@ int moEffectParticlesSimple::luaGetParticleRotation(moLuaVirtualMachine& vm)
 
     moParticlesSimple* Par;
 
+    moVector3f Rotation;
+
     Par = m_ParticlesSimpleArray[i];
 
     if (Par) {
 
-        lua_pushnumber(state, (lua_Number) Par->Age.Duration() );
-        lua_pushnumber(state, (lua_Number) Par->Visible );
-        lua_pushnumber(state, (lua_Number) Par->Mass );
+        Rotation = Par->Rotation;
+        lua_pushnumber(state, (lua_Number) Rotation.X() );
+        lua_pushnumber(state, (lua_Number) Rotation.Y() );
+        lua_pushnumber(state, (lua_Number) Rotation.Z() );
 
+    } else {
+        lua_pushnumber(state, (lua_Number) 0 );
+        lua_pushnumber(state, (lua_Number) 0 );
+        lua_pushnumber(state, (lua_Number) 0 );
     }
 
     return 3;
