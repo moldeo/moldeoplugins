@@ -81,8 +81,11 @@ enum moTrackerKLTParamIndex {
     TRACKERKLT_UPDATE_ON
 };
 
+#ifdef USE_TUIO
+
 using namespace TUIO;
 
+#endif
 
 /*
 class moTrackerKLTSystemData : public moTrackerSystemData
@@ -147,14 +150,16 @@ public:
    void StopSequentialMode() { KLTStopSequentialMode(m_tc); m_diffMode = false; }
 
 
-    void SystemData2TUIO();
     void IterateZone( int ww, int hh, int pp, moTrackerFeature* pFeatureA  );
 
 
     void NewData( moVideoSample* p_pVideoSample );
     moTrackerSystemData*	GetData() {	return m_pTrackerSystemData; }
-    moTUIOSystemData*	GetTUIOData() {	return m_pTUIOSystemData; }
 
+    #ifdef USE_TUIO
+        void SystemData2TUIO();
+        moTUIOSystemData*	GetTUIOData() {	return m_pTUIOSystemData; }
+    #endif
     MOboolean InitTextureOutput( moResourceManager* pResourceManager );
     void DrawFeatures( moResourceManager* pResourceManager );
 
@@ -181,6 +186,7 @@ private:
 	moTrackerSystemData* m_pTrackerSystemData;
 	int* Uplas;
 
+    #ifdef USE_TUIO
     /**
     TUIO Support for Cursors and Objects
     */
@@ -188,7 +194,7 @@ private:
 	//std::list<TuioObject*> objectList;
 	moTuioObjectArray       m_Objects;
 	moTuioCursorArray       m_Cursors;
-
+    #endif
 
 	MOint m_sizebuffer;
 	MOpointer m_buffer;
