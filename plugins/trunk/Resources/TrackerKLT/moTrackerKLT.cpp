@@ -1636,9 +1636,9 @@ void moTrackerKLT::UpdateParameters() {
 	bordery = m_Config.GetParam(m_Config.GetParamIndex("bordery")).GetValue().GetSubValue().Int();
 	window_width = m_Config.GetParam(m_Config.GetParamIndex("window_width")).GetValue().GetSubValue().Int();
 	window_height = m_Config.GetParam(m_Config.GetParamIndex("window_height")).GetValue().GetSubValue().Int();
-  min_displacement = m_Config.GetParam(m_Config.GetParamIndex("min_displacement")).GetValue().GetSubValue().Float();
-  min_determinant = m_Config.GetParam(m_Config.GetParamIndex("min_determinant")).GetValue().GetSubValue().Float();
-  max_residue = m_Config.GetParam(m_Config.GetParamIndex("max_residue")).GetValue().GetSubValue().Float();
+    min_displacement = m_Config.GetParam(m_Config.GetParamIndex("min_displacement")).GetValue().GetSubValue().Float();
+    min_determinant = m_Config.GetParam(m_Config.GetParamIndex("min_determinant")).GetValue().GetSubValue().Float();
+    max_residue = m_Config.GetParam(m_Config.GetParamIndex("max_residue")).GetValue().GetSubValue().Float();
 
 	pyramid_levels = m_Config.GetParam(m_Config.GetParamIndex("pyramid_levels")).GetValue().GetSubValue().Int();
 	subsampling = m_Config.GetParam(m_Config.GetParamIndex("subsampling")).GetValue().GetSubValue().Int();
@@ -1700,8 +1700,7 @@ moConfigDefinition* moTrackerKLT::GetDefinition(moConfigDefinition *p_configdefi
     p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, TRACKERKLT_UPDATE_ON, moValue( "0", "INT") );
 }
 
-MOboolean moTrackerKLT::Finish()
-{
+MOboolean moTrackerKLT::Finish() {
 	moTrackerKLTSystemPtr pTSystem = NULL;
 	for( MOuint i = 0; i < m_TrackerSystems.Count(); i++) {
 		pTSystem = m_TrackerSystems.Get(i);
