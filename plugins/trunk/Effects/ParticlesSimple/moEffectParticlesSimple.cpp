@@ -2466,8 +2466,10 @@ void moEffectParticlesSimple::DrawTracker() {
             if (pInlet->Updated()) {
                 m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
                 // chequeando info
+                /*
                 MODebug2->Push( moText("ParticlesSimple varX: ") + FloatToStr( m_pTrackerData->GetVariance().X())
                        + moText(" varY: ") + FloatToStr(m_pTrackerData->GetVariance().Y()) );
+                */
 
             }
     }
