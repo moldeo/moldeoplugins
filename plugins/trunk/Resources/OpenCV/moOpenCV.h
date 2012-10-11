@@ -45,9 +45,17 @@
 #include "moShaderGLSL.h"
 #include "moRenderManager.h"
 
+#include "moFilterManager.h"
+#include "moVideoGraph.h"
+
+#include "moTextureFilter.h"
+#include "moTextureFilterIndex.h"
+
 #include "cv.h"
 
+/*
 #include "cvblob.h"
+*/
 
 /* //BlobsLib
 #include "blob.h"
@@ -58,6 +66,10 @@
 #define __MO_OPENCV_H
 
 enum moOpenCVParamIndex {
+    OPENCV_INLET=0,
+    OPENCV_OUTLET,
+    OPENCV_SCRIPT,
+    OPENCV_TEXTURE,
 	OPENCV_THRESHOLD,
 	OPENCV_THRESHOLD_MAX
 };
@@ -106,14 +118,38 @@ public:
     CvSeq* findSquares4( IplImage* img, CvMemStorage* storage );
     void drawSquares( IplImage* img, CvSeq* squares );
 
-
+    void UpdateParameters();
     void Update(moEventList*);
 
     moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 
-
+    moTrackerSystemData*    m_pTrackerSystemData;
 
 private:
+
+    moTexture* m_pSrcTexture;
+
+    moTexture* m_pDest0Texture; //very old texture
+    moTexture* m_pDest1Texture; //old texture
+    moTexture* m_pDest2Texture; //new texture
+
+    moTexture* m_pDestDiff1Texture;//old difference
+    moTexture* m_pDestDiff2Texture;//new difference
+
+    moTextureFilter*    m_pTFDest0Texture;//very old texture filter (with shader)
+    moTextureFilter*    m_pTFDest1Texture;//old texture filter (with shader)
+    moTextureFilter*    m_pTFDest2Texture;//new texture filter (with shader)
+
+    moTextureFilter*    m_pTFDestDiff1Texture;//old texture filter shader
+    moTextureFilter*    m_pTFDestDiff2Texture;//new texture filter shader
+
+    moBucket* m_pBucketDiff1;
+    moBucket* m_pBucketDiff2;
+
+    float sumN;
+    float sumX, sumY;
+
+    int switch_texture;
 
 	int threshold;
 	int threshold_max;

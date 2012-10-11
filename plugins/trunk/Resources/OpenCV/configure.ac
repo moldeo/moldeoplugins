@@ -27,4 +27,6 @@ AC_PROG_CXX_C_O
 
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
 
+PKG_CHECK_MODULES([LIBOPENCV], [opencv] ,has_opencv=yes)
+
 AC_OUTPUT(Makefile)
