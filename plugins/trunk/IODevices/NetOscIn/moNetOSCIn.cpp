@@ -160,31 +160,44 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
         Init(pOutlets);
     }
 
+    //MODebug2->Push( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
+
     for( int j=0; j<Messages.Count();j++) {
 
-        moDataMessage message = Messages.Get(j);
+        moDataMessage message;
         poutlet = NULL;
+
+        message = Messages.Get(j);
+        //MODebug2->Push( moText( "Message:" ) + IntToStr( j ) + moText(" Count:") + IntToStr( message.Count() ) ) ;
 
         //sumamos a los mensajes....
         ///primer dato debe contener el codigo interno del evento o palabra que lo represente
         ///por ejemplo TRACKERSYSTEM, o EVENT, o POSITION, o ORIENTATION, etc...
         ///luego el resto del mensaje contiene los datos adicionales X, Y, Z
-        moData DataCode = message.Get(0);
+        moData DataCode;
+
+        if (message.Count()>0) {
+             DataCode = message.Get(0);
+        }
 
         if ( DataCode.Text() == moText("EVENT") ) {
+            /*
             poutlet = pOutEvents;
             poutlet->GetMessages().Add( message );
+            */
             //MODebug2->Push( moText("receiving event:") +  message.Get(1).ToText() );
         } else if ( DataCode.Text() == moText("TRACKERSYSTEM") ) {
+            /*
             poutlet = pOutTracker;
             poutlet->GetMessages().Add( message );
+            */
         } else if ( DataCode.Text() == moText("ANDOSC") ) {
-
+            /*
             poutlet = pOutAndOsc;
             poutlet->GetMessages().Add( message );
-
+            */
         } else if ( DataCode.Text() == moText("POSITION") ) {
-
+/*
             int iref = 1;
             bool multitouch = false;
             moData PosI = message.Get(iref);
@@ -199,7 +212,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
                 moData PosX = message.Get(iref++);
                 moData PosY = message.Get(iref++);
 
-                /*DEBDERIA CALIBRARSE.... o fijarse en el plugin*/
+                ///DEBDERIA CALIBRARSE.... o fijarse en el plugin
                 pOutPositionX->GetData()->SetDouble(  ( PosX.Double() -240 ) / 480.0 );
                 pOutPositionY->GetData()->SetDouble(  ( 400 - PosY.Double() ) / 800.0 );
                 pOutPositionX->Update();
@@ -222,8 +235,9 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
                     //finger size:
 
             }
+            */
         } else if ( DataCode.Text() == moText("ORIENTATION") ) {
-
+/*
             if (message.Count()>=4 && pOutOrientationX && pOutOrientationY && pOutOrientationZ ) {
 
                 moData OriX = message.Get(1);
@@ -241,6 +255,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
                 //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
                 //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
             }
+            */
         } else if ( DataCode.Text() == moText("ACCELERATION") ) {
 
             if (message.Count()>=4 && pOutAccelerationX && pOutAccelerationY && pOutAccelerationZ) {
@@ -256,6 +271,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
                 pOutAccelerationZ->Update();
 
             }
+
         }
 
         if (poutlet) {
@@ -266,12 +282,13 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
                 poutlet->GetData()->SetMessages( &poutlet->GetMessages() );
 
             if (poutlet->GetType()==MO_DATA_MESSAGE) {
-
                 moDataMessages& msgs( poutlet->GetMessages() );
-
-                poutlet->GetData()->SetMessage( & msgs[ msgs.Count() - 1 ] );
+                if (msgs.Count()>0) {
+                    poutlet->GetData()->SetMessage( & msgs[ msgs.Count() - 1 ] );
+                }
             }
         }
+
 
     }
     Messages.Empty();
@@ -284,8 +301,6 @@ void
 moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 				const IpEndpointName& remoteEndpoint ) {
 
-        if (debug_is_on) moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
-        if (debug_is_on) moAbstract::MODebug2->Push(moText("TypeTag: ")+ moText(m.TypeTags()) );
 
 
         m_Semaphore.Lock();
@@ -293,28 +308,33 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 
         moData  data0;
 
-        /*AND OSC*/
-        /// El primer dato corresponderá a una palabra que represente la secuencia de datos.
-        if (
-                moText( m.TypeTags() ) == moText("ff") /*andOSC*/
-            || moText( m.TypeTags() ) == moText("ifff") /*OSCTouch*/ /* i = finger_id, f: x f: y f:size  */
+        if (debug_is_on) moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+        if (debug_is_on) moAbstract::MODebug2->Push(moText("TypeTag: ")+ moText(m.TypeTags()) );
 
-            ) {
 
-            data0 = moData( moText( "POSITION" ) );
-            message.Add( data0 );
-        }
-        if ( moText( m.TypeTags() ) == moText("iii") ) {
-            data0 = moData( moText( "ORIENTATION" ) );
-            message.Add( data0 );
-        }
-        if ( moText( m.TypeTags() ) == moText("fff") ) {
-            data0 = moData( moText( "ACCELERATION" ) );
-            message.Add( data0 );
-        }
 
-        try{
+        try {
             //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
+
+            /*AND OSC*/
+            /// El primer dato corresponderá a una palabra que represente la secuencia de datos.
+            if (
+                    moText( m.TypeTags() ) == moText("ff") /*andOSC*/
+                || moText( m.TypeTags() ) == moText("ifff") /*OSCTouch*/ /* i = finger_id, f: x f: y f:size  */
+
+                ) {
+
+                data0 = moData( moText( "POSITION" ) );
+                message.Add( data0 );
+            }
+            if ( moText( m.TypeTags() ) == moText("iii") ) {
+                data0 = moData( moText( "ORIENTATION" ) );
+                message.Add( data0 );
+            }
+            if ( moText( m.TypeTags() ) == moText("fff") ) {
+                data0 = moData( moText( "ACCELERATION" ) );
+                message.Add( data0 );
+            }
 
             osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 
@@ -406,8 +426,10 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
+
             std::cout << "error while parsing message: "
                 << m.AddressPattern() << ": " << e.what() << "\n";
+
         }
         Messages.Add(message);
         m_Semaphore.Unlock();
