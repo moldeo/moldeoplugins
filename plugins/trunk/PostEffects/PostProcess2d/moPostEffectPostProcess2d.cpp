@@ -108,173 +108,82 @@ MOboolean moPostEffectPostProcess2d::Init() {
 
 void moPostEffectPostProcess2d::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
-    MOint indeximage;
-	MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-    int ancho,alto;
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+    float prop = 1.0;
+    float ancho = 1.0;
+    float alto = 1.0;
 
     PreDraw( tempogral, parentstate);
 
+    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
+    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+    if ( w == 0 || h == 0 ) { w  = 1; h = 1; prop = 1.0; }
+    else {
+      prop = (float) h / (float) w;
+    }
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
+    glPushMatrix();                                     // Store The Modelview Matrix
 	glLoadIdentity();									// Reset The View
 
     // Cambiar la proyeccion para una vista ortogonal //
 	glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+	glPushMatrix();										// Store The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
-	glOrtho(0,w,0,h,-1,1);                              // Set Up An Ortho Screen
 
+	gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
 
     // Funcion de blending y de alpha channel //
     glEnable(GL_BLEND);
 
 	glDisable(GL_ALPHA);
 
-    // Draw //
-	glTranslatef(  ( m_Config[moR(PP2D_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tx )*w,
-                   ( m_Config[moR(PP2D_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Ty )*h,
-					m_Config[moR(PP2D_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)+Tz);
+	glTranslatef(   m_Config.Eval( moR(PP2D_TRANSLATEX) ),
+                  m_Config.Eval( moR(PP2D_TRANSLATEY)),
+                  m_Config.Eval( moR(PP2D_TRANSLATEZ))
+              );
 
-	glRotatef(  m_Config[moR(PP2D_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(PP2D_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(PP2D_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(PP2D_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sx,
-                m_Config[moR(PP2D_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sy,
-                m_Config[moR(PP2D_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*Sz);
+	glRotatef(  m_Config.Eval( moR(PP2D_ROTATEX) ), 1.0, 0.0, 0.0 );
+  glRotatef(  m_Config.Eval( moR(PP2D_ROTATEY) ), 0.0, 1.0, 0.0 );
+  glRotatef(  m_Config.Eval( moR(PP2D_ROTATEZ) ), 0.0, 0.0, 1.0 );
 
-    SetColor( m_Config[moR(PP2D_COLOR)][MO_SELECTED], m_Config[moR(PP2D_ALPHA)][MO_SELECTED], m_EffectState );
+	glScalef(   m_Config.Eval( moR(PP2D_SCALEX)),
+              m_Config.Eval( moR(PP2D_SCALEY)),
+              m_Config.Eval( moR(PP2D_SCALEZ))
+            );
 
-    SetBlending( (moBlendingModes) m_Config[moR(PP2D_BLENDING)][MO_SELECTED][0].Int() );
+  //moVector4d color = m_Config.EvalColor(moR(PP2D_COLOR));
 
-    moTexture* pImage = (moTexture*) m_Config[moR(PP2D_TEXTURE)].GetData()->Pointer();
+  SetColor( m_Config[moR(PP2D_COLOR)], m_Config[moR(PP2D_ALPHA)], m_EffectState );
 
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(PP2D_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo) );
+  glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PP2D_TEXTURE), &m_EffectState.tempo ) );
 
-    PosTextX0 = 0.0;
-	PosTextX1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordS() :  1.0 );
-    PosTextY0 = 0.0;
-    PosTextY1 = 1.0 * ( pImage!=NULL ? pImage->GetMaxCoordT() :  1.0 );
+  SetBlending( (moBlendingModes) m_Config.Int( moR(PP2D_BLENDING) ) );
 
-	//ancho = (int)m_Config[ moR(PP2D_WIDTH) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(w/800.0);
-	//alto = (int)m_Config[ moR(PP2D_HEIGHT) ].GetData()->Fun()->Eval(m_EffectState.tempo.ang)* (float)(h/600.0);
+	ancho = m_Config.Eval( moR(PP2D_WIDTH) ) / 2.0;
+	alto = m_Config.Eval( moR(PP2D_HEIGHT) )  / 2.0;
 
 	glBegin(GL_QUADS);
-		glTexCoord2f( PosTextX0, PosTextY1);
-		glVertex2f( -0.5*w, -0.5*h);
+		glTexCoord2f( 0.0, 0.0);
+		glVertex2f( -ancho, -alto);
 
-		glTexCoord2f( PosTextX1, PosTextY1);
-		glVertex2f(  0.5*w, -0.5*h);
+		glTexCoord2f( 1.0, 0.0);
+		glVertex2f(  ancho, -alto);
 
-		glTexCoord2f( PosTextX1, PosTextY0);
-		glVertex2f(  0.5*w,  0.5*h);
+		glTexCoord2f( 1.0, 1.0);
+		glVertex2f(  ancho,  alto);
 
-		glTexCoord2f( PosTextX0, PosTextY0);
-		glVertex2f( -0.5*w,  0.5*h);
+		glTexCoord2f( 0.0, 1.0);
+		glVertex2f( -ancho,  alto);
 	glEnd();
 
+    // Dejamos todo como lo encontramos //
+	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+	glPopMatrix();										// Restore The Old Projection Matrix
+	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+	glPopMatrix();										// Restore The Old Projection Matrix
 
-    moTrackerSystemData* m_pTrackerData = NULL;
-    bool m_bTrackerInit = false;
-	//Procesar Inlets
-
-	for(int i=0; i<m_Inlets.Count(); i++) {
-		moInlet* pInlet = m_Inlets[i];
-		if (pInlet->Updated() && ( pInlet->GetConnectorLabelName()==moText("TRACKERKLT") || pInlet->GetConnectorLabelName()==moText("TRACKERGPUKLT") || pInlet->GetConnectorLabelName()==moText("TRACKERGPUKLT2")) ) {
-
-			m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
-			if (m_pTrackerData && !m_bTrackerInit) {
-				m_bTrackerInit = true;
-
-				//SelectScriptFunction("Reset");
-				//RunSelectedFunction();
-
-				//MODebug2->Push(IntToStr(TrackerId));
-
-				//MODebug2->Push(moText("Receiving:") + IntToStr(m_pTrackerData->GetFeaturesCount()) );
-				if (m_pTrackerData->GetFeaturesCount()>0) {
-                    int tw = m_pTrackerData->GetVideoFormat().m_Width;
-                    int th = m_pTrackerData->GetVideoFormat().m_Height;
-                    //MODebug2->Push(moText("vformat:")+IntToStr(tw)+moText("th")+IntToStr(th));
-
-                    for (i = 0; i < m_pTrackerData->GetFeaturesCount(); i++)
-                    {
-
-                        moTrackerFeature* pF = m_pTrackerData->GetFeature(i);
-
-                        //if (pF && pF->valid) {
-
-                        float x = (pF->x / (float)tw) - 0.5;
-                        float y = -(pF->y / (float)th) + 0.5;
-                        float tr_x = (pF->tr_x / (float)tw) - 0.5;
-                        float tr_y = -(pF->tr_y / (float)th) + 0.5;
-                        float v_x = (pF->v_x / (float)tw);
-                        float v_y = -(pF->v_y / (float)th);
-                        float vel = sqrtf( v_x*v_x+v_y*v_y );
-                        int v = pF->val;
-
-
-
-                        //MODebug2->Log(moText("    x:")+FloatToStr(pF->x) + moText(" y:")+FloatToStr(pF->y) );
-
-                        glBindTexture(GL_TEXTURE_2D,0);
-                        glColor4f(1.0, 0.0, 0.0, 1.0);
-
-                        if (v >= KLT_TRACKED) glColor4f(0.0, 1.0, 0.0, 1.0);
-                        else if (v == KLT_NOT_FOUND) glColor4f(1.0, 0.0, 1.0, 1.0);
-                        else if (v == KLT_SMALL_DET) glColor4f(1.0, 0.0, 1.0, 1.0);
-                        else if (v == KLT_MAX_ITERATIONS) glColor4f(1.0, 0.0, 1.0, 1.0);
-                        else if (v == KLT_OOB) glColor4f(1.0, 0.0, 1.0, 1.0);
-                        else if (v == KLT_LARGE_RESIDUE) glColor4f(1.0, 0.0, 1.0, 1.0);
-
-
-                        if ( pF->valid ) {
-
-                            glBegin(GL_QUADS);
-                                glVertex2f((tr_x - 0.008)*w, (tr_y - 0.008)*h);
-                                glVertex2f((tr_x - 0.008)*w, (tr_y + 0.008)*h);
-                                glVertex2f((tr_x + 0.008)*w, (tr_y + 0.008)*h);
-                                glVertex2f((tr_x + 0.008)*w, (tr_y - 0.008)*h);
-                            glEnd();
-
-                            glBegin(GL_QUADS);
-                                glVertex2f((x - 0.008)*w, (y - 0.008)*h);
-                                glVertex2f((x - 0.008)*w, (y + 0.008)*h);
-                                glVertex2f((x + 0.008)*w, (y + 0.008)*h);
-                                glVertex2f((x + 0.008)*w, (y - 0.008)*h);
-                            glEnd();
-
-                            glDisable(GL_TEXTURE_2D);
-                            glColor4f(1.0, 1.0, 1.0, 1.0);
-                            glBegin(GL_LINES);
-                                glVertex2f( x*w, y*h);
-                                glVertex2f( tr_x*w, tr_y*h);
-                            glEnd();
-
-                            if ( vel > 0.001 ) {
-                                glDisable(GL_TEXTURE_2D);
-                                glColor4f(0.0, 0.0, 1.0, 1.0);
-                                //glPointSize((GLfloat)10);
-                                glLineWidth((GLfloat)10.0);
-                                glBegin(GL_LINES);
-                                    glVertex2f( x*w, y*h);
-                                    glVertex2f( x*w+v_x*w, y*h+v_y*h);
-                                glEnd();
-                            }
-
-
-                        }
-
-
-                    }
-
-                }
-
-			}
-		}
-	}
 
 }
 
@@ -332,10 +241,10 @@ moPostEffectPostProcess2d::GetDefinition( moConfigDefinition *p_configdefinition
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PP2D_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PP2D_BLENDING, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, PP2D_WIDTH, moValue( "256", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, PP2D_HEIGHT, moValue( "256", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PP2D_TRANSLATEX, moValue( "0.5", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PP2D_TRANSLATEY, moValue( "0.5", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, PP2D_WIDTH, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, PP2D_HEIGHT, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PP2D_TRANSLATEX, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PP2D_TRANSLATEY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, PP2D_TRANSLATEZ );
 	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, PP2D_ROTATEX );
 	p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PP2D_ROTATEY );

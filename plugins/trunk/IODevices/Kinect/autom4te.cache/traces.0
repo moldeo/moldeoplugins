@@ -2594,63 +2594,15 @@ m4trace:configure.ac:28: -1- PKG_CHECK_EXISTS([libmoldeo ], [pkg_cv_[]LIBMOLDEO_
 m4trace:configure.ac:28: -1- PKG_CHECK_EXISTS([libmoldeo ], [pkg_cv_[]LIBMOLDEO_LIBS=`$PKG_CONFIG --[]libs "libmoldeo " 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
 m4trace:configure.ac:28: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:30: -1- PKG_CHECK_MODULES([OPENNI], [openni-dev ], [has_openni=yes])
-m4trace:configure.ac:30: -1- m4_pattern_allow([^OPENNI_CFLAGS$])
-m4trace:configure.ac:30: -1- m4_pattern_allow([^OPENNI_LIBS$])
-m4trace:configure.ac:30: -1- PKG_CHECK_EXISTS([openni-dev ], [pkg_cv_[]OPENNI_CFLAGS=`$PKG_CONFIG --[]cflags "openni-dev " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:30: -1- PKG_CHECK_EXISTS([openni-dev ], [pkg_cv_[]OPENNI_LIBS=`$PKG_CONFIG --[]libs "openni-dev " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:30: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:32: -1- PKG_CHECK_MODULES([EIGEN3], [eigen3 ], [has_eigen3=yes])
-m4trace:configure.ac:32: -1- m4_pattern_allow([^EIGEN3_CFLAGS$])
-m4trace:configure.ac:32: -1- m4_pattern_allow([^EIGEN3_LIBS$])
-m4trace:configure.ac:32: -1- PKG_CHECK_EXISTS([eigen3 ], [pkg_cv_[]EIGEN3_CFLAGS=`$PKG_CONFIG --[]cflags "eigen3 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:32: -1- PKG_CHECK_EXISTS([eigen3 ], [pkg_cv_[]EIGEN3_LIBS=`$PKG_CONFIG --[]libs "eigen3 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:32: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:34: -1- PKG_CHECK_MODULES([PCLCOMMON], [pcl_common-1.1 ], [has_pcl_common=yes])
-m4trace:configure.ac:34: -1- m4_pattern_allow([^PCLCOMMON_CFLAGS$])
-m4trace:configure.ac:34: -1- m4_pattern_allow([^PCLCOMMON_LIBS$])
-m4trace:configure.ac:34: -1- PKG_CHECK_EXISTS([pcl_common-1.1 ], [pkg_cv_[]PCLCOMMON_CFLAGS=`$PKG_CONFIG --[]cflags "pcl_common-1.1 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:34: -1- PKG_CHECK_EXISTS([pcl_common-1.1 ], [pkg_cv_[]PCLCOMMON_LIBS=`$PKG_CONFIG --[]libs "pcl_common-1.1 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:34: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:35: -1- PKG_CHECK_MODULES([PCLIO], [pcl_io-1.1 ], [has_pcl_io=yes])
-m4trace:configure.ac:35: -1- m4_pattern_allow([^PCLIO_CFLAGS$])
-m4trace:configure.ac:35: -1- m4_pattern_allow([^PCLIO_LIBS$])
-m4trace:configure.ac:35: -1- PKG_CHECK_EXISTS([pcl_io-1.1 ], [pkg_cv_[]PCLIO_CFLAGS=`$PKG_CONFIG --[]cflags "pcl_io-1.1 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:35: -1- PKG_CHECK_EXISTS([pcl_io-1.1 ], [pkg_cv_[]PCLIO_LIBS=`$PKG_CONFIG --[]libs "pcl_io-1.1 " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:35: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:36: -1- PKG_CHECK_MODULES([PCLFILTERS], [pcl_filters-1.1  ], [has_pcl_filters=yes])
-m4trace:configure.ac:36: -1- m4_pattern_allow([^PCLFILTERS_CFLAGS$])
-m4trace:configure.ac:36: -1- m4_pattern_allow([^PCLFILTERS_LIBS$])
-m4trace:configure.ac:36: -1- PKG_CHECK_EXISTS([pcl_filters-1.1  ], [pkg_cv_[]PCLFILTERS_CFLAGS=`$PKG_CONFIG --[]cflags "pcl_filters-1.1  " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:36: -1- PKG_CHECK_EXISTS([pcl_filters-1.1  ], [pkg_cv_[]PCLFILTERS_LIBS=`$PKG_CONFIG --[]libs "pcl_filters-1.1  " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:36: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:37: -1- PKG_CHECK_MODULES([PCLFEATURES], [pcl_features-1.1  ], [has_pcl_features=yes])
-m4trace:configure.ac:37: -1- m4_pattern_allow([^PCLFEATURES_CFLAGS$])
-m4trace:configure.ac:37: -1- m4_pattern_allow([^PCLFEATURES_LIBS$])
-m4trace:configure.ac:37: -1- PKG_CHECK_EXISTS([pcl_features-1.1  ], [pkg_cv_[]PCLFEATURES_CFLAGS=`$PKG_CONFIG --[]cflags "pcl_features-1.1  " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:37: -1- PKG_CHECK_EXISTS([pcl_features-1.1  ], [pkg_cv_[]PCLFEATURES_LIBS=`$PKG_CONFIG --[]libs "pcl_features-1.1  " 2>/dev/null`
-		      test "x$?" != "x0" && pkg_failed=yes ], [pkg_failed=yes])
-m4trace:configure.ac:37: -1- _PKG_SHORT_ERRORS_SUPPORTED
-m4trace:configure.ac:41: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
+m4trace:configure.ac:31: -1- _m4_warn([obsolete], [AC_OUTPUT should be used without arguments.
 You should run autoupdate.], [])
-m4trace:configure.ac:41: -1- m4_pattern_allow([^LIB@&t@OBJS$])
-m4trace:configure.ac:41: -1- m4_pattern_allow([^LTLIBOBJS$])
-m4trace:configure.ac:41: -1- AM_CONDITIONAL([am__EXEEXT], [test -n "$EXEEXT"])
-m4trace:configure.ac:41: -1- m4_pattern_allow([^am__EXEEXT_TRUE$])
-m4trace:configure.ac:41: -1- m4_pattern_allow([^am__EXEEXT_FALSE$])
-m4trace:configure.ac:41: -1- _AM_SUBST_NOTMAKE([am__EXEEXT_TRUE])
-m4trace:configure.ac:41: -1- _AM_SUBST_NOTMAKE([am__EXEEXT_FALSE])
-m4trace:configure.ac:41: -1- _AC_AM_CONFIG_HEADER_HOOK(["$ac_file"])
-m4trace:configure.ac:41: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS
-m4trace:configure.ac:41: -1- _LT_PROG_LTMAIN
+m4trace:configure.ac:31: -1- m4_pattern_allow([^LIB@&t@OBJS$])
+m4trace:configure.ac:31: -1- m4_pattern_allow([^LTLIBOBJS$])
+m4trace:configure.ac:31: -1- AM_CONDITIONAL([am__EXEEXT], [test -n "$EXEEXT"])
+m4trace:configure.ac:31: -1- m4_pattern_allow([^am__EXEEXT_TRUE$])
+m4trace:configure.ac:31: -1- m4_pattern_allow([^am__EXEEXT_FALSE$])
+m4trace:configure.ac:31: -1- _AM_SUBST_NOTMAKE([am__EXEEXT_TRUE])
+m4trace:configure.ac:31: -1- _AM_SUBST_NOTMAKE([am__EXEEXT_FALSE])
+m4trace:configure.ac:31: -1- _AC_AM_CONFIG_HEADER_HOOK(["$ac_file"])
+m4trace:configure.ac:31: -1- _AM_OUTPUT_DEPENDENCY_COMMANDS
+m4trace:configure.ac:31: -1- _LT_PROG_LTMAIN
