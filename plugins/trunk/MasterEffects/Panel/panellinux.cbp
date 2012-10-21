@@ -38,8 +38,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moMasterEffectPanel.h" />
-		<Unit filename="src/moMasterEffectPanel.cpp" />
+		<Unit filename="moMasterEffectPanel.cpp" />
+		<Unit filename="moMasterEffectPanel.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

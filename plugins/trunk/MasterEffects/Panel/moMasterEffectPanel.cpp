@@ -206,7 +206,7 @@ void moMasterEffectPanel::DrawObject( float x, float y, float w, float h, moEffe
         glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PANEL_ICON_BACKGROUND), &(m_EffectState.tempo) ) );
 
         //if ( p_Fx->Activated() ) {
-            glColor4f( 1.0, 1.0, 1.0,  1.0 );
+            glColor4f( 1.0, 1.0, 1.0,  alpha );
         //} else {
         //    glColor4f( 0.0, 0.0, 0.0,alpha );
         //}
@@ -251,7 +251,7 @@ void moMasterEffectPanel::DrawObject( float x, float y, float w, float h, moEffe
 
         glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PANEL_ICON_ALPHA), &(this->m_EffectState.tempo) ) );
 
-        glColor4f( p_Fx->GetEffectState().tintr, p_Fx->GetEffectState().tintg, p_Fx->GetEffectState().tintb, p_Fx->GetEffectState().alpha );
+        glColor4f( p_Fx->GetEffectState().tintr, p_Fx->GetEffectState().tintg, p_Fx->GetEffectState().tintb, p_Fx->GetEffectState().alpha*alpha );
 
         glBegin(GL_QUADS);
             glTexCoord2f( 0.0, 0.0);
@@ -272,9 +272,9 @@ void moMasterEffectPanel::DrawObject( float x, float y, float w, float h, moEffe
         glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PANEL_ICON_SELECTED), &(this->m_EffectState.tempo) ) );
 
         if ( p_Fx->Selected() ) {
-            glColor4f( 1.0f, 1.0f, 0.0f, 1.0f );
+            glColor4f( 1.0f, 1.0f, 0.0f, alpha );
         } else {
-            glColor4f( 0.0f, 0.0f, 0.0f, 1.0f );
+            glColor4f( 0.0f, 0.0f, 0.0f, alpha );
         }
 
         glBegin(GL_QUADS);
@@ -403,12 +403,14 @@ void moMasterEffectPanel::Draw( moTempo* tempogral,moEffectState* parentstate)
 
         **/
 
+        float alpha_v = m_Config.Eval(moR(PANEL_ALPHA));
+
         float left_most = -0.5;
         float width_object = 0.1f / 4.0f;
 		for( int fx=0; fx<m_pEffectManager->PreEffects().Count(); fx++, left_most+= width_object) {
             moEffect* pfx = m_pEffectManager->PreEffects().GetRef(fx);
             if (pfx) {
-                DrawObject( left_most, 0.0, width_object, 1.0, pfx, 0.0, 1.0, 0.0, 1.0 );
+                DrawObject( left_most, 0.0, width_object, 1.0, pfx, 0.0, 1.0, 0.0, alpha_v );
             }
 		}
 
@@ -450,7 +452,7 @@ void moMasterEffectPanel::Draw( moTempo* tempogral,moEffectState* parentstate)
         for( int fx=0; fx<m_pEffectManager->Effects().Count(); fx++, left_most+= width_object) {
             moEffect* pfx = m_pEffectManager->Effects().GetRef(fx);
             if (pfx) {
-                DrawObject( left_most, 0.0, width_object, 0.5, pfx, 0.0, 1.0, 0.0, 1.0 );
+                DrawObject( left_most, 0.0, width_object, 0.5, pfx, 0.0, 1.0, 0.0, alpha_v );
             }
 
 		}
@@ -461,7 +463,7 @@ void moMasterEffectPanel::Draw( moTempo* tempogral,moEffectState* parentstate)
         for( int fx=0; fx<m_pEffectManager->PostEffects().Count(); fx++, left_most+= width_object) {
             moEffect* pfx = m_pEffectManager->PostEffects().GetRef(fx);
             if (pfx) {
-                DrawObject( left_most, 0.0, width_object, 1.0, pfx, 0.0, 1.0, 0.0, 1.0 );
+                DrawObject( left_most, 0.0, width_object, 1.0, pfx, 0.0, 1.0, 0.0, alpha_v );
             }
 
 		}
