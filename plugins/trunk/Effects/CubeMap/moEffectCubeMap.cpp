@@ -117,16 +117,19 @@ void moEffectCubeMap::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glLoadIdentity();									// Reset The Modelview Matrix
 
 
-	glTranslatef(   m_Config[moR(CUBEMAP_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(CUBEMAP_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(CUBEMAP_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+    glTranslatef(   m_Config.Eval( moR(CUBEMAP_TRANSLATEX) ),
+                  m_Config.Eval( moR(CUBEMAP_TRANSLATEY)),
+                  m_Config.Eval( moR(CUBEMAP_TRANSLATEZ))
+              );
 
-	glRotatef(  m_Config[moR(CUBEMAP_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config[moR(CUBEMAP_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(CUBEMAP_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
-	glScalef(   m_Config[moR(CUBEMAP_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                m_Config[moR(CUBEMAP_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                m_Config[moR(CUBEMAP_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glRotatef(  m_Config.Eval( moR(CUBEMAP_ROTATEX) ), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(CUBEMAP_ROTATEY) ), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(CUBEMAP_ROTATEZ) ), 0.0, 0.0, 1.0 );
+
+	glScalef(   m_Config.Eval( moR(CUBEMAP_SCALEX)),
+              m_Config.Eval( moR(CUBEMAP_SCALEY)),
+              m_Config.Eval( moR(CUBEMAP_SCALEZ))
+            );
 
 /*
 	glColor4f(  m_Config[moR(CUBEMAP_COLOR)][MO_SELECTED][MO_RED].Fun()->Eval(m_EffectState.tempo.ang) * state.tintr,

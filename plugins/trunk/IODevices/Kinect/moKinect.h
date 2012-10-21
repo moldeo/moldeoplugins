@@ -44,10 +44,6 @@ Eigen Library
 
 
 #include <iostream>
-#include <Eigen/Dense>
-
-using Eigen::MatrixXd;
-
 
 
 /**
@@ -67,6 +63,9 @@ using Eigen::MatrixXd;
 */
 
 #ifdef KINECT_PCL
+
+#include <Eigen/Dense>
+using Eigen::MatrixXd;
 
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
