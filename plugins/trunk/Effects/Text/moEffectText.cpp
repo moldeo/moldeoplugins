@@ -73,6 +73,9 @@ moEffectText::Init()
 {
     if (!PreInit()) return false;
 
+	moDefineParamIndex( TEXT_INLET, moText("inlet") );
+	moDefineParamIndex( TEXT_OUTLET, moText("outlet") );
+	moDefineParamIndex( TEXT_SCRIPT, moText("script") );
 	moDefineParamIndex( TEXT_ALPHA, moText("alpha") );
 	moDefineParamIndex( TEXT_COLOR, moText("color") );
 	moDefineParamIndex( TEXT_SYNC, moText("syncro") );
@@ -87,8 +90,7 @@ moEffectText::Init()
 	moDefineParamIndex( TEXT_SCALEX, moText("scalex") );
 	moDefineParamIndex( TEXT_SCALEY, moText("scaley") );
 	moDefineParamIndex( TEXT_ROTATE, moText("rotate") );
-	moDefineParamIndex( TEXT_INLET, moText("inlet") );
-	moDefineParamIndex( TEXT_OUTLET, moText("outlet") );
+
 
 	return true;
 
