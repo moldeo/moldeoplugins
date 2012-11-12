@@ -93,3 +93,4 @@ MO_PLG_API void DestroyEffectFactory();
 }
 
 #endif
+

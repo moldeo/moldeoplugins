@@ -179,7 +179,7 @@ moEffectText::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("font"), MO_PARAM_FONT, TEXT_FONT, moValue( "Default", "TXT", "0", "NUM", "32.0", "NUM") );
+	p_configdefinition->Add( moText("font"), MO_PARAM_FONT, TEXT_FONT, moValue( "Default", "TXT", "0", "INT", "32", "INT") );
 	p_configdefinition->Add( moText("text"), MO_PARAM_TEXT, TEXT_TEXT, moValue( "Insert text in text parameter", MO_VALUE_TXT ) );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, TEXT_BLENDING, moValue( "0", MO_VALUE_NUM ).Ref() );
 	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, TEXT_WIDTH, moValue( "1.0", MO_VALUE_FUNCTION ).Ref() );
@@ -191,3 +191,4 @@ moEffectText::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, TEXT_SCALEY, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
 	return p_configdefinition;
 }
+
