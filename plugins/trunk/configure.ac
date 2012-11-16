@@ -29,6 +29,7 @@ AC_CONFIG_SUBDIRS(
 #	IODevices/TabletAsync
 AC_CONFIG_SUBDIRS(
 	Resources/TrackerKLT
+	Resources/OpenCV
 )
 #	Resources/OpenCV
 #	Resources/Tracker

@@ -35,8 +35,8 @@
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
 		</Compiler>
-		<Unit filename="inc/moMasterEffectChannel.h" />
-		<Unit filename="src/moMasterEffectChannel.cpp" />
+		<Unit filename="moMasterEffectChannel.cpp" />
+		<Unit filename="moMasterEffectChannel.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
