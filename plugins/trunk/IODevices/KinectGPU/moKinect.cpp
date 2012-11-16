@@ -1177,7 +1177,7 @@ if (update_on>0) {
                     if (idx>-1) {
                         m_pTFDest1Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
                         MODebug2->Push( moText("filter loaded m_pTFDest1Texture") );
-                    }
+                    } else MODebug2->Push( moText("filter NOT loaded m_pTFDest1Texture") );
                 }
 
 
@@ -1190,7 +1190,7 @@ if (update_on>0) {
                     if (idx>-1) {
                         m_pTFDest0Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
                         MODebug2->Push( moText("filter loaded m_pTFDest0Texture") );
-                    }
+                    } else MODebug2->Push( moText("filter NOT loaded m_pTFDest0Texture") );
                 }
 
 
@@ -1205,7 +1205,7 @@ if (update_on>0) {
                         if (m_pTFDestDiff2Texture) {
                             m_pDestDiff2Texture = m_pTFDestDiff2Texture->GetDestTex()->GetTexture(0);
                             MODebug2->Push( moText("filter loaded m_pTFDestDiff2Texture") );
-                        }
+                        } else MODebug2->Push( moText("filter NOT loaded m_pTFDestDiff2Texture") );
                     }
                 }
 
