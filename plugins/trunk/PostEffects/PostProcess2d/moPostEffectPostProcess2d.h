@@ -41,25 +41,20 @@
 #define MO_PP2D_SCALE_Y 3
 
 enum moPostProcess2dParamIndex {
+	PP2D_INLET,
+	PP2D_OUTLET,
+	PP2D_SCRIPT,
 	PP2D_ALPHA,
 	PP2D_COLOR,
 	PP2D_SYNC,
 	PP2D_PHASE,
 	PP2D_TEXTURE,
 	PP2D_BLENDING,
-	PP2D_WIDTH,
-	PP2D_HEIGHT,
 	PP2D_TRANSLATEX,
 	PP2D_TRANSLATEY,
-	PP2D_TRANSLATEZ,
-	PP2D_ROTATEX,
-	PP2D_ROTATEY,
-	PP2D_ROTATEZ,
+	PP2D_ROTATE,
 	PP2D_SCALEX,
-	PP2D_SCALEY,
-	PP2D_SCALEZ,
-	PP2D_INLET,
-	PP2D_OUTLET
+	PP2D_SCALEY
 };
 
 class moPostEffectPostProcess2d: public moPostEffect {
@@ -77,9 +72,9 @@ public:
 
 private:
 
-	MOint Tx, Ty, Tz;
-	MOfloat Sx, Sy, Sz;
-	MOint Rx, Ry, Rz;
+	MOint Tx, Ty;
+	MOfloat Sx, Sy;
+	MOint Rz;
 
 };
 

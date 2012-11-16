@@ -73,53 +73,35 @@ MOboolean moPostEffectPostProcess2d::Init() {
 
     if (!PreInit()) return false;
 
+	moDefineParamIndex( PP2D_INLET, moText("inlet") );
+	moDefineParamIndex( PP2D_OUTLET, moText("outlet") );
+	moDefineParamIndex( PP2D_SCRIPT, moText("script") );
 	moDefineParamIndex( PP2D_ALPHA, moText("alpha") );
 	moDefineParamIndex( PP2D_COLOR, moText("color") );
 	moDefineParamIndex( PP2D_SYNC, moText("syncro") );
 	moDefineParamIndex( PP2D_PHASE, moText("phase") );
 	moDefineParamIndex( PP2D_TEXTURE, moText("texture") );
 	moDefineParamIndex( PP2D_BLENDING, moText("blending") );
-	moDefineParamIndex( PP2D_WIDTH, moText("width") );
-	moDefineParamIndex( PP2D_HEIGHT, moText("height") );
 	moDefineParamIndex( PP2D_TRANSLATEX, moText("translatex") );
 	moDefineParamIndex( PP2D_TRANSLATEY, moText("translatey") );
-	moDefineParamIndex( PP2D_TRANSLATEZ, moText("translatez") );
-	moDefineParamIndex( PP2D_ROTATEX, moText("rotatex") );
-	moDefineParamIndex( PP2D_ROTATEY, moText("rotatey") );
-	moDefineParamIndex( PP2D_ROTATEZ, moText("rotatez") );
+	moDefineParamIndex( PP2D_ROTATE, moText("rotate") );
 	moDefineParamIndex( PP2D_SCALEX, moText("scalex") );
 	moDefineParamIndex( PP2D_SCALEY, moText("scaley") );
-	moDefineParamIndex( PP2D_SCALEZ, moText("scalez") );
-	moDefineParamIndex( PP2D_INLET, moText("inlet") );
-	moDefineParamIndex( PP2D_OUTLET, moText("outlet") );
 
-    Tx = Ty = Tz = Rx = Ry = Rz = 0.0;
-	Sx = Sy = Sz = 1.0;
+
+    Tx = Ty  = Rz = 0.0;
+	Sx = Sy = 1.0;
 
 	return true;
 }
 
-#define KLT_TRACKED           0
-#define KLT_NOT_FOUND        -1
-#define KLT_SMALL_DET        -2
-#define KLT_MAX_ITERATIONS   -3
-#define KLT_OOB              -4
-#define KLT_LARGE_RESIDUE    -5
 
 void moPostEffectPostProcess2d::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
-    float prop = 1.0;
-    float ancho = 1.0;
-    float alto = 1.0;
+
+    float ancho = 0.5, alto=0.5;
 
     PreDraw( tempogral, parentstate);
-
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
-    if ( w == 0 || h == 0 ) { w  = 1; h = 1; prop = 1.0; }
-    else {
-      prop = (float) h / (float) w;
-    }
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
@@ -132,37 +114,32 @@ void moPostEffectPostProcess2d::Draw( moTempo* tempogral, moEffectState* parents
 	glPushMatrix();										// Store The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
 
-	gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
+    m_pResourceManager->GetGLMan()->SetOrthographicView();
+    alto = 0.5 * m_pResourceManager->GetRenderMan()->ScreenProportion();
+	//gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
 
     // Funcion de blending y de alpha channel //
     glEnable(GL_BLEND);
 
 	glDisable(GL_ALPHA);
 
-	glTranslatef(   m_Config.Eval( moR(PP2D_TRANSLATEX) ),
-                  m_Config.Eval( moR(PP2D_TRANSLATEY)),
-                  m_Config.Eval( moR(PP2D_TRANSLATEZ))
-              );
+    /// Draw //
+    glTranslatef(  m_Config.Eval( moR(PP2D_TRANSLATEX)) + Tx,
+                   m_Config.Eval( moR(PP2D_TRANSLATEY)) + Ty,
+                   0.0);
 
-	glRotatef(  m_Config.Eval( moR(PP2D_ROTATEX) ), 1.0, 0.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(PP2D_ROTATEY) ), 0.0, 1.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(PP2D_ROTATEZ) ), 0.0, 0.0, 1.0 );
+    ///solo rotamos en el eje Z (0,0,1) ya que siempre estaremos perpedicular al plano (X,Y)
+    glRotatef(  m_Config.Eval( moR(PP2D_ROTATE)), 0.0, 0.0, 1.0 );
 
-	glScalef(   m_Config.Eval( moR(PP2D_SCALEX)),
-              m_Config.Eval( moR(PP2D_SCALEY)),
-              m_Config.Eval( moR(PP2D_SCALEZ))
-            );
-
-  //moVector4d color = m_Config.EvalColor(moR(PP2D_COLOR));
+    glScalef(   m_Config.Eval( moR(PP2D_SCALEX))*Sx,
+                m_Config.Eval( moR(PP2D_SCALEY))*Sy,
+                  1.0);
 
   SetColor( m_Config[moR(PP2D_COLOR)], m_Config[moR(PP2D_ALPHA)], m_EffectState );
 
   glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PP2D_TEXTURE), &m_EffectState.tempo ) );
 
   SetBlending( (moBlendingModes) m_Config.Int( moR(PP2D_BLENDING) ) );
-
-	ancho = m_Config.Eval( moR(PP2D_WIDTH) ) / 2.0;
-	alto = m_Config.Eval( moR(PP2D_HEIGHT) )  / 2.0;
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
@@ -245,13 +222,9 @@ moPostEffectPostProcess2d::GetDefinition( moConfigDefinition *p_configdefinition
 	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, PP2D_HEIGHT, moValue( "1.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PP2D_TRANSLATEX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PP2D_TRANSLATEY, moValue( "0.0", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, PP2D_TRANSLATEZ );
-	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, PP2D_ROTATEX );
-	p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PP2D_ROTATEY );
-	p_configdefinition->Add( moText("rotatez"), MO_PARAM_ROTATEZ, PP2D_ROTATEZ );
+	p_configdefinition->Add( moText("rotate"), MO_PARAM_ROTATEZ, PP2D_ROTATE );
 	p_configdefinition->Add( moText("scalex"), MO_PARAM_SCALEX, PP2D_SCALEX );
 	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, PP2D_SCALEY );
-	p_configdefinition->Add( moText("scalez"), MO_PARAM_SCALEZ, PP2D_SCALEZ );
 	return p_configdefinition;
 }
 
