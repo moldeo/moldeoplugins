@@ -218,8 +218,6 @@ moPostEffectPostProcess2d::GetDefinition( moConfigDefinition *p_configdefinition
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PP2D_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PP2D_BLENDING, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, PP2D_WIDTH, moValue( "1.0", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, PP2D_HEIGHT, moValue( "1.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PP2D_TRANSLATEX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PP2D_TRANSLATEY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("rotate"), MO_PARAM_ROTATEZ, PP2D_ROTATE );
