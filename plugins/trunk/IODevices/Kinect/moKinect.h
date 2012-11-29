@@ -111,13 +111,6 @@ MOLDEO
 #endif
 
 
-#ifdef KINECT_OPENNI
-
-    #include "moKinectUserGenerator.h"
-
-#endif
-
-
 #ifdef KINECT_PCL
 class SimpleOpenNIProcessor
 {
