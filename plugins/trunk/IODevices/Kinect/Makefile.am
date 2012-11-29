@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmoldeo_kinect.la
-libmoldeo_kinect_la_SOURCES = moKinect.cpp moKinect.h
+libmoldeo_kinect_la_SOURCES = moKinect.cpp moKinect.h moKinectUserGenerator.h moKinectUserGenerator.cpp
 libmoldeo_kinect_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I /usr/include/ni
 libmoldeo_kinect_la_LDFLAGS = -lOpenNI
 libmoldeo_kinect_la_LIBADD = 

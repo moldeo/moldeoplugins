@@ -56,14 +56,9 @@
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
 			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\openal\include" />
 			<Add directory="..\..\..\..\externlibs\lua\include" />
 			<Add directory="..\..\..\..\externlibs\SDL\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include\glib-2.0" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\lib\glib-2.0\include" />
 			<Add directory="$(OPEN_NI_INCLUDE)" />
 			<Add directory="C:\Program Files\PCL\include\pcl-1.1" />
 			<Add directory="C:\Program Files\Eigen 3.0.0\include\eigen3" />
@@ -96,11 +91,6 @@
 			<Add library="pcl_keypoints" />
 			<Add library="pcl_range_image_border_extractor" />
 			<Add library="flann" />
-			<Add library="boost_date_time-vc100-mt-1_46_1" />
-			<Add library="boost_filesystem-vc100-mt-1_46_1" />
-			<Add library="boost_iostreams-vc100-mt-1_46_1" />
-			<Add library="boost_system-vc100-mt-1_46_1" />
-			<Add library="boost_thread-vc100-mt-1_46_1" />
 			<Add library="pcl_filters-gd" />
 			<Add directory="..\..\..\..\externlibs\SDL\lib" />
 			<Add directory="..\..\..\..\externlibs\glew\lib" />

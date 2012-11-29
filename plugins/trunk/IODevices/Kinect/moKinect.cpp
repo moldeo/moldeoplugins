@@ -31,6 +31,12 @@
 
 #include "moKinect.h"
 
+#ifdef KINECT_OPENNI
+
+    #include "moKinectUserGenerator.h"
+
+#endif
+
 #define MO_KINECT_CFG_STRCOD 0
 #define MO_KINECT_CFG_TYPE 1
 #define MO_KINECT_CFG_KINECTCOD 2
@@ -440,8 +446,10 @@ moKinect::Init() {
     //tparam.internal_format = GL_RGBA32F_ARB;
     tparam.internal_format = GL_RGB;
 /*
-    m_OutputMode.nXRes = 640;
-    m_OutputMode.nYRes = 480;*/
+    m_OutputMode.nXRes = 320;
+    m_OutputMode.nYRes = 240;
+*/
+
     m_OutputMode.nXRes = 640;
     m_OutputMode.nYRes = 480;
     m_OutputMode.nFPS = 30;
@@ -554,13 +562,13 @@ moKinect::Init() {
 
     /** Create a DepthGenerator node */
 
-    m_nRetVal = m_Depth.Create(m_Context);
-    if (!CheckError()) {
+    //m_nRetVal = m_Depth.Create(m_Context);
+    if (!CheckError() && 1==2) {
 
         MODebug2->Error("Couldn't create DepthGenerator");
         return false;
 
-    } else {
+    } else if (1==2) {
 
         MODebug2->Message("Kinect DepthGenerator Created!!");
 
@@ -826,11 +834,13 @@ moKinect::Update(moEventList *Events) {
 
 if (update_on>0) {
 
+    m_nRetVal = m_Context.WaitNoneUpdateAll();
 
     /** USER GENERATOR */
 
     //m_UserGenerator
-    m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
+    //m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
+
     if (!CheckError()) {
         MODebug2->Error("Kinect Failed to update data.");
     } else {
@@ -841,7 +851,7 @@ if (update_on>0) {
     }
 
     /** UPDATE IMAGE*/
-    m_nRetVal = m_Context.WaitOneUpdateAll(m_RGBImage);
+    //m_nRetVal = m_Context.WaitOneUpdateAll(m_RGBImage);
     if (!CheckError()) {
         MODebug2->Error("Kinect Failed to update data.");
     } else {
@@ -853,6 +863,7 @@ if (update_on>0) {
 
             }
 
+            /** esto se puede acelerar...*/
             if (pImage) {
                 for( int j=0; j<m_OutputMode.nYRes; j++ ) {
                     for( int i=0; i<m_OutputMode.nXRes; i++ ) {
@@ -871,17 +882,21 @@ if (update_on>0) {
                     m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImage, GL_RGB, GL_UNSIGNED_BYTE );
                 }
             }
+
         }
 
     }
 
     /** UPDATE DEPTH*/
-    m_nRetVal = m_Context.WaitOneUpdateAll(m_Depth);
-    if (!CheckError()) {
+    //m_nRetVal = m_Context.WaitOneUpdateAll(m_Depth);
+    if (!CheckError() && 1==2) {
         MODebug2->Error("Kinect Failed to update data.");
-    } else {
+    } else if (1==2) {
         const XnDepthPixel* pDepthMap = m_Depth.GetDepthMap();
-        if ( pDepthMap ) {
+
+        /** OPTIMIZAR */
+
+        if ( pDepthMap) {
 
             //MODebug2->Message("Getting Depth Map");
 
@@ -2503,8 +2518,158 @@ moKinect::Finish() {
 
 #ifdef KINECT_OPENNI
 
-#include "moKinectUserGenerator.cpp"
+//#include "moKinectUserGenerator.cpp"
 
+
+#include <map>
+std::map<XnUInt32, std::pair<XnCalibrationStatus, XnPoseDetectionStatus> > m_Errors;
+
+
+
+void MyCalibrationInProgress(xn::SkeletonCapability& capability, XnUserID id, XnCalibrationStatus calibrationError, void* pCookie)
+{
+	m_Errors[id].first = calibrationError;
+}
+void MyPoseInProgress(xn::PoseDetectionCapability& capability, const XnChar* strPose, XnUserID id, XnPoseDetectionStatus poseError, void* pCookie)
+{
+	m_Errors[id].second = poseError;
+}
+
+
+
+// Callback: New user was detected
+void User_NewUser(xn::UserGenerator& generator, XnUserID nId, void* pCookie)
+{
+	//printf("New User %d\n", nId);
+
+	moAbstract::MODebug2->Push( moText("New user:") + IntToStr(nId));
+
+	// New user found
+	if (m_bNeedPose)
+	{
+		m_UserGenerator.GetPoseDetectionCap().StartPoseDetection(m_strPose, nId);
+	}
+	else
+	{
+		m_UserGenerator.GetSkeletonCap().RequestCalibration(nId, TRUE);
+	}
+}
+
+
+// Callback: An existing user was lost
+void User_LostUser(xn::UserGenerator& generator, XnUserID nId, void* pCookie)
+{
+	moAbstract::MODebug2->Push( moText("Lost user:") + IntToStr(nId));
+	//printf("Lost user %d\n", nId);
+}
+
+
+// Callback: Detected a pose
+void UserPose_PoseDetected(xn::PoseDetectionCapability& capability, const XnChar* strPose, XnUserID nId, void* pCookie)
+{
+	//printf("Pose %s detected for user %d\n", strPose, nId);
+	moAbstract::MODebug2->Push( moText("Pose ") + moText(strPose) + moText(" detected for user: ") + IntToStr(nId));
+
+	m_UserGenerator.GetPoseDetectionCap().StopPoseDetection(nId);
+	m_UserGenerator.GetSkeletonCap().RequestCalibration(nId, TRUE);
+}
+// Callback: Started calibration
+void UserCalibration_CalibrationStart(xn::SkeletonCapability& capability, XnUserID nId, void* pCookie)
+{
+    moAbstract::MODebug2->Push( moText("Calibration started for user:") + IntToStr(nId));
+	//printf("Calibration started for user %d\n", nId);
+}
+// Callback: Finished calibration
+void UserCalibration_CalibrationEnd(xn::SkeletonCapability& capability, XnUserID nId, XnBool bSuccess, void* pCookie)
+{
+	if (bSuccess)
+	{
+		// Calibration succeeded
+		moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
+		//printf("Calibration complete, start tracking user %d\n", nId);
+		m_UserGenerator.GetSkeletonCap().StartTracking(nId);
+	}
+	else
+	{
+		// Calibration failed
+		//printf("Calibration failed for user %d\n", nId);
+		moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
+		if (m_bNeedPose)
+		{
+			m_UserGenerator.GetPoseDetectionCap().StartPoseDetection(m_strPose, nId);
+		}
+		else
+		{
+			m_UserGenerator.GetSkeletonCap().RequestCalibration(nId, TRUE);
+		}
+	}
+}
+
+void UserCalibration_CalibrationComplete(xn::SkeletonCapability& capability, XnUserID nId, XnCalibrationStatus eStatus, void* pCookie)
+{
+	if (eStatus == XN_CALIBRATION_STATUS_OK)
+	{
+		// Calibration succeeded
+		//printf("Calibration complete, start tracking user %d\n", nId);
+		moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
+		m_UserGenerator.GetSkeletonCap().StartTracking(nId);
+	}
+	else
+	{
+		// Calibration failed
+		//printf("Calibration failed for user %d\n", nId);
+		moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
+		if (m_bNeedPose)
+		{
+			m_UserGenerator.GetPoseDetectionCap().StartPoseDetection(m_strPose, nId);
+		}
+		else
+		{
+			m_UserGenerator.GetSkeletonCap().RequestCalibration(nId, TRUE);
+		}
+	}
+}
+
+// Save calibration to file
+void SaveCalibration()
+{
+	XnUserID aUserIDs[20] = {0};
+	XnUInt16 nUsers = 20;
+	m_UserGenerator.GetUsers(aUserIDs, nUsers);
+	for (int i = 0; i < nUsers; ++i)
+	{
+		// Find a user who is already calibrated
+		if (m_UserGenerator.GetSkeletonCap().IsCalibrated(aUserIDs[i]))
+		{
+			// Save user's calibration to file
+			m_UserGenerator.GetSkeletonCap().SaveCalibrationDataToFile(aUserIDs[i], XN_CALIBRATION_FILE_NAME);
+			break;
+		}
+	}
+}
+// Load calibration from file
+void LoadCalibration()
+{
+	XnUserID aUserIDs[20] = {0};
+	XnUInt16 nUsers = 20;
+	m_UserGenerator.GetUsers(aUserIDs, nUsers);
+	for (int i = 0; i < nUsers; ++i)
+	{
+		// Find a user who isn't calibrated or currently in pose
+		if (m_UserGenerator.GetSkeletonCap().IsCalibrated(aUserIDs[i])) continue;
+		if (m_UserGenerator.GetSkeletonCap().IsCalibrating(aUserIDs[i])) continue;
+
+		// Load user's calibration from file
+		XnStatus rc = m_UserGenerator.GetSkeletonCap().LoadCalibrationDataFromFile(aUserIDs[i], XN_CALIBRATION_FILE_NAME);
+		if (rc == XN_STATUS_OK)
+		{
+			// Make sure state is coherent
+			m_UserGenerator.GetPoseDetectionCap().StopPoseDetection(aUserIDs[i]);
+			m_UserGenerator.GetSkeletonCap().StartTracking(aUserIDs[i]);
+		}
+		break;
+	}
+}
 
 #endif
 
