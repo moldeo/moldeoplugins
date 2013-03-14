@@ -10,6 +10,7 @@
 AC_INIT([MoldeoPlugins], [0.7.9.7], [info@moldeointeractive.com.ar], [moldeoplugins])
 
 AM_INIT_AUTOMAKE
+AM_PROG_LIBTOOL
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CONFIG_SUBDIRS(
@@ -19,8 +20,9 @@ AC_CONFIG_SUBDIRS(
 	IODevices/NetOscIn 
 	IODevices/NetOscOut
 	IODevices/Serial
+	IODevices/Kinect
 	)
-#	IODevices/Kinect	
+#		
 #	 
 #	IODevices/Midi 
 #	
@@ -61,6 +63,7 @@ AC_CONFIG_SUBDIRS(
 	Effects/Icon3D
 	Effects/Image
 	Effects/ImageFlow
+	Effects/ImageFlow3D
 	Effects/Movie
 	Effects/Plane
 	Effects/SampleTest
