@@ -66,13 +66,14 @@
 ///Emitter Type
 /**
 * simple geometry type emitters available
+* (x,y,z) corresponde to parameters (emitter_vectorx,emitter_vectory, emitter_vectorz)
 */
 enum moParticlesSimpleEmitterType {
-  PARTICLES_EMITTERTYPE_GRID = 0,
-  PARTICLES_EMITTERTYPE_SPHERE = 1,
-  PARTICLES_EMITTERTYPE_TUBE = 2,
-  PARTICLES_EMITTERTYPE_JET = 3,
-  PARTICLES_EMITTERTYPE_POINT = 4,
+  PARTICLES_EMITTERTYPE_GRID = 0, /// grid shape emitter
+  PARTICLES_EMITTERTYPE_SPHERE = 1, /// sphere shape emitter (3d) ( x=width, y=height, z=depth )
+  PARTICLES_EMITTERTYPE_TUBE = 2, /// tube shape emitter (3d)
+  PARTICLES_EMITTERTYPE_JET = 3, /// line shape emitter (3d) vector line (x,y,z)
+  PARTICLES_EMITTERTYPE_POINT = 4, /// point shape, position (x,y,z)
   PARTICLES_EMITTERTYPE_TRACKER = 5,
   PARTICLES_EMITTERTYPE_TRACKER2 = 6,
   PARTICLES_EMITTERTYPE_SPIRAL = 7,
@@ -154,6 +155,9 @@ enum moParticlesOrientationMode {
 
 
 enum moParticlesSimpleParamIndex {
+  PARTICLES_INLET,
+  PARTICLES_OUTLET,
+  PARTICLES_SCRIPT,
 	PARTICLES_ALPHA,
 	PARTICLES_COLOR,
 	PARTICLES_SYNC,
@@ -189,7 +193,7 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_EMITIONPERIOD,
 	PARTICLES_EMITIONRATE,
 	PARTICLES_DEATHPERIOD,
-	PARTICLES_SCRIPT,
+    PARTICLES_SCRIPT2,
 
 	PARTICLES_FADEIN,
 	PARTICLES_FADEOUT,
@@ -244,8 +248,6 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VIEWX,
 	PARTICLES_VIEWY,
 	PARTICLES_VIEWZ,
-  PARTICLES_INLET,
-	PARTICLES_OUTLET,
 
 	PARTICLES_LIGHTX,
 	PARTICLES_LIGHTY,
@@ -287,10 +289,20 @@ class moParticlesSimple : public moAbstract {
       Visible = false;
       Captured = false;
 
+      /* Graphics  */
       GLId = -1;
       GLId2 = -1;
       pTextureMemory = NULL;
 
+      MOId = -1;
+
+      ActualFrame = 0;
+      FrameCount = 0;
+      FramePS = 0;
+
+      FrameForced = false;
+
+      MaxAge = 0; //depends on Physics.MaxAge first....
       Age.Stop();
 
     }
@@ -375,6 +387,12 @@ class moParticlesSimple : public moAbstract {
     MOint       GLId2;
     moTextureMemory *pTextureMemory;
 
+    bool        FrameForced;
+    int         MOId;
+    MOuint      ActualFrame;
+    MOuint      FrameCount;
+    MOuint      FramePS;
+
     ///Texture image proportion Width / Height ....
     float       ImageProportion;
 
@@ -382,6 +400,7 @@ class moParticlesSimple : public moAbstract {
 
     ///Age of the particle
     moTimer     Age;
+    long        MaxAge;
 };
 
 class moParticlesSimplePhysics : public moAbstract {
@@ -635,6 +654,7 @@ class moEffectParticlesSimple : public moEffect
         int luaGetParticleScale(moLuaVirtualMachine& vm);
         int luaGetParticleVelocity(moLuaVirtualMachine& vm);
         int luaGetParticleRotation(moLuaVirtualMachine& vm);
+        int luaGetParticleGraphics(moLuaVirtualMachine& vm);
 
         int luaUpdateParticle( moLuaVirtualMachine& vm );
         int luaUpdateParticlePosition( moLuaVirtualMachine& vm );
@@ -642,6 +662,7 @@ class moEffectParticlesSimple : public moEffect
         int luaUpdateParticleScale( moLuaVirtualMachine& vm );
         int luaUpdateParticleVelocity( moLuaVirtualMachine& vm );
         int luaUpdateParticleRotation( moLuaVirtualMachine& vm );
+        int luaUpdateParticleGraphics( moLuaVirtualMachine& vm );
 
         int luaUpdateForce( moLuaVirtualMachine& vm );
 

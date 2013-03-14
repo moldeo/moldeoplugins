@@ -37,8 +37,8 @@
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
 		</Compiler>
-		<Unit filename="inc/moEffectText.h" />
-		<Unit filename="src/moEffectText.cpp" />
+		<Unit filename="moEffectText.cpp" />
+		<Unit filename="moEffectText.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
