@@ -35,6 +35,8 @@
 
 *******************************************************************************/
 
+#include "cv.h"
+
 #include "moConfig.h"
 #include "moDeviceCode.h"
 #include "moEventList.h"
@@ -51,7 +53,6 @@
 #include "moTextureFilter.h"
 #include "moTextureFilterIndex.h"
 
-#include "cv.h"
 
 /*
 #include "cvblob.h"
