@@ -39,6 +39,8 @@
 		</Compiler>
 		<Unit filename="moKinect.cpp" />
 		<Unit filename="moKinect.h" />
+		<Unit filename="moKinectUserGenerator.cpp" />
+		<Unit filename="moKinectUserGenerator.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
