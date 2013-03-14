@@ -31,15 +31,23 @@
 
 #include "moKinect.h"
 
+#define MO_KINECT_CFG_STRCOD 0
+#define MO_KINECT_CFG_TYPE 1
+#define MO_KINECT_CFG_KINECTCOD 2
+
+
 #ifdef KINECT_OPENNI
 
     #include "moKinectUserGenerator.h"
 
 #endif
 
-#define MO_KINECT_CFG_STRCOD 0
-#define MO_KINECT_CFG_TYPE 1
-#define MO_KINECT_CFG_KINECTCOD 2
+
+#include "moArray.h"
+moDefineDynamicArray(moKinectPostures)
+moDefineDynamicArray(moKinectGestures)
+moDefineDynamicArray(moKinectGestureRules)
+moDefineDynamicArray(moVector3fs)
 
 
 //========================
@@ -124,6 +132,7 @@ moKinect::moKinect() {
 	m_pDepthTexture = NULL;
 	m_pDepthTexture2 = NULL;
 	m_pRGBTexture = NULL;
+	m_pUserTexture = NULL;
 	pCloud = NULL;
 	pCloudDif = NULL;
 
@@ -143,16 +152,21 @@ moKinect::moKinect() {
     dif_tex2 = -1;
     dif_tex3 = -1;
 
-	show_callback = false;
-	#ifdef KINECT_PCL
-        m_center_curvature = 0.0;
-        m_CenterNormal.normal[0] = 0.0;
-        m_CenterNormal.normal[1] = 0.0;
-        m_CenterNormal.normal[2] = 0.0;
-        m_CenterNormal.normal[3] = 0.0;
+    m_RightHand = NULL;
+    m_RightHandX = NULL;
+    m_RightHandY = NULL;
+    m_RightHandZ = NULL;
+    m_RightHandC = NULL;
 
-        m_ReferenceNormal = m_CenterNormal;
-	#endif
+    m_LeftHand = NULL;
+    m_LeftHandX = NULL;
+    m_LeftHandY = NULL;
+    m_LeftHandZ = NULL;
+    m_LeftHandC = NULL;
+
+    m_Gesture = NULL;
+
+	show_callback = false;
 }
 
 moKinect::~moKinect() {
@@ -353,6 +367,79 @@ void moKinect::UpdateParameters() {
     fovy = m_Config.Eval( moR(KINECT_VIEW_FOVY));
 
 
+/** KINECT SKELETON INFO  */
+        if (!m_RightHand) {
+            m_RightHand = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND") ) );
+        }
+        if (!m_RightHandX) {
+            m_RightHandX = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_X") ) );
+        }
+        if (!m_RightHandY) {
+            m_RightHandY = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_Y") ) );
+        }
+        if (!m_RightHandZ) {
+            m_RightHandZ = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_Z") ) );
+        }
+        if (!m_RightHandC) {
+            m_RightHandC = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_C") ) );
+        }
+
+        if (!m_LeftHand) {
+            m_LeftHand = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND") ) );
+        }
+        if (!m_LeftHandX) {
+            m_LeftHandX = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_X") ) );
+        }
+        if (!m_LeftHandY) {
+            m_LeftHandY = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_Y") ) );
+        }
+        if (!m_LeftHandZ) {
+            m_LeftHandZ = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_Z") ) );
+        }
+        if (!m_LeftHandC) {
+            m_LeftHandC = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_C") ) );
+        }
+/**Gesture INFO*/
+        if (!m_Gesture) {
+            m_Gesture = m_Outlets.GetRef( this->GetOutletIndex( moText("GESTURE") ) );
+        }
+
+        if (m_Gesture) {
+
+            //m_Gesture->AddMessage( m_GestureRecognition.m_DataMessage );
+/*
+            moDataMessage* pDataMessage = new moDataMessage();
+*/
+
+/*
+            pDataMessage->Add( moData("TESTING") );
+            pDataMessage->Add( moData("TESTING 2") );
+*/
+
+            //moData tdata = pDataMessage->Get(0);
+            //MODebug2->Message( moText("Testing datamessage sending: ") + moText( tdata.Text() ) );
+
+            //m_GestureRecognition.m_DataMessage.Add( moData("TESTING") );
+            //m_GestureRecognition.m_DataMessage.Add( moData("TESTING 2") );
+            m_Gesture->GetData()->SetMessage( (moDataMessage*)&m_GestureRecognition.m_DataMessage );
+            //m_Gesture->GetData()->SetMessage( pDataMessage );
+            m_Gesture->Update(true);
+
+          }
+
+        //RESET RIGHT HAND
+        m_VRightHand = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_RightHandC) { m_RightHandC->GetData()->SetFloat( -1.0f ); m_RightHandC->Update(true);}
+        if (m_RightHand) { m_RightHand->GetData()->SetVector( (moVector4d*)&m_VRightHand ); m_RightHand->Update(true); }
+
+        //RESET LEFT HAND
+        m_VLeftHand = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( -1.0f ); m_LeftHandC->Update(true);}
+        if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
+
+
 }
 
 MOboolean
@@ -383,32 +470,32 @@ moKinect::Init() {
 	moDefineParamIndex( KINECT_OFFSET_RADIUS, moText("offset_radius") );
 
 
-    moDefineParamIndex( KINECT_REF_POINT_DEEP, moText("reference_point_deep") );
+  moDefineParamIndex( KINECT_REF_POINT_DEEP, moText("reference_point_deep") );
 	moDefineParamIndex( KINECT_REF_POINT_WIDTH, moText("reference_point_width") );
 	moDefineParamIndex( KINECT_REF_POINT_HEIGHT, moText("reference_point_height") );
 
-    moDefineParamIndex( KINECT_REF_POINT_X, moText("reference_point_x") );
+  moDefineParamIndex( KINECT_REF_POINT_X, moText("reference_point_x") );
 	moDefineParamIndex( KINECT_REF_POINT_Y, moText("reference_point_y") );
 	moDefineParamIndex( KINECT_REF_POINT_Z, moText("reference_point_z") );
 
-    moDefineParamIndex( KINECT_OBJECT_RAD_MIN, moText("object_rad_min") );
+  moDefineParamIndex( KINECT_OBJECT_RAD_MIN, moText("object_rad_min") );
 	moDefineParamIndex( KINECT_OBJECT_RAD_MAX, moText("object_rad_max") );
 
 	moDefineParamIndex( KINECT_CALIBRATE_BASE, moText("calibrate_base") );
 	moDefineParamIndex( KINECT_BASE_CAMERA_I, moText("base_camera_i") );
 	moDefineParamIndex( KINECT_BASE_CAMERA_J, moText("base_camera_j") );
 
-    moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Z_NEAR, moText("umbral_camera_presencia_z_near") );
-    moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Z_FAR, moText("umbral_camera_presencia_z_far") );
-    moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Y_OFFSET, moText("umbral_camera_presencia_y_offset") );
+  moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Z_NEAR, moText("umbral_camera_presencia_z_near") );
+  moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Z_FAR, moText("umbral_camera_presencia_z_far") );
+  moDefineParamIndex( KINECT_UMBRAL_CAMERA_PRESENCIA_Y_OFFSET, moText("umbral_camera_presencia_y_offset") );
 
 
-    moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Y_OFFSET, moText("umbral_trackeo_y_offset") );
-    moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Z_NEAR, moText("umbral_trackeo_z_near") );
-    moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Z_FAR, moText("umbral_trackeo_z_far") );
-    moDefineParamIndex( KINECT_TRACKEO_FACTOR_ANGULO, moText("trackeo_factor_angulo") );
+  moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Y_OFFSET, moText("umbral_trackeo_y_offset") );
+  moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Z_NEAR, moText("umbral_trackeo_z_near") );
+  moDefineParamIndex( KINECT_UMBRAL_TRACKEO_Z_FAR, moText("umbral_trackeo_z_far") );
+  moDefineParamIndex( KINECT_TRACKEO_FACTOR_ANGULO, moText("trackeo_factor_angulo") );
 
-    moDefineParamIndex( KINECT_UMBRAL_OBJETO_Z_NEAR, moText("umbral_objeto_z_near") );
+  moDefineParamIndex( KINECT_UMBRAL_OBJETO_Z_NEAR, moText("umbral_objeto_z_near") );
 
 	moDefineParamIndex( KINECT_VIEW_SCALEFACTOR, moText("view_scalefactor") );
 	moDefineParamIndex( KINECT_VIEW_FOVY, moText("view_fovy") );
@@ -456,56 +543,12 @@ moKinect::Init() {
 
     int Mid = -1;
 
-
-#ifdef KINECT_PCL
-    /** RGB texture*/
-    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTRGB", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
-    if (Mid>0) {
-        m_pRGBTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pRGBTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
-    } else {
-        MODebug2->Error("Couldn't create texture: KINECTRGB");
-    }
-
-    /** DEPTH texture*/
-    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTDEPTH", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
-    if (Mid>0) {
-        m_pDepthTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pDepthTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
-    } else {
-        MODebug2->Error("Couldn't create texture: KINECTDEPTH");
-    }
-
-    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTDEPTH2", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
-    if (Mid>0) {
-        m_pDepthTexture2 = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pDepthTexture2->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
-    } else {
-        MODebug2->Error("Couldn't create texture: KINECTDEPTH2");
-    }
-
-/*
-        m_fbo_idx = m_pResourceManager->GetFBMan()->CreateFBO();
-        pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
-
-        pFBO->AddTexture(   m_OutputMode.nXRes,
-                            m_OutputMode.nYRes,
-                            m_pDepthTexture->GetTexParam(),
-                            m_pDepthTexture->GetGLId(),
-                            attach_point );
-
-        m_pDepthTexture->SetFBO( pFBO );
-        m_pDepthTexture->SetFBOAttachPoint( attach_point );
-*/
-#endif
-
-
-
 #ifdef KINECT_OPENNI
 
     m_nRetVal = m_Context.Init();
     if (!CheckError()) {
         MODebug2->Error("Couldn't initialize Kinect Context");
+        this->m_bInitialized = false;
         return false;
     } else {
         MODebug2->Message("Kinect Context Initialized!!");
@@ -515,6 +558,7 @@ moKinect::Init() {
     m_nRetVal = m_UserGenerator.Create(m_Context);
     if (!CheckError()) {
         MODebug2->Error("Couldn't initialize Kinect User Generator");
+        this->m_bInitialized = false;
         return false;
     } else {
 
@@ -524,6 +568,7 @@ moKinect::Init() {
         if (!m_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_SKELETON))
         {
             MODebug2->Error( moText("Supplied user generator doesn't support skeleton") );
+            this->m_bInitialized = false;
             return false;
         }
 
@@ -543,6 +588,7 @@ moKinect::Init() {
             if (!m_UserGenerator.IsCapabilitySupported(XN_CAPABILITY_POSE_DETECTION))
             {
                 MODebug2->Error( moText("Pose required, but not supported"));
+                this->m_bInitialized = false;
                 return false;
             }
             m_nRetVal = m_UserGenerator.GetPoseDetectionCap().RegisterToPoseDetected(UserPose_PoseDetected, NULL, hPoseDetected);
@@ -558,17 +604,47 @@ moKinect::Init() {
         m_nRetVal = m_UserGenerator.GetPoseDetectionCap().RegisterToPoseInProgress(MyPoseInProgress, NULL, hPoseInProgress);
         //CHECK_RC(nRetVal, "Register to pose in progress");
 
+        int Uid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTUSER", m_OutputMode.nXRes, m_OutputMode.nYRes );
+        if (Uid>0) {
+
+
+            MODebug2->Message("KINECTUSER texture created!!");
+
+            m_pUserTexture = GetResourceManager()->GetTextureMan()->GetTexture(Uid);
+
+            if (m_pUserTexture) {
+
+                m_pUserTexture->BuildEmpty(m_OutputMode.nXRes, m_OutputMode.nYRes);
+
+                m_fbo_idx = m_pResourceManager->GetFBMan()->CreateFBO();
+
+                /*optimizar*/
+                pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
+                if (pFBO) {
+                    pFBO->AddTexture(   m_OutputMode.nXRes, m_OutputMode.nYRes, m_pUserTexture->GetTexParam(), m_pUserTexture->GetGLId(),
+                                      attach_point );
+                    //opcion con depth buffer and stencil para escenas complejas
+                    pFBO->AddDepthStencilBuffer();
+
+                    //m_pUserTexture->SetFBO( pFBO );
+                    //m_pUserTexture->SetFBOAttachPoint( attach_point );
+                }
+
+
+            }
+        }
     }
 
     /** Create a DepthGenerator node */
 
-    //m_nRetVal = m_Depth.Create(m_Context);
-    if (!CheckError() && 1==2) {
+    m_nRetVal = m_Depth.Create(m_Context);
+    if (!CheckError()) {
 
         MODebug2->Error("Couldn't create DepthGenerator");
+        this->m_bInitialized = false;
         return false;
 
-    } else if (1==2) {
+    } else if (1==1) {
 
         MODebug2->Message("Kinect DepthGenerator Created!!");
 
@@ -579,6 +655,7 @@ moKinect::Init() {
         m_nRetVal = m_Depth.SetMapOutputMode(m_OutputMode);
         if (!CheckError()) {
             MODebug2->Error("Couldn't set Map Outputmode");
+            this->m_bInitialized = false;
             return false;
         }
 
@@ -631,6 +708,7 @@ moKinect::Init() {
     if (!CheckError()) {
 
         MODebug2->Error("Couldn't create ImageGenerator");
+        this->m_bInitialized = false;
         return false;
 
     } else {
@@ -690,34 +768,10 @@ moKinect::Init() {
     m_nRetVal = m_Context.StartGeneratingAll();
     if (!CheckError()) {
         MODebug2->Error("Couldn't start all generators");
+        this->m_bInitialized = false;
         return false;
     } else {
         MODebug2->Message("Kinect All Generators Started!!");
-    }
-#endif
-
-
-#ifdef KINECT_PCL
-    interface = new pcl::OpenNIGrabber();
-
-    if (interface) {
-
-        MODebug2->Message("OpenNIGrabber interface created.");
-
-        boost::function<void (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr&)> f =
-            boost::bind (&moKinect::cloud_cb_, this, _1);
-
-        // connect callback function for desired signal. In this case its a point cloud with color values
-        boost::signals2::connection c = interface->registerCallback (f);
-
-        // start receiving point clouds
-        interface->start ();
-
-
-
-    } else {
-        MODebug2->Error("Couldn't create OpenNIGrabber interface");
-        return false;
     }
 #endif
 
@@ -755,6 +809,37 @@ moKinect::Init() {
 			return false;
 		}
 	}
+
+  m_GestureRecognition.Init();
+
+  moKinectGesture SlideHorizontalRight;
+  SlideHorizontalRight.m_GestureEvent = "SLIDE_HORIZONTAL_RIGHT";
+  SlideHorizontalRight.m_Interval = moKinectGestureInterval( 6, 0, 6 );
+  SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
+                                            moVector3f( 1 /*Proportion VX over VY*/, 0 /*only VX*/, 0/*VY*/ ),
+                                            /*MIN*/moVector3f( 2.5f, 0, 0 ),
+                                            /*MAX*/ moVector3f( 1000000.0f, 0, 0 ) );
+  SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_LEFT,
+                                            moVector3f( 0 /*Lenght V*/, 1 /*only VX*/, 0/*VY*/ ),
+                                            /*MIN*/moVector3f( 0, 1.0f, 0 ),
+                                            /*MAX*/ moVector3f( 0, 100000.0f, 0 ) );
+
+  //SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_LEFT, moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ), /*MIN*/moVector3f( 0, 0, -2 ), /*MAX*/ moVector3f( 0, 0, 2 ) );
+  m_GestureRecognition.m_Gestures.Add( SlideHorizontalRight );
+
+
+  //moKinectGesture SlideVerticalRight;
+  //SlideVerticalRight.m_GestureEvent = "SLIDE_VERTICAL_RIGHT";
+  //SlideVerticalRight.m_Interval = moKinectGestureInterval( 25, 0, 25 );
+  //SlideVerticalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_RIGHT, moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ), /*MIN*/moVector3f( 0, 0, 20 ), /*MAX*/ moVector3f( 0, 0, 100 ) );
+  //m_GestureRecognition.m_Gestures.Add( SlideVerticalRight );
+
+
+
+
+
+    /**MARK AS INITIALIZES*/
+	this->m_bInitialized = true;
 
 	return true;
 }
@@ -811,6 +896,194 @@ moKinect::GetCode(moText strcod) {
 	return(-1);//error, no encontro
 }
 
+
+
+bool moKinect::DrawLimb(XnUserID player, XnSkeletonJoint eJoint1, XnSkeletonJoint eJoint2)
+{
+	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
+	{
+		printf("not tracked!\n");
+		return true;
+	}
+
+	if (!m_UserGenerator.GetSkeletonCap().IsJointActive(eJoint1) ||
+		!m_UserGenerator.GetSkeletonCap().IsJointActive(eJoint2))
+	{
+		return false;
+	}
+
+	XnSkeletonJointPosition joint1, joint2;
+	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint1, joint1);
+	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint2, joint2);
+
+	if (joint1.fConfidence < 0.5 || joint2.fConfidence < 0.5)
+	{
+		return true;
+	}
+
+	XnPoint3D pt[2];
+	pt[0] = joint1.position;
+	pt[1] = joint2.position;
+
+	m_Depth.ConvertRealWorldToProjective(2, pt, pt);
+
+
+	glVertex3i(pt[0].X, pt[0].Y, 0);
+	glVertex3i(pt[1].X, pt[1].Y, 0);
+	return true;
+}
+
+static const float DEG2RAD = 3.14159/180;
+
+void moKinect::drawCircle(float x, float y, float radius)
+{
+   glBegin(GL_TRIANGLE_FAN);
+
+   for (int i=0; i < 360; i++)
+   {
+      float degInRad = i*DEG2RAD;
+      glVertex2f(x + cos(degInRad)*radius, y + sin(degInRad)*radius);
+   }
+
+   glEnd();
+}
+void moKinect::DrawJoint(XnUserID player, XnSkeletonJoint eJoint)
+{
+	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
+	{
+		printf("not tracked!\n");
+		return;
+	}
+
+	if (!m_UserGenerator.GetSkeletonCap().IsJointActive(eJoint))
+	{
+		return;
+	}
+
+	XnSkeletonJointPosition joint;
+	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint, joint);
+
+	if (joint.fConfidence < 0.5)
+	{
+		return;
+	}
+
+	XnPoint3D pt;
+	pt = joint.position;
+
+	m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+
+	drawCircle(pt.X, pt.Y, 4);
+}
+
+void moKinect::DrawGestureRecognition() {
+
+  ///AXES X: time, Y: value
+  glColor4f( 1.0, 1.0, 1.0, 1.0 );
+
+  float sscale = 100.0f;
+
+  float arrowscale = 0.1f;
+  float xpos=100.0f,ypos=100.0f;
+
+  //glScalef( sscale, sscale, sscale );
+
+  glLineWidth(4.0);
+  glPointSize(4.0);
+
+  glBegin(GL_LINES);
+    glVertex3i( xpos, ypos+sscale, 0 );
+    glVertex3i( xpos, ypos, 0 );
+    glVertex3i( xpos+sscale, ypos, 0 );
+    glVertex3i( xpos, ypos, 0 );
+  glEnd();
+
+  ///flecha X
+  glBegin(GL_LINES);
+    glVertex3f( xpos+sscale - sscale*arrowscale, ypos + sscale*arrowscale, 0.0 );
+    glVertex3f( xpos+sscale, ypos, 0.0 );
+    glVertex3f( xpos+sscale - sscale*arrowscale, ypos - sscale*arrowscale, 0.0 );
+  glEnd();
+
+  ///flecha Y
+  glBegin(GL_LINES);
+    glVertex3f( xpos - sscale*arrowscale, ypos + sscale - sscale*arrowscale, 0.0 );
+    glVertex3f( xpos, ypos+sscale, 0.0 );
+    glVertex3f( xpos + sscale*arrowscale, ypos + sscale - sscale*arrowscale, 0.0 );
+    glVertex3f( xpos, ypos+sscale, 0.0 );
+  glEnd();
+
+
+
+  ///Draw values:
+  ///take ring gesture, and draw last gesture in position 0, to last... in ...
+
+  int ringp = m_GestureRecognition.m_RingPosition;
+  int ringmax = m_GestureRecognition.m_RingMaxPosition;
+  int ri, steps = ringmax;
+  int r;
+
+
+  for( ri=ringp,r=0; steps>0; steps--,ri--,r++ ) {
+
+    if (ri<0) ri = ringmax; ///loop ring
+
+    moKinectPosture& Posture( m_GestureRecognition.m_RingGesture.m_Postures[ri] );
+
+    //MODebug2->Push( "ri: " + IntToStr(ri) + " MO_KIN_REL_HAND_LEFT: " + FloatToStr( Posture.m_PostureVector[MO_KIN_REL_HAND_LEFT].X() ) );
+
+    glBegin(GL_POINTS);
+/*
+      ///DIST BETWEEN HANDS: RED
+      glColor4f( 1.0f, 0.0f, 0.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_DIST_ABS_INTER_HANDS].X() / 10.0f, 0.0 );
+
+      ///REL HAND LEFT (to neck): green
+      glColor4f( 0.0f, 1.0f, 0.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_REL_HAND_LEFT].X() / 10.0f, 0.0 );
+      glColor4f( 0.0f, 0.7f, 0.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_REL_HAND_LEFT].Y() / 10.0f, 0.0 );
+
+      ///REL HAND RIGHT (to neck): blue
+      glColor4f( 0.0f, 0.0f, 1.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_REL_HAND_RIGHT].X() / 10.0f, 0.0 );
+      glColor4f( 0.0f, 0.0f, 0.7f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_REL_HAND_RIGHT].Y()  / 10.0f , 0.0 );
+
+*/
+      ///SPEED HAND RIGHT: blue
+      //glColor4f( 0.6f, 0.6f, 1.0f, 1.0f);
+      //glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_RIGHT].X(), 0.0 );
+      /*
+      glColor4f( 0.5f, 0.5f, 0.85f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_RIGHT].Y(), 0.0 );
+      glColor4f( 0.5f, 0.5f, 0.7f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_RIGHT].Z(), 0.0 );
+*/
+
+      ///SPEED HAND LEFT: green
+      //glColor4f( 0.6f, 1.0f, 0.6f, 1.0f);
+      //glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_LEFT].X(), 0.0 );
+      //glColor4f( 0.5f, 0.85f, 0.5f, 1.0f);
+      /*
+      glColor4f( 1.0f, 0.0f, 0.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_LEFT].Y(), 0.0 );
+      glColor4f( 0.0f, 0.0f, 1.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_LEFT].Z(), 0.0 );
+      */
+
+      glColor4f( 0.0f, 1.0f, 1.0f, 1.0f);
+      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_PROP_HAND_LEFT].X(), 0.0 );
+
+
+    glEnd();
+
+  }
+
+
+}
+
+
 void
 moKinect::Update(moEventList *Events) {
 	MOuint i;
@@ -818,34 +1091,182 @@ moKinect::Update(moEventList *Events) {
 
     UpdateParameters();
 
-#ifdef KINECT_PCL
-    if (update_on<1) {
-
-        if (interface  ) interface->stop();
-        return;
-    } else {
-        if (interface ) interface->start();
-    }
-#endif
-
-
 
 #ifdef KINECT_OPENNI
+if (update_on>0 && this->Initialized() ) {
 
-if (update_on>0) {
+    //MODebug2->Message("moKinect::Update > Updating");
 
     m_nRetVal = m_Context.WaitNoneUpdateAll();
-
-    /** USER GENERATOR */
-
-    //m_UserGenerator
     //m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
 
+   // MODebug2->Message("moKinect::Update > m_Context.WaitNoneUpdateAll() " + IntToStr(m_nRetVal) );
+
+    /** USER GENERATOR */
+    //m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
     if (!CheckError()) {
         MODebug2->Error("Kinect Failed to update data.");
-    } else {
+    } else if (1==1) {
 
         /**  TODO: hahcer algo aqui (dibujar los esqueletos ? ) */
+        XnUserID aUsers[15] = {0};
+        XnUInt16 nUsers = 15;
+        m_UserGenerator.GetUsers(aUsers, nUsers);
+
+        for (i = 0; i < nUsers; ++i)
+        {
+
+            if ( m_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i]) )
+            {
+
+                m_GestureRecognition.UpdateUser( aUsers[i] );
+
+
+                XnPoint3D pt;
+
+                //sacar posicion de la mano....(pasar esto a un inlet, para poder ser pasado a la consola y ser consultado...) enviar como feature???
+                //NO, enviar como mano....
+                XnSkeletonJointPosition xnrighthand;
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_RIGHT_HAND, xnrighthand);
+                pt = xnrighthand.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VRightHand = moVector4d( pt.X, pt.Y, pt.Z, xnrighthand.fConfidence );
+
+                if (m_RightHandX) { m_RightHandX->GetData()->SetFloat( m_VRightHand.X() ); m_RightHandX->Update(true); }
+                if (m_RightHandY) { m_RightHandY->GetData()->SetFloat( m_VRightHand.Y() ); m_RightHandY->Update(true); }
+                if (m_RightHandZ) { m_RightHandZ->GetData()->SetFloat( m_VRightHand.Z() ); m_RightHandZ->Update(true); }
+                if (m_RightHandC) { m_RightHandC->GetData()->SetFloat( xnrighthand.fConfidence ); m_RightHandC->Update(true); }
+                if (m_RightHand) { m_RightHand->GetData()->SetVector( (moVector4d*)&m_VRightHand ); m_RightHand->Update(true); }
+
+                //MODebug2->Message("moKinect::Update > RightHand: user" + IntToStr(i) + " X:" + FloatToStr(xnrighthand.position.X) + " Y:" + FloatToStr(xnrighthand.position.Y) + " C:" + FloatToStr(xnrighthand.fConfidence) );
+                XnSkeletonJointPosition xnlefthand;
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_LEFT_HAND, xnlefthand);
+                pt = xnlefthand.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VLeftHand = moVector4d( pt.X, pt.Y, pt.Z, xnlefthand.fConfidence );
+
+                if (m_LeftHandX) { m_LeftHandX->GetData()->SetFloat( m_VLeftHand.X() ); m_LeftHandX->Update(true); }
+                if (m_LeftHandY) { m_LeftHandY->GetData()->SetFloat( m_VLeftHand.Y() ); m_LeftHandY->Update(true); }
+                if (m_LeftHandZ) { m_LeftHandZ->GetData()->SetFloat( m_VLeftHand.Z() ); m_LeftHandZ->Update(true); }
+                if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( xnlefthand.fConfidence ); m_LeftHandC->Update(true); }
+                if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
+
+                //MODebug2->Message("moKinect::Update > LeftHand: user" + IntToStr(i) + " X:" + FloatToStr(xnlefthand.position.X) + " Y:" + FloatToStr(xnlefthand.position.Y) );
+
+            }
+
+        }
+
+
+
+        if (pFBO && m_pUserTexture) {
+
+            pFBO->Bind();
+            pFBO->SetDrawTexture( m_pUserTexture->GetFBOAttachPoint() );
+            //MODebug2->Message("moKinect:: Drawing user texture");
+            //glClearColor(0.0, 0.0, 0.0, 1.0);
+            glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glLoadIdentity();
+
+            //xn::SceneMetaData sceneMD;
+            //xn::DepthMetaData depthMD;
+            //m_Depth.GetMetaData(depthMD);
+            //glOrtho(0, depthMD.XRes(), depthMD.YRes(), 0, -1.0, 1.0);
+            //m_pResourceManager->GetGLMan()->SetOrthographicView();
+            m_pResourceManager->GetGLMan()->SetOrthographicView( m_pUserTexture->GetWidth(), m_pUserTexture->GetHeight() );
+            glDisable(GL_TEXTURE_2D);
+
+
+            for (i = 0; i < nUsers; ++i)
+            {
+
+              if (i==0) glColor4f( 1.0, 1.0, 1.0, 1.0 );
+              if (i==1) glColor4f( 0.0, 1.0, 0.0, 1.0 );
+              if (i==2) glColor4f( 1.0, 0.0, 0.0, 1.0 );
+
+              // Try to draw all joints
+              DrawJoint(aUsers[i], XN_SKEL_HEAD);
+              DrawJoint(aUsers[i], XN_SKEL_NECK);
+              DrawJoint(aUsers[i], XN_SKEL_TORSO);
+              DrawJoint(aUsers[i], XN_SKEL_WAIST);
+
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_COLLAR);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_SHOULDER);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_ELBOW);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_WRIST);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_HAND);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_FINGERTIP);
+
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_COLLAR);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_SHOULDER);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_ELBOW);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_WRIST);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_HAND);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_FINGERTIP);
+
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_HIP);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_KNEE);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_ANKLE);
+              DrawJoint(aUsers[i], XN_SKEL_LEFT_FOOT);
+
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_HIP);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_KNEE);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_ANKLE);
+              DrawJoint(aUsers[i], XN_SKEL_RIGHT_FOOT);
+
+              // Draw Limbs
+              glBegin(GL_LINES);
+              DrawLimb(aUsers[i], XN_SKEL_HEAD, XN_SKEL_NECK);
+
+              DrawLimb(aUsers[i], XN_SKEL_NECK, XN_SKEL_LEFT_SHOULDER);
+              DrawLimb(aUsers[i], XN_SKEL_LEFT_SHOULDER, XN_SKEL_LEFT_ELBOW);
+              if (!DrawLimb(aUsers[i], XN_SKEL_LEFT_ELBOW, XN_SKEL_LEFT_WRIST))
+              {
+                  DrawLimb(aUsers[i], XN_SKEL_LEFT_ELBOW, XN_SKEL_LEFT_HAND);
+              }
+              else
+              {
+                  DrawLimb(aUsers[i], XN_SKEL_LEFT_WRIST, XN_SKEL_LEFT_HAND);
+                  DrawLimb(aUsers[i], XN_SKEL_LEFT_HAND, XN_SKEL_LEFT_FINGERTIP);
+              }
+
+
+              DrawLimb(aUsers[i], XN_SKEL_NECK, XN_SKEL_RIGHT_SHOULDER);
+              DrawLimb(aUsers[i], XN_SKEL_RIGHT_SHOULDER, XN_SKEL_RIGHT_ELBOW);
+              if (!DrawLimb(aUsers[i], XN_SKEL_RIGHT_ELBOW, XN_SKEL_RIGHT_WRIST))
+              {
+                  DrawLimb(aUsers[i], XN_SKEL_RIGHT_ELBOW, XN_SKEL_RIGHT_HAND);
+              }
+              else
+              {
+                  DrawLimb(aUsers[i], XN_SKEL_RIGHT_WRIST, XN_SKEL_RIGHT_HAND);
+                  DrawLimb(aUsers[i], XN_SKEL_RIGHT_HAND, XN_SKEL_RIGHT_FINGERTIP);
+              }
+
+              DrawLimb(aUsers[i], XN_SKEL_LEFT_SHOULDER, XN_SKEL_TORSO);
+              DrawLimb(aUsers[i], XN_SKEL_RIGHT_SHOULDER, XN_SKEL_TORSO);
+
+              DrawLimb(aUsers[i], XN_SKEL_TORSO, XN_SKEL_LEFT_HIP);
+              DrawLimb(aUsers[i], XN_SKEL_LEFT_HIP, XN_SKEL_LEFT_KNEE);
+              DrawLimb(aUsers[i], XN_SKEL_LEFT_KNEE, XN_SKEL_LEFT_FOOT);
+
+              DrawLimb(aUsers[i], XN_SKEL_TORSO, XN_SKEL_RIGHT_HIP);
+              DrawLimb(aUsers[i], XN_SKEL_RIGHT_HIP, XN_SKEL_RIGHT_KNEE);
+              DrawLimb(aUsers[i], XN_SKEL_RIGHT_KNEE, XN_SKEL_RIGHT_FOOT);
+
+              DrawLimb(aUsers[i], XN_SKEL_LEFT_HIP, XN_SKEL_RIGHT_HIP);
+              glEnd();
+            }
+
+            /** DIBUJAR EL GRAFICO DE GESTURES.... */
+            DrawGestureRecognition();
+
+            pFBO->Unbind();
+        }
 
 
     }
@@ -855,8 +1276,15 @@ if (update_on>0) {
     if (!CheckError()) {
         MODebug2->Error("Kinect Failed to update data.");
     } else {
-        const XnRGB24Pixel*    pImageMap = m_RGBImage.GetRGB24ImageMap();
-        if (pImageMap) {
+        //const XnRGB24Pixel*    pImageMap = m_RGBImage.GetRGB24ImageMap();
+
+        xn::ImageMetaData imageMD;
+
+        m_RGBImage.GetMetaData(imageMD);
+        const XnUInt8* pImageData = imageMD.Data();
+
+
+        if (pImageData) {
 
             if (!pImage) {
                 pImage =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
@@ -865,6 +1293,7 @@ if (update_on>0) {
 
             /** esto se puede acelerar...*/
             if (pImage) {
+                /*
                 for( int j=0; j<m_OutputMode.nYRes; j++ ) {
                     for( int i=0; i<m_OutputMode.nXRes; i++ ) {
                             pImage[i*3+j*m_OutputMode.nXRes*3] = (*pImageMap).nRed;
@@ -880,6 +1309,10 @@ if (update_on>0) {
                 if (m_pRGBTexture) {
                     //MODebug2->Push("Building");
                     m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImage, GL_RGB, GL_UNSIGNED_BYTE );
+                }*/
+                if (m_pRGBTexture) {
+                    //MODebug2->Push("Building");
+                    m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImageData, GL_RGB, GL_UNSIGNED_BYTE );
                 }
             }
 
@@ -891,10 +1324,13 @@ if (update_on>0) {
     //m_nRetVal = m_Context.WaitOneUpdateAll(m_Depth);
     if (!CheckError() && 1==2) {
         MODebug2->Error("Kinect Failed to update data.");
-    } else if (1==2) {
-        const XnDepthPixel* pDepthMap = m_Depth.GetDepthMap();
+    } else if (1==1) {
+        //const XnDepthPixel* pDepthMap = m_Depth.GetDepthMap();
+        xn::DepthMetaData depthMD;
 
+        m_Depth.GetMetaData(depthMD);
         /** OPTIMIZAR */
+        const XnDepthPixel* pDepthMap = depthMD.Data();
 
         if ( pDepthMap) {
 
@@ -972,7 +1408,7 @@ if (update_on>0) {
                             pData2[i*3+j*m_OutputMode.nXRes*3] = 0;
                             pData2[i*3+1+j*m_OutputMode.nXRes*3] = 0;
                             pData2[i*3+2+j*m_OutputMode.nXRes*3] = 0;
-
+/*
                             float z2 = ( (float) z * scaleFactor );
                             //x = (i - 320) * (z2 + minDistance) * scaleFactor;
                             //y = (240 - j) * (z2 + minDistance) * scaleFactor;
@@ -988,85 +1424,8 @@ if (update_on>0) {
                                 pCloudDif[i+j*m_OutputMode.nXRes] = pCloud[i+j*m_OutputMode.nXRes] - m_ReferencePoint;
 
                                 distance_r = pCloudDif[i+j*m_OutputMode.nXRes].Length();
-
-                                /*
-
-                                if (distance_r > m_RadMax ) {
-                                    //pData[i*3+1+j*m_OutputMode.nXRes*3] = 0;
-                                } else if ( distance_r > m_RadMin) {
-                                    pData[i*3+j*m_OutputMode.nXRes*3] = 0;
-                                    pData[i*3+1+j*m_OutputMode.nXRes*3] = 0;
-                                    pData[i*3+2+j*m_OutputMode.nXRes*3] = ((int)(distance_r) % 255);
-                                } else if (distance_r < m_RadMin ) {
-                                    pData[i*3+j*m_OutputMode.nXRes*3] = 255;
-                                    pData[i*3+1+j*m_OutputMode.nXRes*3] = 0;
-                                    pData[i*3+2+j*m_OutputMode.nXRes*3] = 255;
-
-                                    if ( calibrate_base==1 && n_base_h < n_base_max  && abs(ical-i)>1 && i>ical ) {
-                                        indice_base_h[ n_base_h*2 ] = i;
-                                        indice_base_h[ n_base_h*2 + 1 ] = j;
-                                        ical = i;
-                                        jcal = j;
-                                        n_base_h++;
-                                        MODebug2->Push("Se agrego un indice a la base H");
-                                    }
-                                    if (j>jcal) {
-                                        ical = 0;
-                                    }
-                                }
-                                */
-
-                                /*si ya sacamos una normal*/
-                                /*
-                                if (BaseNormal.Length() > 0.01) {
-                                    //calculamos los puntos que estan sobre la base
-                                    moVector3f ResV = pCloud[i+j*m_OutputMode.nXRes] - m_ReferencePoint;
-                                    float res = BaseNormal.Dot( ResV );
-                                    //si ya tenemos un resultado del escalar, si enegativo esta por encima...
-                                    if ( res < 0.1 ) {
-                                         pData[i*3+j*m_OutputMode.nXRes*3] = 0;
-                                         pData[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
-                                         pData[i*3+2+j*m_OutputMode.nXRes*3] = 0;
-
-                                        pData2[i*3+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
-                                        pData2[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
-                                        pData2[i*3+2+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
-                                    }
-
-                                }
-                                */
-
-                                /*
-                                if ( i>=(m_OutputMode.nXRes/2-1) && i<=(m_OutputMode.nXRes/2+1) && j>=(m_OutputMode.nYRes/2-1) && j<=(m_OutputMode.nYRes/2+1)) {
-
-                                    pData[i*3+j*m_OutputMode.nXRes*3] = 0;
-                                    pData[i*3+1+j*m_OutputMode.nXRes*3] = 255;
-                                    pData[i*3+2+j*m_OutputMode.nXRes*3] = 0;
-                                    if (i== m_OutputMode.nXRes/2 && j== m_OutputMode.nYRes/2) {
-                                        //
-                                        //MODebug2->Push( IntToStr(*pDepthMap) + moText("(0,0) <x> ") + FloatToStr(x)
-                                        //           + moText(" <y> ") + FloatToStr(y)
-                                        //           + moText(" <z> ") + FloatToStr(z)
-                                        //           + moText(" <d> ") + FloatToStr(distance_r) );
-
-                                    }
-                                }
-
-                                if (i>=69 && i<=71 && j>=69 && j<=71) {
-                                    pData[i*3+j*m_OutputMode.nXRes*3] = 0;
-                                    pData[i*3+1+j*m_OutputMode.nXRes*3] = 255;
-                                    pData[i*3+2+j*m_OutputMode.nXRes*3] = 255;
-                                    if (i==70 && j==70) {
-
-                                        //MODebug2->Push( IntToStr(*pDepthMap) + moText("(70,70) <x> ") + FloatToStr(x)
-                                          //         + moText(" <y> ") + FloatToStr(y)
-                                            //       + moText(" <z> ") + FloatToStr(z)
-                                              //     + moText(" <d> ") + FloatToStr(distance_r) );
-                                     }
-                                }
-                                */
                             } //fin analisis
-
+*/
                         } else {
 
                             pData[i*3+j*m_OutputMode.nXRes*3] = 0;
@@ -1083,7 +1442,14 @@ if (update_on>0) {
                         pDepthMap++;
                     }
                 }
+
+                if (m_pDepthTexture) {
+                    m_pDepthTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData, GL_RGB, GL_UNSIGNED_BYTE );
+                }
+
+
                 /*CALCULAMOS LA NORMAL DE LA BASE*/
+                /*
                 if ( calibrate_base==1 && n_base_h == n_base_max ) {
 
                     moVector3f vU,vV,vN;
@@ -1109,14 +1475,12 @@ if (update_on>0) {
                                             + moText(" z:") + FloatToStr( BaseNormal.Z() )
                             );
                 }
-
-                if (m_pDepthTexture) {
-                    m_pDepthTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData, GL_RGB, GL_UNSIGNED_BYTE );
-                }
-
+*/
+/*
                 if (m_pDepthTexture2) {
                     m_pDepthTexture2->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData2, GL_RGB, GL_UNSIGNED_BYTE );
                 }
+*/
 
             }
         }
@@ -1240,1269 +1604,13 @@ if (update_on>0) {
     }
 
 
-
-
-/*
-    m_nRetVal = m_Context.WaitOneUpdateAll(m_IRImage);
-    if (!CheckError()) {
-        MODebug2->Error("Kinect Failed to update data.");
-    } else {
-        const XnIRPixel*    pImageMap = m_IRImage.GetIRMap();
-        if (pImageMap) {
-
-            if (!pIR) {
-                pIR =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
-
-            }
-
-            if (pIR) {
-                for( int j=0; j<m_OutputMode.nYRes; j++ ) {
-                    for( int i=0; i<m_OutputMode.nXRes; i++ ) {
-                            pImage[i*3+j*m_OutputMode.nXRes*3] = (*pImageMap);
-                            pImage[i*3+1+j*m_OutputMode.nXRes*3] = (*pImageMap);
-                            pImage[i*3+2+j*m_OutputMode.nXRes*3] = (*pImageMap);
-                            if (i==320 && j==240) {
-                                MODebug2->Push( IntToStr((*pImageMap)) + moText(" > ") + IntToStr(pImage[i*3+j*3*m_OutputMode.nXRes]) );
-                            }
-                            pImageMap++;
-                        }
-                }
-
-                if (m_pIRTexture) {
-                    m_pIRTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pIR, GL_RGB, GL_UNSIGNED_BYTE );
-                }
-            }
-        }
-
-    }
-
-*/
 } //FIN updateon < 1
-#endif
-
-
-#ifdef KINECT_PCL
-
-    m_DataLock.Lock();
-
-    if ( show_callback == false ) {
-
-        show_callback = true;
-
-    }
-
-    m_ReferenceNormal = m_CenterNormal;
-
-
-    if ( calibrate_base==1) {
-
-        /** grabamos la normal de la base */
-        m_BaseNormal = m_CenterNormal;
-        m_BasePosition = m_TargetPosition;
-        m_BaseRGB = m_TargetRGB;
-        moVector3d HSV = RGBtoHSV( (double)m_BaseRGB.X(), (double)m_BaseRGB.Y(), (double)m_BaseRGB.Z() );
-        m_BaseHSV = moVector3f( HSV.X(),HSV.Y(),HSV.Z() );
-        moText texto;
-        texto= moText("BasePosition: x:")+FloatToStr(m_BasePosition.X());
-        texto+= moText(" y:")+FloatToStr(m_BasePosition.Y());
-        texto+= moText(" z:")+FloatToStr(m_BasePosition.Z());
-        texto+= moText(" Normal: x:")+FloatToStr( m_BaseNormal.normal[0] );
-        texto+= moText(" y:")+FloatToStr(m_BaseNormal.normal[1]);
-        texto+= moText(" z:")+FloatToStr(m_BaseNormal.normal[2]);
-        texto+= moText(" RGB: r:")+FloatToStr( m_BaseRGB.X() );
-        texto+= moText(" g:")+FloatToStr( m_BaseRGB.Y() );
-        texto+= moText(" b:")+FloatToStr( m_BaseRGB.Z() );
-        texto+= moText(" HSV: h:")+FloatToStr( m_BaseHSV.X() );
-        texto+= moText(" s:")+FloatToStr( m_BaseHSV.Y() );
-        texto+= moText(" v:")+FloatToStr( m_BaseHSV.Z() );
-        MODebug2->Push(texto);
-    }
-
-
-
-    //m_CenterNormal.curvature = cloud_normals->points[ (_ww  >> 1) * (_hh + 1) ].curvature;
-
-    moText texto;
-    static unsigned int cc = 0;
-
-    int curvature_index = this->GetOutletIndex( moText("CURVATURE") );
-    moOutlet* outCurvature = m_Outlets.GetRef( curvature_index );
-
-    if (outCurvature) {
-
-        if ( m_TargetPosition.Z() < 1.28 ) m_CenterNormal.curvature = -1;
-
-        outCurvature->GetData()->SetLong( 100 * m_CenterNormal.curvature );
-        outCurvature->Update(true);
-    }
-
-    int r_index = this->GetOutletIndex( moText("R") );
-    int g_index = this->GetOutletIndex( moText("G") );
-    int b_index = this->GetOutletIndex( moText("B") );
-
-    moOutlet* outR = m_Outlets.GetRef( r_index );
-    moOutlet* outG = m_Outlets.GetRef( g_index );
-    moOutlet* outB = m_Outlets.GetRef( b_index );
-
-    if (outR) {
-        outR->GetData()->SetFloat( m_TargetRGB.X() );
-        outR->Update(true);
-    }
-    if (outG) {
-        outG->GetData()->SetFloat( m_TargetRGB.Y() );
-        outG->Update(true);
-    }
-    if (outB) {
-        outB->GetData()->SetFloat( m_TargetRGB.Z() );
-        outB->Update(true);
-    }
-
-    int NDIF1_index = this->GetOutletIndex( moText("NDIF1") );
-    int NDIF2_index = this->GetOutletIndex( moText("NDIF2") );
-    int NDIF3_index = this->GetOutletIndex( moText("NDIF3") );
-
-    int SURFACE_index = this->GetOutletIndex( moText("SURFACE") );
-
-    int SURFACE1_index = this->GetOutletIndex( moText("SURFACE1") );
-    int SURFACE2_index = this->GetOutletIndex( moText("SURFACE2") );
-    int SURFACE3_index = this->GetOutletIndex( moText("SURFACE3") );
-
-    moOutlet* outNDIF1 = m_Outlets.GetRef( NDIF1_index );
-    moOutlet* outNDIF2 = m_Outlets.GetRef( NDIF2_index );
-    moOutlet* outNDIF3 = m_Outlets.GetRef( NDIF3_index );
-
-    moOutlet* outSURFACE = m_Outlets.GetRef( SURFACE_index );
-
-    moOutlet* outSURFACE1 = m_Outlets.GetRef( SURFACE1_index );
-    moOutlet* outSURFACE2 = m_Outlets.GetRef( SURFACE2_index );
-    moOutlet* outSURFACE3 = m_Outlets.GetRef( SURFACE3_index );
-////
-    if (outNDIF1) {
-        outNDIF1->GetData()->SetInt(NDIF1);
-        outNDIF1->Update();
-    }
-    if (outNDIF2) {
-        outNDIF2->GetData()->SetInt(NDIF2);
-        outNDIF2->Update();
-    }
-    if (outNDIF3) {
-        outNDIF3->GetData()->SetInt(NDIF3);
-        outNDIF3->Update();
-    }
-////
-    if (outSURFACE) {
-        outSURFACE->GetData()->SetInt(SURFACE);
-        outSURFACE->Update();
-    }
-////
-    if (outSURFACE1) {
-        outSURFACE1->GetData()->SetInt(SURFACE1);
-        outSURFACE1->Update();
-    }
-    if (outSURFACE2) {
-        outSURFACE2->GetData()->SetInt(SURFACE2);
-        outSURFACE2->Update();
-    }
-    if (outSURFACE3) {
-        outSURFACE3->GetData()->SetInt(SURFACE3);
-        outSURFACE3->Update();
-    }
-/*
-    int pomelo_index = this->GetOutletIndex( moText("POMELO") );
-    int naranja_index = this->GetOutletIndex( moText("NARANJA") );
-    int sandia_index = this->GetOutletIndex( moText("SANDIA") );
-
-    moOutlet* outPOMELO = m_Outlets.GetRef( pomelo_index );
-    moOutlet* outNARANJA = m_Outlets.GetRef( naranja_index );
-    moOutlet* outSANDIA = m_Outlets.GetRef( sandia_index );
-
-    if (outPOMELO) {
-        outPOMELO->GetData()->SetFloat( dif_tex1 );
-        outPOMELO->Update(true);
-        if (dif_tex1>-1) {
-            //MODebug2->Push( moText("dif_tex1:") + FloatToStr( dif_tex1 ) );
-        }
-    }
-    if (outNARANJA) {
-        outNARANJA->GetData()->SetFloat( dif_tex2 );
-        outNARANJA->Update(true);
-    }
-    if (outSANDIA) {
-        outSANDIA->GetData()->SetFloat( dif_tex3 );
-        outSANDIA->Update(true);
-    }
-*/
-
-
-    moVector3d HSV = RGBtoHSV( m_TargetRGB.X(), m_TargetRGB.Y(), m_TargetRGB.Z() );
-
-    m_TargetHSV = moVector3f( HSV.X(), HSV.Y(), HSV.Z() );
-
-    int h_index = this->GetOutletIndex( moText("H") );
-    int s_index = this->GetOutletIndex( moText("S") );
-    int v_index = this->GetOutletIndex( moText("V") );
-
-    moOutlet* outH = m_Outlets.GetRef( h_index );
-    moOutlet* outS = m_Outlets.GetRef( s_index );
-    moOutlet* outV = m_Outlets.GetRef( v_index );
-
-    if (outH) {
-        outH->GetData()->SetFloat( m_TargetHSV.X() );
-        outH->Update(true);
-    }
-    if (outS) {
-        outS->GetData()->SetFloat( m_TargetHSV.Y() );
-        outS->Update(true);
-    }
-    if (outV) {
-        outV->GetData()->SetFloat( m_TargetHSV.Z() );
-        outV->Update(true);
-    }
-
-
-    ///si es superior a 0  o max  es que hay presencia
-    int hay_presencia_index = this->GetOutletIndex( moText("HAY_PRESENCIA") );
-    moOutlet* outHayPresencia = m_Outlets.GetRef( hay_presencia_index );
-    if (outHayPresencia) {
-        outHayPresencia->GetData()->SetLong( m_haypresencia );
-        outHayPresencia->Update(true);
-    }
-
-
-    if (++cc==60 && outCurvature) {
-        texto = moText(" CURVATURE Updated: ") + IntToStr( outCurvature->GetData()->Long() );
-        texto+= moText(" R: ") + FloatToStr( m_TargetRGB.X() );
-        texto+= moText(" G: ") + FloatToStr( m_TargetRGB.Y() );
-        texto+= moText(" B: ") + FloatToStr( m_TargetRGB.Z() );
-
-
-        texto+= moText(" H: ") + FloatToStr( m_TargetHSV.X() );
-        texto+= moText(" S: ") + FloatToStr( m_TargetHSV.Y() );
-        texto+= moText(" V: ") + FloatToStr( m_TargetHSV.Z());
-        //MODebug2->Push(texto);
-
-        texto = moText(" HAY_PRESENCIA Updated: ") + IntToStr( outHayPresencia->GetData()->Long() );
-        //MODebug2->Push(texto);
-        cc= 0;
-
-    }
-
-
-    //m_CenterPoint = m_ReferencePoint;
-
-    /*
-     MODebug2->Push( moText(" Normal <x> ") + FloatToStr(m_CenterNormal.normal[0])
-                   + moText(" <y> ") + FloatToStr(m_CenterNormal.normal[1])
-                   + moText(" <z> ") + FloatToStr(m_CenterNormal.normal[2])
-                   + moText(" <curvature> ") + FloatToStr(m_CenterNormal.curvature) );
-    */
-    if (pImage) {
-
-        if (m_pRGBTexture) {
-            m_pRGBTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pImage, GL_RGB, GL_UNSIGNED_BYTE );
-        }
-    }
-
-
-    if (pData) {
-
-        if (m_pDepthTexture) {
-            m_pDepthTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData, GL_RGB, GL_UNSIGNED_BYTE );
-        }
-    }
-
-    if (pData2) {
-        if (m_pDepthTexture2) {
-            m_pDepthTexture2->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData2, GL_RGB, GL_UNSIGNED_BYTE );
-        }
-    }
-
-
-    if (pFBO && m_pDepthTexture) {
-
-        pFBO->Bind();
-        pFBO->SetDrawTexture( m_pDepthTexture->GetFBOAttachPoint() );
-
-        float prop = (float)m_pDepthTexture->GetHeight() / (float)m_pDepthTexture->GetWidth();
-
-        //m_pResourceManager->GetGLMan()->SetOrthographicView();
-         m_pResourceManager->GetGLMan()->SetPerspectiveView( m_pDepthTexture->GetWidth(), m_pDepthTexture->GetHeight() );
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        /// changing FOV, pasar esto a PerspectiveView
-        gluPerspective( fovy, 1.0 / prop, 0.1f ,4000.0f);
-        /// point is Kinect: 0,0,0  , ViewPoint is any point ahead (0,0,Z>0 )
-        gluLookAt(		0.0,
-                            0.0,
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            1000.0,
-                            0, 1, 0);
-
-        //glDisable(GL_DEPTH_TEST);
-
-        float ancho = 10, alto = 10; //milimetros = 10 cm
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        glTranslatef( -m_ReferencePoint.X(), -m_ReferencePoint.Y(), m_ReferencePoint.Z() );
-        //glRotatef( moTimeManager::MoldeoTimer->Duration()/100, 0.0, 0.0, 1.0 );
-
-        glBindTexture( GL_TEXTURE_2D, 0);
-        glDisable(GL_TEXTURE_2D);
-
-        glColor4f( 1,0.5,0.5,1 );
-        glBegin(GL_QUADS);
-          glTexCoord2f( 0.0, 1.0 );
-          glVertex3f( -0.5*ancho, -0.5*alto, 0 );
-
-          glTexCoord2f( 1.0, 1.0 );
-          glVertex3f(  0.5*ancho, -0.5*alto, 0);
-
-          glTexCoord2f( 1.0, 0.0 );
-          glVertex3f(  0.5*ancho,  0.5*alto, 0);
-
-          glTexCoord2f( 0.0, 0.0 );
-          glVertex3f( -0.5*ancho,  0.5*alto, 0);
-        glEnd();
-
-
-        //m_ReferencePoint*= 1;
-
-        glLoadIdentity();
-
-        glLineWidth((GLfloat)3.0);
-        glBegin(GL_LINES);
-            glColor4f( 1,1,1,1 );
-            glVertex3f( -m_BasePosition.X(), -m_BasePosition.Y(), m_BasePosition.Z() );
-            glColor4f( 1,1,1,1 );
-            glVertex3f( -m_BasePosition.X()-m_BaseNormal.normal[0]*100, -m_BasePosition.Y()-m_BaseNormal.normal[1]*100, m_BasePosition.Z()+m_BaseNormal.normal[2]*100 );
-        glEnd();
-
-        /**
-        *
-        *   PRINTING ADDITIONAL
-        *
-        */
-        m_pResourceManager->GetGLMan()->SetOrthographicView( m_pDepthTexture->GetWidth(), m_pDepthTexture->GetHeight() );
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        ancho = 80;
-        alto = 50;
-        glTranslatef( base_camera_i, base_camera_j, 0 );
-        glColor4f( 0.0,0.5,0.5, 0.5 );
-        glBegin(GL_QUADS);
-          glTexCoord2f( 0.0, 1.0 );
-          glVertex3f( -0.5*ancho, -0.5*alto, 0 );
-
-          glTexCoord2f( 1.0, 1.0 );
-          glVertex3f(  0.5*ancho, -0.5*alto, 0);
-
-          glTexCoord2f( 1.0, 0.0 );
-          glVertex3f(  0.5*ancho,  0.5*alto, 0);
-
-          glTexCoord2f( 0.0, 0.0 );
-          glVertex3f( -0.5*ancho,  0.5*alto, 0);
-        glEnd();
-
-        ancho = 10;
-        alto = 10;
-        glTranslatef( base_camera_i, base_camera_j, 0 );
-        glColor4f( 1,1,1,1 );
-        glBegin(GL_QUADS);
-          glTexCoord2f( 0.0, 1.0 );
-          glVertex3f( -0.5*ancho, -0.5*alto, 0 );
-
-          glTexCoord2f( 1.0, 1.0 );
-          glVertex3f(  0.5*ancho, -0.5*alto, 0);
-
-          glTexCoord2f( 1.0, 0.0 );
-          glVertex3f(  0.5*ancho,  0.5*alto, 0);
-
-          glTexCoord2f( 0.0, 0.0 );
-          glVertex3f( -0.5*ancho,  0.5*alto, 0);
-        glEnd();
-
-        pFBO->Unbind();
-
-    }
-
-    m_DataLock.Unlock();
-
 #endif
 
     moMoldeoObject::Update( Events );
 
 }
 
-#ifdef KINECT_PCL
-
-void moKinect::cloud_cb_ (const pcl::PointCloud<pcl::PointXYZRGB>::ConstPtr &cloud)
-{
-
-        /// 100 x 100 pixels , centered on platform: coordinate: platform_i, platform_j
-
-    size_t _ww = 80; /// ancho en pixeles de la zona de sensado de objeto
-    size_t _hh = 50; /// alto en pixeles de la zona de sensado de objeto
-    size_t platform_i = m_OutputMode.nXRes / 2; /// punto medio i
-    size_t platform_j = m_OutputMode.nYRes / 2; /// punto medio j
-    size_t left_src_i = 0;
-    size_t top_src_j = 0;
-
-    m_DataLock.Lock();
-
-    moVector3d O1_HSV_low = RGBtoHSV( m_Color1Bottom.X(), m_Color1Bottom.Y(), m_Color1Bottom.Z());
-    moVector3d O1_HSV_high = RGBtoHSV( m_Color1Top.X(), m_Color1Top.Y(), m_Color1Top.Z());
-
-    moVector3d O2_HSV_low = RGBtoHSV( m_Color2Bottom.X(), m_Color2Bottom.Y(), m_Color2Bottom.Z());
-    moVector3d O2_HSV_high = RGBtoHSV( m_Color2Top.X(), m_Color2Top.Y(), m_Color2Top.Z());
-
-    moVector3d O3_HSV_low = RGBtoHSV( m_Color3Bottom.X(), m_Color3Bottom.Y(), m_Color3Bottom.Z());
-    moVector3d O3_HSV_high = RGBtoHSV( m_Color3Top.X(), m_Color3Top.Y(), m_Color3Top.Z());
-
-    platform_i = base_camera_i;
-    platform_j = base_camera_j;
-
-    m_DataLock.Unlock();
-
-    static unsigned count = 0;
-    static unsigned count2 = 0;
-    static double last = pcl::getTime ();
-
-    moText texto;
-
-    if (++count == 90)
-    {
-
-        double now = pcl::getTime ();
-        //std::cout << "distance of center pixel :" << cloud->points [(cloud->width >> 1) * (cloud->height + 1)].z << " mm. Average framerate: " << double(count)/double(now - last) << " Hz" <<  std::endl;
-
-        texto = moText("OpenNIGrabber callback");
-        texto+= moText(" distance of platform pixel: ") + FloatToStr( cloud->points [ platform_i + platform_j * cloud->width].z );
-        texto+= moText(" m. Average framerate: ") + FloatToStr( double(count)/double(now - last) );
-        MODebug2->Push(texto);
-
-        count = 0;
-        last = now;
-
-    }
-
-    m_DataLock.Lock();
-
-    if (!pImage) {
-        pImage =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
-    }
-
-    if (!pData) {
-        pData =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
-    }
-
-    ///RGB y Alpha como Z (depth)
-    /// r=z    g=r   b=g    a = (1.0 - b) blue > no hay en las frutas...
-    if (!pData2) {
-        pData2 =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
-    }
-
-
-    int index_src;
-    int index_dst;
-    //float tiltangulo = moMath.Tan( moMath.DegToRad((float) camera_angulo ) );
-    m_haypresencia = 0; ///va sumando por cada punto que este dentro del rango...
-
-    int track_minz = 100000;
-
-    if (pImage && pData && pData2) {
-        for (size_t jj = 0; jj < m_OutputMode.nYRes; jj++) {
-            for (size_t ii = 0; ii < m_OutputMode.nXRes; ii++) {
-
-                index_src = ii+jj*m_OutputMode.nXRes;
-                index_dst = ii*3+jj*m_OutputMode.nXRes*3;
-
-                pImage[index_dst] = cloud->points[index_src].r;
-                pImage[index_dst+1] = cloud->points[index_src].g;
-                pImage[index_dst+2] = cloud->points[index_src].b;
-
-                int zcol = (int)( (float) (cloud->points[index_src].z * 1000.0f) ) ;
-                pData[index_dst] = zcol % 255;
-                pData[index_dst+1] = 0;
-                pData[index_dst+2] = 0;
-
-                /// calculo si hay presencia
-
-                if (  jj < ( platform_j - umbral_camera_presencia_y_offset )  ) {
-
-                    if ( umbral_camera_presencia_z_near< zcol && zcol < umbral_camera_presencia_z_far) {
-                        m_haypresencia+= 1;
-                    }
-                }
-
-                /// calculamos la zona de trackeo
-                /// if < platform_j => el z se va alejando a medida que subimos proporcionalmente al angulo tilt...
-                int ztrack = 0;
-
-                pData2[index_dst] = 0;
-                pData2[index_dst+1] = 0;
-                pData2[index_dst+2] = 0;
-
-
-                if (  jj < ( platform_j - umbral_trackeo_y_offset )  ) {
-                    ///calculamos el z nuevo, con tilt:
-                    ztrack = zcol;
-                    ztrack-= (platform_j - jj) * trackeo_factor_angulo;
-
-                    if ( umbral_trackeo_z_near < ztrack   &&   ztrack < umbral_trackeo_z_far  ) {
-
-                         track_minz = momin( ztrack, track_minz );
-
-                        ///distancia al naranja
-                        ///distancia al amarillo
-                        ///distancia a la sandia: esto puede venir definido directamente desde la eleccion de (naranja,pomelo,sandia)
-/*
-                        float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
-
-                        float sum = 0.0;
-
-                        sum = (int) (alf * 255  * (ztrack - umbral_trackeo_z_near) / (  umbral_trackeo_z_far -  umbral_trackeo_z_near));
-                        sum+= (int) (alf * cloud->points[index_src].r);
-                        sum+= (int) (alf * cloud->points[index_src].g);
-                        (sum < 255) ? sum = 0.0 : sum = sum / 3;
-
-                        pData2[index_dst] = sum;
-                        pData2[index_dst+1] = sum;
-                        pData2[index_dst+2] = sum;
-*/
-
-                    }
-                }
-
-            } //fin for 2
-        } //fin for1
-
-
-        /// SEGUNDA PASDADA PARA DEPTH2
-
-        for (size_t jj = 0; jj < m_OutputMode.nYRes; jj++) {
-
-            for (size_t ii = 0; ii < m_OutputMode.nXRes; ii++) {
-
-                index_src = ii+jj*m_OutputMode.nXRes;
-                index_dst = ii*3+jj*m_OutputMode.nXRes*3;
-
-                /// calculamos la zona de trackeo
-                /// if < platform_j => el z se va alejando a medida que subimos proporcionalmente al angulo tilt...
-                int ztrack = 0;
-
-                int zcol = (int)( (float) (cloud->points[index_src].z * 1000.0f) ) ;
-
-                pData2[index_dst] = 0;
-                pData2[index_dst+1] = 0;
-                pData2[index_dst+2] = 0;
-
-                if (  jj < ( platform_j - umbral_trackeo_y_offset )  ) {
-                    ///calculamos el z nuevo, con tilt:
-                    ztrack = zcol;
-                    ztrack-= (platform_j - jj) * trackeo_factor_angulo;
-
-                    if ( umbral_trackeo_z_near < ztrack   &&   ztrack < umbral_trackeo_z_far && (track_minz + 100 ) > ztrack ) {
-
-                        moVector3d iRGB = moVector3d( cloud->points[index_src].r, cloud->points[index_src].g, cloud->points[index_src].b );
-                        moVector3d iHSV = RGBtoHSV( iRGB.X(), iRGB.Y(), iRGB.Z()  );
-                        bool inrange = false;
-                        ///distancia al amarillo
-
-
-                        if (
-                             (O1_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O1_HSV_high.X())
-                            )
-                             {
-                                if ( ( O1_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O1_HSV_high.Y() ) )  {
-                                    if ( iHSV.Z() > 0.7 ) inrange = true;
-                                }
-
-                        }
-
-                        if (
-                             (O2_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O2_HSV_high.X())
-                            )
-                             {
-                                if ( ( O2_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O2_HSV_high.Y() ) )  {
-                                    if ( iHSV.Z() > 0.7 ) inrange = true;
-                                }
-                        }
-
-
-                        if (O3_HSV_low.X()>O3_HSV_high.X()) {
-                            O3_HSV_high.X()+= 360.0;
-                            iHSV.X()+= 360.0;
-                        }
-                        if (
-                             (O3_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O3_HSV_high.X())
-                            )
-                             {
-                                if ( ( O3_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O3_HSV_high.Y() ) )  {
-
-                                    if ( iHSV.Z() > 0.7 ) inrange = true;
-
-                                }
-                        }
-
-
-
-                        if (inrange) {
-                            ///distancia al naranja
-
-                            ///distancia a la sandia: esto puede venir definido directamente desde la eleccion de (naranja,pomelo,sandia)
-                            pData2[index_dst] = 255;
-                            pData2[index_dst+1] = 255;
-                            pData2[index_dst+2] = 255;
-/*
-
-                            float alf = ( 255.0 - cloud->points[index_src].b) / 255.0;
-
-                            float sum = 0.0;
-
-                            sum = (int) (alf * 255  * (ztrack - umbral_trackeo_z_near) / (  umbral_trackeo_z_far -  umbral_trackeo_z_near));
-                            sum+= (int) (alf * cloud->points[index_src].r);
-                            sum+= (int) (alf * cloud->points[index_src].g);
-                            (sum < 255) ? sum = 0.0 : sum = sum / 3;
-
-                            pData2[index_dst] = sum;
-                            pData2[index_dst+1] = sum;
-                            pData2[index_dst+2] = sum;
- */
-                        }
-                    }
-                }
-
-            } //fin for 2
-
-        } //fin for 1
-
-
-
-
-
-
-    } //fin pData && &&
-
-    index_src = platform_i+platform_j*m_OutputMode.nXRes;
-
-    m_TargetPosition = moVector3f( cloud->points[index_src].x, cloud->points[index_src].y, cloud->points[index_src].z );
-    m_TargetRGB = moVector3f( cloud->points[index_src].r, cloud->points[index_src].g, cloud->points[index_src].b );
-
-    m_DataLock.Unlock();
-
-    float dif_H_object1;
-    float dif_S_object1;
-    float dif_L_object1;
-
-    int ndif_object1 = 0;
-    int ndif_object2 = 0;
-    int ndif_object3 = 0;
-
-    if (++count2==60) {
-
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloudxyz (new pcl::PointCloud<pcl::PointXYZ> ());
-
-        ///esto se podria acelerar
-        //creando el análisis únicamente sobre la plataforma
-/*
-        size_t _ww = cloud->width;
-        size_t _hh = cloud->height;
-        cloudxyz->points.resize(cloud->size());
-        for (size_t i = 0; i < cloudxyz->points.size(); i++) {
-            cloudxyz->points[i].x = cloud->points[i].x;
-            cloudxyz->points[i].y = cloud->points[i].y;
-            cloudxyz->points[i].z = cloud->points[i].z;
-        }
-*/
-
-        cloudxyz->points.resize( _ww * _hh);
-
-        left_src_i = platform_i - _ww / 2;
-        top_src_j = platform_j - _hh / 2;
-
-        // medimos ancho y alto de los objetos ??
-        //por ahora en el centro
-
-
-        dif_tex1 = 0.0;
-        int ndif = 0;
-        //dif_tex2
-
-        moVector3f vColDif;
-        float vColDifLen;
-        float minz = 10000.0;
-
-        float difH1;
-        float el_x = 0.0,el_y=0.0,el_z=0.0;
-
-        float O1_minx=1000,O1_maxx=0,O1_miny=1000,O1_maxy=0,O1_minz = 100000;
-        float O2_minx=1000,O2_maxx=0,O2_miny=1000,O2_maxy=0,O2_minz = 100000;
-        float O3_minx=1000,O3_maxx=0,O3_miny=1000,O3_maxy=0,O3_minz = 100000;
-
-
-
-
-        float H_mean = 0.0;
-        float S_mean = 0.0;
-        float L_mean = 0.0;
-
-        for (size_t hh = 0; hh < _hh; hh++) {
-
-            for (size_t ww = 0; ww < _ww; ww++) {
-                //size_t index_src = (platform_i + ( ww + ( cloud->width - _ww )/2 ) ) + (platform_j + ( hh + ( cloud->height- _hh ) /2 ))*cloud->width;
-                size_t index_src_i = ww + left_src_i;
-                size_t index_src_j = hh + top_src_j;
-                size_t index_src = index_src_i + index_src_j * cloud->width;
-                size_t index_dst = ww  + hh*_ww;
-                //index_src = max( index_src, 0 );
-                //index_src = min( index_src, _ww*_hh );
-
-                cloudxyz->points[ index_dst ].x = cloud->points[index_src].x;
-                cloudxyz->points[ index_dst ].y = cloud->points[index_src].y;
-                cloudxyz->points[ index_dst ].z = cloud->points[index_src].z;
-
-                el_x = cloud->points[index_src].x*1000.0;
-                el_y = cloud->points[index_src].y*1000.0;
-                el_z = cloud->points[index_src].z*1000.0;
-                minz = momin( el_z, minz );
-
-                if (  (double) (minz)  > (double)umbral_objeto_z_near ) {
-
-                    moVector3d iRGB = moVector3d( cloud->points[index_src].r, cloud->points[index_src].g, cloud->points[index_src].b );
-                    moVector3d iHSV = RGBtoHSV( iRGB.X(), iRGB.Y(), iRGB.Z()  );
-                    moVector3f iHSVf = moVector3f( iHSV.X(), iHSV.Y(), iHSV.Z() );
-
-                    vColDif = m_BaseHSV - iHSVf;
-
-                    //saturacion muy baja el croma no cuenta...
-                    if (iHSVf.Y()<0.1) {
-                        //chroma cercano a 0 es grises
-                        if (iHSVf.X()<0.05) {
-                           vColDif.X() = 0; //chroma en 0
-                        }
-
-                        if (  179.95<=iHSVf.X() && iHSVf.X()<=180.05) {
-                            vColDif.X() = 0; //chroma en 0
-                        }
-
-                    }
-                    vColDifLen = vColDif.Length();
-
-                    if (vColDifLen>0.1) {
-
-                        dif_tex1+= vColDifLen;
-                        H_mean+= iHSV.X();
-                        S_mean+= iHSV.Y();
-                        L_mean+= iHSV.Z();
-                        ndif+= 1;
-                    }
-
-                    if (
-                         (O1_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O1_HSV_high.X())
-                        //&& (O1_HSV_low.Y() <= iHSV.Y()) && (iHSV.Y() <= O1_HSV_high.Y())
-                        //&& (O1_HSV_low.Z() <= iHSV.Z()) && (iHSV.Z() <= O1_HSV_high.Z())
-                        )
-                         {
-                            if ( ( O1_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O1_HSV_high.Y() ) )  {
-                            //    if ( ( O1_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O1_HSV_high.Z() ) )  {
-
-                                    ndif_object1+= 1;
-                                    O1_minx = momin( el_x, O1_minx );
-                                    O1_miny = momin( el_y, O1_miny );
-                                    O1_minz = momin( el_z, O1_minz );
-                            //    }
-                            }
-
-                    }
-
-                    if (
-                         (O2_HSV_low.X() <= iHSV.X()) && (iHSV.X() <= O2_HSV_high.X())
-                        )
-                         {
-                            if ( ( O2_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O2_HSV_high.Y() ) )  {
-                               // if ( ( O2_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O2_HSV_high.Z() ) )  {
-                                    ndif_object2+= 1;
-                                    O2_minx = momin( el_x, O2_minx );
-                                    O2_miny = momin( el_y, O2_miny );
-                                    O2_minz = momin( el_z, O2_minz );
-                               // }
-                            }
-
-                    }
-
-                    if (O3_HSV_low.X()>O3_HSV_high.X()) {
-                        O3_HSV_high.X()+= 360.0;
-                        iHSV.X()+= 360.0;
-                    }
-
-                    if (
-                         (O3_HSV_low.X() <= iHSV.X() ) && (iHSV.X() <= O3_HSV_high.X())
-                        )
-                         {
-                            if ( ( O3_HSV_low.Y() <= iHSV.Y() ) && ( iHSV.Y() <= O3_HSV_high.Y() ) )  {
-                               // if ( ( O2_HSV_low.Z() <= iHSV.Z() ) && ( iHSV.Z() <= O2_HSV_high.Z() ) )  {
-                                    ndif_object3+= 1;
-                                    O3_minx = momin( el_x, O3_minx );
-                                    O3_miny = momin( el_y, O3_miny );
-                                    O3_minz = momin( el_z, O3_minz );
-                               // }
-                            }
-
-                    }
-
-
-                }
-
-/*
-                if (id_tex1!=-1 && pDataObj1) {
-                    size_t index_buf;
-                    index_buf = index_src*3;
-                    dif_tex1+= abs(cloud->points[index_src].r - pDataObj1[ index_buf ]);
-                    dif_tex1+= abs(cloud->points[index_src].g - pDataObj1[ index_buf + 1]);
-                    dif_tex1+= abs(cloud->points[index_src].b - pDataObj1[ index_buf + 2]);
-
-                }
-*/
-
-            }
-
-        }
-
-        /// presencia de objeto...
-
-        if (ndif>0) {
-            dif_tex1 = dif_tex1 / ndif;
-            H_mean = H_mean / (float)ndif;
-            S_mean = S_mean / (float)ndif;
-            L_mean = L_mean / (float)ndif;
-        }
-        texto = moText(" [vColDifLen]: ")
-                + FloatToStr( dif_tex1 )
-                + moText(" [ndif]: ")
-                + IntToStr( ndif )
-                + moText(" [minz]: ")
-                + FloatToStr( minz )
-                ;
-
-        MODebug2->Push( texto );
-        texto = moText(" [Mean]: [H]: ")
-                + FloatToStr( H_mean )
-                + moText(" [S]: ")
-                + FloatToStr( S_mean )
-                + moText(" [L]: ")
-                + FloatToStr( L_mean )
-                ;
-
-        MODebug2->Push( texto );
-
-        texto = moText(" ndif_object1: ")
-                + IntToStr(ndif_object1)
-                + moText(" ndif_object2: ")
-                + IntToStr(ndif_object2)
-                + moText(" ndif_object3: ")
-                + IntToStr(ndif_object3);
-/*
-        texto =  moText("     bottom H:")
-                + FloatToStr( O1_HSV_low.X() )
-                + moText(" S:")
-                + FloatToStr( O1_HSV_low.Y() )
-                + moText(" L:")
-                + FloatToStr( O1_HSV_low.Z() )
-                ;
-        MODebug2->Push( texto );
-
-        texto = moText("top H:")
-                + FloatToStr( O1_HSV_high.X() )
-                + moText(" S:")
-                + FloatToStr( O1_HSV_high.Y() )
-                + moText(" L:")
-                + FloatToStr( O1_HSV_high.Z() )
-                ;
-*/
-        MODebug2->Push( texto );
-
-        texto = moText(" minx 1: ")
-                + FloatToStr(O1_minx)
-                + moText(" maxx 1: ")
-                + FloatToStr(O1_maxx)
-                + moText(" miny 1: ")
-                + FloatToStr(O1_miny)
-                + moText(" maxy 1: ")
-                + FloatToStr(O1_maxy)
-                + moText(" minz 1: ")
-                + FloatToStr(O1_minz)
-                + moText(" superficie: ")
-                + FloatToStr( (O1_maxy-O1_miny) * (O1_maxx-O1_minx));
-        MODebug2->Push( texto );
-
-        //pcl::copyPointCloud( cloud_rgb->makeShared(),  cloudxyz->makeShared() );
-
-        ///Compute normals
-        ne.setInputCloud ( cloudxyz );
-
-
-        pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr tree (new pcl::KdTreeFLANN<pcl::PointXYZ> ());
-        ne.setSearchMethod (tree);
-
-        // Output datasets
-        pcl::PointCloud<pcl::Normal>::Ptr cloud_normals (new pcl::PointCloud<pcl::Normal>);
-
-        // Use all neighbors in a sphere of radius 3cm
-        ne.setRadiusSearch ( 0.03 );
-
-        // Compute the features
-        ne.compute (*cloud_normals);
-
-        /** Ahora en funcion de las normales estudiamos que dimensiones tiene el objeto*/
-        /*
-        float i_left_curvo = _ww;//en indice
-        float x_left_curvo = 0; //en metros
-
-        float i_right_curvo = 0;
-        float x_right_curvo = 0;
-
-        float j_top_curvo = _hh;
-        float y_top_curvo = 0;
-
-        float j_bottom_curvo = 0;
-        float y_bottom_curvo = 0;
-
-        pcl::Normal Nactual;
-        int cluster_p = 0;
-
-        float curv = 0.0;
-
-        for (size_t hh = 0; hh < _hh; hh++) {
-
-            for (size_t ww = 0; ww < _ww; ww++) {
-
-
-                index_src = ww+hh*_ww;
-                Nactual = cloud_normals->points[index_src];
-                /// solo procesamos aquellas normales que tengan curvatura...
-                if (Nactual.curvature)
-                    curv+= Nactual.curvature;
-
-                if ( Nactual.curvature > 0.01 ) {
-
-                    cluster_p++;
-
-                    if ( i_left_curvo > ww ) {
-                        i_left_curvo = ww ;
-                        x_left_curvo = cloudxyz->points[ index_src ].x;
-                    }
-
-                    if ( i_right_curvo < ww ) {
-                        i_right_curvo = ww;
-                        x_right_curvo = cloudxyz->points[index_src ].x;
-                    }
-
-                    if ( j_top_curvo > hh ) {
-                        j_top_curvo = hh;
-                        y_top_curvo = cloudxyz->points[ index_src ].y;
-                    }
-
-                    if ( j_bottom_curvo < hh ) {
-                        j_bottom_curvo = hh;
-                        y_bottom_curvo = cloudxyz->points[ index_src ].y;
-                    }
-
-                }
-
-            }
-        }
-
-        float dim_w = fabs(x_right_curvo - x_left_curvo);
-        float dim_h = fabs(y_top_curvo - y_bottom_curvo);
-        curv = curv / (_ww*_hh);
-
-        texto= moText(" dimensiones: w:") + FloatToStr( dim_w );
-        texto+= moText(" h:") + FloatToStr( dim_h );
-        texto+= moText(" Cluster:") + IntToStr( cluster_p );
-        texto+= moText(" Curvature:") + FloatToStr( curv );
-        MODebug2->Push(texto);
-*/
-
-        //if (cloud_normals) {
-            texto= moText(" normals size: ") + IntToStr( cloud_normals->size() );
-            texto+= moText(" curvature for the center pixel: ") + FloatToStr( cloud_normals->points [(_ww >> 1) * (_hh + 1)].curvature );
-        //}
-
-            MODebug2->Push(texto);
-
-
-            m_DataLock.Lock();
-
-            moVector3f Pos;
-            pcl::Normal Norm;
-
-            Pos = m_BasePosition;
-            Norm = m_BaseNormal;
-
-            NDIF1 = ndif_object1;
-            NDIF2 = ndif_object2;
-            NDIF3 = ndif_object3;
-            SURFACE1 = (int) ( (O1_maxy-O1_miny) * (O1_maxx-O1_minx));
-            SURFACE2 = (int) ( (O2_maxy-O2_miny) * (O2_maxx-O2_minx));
-            SURFACE3 = (int) ( (O3_maxy-O3_miny) * (O3_maxx-O3_minx));
-
-            SURFACE = ndif;
-
-            m_DataLock.Unlock();
-/*
-            float sumsca;
-            float sumA;
-            int pointUp;
-            moVector3f VPoint;
-            moVector3f NPlane;
-
-            NPlane = moVector3f( m_BaseNormal.normal[0],
-                                m_BaseNormal.normal[1],
-                                m_BaseNormal.normal[2] );
-
-            pointUp = 0;
-            sumA = 0.0;
-
-            for (size_t hh = 0; hh < _hh; hh++) {
-                for (size_t ww = 0; ww < _ww; ww++) {
-                    index_src = ww+hh*_ww;
-                    VPoint = Pos - moVector3f(cloudxyz->points[ index_src ].x,
-                                              cloudxyz->points[ index_src ].y,
-                                              cloudxyz->points[ index_src ].z);
-
-                    sumsca = NPlane.Dot( VPoint );
-
-                    if (sumsca > 0.01 ) {
-                        pointUp+= 1;
-                        sumA+= sumsca;
-                    }
-
-                }
-            }
-            MODebug2->Push( moText("PointCloud pointUp: ")
-                       + IntToStr(pointUp)
-                       + moText(" sumscalares: ") + FloatToStr(sumA)  );
-*/
-
-        /// segunda pasada
-        /// extraccion del volumen
-/*
-        pcl::VoxelGrid<pcl::PointXYZ> vg;
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered (new pcl::PointCloud<pcl::PointXYZ>);
-        vg.setInputCloud ( cloudxyz );
-        vg.setLeafSize (0.005f, 0.005f, 0.005f);
-        vg.filter (*cloud_filtered);
-        MODebug2->Push( moText("PointCloud after filtering has: ")
-                       + IntToStr(cloud_filtered->points.size ())
-                       + moText(" data points.") );
-
-*/
-/*
-        /// Create the segmentation object for the planar model and set all the parameters
-        pcl::SACSegmentation<pcl::PointXYZ> seg;
-        pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
-        pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
-        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_plane (new pcl::PointCloud<pcl::PointXYZ> ());
-        pcl::PCDWriter writer;
-        seg.setOptimizeCoefficients (true);
-        seg.setModelType (pcl::SACMODEL_PLANE);
-        seg.setMethodType (pcl::SAC_RANSAC);
-        seg.setMaxIterations (100);
-        seg.setDistanceThreshold (0.02);
-*/
-
-/*
-        int i=0, nr_points = (int) cloud_filtered->points.size ();
-        while (cloud_filtered->points.size () > 0.3 * nr_points)
-        {
-            /// Segment the largest planar component from the remaining cloud
-            seg.setInputCloud(cloud_filtered);
-            seg.segment (*inliers, *coefficients); //*
-            if (inliers->indices.size () == 0)
-            {
-              //std::cout << "Could not estimate a planar model for the given dataset." << std::endl;
-              MODebug2->Push(moText("Could not estimate a planar model for the given dataset.") );
-              break;
-            }
-
-            /// Extract the planar inliers from the input cloud
-            pcl::ExtractIndices<pcl::PointXYZ> extract;
-            extract.setInputCloud (cloud_filtered);
-            extract.setIndices (inliers);
-            extract.setNegative (false);
-
-            /// Write the planar inliers to disk
-            extract.filter (*cloud_plane); //*
-            //std::cout << "PointCloud representing the planar component: " << cloud_plane->points.size () << " data points." << std::endl;
-            MODebug2->Push( moText("PointCloud representing the planar component:") + IntToStr(cloud_plane->points.size ()) + moText(" data points")  );
-
-            /// Remove the planar inliers, extract the rest
-            extract.setNegative (true);
-            extract.filter (*cloud_filtered); //*
-        }
-*/
-/*
-        /// Creating the KdTree object for the search method of the extraction
-        pcl::KdTree<pcl::PointXYZ>::Ptr kktree (new pcl::KdTreeFLANN<pcl::PointXYZ>);
-        kktree->setInputCloud (cloud_filtered);
-
-        std::vector<pcl::PointIndices> cluster_indices;
-        pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-        ec.setClusterTolerance (0.01); // 2cm
-        ec.setMinClusterSize (5);
-        ec.setMaxClusterSize (1000);
-        ec.setSearchMethod (kktree);
-        ec.setInputCloud( cloud_filtered);
-        ec.extract (cluster_indices);
-
-        int j = 0;
-        int np = 0;
-        for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-        {
-            np = (*it).indices.size();
-            MODebug2->Push( moText("PointCloud cluster points: ") + IntToStr(np) );
-            j++;
-        }
-
-        MODebug2->Push( moText("PointCloud clusters: ") + IntToStr(j) );
-*/
-
-/*
-        int j = 0;
-        for (std::vector<pcl::PointIndices>::const_iterator it = cluster_indices.begin (); it != cluster_indices.end (); ++it)
-        {
-            pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_cluster (new pcl::PointCloud<pcl::PointXYZ>);
-            for (std::vector<int>::const_iterator pit = it->indices.begin (); pit != it->indices.end (); pit++)
-                cloud_cluster->points.push_back (cloud_filtered->points[*pit]); //*
-            cloud_cluster->width = cloud_cluster->points.size ();
-            cloud_cluster->height = 1;
-            cloud_cluster->is_dense = true;
-
-            //std::cout << "PointCloud representing the Cluster: " << cloud_cluster->points.size () << " data points." << std::endl;
-            MODebug2->Push(
-                            moText("PointCloud representing the Cluster: ")
-                           + IntToStr(cloud_cluster->points.size ())
-                           + moText(" data points.")
-                            );
-
-            //std::stringstream ss;
-            //ss << "cloud_cluster_" << j << ".pcd";
-            //writer.write<pcl::PointXYZ> (ss.str (), *cloud_cluster, false); //*
-            j++;
-        }
-*/
-        m_DataLock.Lock();
-
-        //m_CenterNormal = cloud_normals->points[ (_ww  >> 1) * (_hh + 1) ];
-        m_CenterNormal = cloud_normals->points[ (_ww  >> 1) * (_hh + 1)  ];
-        m_TargetNormal = m_CenterNormal;
-
-        m_DataLock.Unlock();
-
-
-        count2 = 0;
-
-    }
-
-
-    //Show Cloud
-
-    if (pFBO && m_pDepthTexture && m_pResourceManager
-        && m_pResourceManager->GetRenderMan()
-        && m_pResourceManager->GetGLMan()
-        && show_callback
-        ) {
-
-        /// Lock render manager
-        ///m_pResourceManager->GetRenderMan()->BeginUpdateDevice();
-/*
-        pFBO->Bind();
-        pFBO->SetDrawTexture( m_pDepthTexture->GetFBOAttachPoint() );
-
-
-        float prop = (float)m_pDepthTexture->GetHeight() / (float)m_pDepthTexture->GetWidth();
-
-        //m_pResourceManager->GetGLMan()->SetOrthographicView();
-         m_pResourceManager->GetGLMan()->SetPerspectiveView( m_pDepthTexture->GetWidth(), m_pDepthTexture->GetHeight() );
-
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        // changing FOV, pasar esto a PerspectiveView
-        gluPerspective( fovy, 1.0 / prop, 0.1f ,4000.0f);
-        // point is Kinect: 0,0,0  , ViewPoint is any point ahead (0,0,Z>0 )
-        gluLookAt(		0.0,
-                            0.0,
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            0.0,
-                            //m_Config[moR(PARTICLES_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang)
-                            1000.0,
-                            0, 1, 0);
-
-        //glDisable(GL_DEPTH_TEST);
-
-        float ancho = 100, alto = 100; //milimetros = 10 cm
-
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        int a=400,b=280;
-
-        moVector3f Punto;
-        moVector3f RGB;
-
-        if (cloud) {
-
-            //moVector3f pCenter = pCloud[ a + b*m_OutputMode.nXRes ];
-
-            Punto = moVector3f( cloud->points [(cloud->width >> 1) * (cloud->height + 1)].x,
-                                cloud->points [(cloud->width >> 1) * (cloud->height + 1)].y,
-                                cloud->points [(cloud->width >> 1) * (cloud->height + 1)].z
-                               );
-
-            glColor4f( 1,1,0,1 );
-            glLineWidth((GLfloat)10.0);
-
-            glBegin(GL_LINES);
-                glColor4f( 1,1,0,1 );
-                glVertex3f( Punto.X(), -Punto.Y(), Punto.Z() );
-                glColor4f( 1,1,1,1 );
-                glVertex3f( Punto.X()+30, -Punto.Y()+30, Punto.Z() );
-            glEnd();
-
-
-            MODebug2->Push( moText("pCloud:")
-                                            + moText(" x:") + FloatToStr( pCenter.X() )
-                                            + moText(" y:") + FloatToStr( pCenter.Y() )
-                                            + moText(" z:") + FloatToStr( pCenter.Z() )
-                            );
-
-        }
-
-        pFBO->Unbind();
-*/
-        /// Unlock render manager
-        ///m_pResourceManager->GetRenderMan()->EndUpdateDevice();
-
-    }
-
-    m_DataLock.Unlock();
-
-}
-
-#endif
 
 MOboolean
 moKinect::Finish() {
@@ -2670,6 +1778,95 @@ void LoadCalibration()
 		break;
 	}
 }
+
+
+void
+moKinectPosture::Calculate( XnUserID player ) {
+
+    XnSkeletonJointPosition joint;
+    XnSkeletonJoint eJoint;
+    XnPoint3D pt;
+
+    moVector3f VectorElement;
+    moVector3f VectorElementNeck;
+    moVector3f JointPosition;
+    moVector3f JointPositionLeftHand;
+    moVector3f JointPositionRightHand;
+
+    //MODebug2->Push( "player: " + IntToStr(player) );
+
+    //save old...
+    m_PostureVectorOld = m_PostureVector;
+    m_PostureVector.Empty();
+    m_PostureVector.Init( MO_KIN_MAX + 1, moVector3f(0.0f, 0.0f, 0.0f) );
+
+    m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_NECK, joint);
+    VectorElementNeck = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
+    //MODebug2->Push( "VectorElementNeck: X: " + FloatToStr(VectorElementNeck.X()) + " Y: " + FloatToStr(VectorElementNeck.Y()) );
+
+
+///====== POSITION ===========
+
+    m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_LEFT_HAND, joint);
+    JointPositionLeftHand = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
+    JointPosition = JointPositionLeftHand - VectorElementNeck;
+    m_PostureVector.Set( MO_KIN_REL_HAND_LEFT,  JointPosition );
+    //MODebug2->Push( "JointPositionLeftHand: X: " + FloatToStr(JointPosition.X()) + " Y: " + FloatToStr(JointPosition.Y()) );
+    //MODebug2->Push( "m_PostureVector[MO_KIN_REL_HAND_LEFT]: X: " + FloatToStr(m_PostureVector[MO_KIN_REL_HAND_LEFT].X()) + " Y: " + FloatToStr(m_PostureVector[MO_KIN_REL_HAND_LEFT].Y()) );
+
+    m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_RIGHT_HAND, joint);
+    JointPositionRightHand = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
+    JointPosition = JointPositionRightHand - VectorElementNeck;
+    m_PostureVector.Set( MO_KIN_REL_HAND_RIGHT, JointPosition);
+    //MODebug2->Push( "JointPositionRightHand: X: " + FloatToStr(JointPositionRightHand.X()) + " Y: " + FloatToStr(JointPositionRightHand.Y()) );
+
+
+///====== DISTANCES ===========
+
+    //absolute distance between hands
+    JointPosition = JointPositionLeftHand - JointPositionRightHand;
+    //se podria agregar el valor absoluto...
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_INTER_HANDS, JointPosition );
+    //MODebug2->Push( "InterHands: Lenght: " + FloatToStr(JointPosition.X()));
+    //MODebug2->Push( "InterHands: Lenght: " + FloatToStr(m_PostureVector[MO_KIN_DIST_ABS_INTER_HANDS].X()) );
+
+    JointPosition = JointPositionLeftHand - VectorElementNeck;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_HAND_LEFT_REL, JointPosition);
+
+    JointPosition = JointPositionRightHand - VectorElementNeck;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set(  MO_KIN_DIST_ABS_HAND_RIGHT_REL, JointPosition );
+
+///====== SPEED ===========
+    float prop_horizontal = 0.0f;
+    float prop_vertical = 0.0f;
+
+    JointPosition = m_PostureVector[MO_KIN_REL_HAND_LEFT] - m_PostureVectorOld[MO_KIN_REL_HAND_LEFT];
+    if (JointPosition.Y()==0.0f) { prop_horizontal = fabs(JointPosition.X()); prop_vertical = 0.0f; }
+    if (JointPosition.X()==0.0f) { prop_horizontal = 0.0f; prop_vertical = fabs(JointPosition.Y()); }
+    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) { prop_horizontal = fabs(JointPosition.X() / JointPosition.Y()); prop_vertical = 0.0f; }
+
+    JointPosition = moVector3f( JointPosition.Length(), JointPosition.X(), JointPosition.Y());
+    m_PostureVector.Set( MO_KIN_SPEED_ABS_HAND_LEFT, JointPosition );
+    JointPosition = moVector3f( prop_horizontal, prop_vertical, 0.0f );
+    m_PostureVector.Set( MO_KIN_SPEED_PROP_HAND_LEFT, JointPosition );
+
+    JointPosition = m_PostureVector[MO_KIN_REL_HAND_RIGHT] - m_PostureVectorOld[MO_KIN_REL_HAND_RIGHT];
+    if (JointPosition.Y()==0.0f) { prop_horizontal = fabs(JointPosition.X()); prop_vertical = 0.0f; }
+    if (JointPosition.X()==0.0f) { prop_horizontal = 0.0f; prop_vertical = fabs(JointPosition.Y()); }
+    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) { prop_horizontal = fabs(JointPosition.X() / JointPosition.Y()); prop_vertical = 0.0f; }
+
+    JointPosition = moVector3f( JointPosition.Length(), JointPosition.X(), JointPosition.Y());
+    m_PostureVector.Set( MO_KIN_SPEED_ABS_HAND_RIGHT , JointPosition);
+    JointPosition = moVector3f( prop_horizontal, prop_vertical, 0.0f );
+    m_PostureVector.Set( MO_KIN_SPEED_PROP_HAND_RIGHT , JointPosition);
+
+
+}
+
+
 
 #endif
 

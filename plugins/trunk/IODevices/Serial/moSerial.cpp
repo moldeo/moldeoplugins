@@ -84,7 +84,7 @@ moSerial::moSerial()
 
 moSerial::~moSerial()
 {
-	close();
+	this->close();
 
 
 
