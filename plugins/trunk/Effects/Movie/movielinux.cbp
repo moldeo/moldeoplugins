@@ -38,7 +38,8 @@
 			<Add directory="./inc" />
 		</Compiler>
 		<Unit filename="inc/moEffectMovie.h" />
-		<Unit filename="src/moEffectMovie.cpp" />
+		<Unit filename="moEffectMovie.cpp" />
+		<Unit filename="moEffectMovie.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

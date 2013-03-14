@@ -258,7 +258,7 @@ void moEffectMovie::UpdateParameters() {
 	m_TicksAux = m_Ticks;
 	m_Ticks = m_EffectState.tempo.ticks;
 
-	pTexture = m_Config[moR(MOVIE_MOVIES)].GetData()->Texture();
+	pTexture = m_Config[moR(MOVIE_MOVIES)][MO_SELECTED][0].Texture();
 
   /**
   *    ASIGNACION DE OBJETOS
@@ -1182,6 +1182,13 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 
 void
 moEffectMovie::Update( moEventList *Events ) {
+
+
+    if ( !this->Activated() ) {
+        if (m_pMovie) {
+            m_pMovie->Stop();
+        }
+    }
 
 	//get the pointer from the Moldeo Object sending it...
 	moMoldeoObject::Update(Events);
