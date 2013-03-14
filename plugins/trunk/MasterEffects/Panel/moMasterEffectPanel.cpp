@@ -346,16 +346,17 @@ void moMasterEffectPanel::Draw( moTempo* tempogral,moEffectState* parentstate)
 		//glDisable(GL_TEXTURE_2D);
 
         /** VIEWPORT */
-        float w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-        float h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+        float w = m_pResourceManager->GetRenderMan()->InterfaceWidth();
+        float h = m_pResourceManager->GetRenderMan()->InterfaceHeight();
         float screen_ratio = w / h;
 
         int viewport_left = (int)(m_Config.Eval( moR(PANEL_VIEWPORT_LEFT) ) * w);
         int viewport_top = (int)(m_Config.Eval( moR(PANEL_VIEWPORT_TOP) ) * h);
-        int viewport_width = (int)(m_Config.Eval( moR(PANEL_VIEWPORT_WIDTH) ) * w);
+        int viewport_width = (int)( m_Config.Eval( moR(PANEL_VIEWPORT_WIDTH) ) * w);
         int viewport_height = (int)(m_Config.Eval( moR(PANEL_VIEWPORT_HEIGHT) ) * h);
 
         glViewport( viewport_left, viewport_top, viewport_width, viewport_height );
+        //glViewport( 0, 0, w, h );
         gluPerspective( 45.0f, 1/screen_ratio, 0.1f ,4000.0f);
 
 
