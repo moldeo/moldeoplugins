@@ -831,7 +831,7 @@ moKinect::Init() {
   moKinectGesture SlideVerticalRight;
   SlideVerticalRight.m_GestureEvent = "SLIDE_VERTICAL_RIGHT";
   SlideVerticalRight.m_Interval = moKinectGestureInterval( 6, 0, 6 );
-  SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
+  SlideVerticalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
                                             moVector3f( 0 /*Proportion VX over VY*/, 1 /*Proportion VX over VY*/, 0/*VY*/ ),
                                             /*MIN*/moVector3f( 0.0f, 2.5f, 0 ),
                                             /*MAX*/ moVector3f( 0, 1000000.0f, 0 ) );
