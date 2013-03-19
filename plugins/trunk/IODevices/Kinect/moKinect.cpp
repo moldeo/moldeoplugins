@@ -828,11 +828,18 @@ moKinect::Init() {
   m_GestureRecognition.m_Gestures.Add( SlideHorizontalRight );
 
 
-  //moKinectGesture SlideVerticalRight;
-  //SlideVerticalRight.m_GestureEvent = "SLIDE_VERTICAL_RIGHT";
-  //SlideVerticalRight.m_Interval = moKinectGestureInterval( 25, 0, 25 );
-  //SlideVerticalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_RIGHT, moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ), /*MIN*/moVector3f( 0, 0, 20 ), /*MAX*/ moVector3f( 0, 0, 100 ) );
-  //m_GestureRecognition.m_Gestures.Add( SlideVerticalRight );
+  moKinectGesture SlideVerticalRight;
+  SlideVerticalRight.m_GestureEvent = "SLIDE_VERTICAL_RIGHT";
+  SlideVerticalRight.m_Interval = moKinectGestureInterval( 6, 0, 6 );
+  SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
+                                            moVector3f( 0 /*Proportion VX over VY*/, 1 /*Proportion VX over VY*/, 0/*VY*/ ),
+                                            /*MIN*/moVector3f( 0.0f, 2.5f, 0 ),
+                                            /*MAX*/ moVector3f( 0, 1000000.0f, 0 ) );
+  SlideVerticalRight.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_LEFT,
+                                      moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ),
+                                    /*MIN*/moVector3f( 0, 0, 1.0f ),
+                                    /*MAX*/ moVector3f( 0, 0, 100000.0f ) );
+  m_GestureRecognition.m_Gestures.Add( SlideVerticalRight );
 
 
 
@@ -1843,21 +1850,27 @@ moKinectPosture::Calculate( XnUserID player ) {
     float prop_horizontal = 0.0f;
     float prop_vertical = 0.0f;
 
+    //SPEED AND PROP LEFT
     JointPosition = m_PostureVector[MO_KIN_REL_HAND_LEFT] - m_PostureVectorOld[MO_KIN_REL_HAND_LEFT];
     if (JointPosition.Y()==0.0f) { prop_horizontal = fabs(JointPosition.X()); prop_vertical = 0.0f; }
     if (JointPosition.X()==0.0f) { prop_horizontal = 0.0f; prop_vertical = fabs(JointPosition.Y()); }
-    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) { prop_horizontal = fabs(JointPosition.X() / JointPosition.Y()); prop_vertical = 0.0f; }
-
+    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) {
+      prop_horizontal = fabs(JointPosition.X() / JointPosition.Y());
+      prop_vertical = fabs(JointPosition.Y() / JointPosition.X());
+    }
     JointPosition = moVector3f( JointPosition.Length(), JointPosition.X(), JointPosition.Y());
     m_PostureVector.Set( MO_KIN_SPEED_ABS_HAND_LEFT, JointPosition );
     JointPosition = moVector3f( prop_horizontal, prop_vertical, 0.0f );
     m_PostureVector.Set( MO_KIN_SPEED_PROP_HAND_LEFT, JointPosition );
 
+    //SPEED AND PROP RIGHT
     JointPosition = m_PostureVector[MO_KIN_REL_HAND_RIGHT] - m_PostureVectorOld[MO_KIN_REL_HAND_RIGHT];
     if (JointPosition.Y()==0.0f) { prop_horizontal = fabs(JointPosition.X()); prop_vertical = 0.0f; }
     if (JointPosition.X()==0.0f) { prop_horizontal = 0.0f; prop_vertical = fabs(JointPosition.Y()); }
-    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) { prop_horizontal = fabs(JointPosition.X() / JointPosition.Y()); prop_vertical = 0.0f; }
-
+    if (JointPosition.Y()!=0.0f && JointPosition.X()!=0.0f) {
+        prop_horizontal = fabs(JointPosition.X() / JointPosition.Y());
+        prop_vertical = fabs(JointPosition.Y() / JointPosition.X());
+    }
     JointPosition = moVector3f( JointPosition.Length(), JointPosition.X(), JointPosition.Y());
     m_PostureVector.Set( MO_KIN_SPEED_ABS_HAND_RIGHT , JointPosition);
     JointPosition = moVector3f( prop_horizontal, prop_vertical, 0.0f );
