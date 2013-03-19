@@ -909,7 +909,7 @@ bool moKinect::DrawLimb(XnUserID player, XnSkeletonJoint eJoint1, XnSkeletonJoin
 {
 	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
 	{
-		printf("not tracked!\n");
+		//printf("not tracked!\n");
 		return true;
 	}
 
@@ -958,7 +958,7 @@ void moKinect::DrawJoint(XnUserID player, XnSkeletonJoint eJoint)
 {
 	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
 	{
-		printf("not tracked!\n");
+		//printf("not tracked!\n");
 		return;
 	}
 
