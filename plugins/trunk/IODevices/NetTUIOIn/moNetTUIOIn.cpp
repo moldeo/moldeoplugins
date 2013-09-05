@@ -57,6 +57,7 @@ void moNetTUIOInFactory::Destroy(moIODevice* fx) {
 
 
 void moNetTUIOListener::addTuioObject(TuioObject *tobj) {
+  if (verbose)
     MODebug2->Push(moText("Add Object"));
 /*	if (verbose)
 		std::cout << "add obj " << tobj->getSymbolID() << " (" << tobj->getSessionID() << ") "<< tobj->getX() << " " << tobj->getY() << " " << tobj->getAngle() << std::endl;
@@ -65,6 +66,7 @@ void moNetTUIOListener::addTuioObject(TuioObject *tobj) {
 }
 
 void moNetTUIOListener::updateTuioObject(TuioObject *tobj) {
+  if (verbose)
     MODebug2->Push(moText("Update Object"));
     /*
 	if (verbose)
@@ -112,6 +114,7 @@ void moNetTUIOListener::updateTuioCursor(TuioCursor *tcur) {
 		std::cout << "set cur " << tcur->getCursorID() << " (" <<  tcur->getSessionID() << ") " << tcur->getX() << " " << tcur->getY()
 					<< " " << tcur->getMotionSpeed() << " " << tcur->getMotionAccel() << " " << std::endl;
 */
+
 }
 
 void moNetTUIOListener::removeTuioCursor(TuioCursor *tcur) {
@@ -160,7 +163,7 @@ void moNetTUIOListener::drawObjects() {
                 //glVertex3f(point->getX()*width, point->getY()*height, 0.0f);
                 last_point.update(point->getX(),point->getY());
 
-                //MODebug2->Push(moText("cursor: x:") + IntToStr(point->getX()) );
+                MODebug2->Push(moText("cursor: x:") + FloatToStr(point->getX()) );
 
             }
 
@@ -211,6 +214,72 @@ void moNetTUIOListener::drawObjects() {
 
 }
 
+void moNetTUIOListener::updateOutlets() {
+
+  if (!m_pOutlets || !tuioClient) return;
+
+  char id[3];
+
+  // draw the cursors
+  std::list<TuioCursor*> cursorList = tuioClient->getTuioCursors();
+  tuioClient->lockCursorList();
+
+  //MODebug2->Push(moText("Draw Cursors"));
+  int ncursors = 0;
+  for (std::list<TuioCursor*>::iterator iter = cursorList.begin(); iter!=cursorList.end(); iter++) {
+
+    TuioCursor *tuioCursor = (*iter);
+
+    std::list<TuioPoint> path = tuioCursor->getPath();
+
+
+    ncursors++;
+    if (tuioCursor) {
+
+      switch(ncursors) {
+
+          case 1:
+            if (m_pOutletCursor1X) {
+                m_pOutletCursor1X->GetData()->SetFloat( tuioCursor->getX() );
+                m_pOutletCursor1X->Update( true );
+            }
+            if (m_pOutletCursor1Y) {
+                m_pOutletCursor1Y->GetData()->SetFloat( tuioCursor->getY() );
+                m_pOutletCursor1Y->Update( true );
+            }
+            break;
+
+          case 2:
+            if (m_pOutletCursor2X) {
+                m_pOutletCursor2X->GetData()->SetFloat( tuioCursor->getX() );
+                m_pOutletCursor2X->Update( true );
+            }
+            if (m_pOutletCursor2Y) {
+                m_pOutletCursor2Y->GetData()->SetFloat( tuioCursor->getY() );
+                m_pOutletCursor2Y->Update( true );
+            }
+            break;
+      }
+
+    }
+
+    if (path.size()>0) {
+
+            TuioPoint last_point = path.front();
+
+            for (std::list<TuioPoint>::iterator point = path.begin(); point!=path.end(); point++) {
+                //glVertex3f(last_point.getX()*width, last_point.getY()*height, 0.0f);
+                //glVertex3f(point->getX()*width, point->getY()*height, 0.0f);
+                last_point.update(point->getX(),point->getY());
+                //MODebug2->Push(moText("cursor: x:") + FloatToStr(point->getX()) );
+
+            }
+    }
+  }
+  tuioClient->unlockCursorList();
+
+}
+
 /*
 void moNetTUIOListener::drawString(char *str) {
 	if (str && strlen(str)) {
@@ -222,24 +291,136 @@ void moNetTUIOListener::drawString(char *str) {
 }
 */
 
-moNetTUIOListener::moNetTUIOListener(int port) {
+moNetTUIOListener::moNetTUIOListener( moOutlets* p_pOutlets, int port ) : tuioClient(NULL),verbose(true),m_pOutlets(NULL) {
+
+  m_pOutletCursors = NULL;
+
+  m_pOutletCursor1 = NULL;
+  m_pOutletCursor1X = NULL;
+  m_pOutletCursor1Y = NULL;
+
+  m_pOutletCursor2 = NULL;
+  m_pOutletCursor2X = NULL;
+  m_pOutletCursor2Y = NULL;
+
+  m_pOutletCursor3 = NULL;
+  m_pOutletCursor3X = NULL;
+  m_pOutletCursor3Y = NULL;
+
+  m_pOutletCursor4 = NULL;
+  m_pOutletCursor4X = NULL;
+  m_pOutletCursor4Y = NULL;
+
+
+  Init( p_pOutlets, port );
+}
+
+bool
+moNetTUIOListener::Init( moOutlets* p_pOutlets, int port ) {
+
+  m_pOutlets = p_pOutlets;
+
+  moOutlet* pOutlet = NULL;
+
+  for( int i=0; i<m_pOutlets->Count(); i++) {
+
+    pOutlet = m_pOutlets->Get(i);
+
+    if (pOutlet) {
+//=====================================
+        if (pOutlet->GetConnectorLabelName() == moText("CURSORS")) {
+            m_pOutletCursors = pOutlet;
+            MODebug2->Push( moText("CURSORS outlet ready.") );
+        }
+//=====================================
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR1")) {
+            m_pOutletCursor1 = pOutlet;
+            MODebug2->Push( moText("CURSOR1 outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR1X")) {
+            m_pOutletCursor1X = pOutlet;
+            MODebug2->Push( moText("CURSOR1X outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR1Y")) {
+            m_pOutletCursor1Y = pOutlet;
+            MODebug2->Push( moText("CURSOR1Y outlet ready.") );
+        }
+//=====================================
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR2")) {
+            m_pOutletCursor2 = pOutlet;
+            MODebug2->Push( moText("CURSOR2 outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR2X")) {
+            m_pOutletCursor2X = pOutlet;
+            MODebug2->Push( moText("CURSOR2X outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR2Y")) {
+            m_pOutletCursor2Y = pOutlet;
+            MODebug2->Push( moText("CURSOR2Y outlet ready.") );
+        }
+//=====================================
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR3")) {
+            m_pOutletCursor3 = pOutlet;
+            MODebug2->Push( moText("CURSOR3 outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR3X")) {
+            m_pOutletCursor3X = pOutlet;
+            MODebug2->Push( moText("CURSOR3X outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR3Y")) {
+            m_pOutletCursor3Y = pOutlet;
+            MODebug2->Push( moText("CURSOR3Y outlet ready.") );
+        }
+//=====================================
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR4")) {
+            m_pOutletCursor4 = pOutlet;
+            MODebug2->Push( moText("CURSOR4 outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR4X")) {
+            m_pOutletCursor4X = pOutlet;
+            MODebug2->Push( moText("CURSOR4X outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR4Y")) {
+            m_pOutletCursor4Y = pOutlet;
+            MODebug2->Push( moText("CURSOR4Y outlet ready.") );
+        }
+
+    }
+  }
+
+
+  if (tuioClient) {
+		tuioClient->disconnect();
+		delete tuioClient;
+		tuioClient = NULL;
+  }
 
 	tuioClient = new TuioClient(port);
 	tuioClient->addTuioListener(this);
 	tuioClient->connect();
 
 	if (!tuioClient->isConnected()) {
-
 	    MODebug2->Error(moText("TUIO Listener Error : unable to connect to port: ") + IntToStr(port));
-
-
 	} else {
-        MODebug2->Message(moText("TUIO Listener Connected to port: ") + IntToStr(port));
-    }
+      MODebug2->Message(moText("TUIO Listener Connected to port: ") + IntToStr(port));
+  }
+
 
 
 }
 
+void
+moNetTUIOListener::SetVerbose ( bool p_verbose ) {
+    verbose = p_verbose;
+}
 
 
 // moNetTUIOIn class **************************************************
@@ -266,99 +447,27 @@ MOboolean moNetTUIOIn::Init()
     // CORRESPONDE A UN PREINIT
     //==========================
 
-    // Loading config file.
-	conf = m_pResourceManager->GetDataMan()->GetDataPath() + moSlash;
-    conf += GetConfigName();
-    conf += moText(".cfg");
-
-	if (m_Config.LoadConfig(conf) != MO_CONFIG_OK ) {
-		moText text = "Couldn't load nettuioin config";
-		MODebug->Push(text);
-		return false;
-	}
-
-    moMoldeoObject::Init();
-
+    if (moMoldeoObject::Init()) {
+      moMoldeoObject::CreateConnectors();
+    } else return false;
 
     //==========================
     // INIT
     //==========================
 
+    moDefineParamIndex( NETTUIOIN_INLET, moText("inlet") );
+    moDefineParamIndex( NETTUIOIN_OUTLET, moText("outlet") );
     moDefineParamIndex( NETTUIOIN_PORT , moText("port") );
-	moDefineParamIndex( NETTUIOIN_HOST , moText("host") );
-	moDefineParamIndex( NETTUIOIN_INLET, moText("inlet") );
-	moDefineParamIndex( NETTUIOIN_OUTLET, moText("outlet") );
+    moDefineParamIndex( NETTUIOIN_HOST , moText("host") );
+    moDefineParamIndex( NETTUIOIN_VERBOSE , moText("verbose") );
 
-    // Reading hosts names and ports.
-    n = m_Config.GetParamIndex("host");
-	n_hosts = m_Config.GetValuesCount(n);
-	host_name.Init(n_hosts, moText(""));
-    host_port.Init(n_hosts, 0);
-    for(i = 0; i < n_hosts; i++)
-    {
-		host_name.Set(i, m_Config.GetParam(n).GetValue(i).GetSubValue(0).Text());
-		host_port.Set(i, m_Config.GetParam(n).GetValue(i).GetSubValue(1).Int());
-	}
-
-
-    port = m_Config.GetValue( moText("port"), 0).GetSubValue(0).Int();
+    port = m_Config.Int( moR(NETTUIOIN_PORT) );
 
     MODebug2->Message(moText("Initializing listener on port: ") + IntToStr(port));
 
-    m_pListener = new moNetTUIOListener( port );
+    m_pListener = new moNetTUIOListener( GetOutlets(), port );
 
-	for(i = 0; i < n_hosts; i++)
-	{
-	    //TUIO::TuioListener listener;
-		/*
-		moOscPacketListener*    pListener = NULL;
-
-		pListener = new moOscPacketListener();
-        if (pListener) {
-            if ( host_name[i] == moText("all") ) {
-                if (host_port[i]>0)
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                host_port[i] ),
-                                                               pListener ) );
-                else
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            } else if ( host_name[i] != moText("") ) {
-                moTextArray ipNumbers;
-                unsigned long ipaddress = 0;
-                int i1=0, i2=0, i3=0, i4=0;
-                ipNumbers = host_name[i].Explode(".");
-                if (ipNumbers.Count()==4) {
-                    i1 = atoi(ipNumbers[0]);
-                    i2 = atoi(ipNumbers[1]);
-                    i3 = atoi(ipNumbers[2]);
-                    i4 = atoi(ipNumbers[3]);
-                    ipaddress = (i1 << 24) & (i2<<16) & (i3<<8) & i4;
-                } else {
-                    ipaddress = IpEndpointName::ANY_ADDRESS;
-                }
-                if (host_port[i]>0)
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( ipaddress,
-                                                                host_port[i] ),
-                                                               pListener ) );
-                else
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( ipaddress,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            } else {
-                pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            }
-            m_OscPacketListeners.Add( pListener );
-            pListener->CreateThread();
-       }
-       */
-	}
-
-
-	return true;
+    return true;
 }
 
 
@@ -369,6 +478,7 @@ moNetTUIOIn::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETTUIOIN_PORT, moValue( moText("3333"), moText("NUM")).Ref() );
 	p_configdefinition->Add( moText("host"), MO_PARAM_TEXT, NETTUIOIN_HOST );
+	p_configdefinition->Add( moText("verbose"), MO_PARAM_NUMERIC, NETTUIOIN_VERBOSE, moValue( moText("1"), moText("NUM")).Ref() );
 	return p_configdefinition;
 }
 
@@ -411,30 +521,21 @@ void moNetTUIOIn::Update(moEventList *Eventos)
         }
     }
 
+
     if (m_pListener) {
         //m_pListener->drawObjects();
+        m_pListener->SetVerbose( ( 1 == m_Config.Int( moR(NETTUIOIN_VERBOSE) )) );
+        m_pListener->updateOutlets();
     }
-/*
-	for(i=0; i<m_OscPacketListeners.Count(); i++ ) {
 
-        //pass outlets thru listeners to populate the outlets
-        moOscPacketListener* pListener = NULL;
-        pListener = m_OscPacketListeners[i];
-
-        if (pListener) {
-            pListener->Update( GetOutlets() );
-        }
-
-	}
-*/
-	moMoldeoObject::Update(Eventos);
+    moMoldeoObject::Update(Eventos);
 
     for(i=0; i<GetOutlets()->Count();i++) {
         moOutlet* pOutlet = GetOutlets()->Get(i);
         if (pOutlet) {
             if (pOutlet->Updated()) {
                 /*
-                MODebug2->Push(moText("NetOscIn messages: ")+IntToStr(pOutlet->GetMessages().Count() )
+                MODebug2->Push(moText("NetTuioIn messages: ")+IntToStr(pOutlet->GetMessages().Count() )
                              +moText(" [1s int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(0).Int())
                              +moText(" [2d int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(1).Int())
                              +moText(" [3rd int]: ")+IntToStr(pOutlet->GetMessages().GetRef(0).Ref(2).Int())
@@ -448,7 +549,10 @@ void moNetTUIOIn::Update(moEventList *Eventos)
 
 MOboolean moNetTUIOIn::Finish()
 {
-
+  if (m_pListener) {
+    delete m_pListener;
+    m_pListener = NULL;
+  }
 	return true;
 }
 
