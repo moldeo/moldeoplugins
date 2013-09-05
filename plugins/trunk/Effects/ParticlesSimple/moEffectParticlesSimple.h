@@ -674,7 +674,7 @@ class moEffectParticlesSimple : public moEffect
 
         ///end script functions
 
-
+        moInlet*                  m_pParticleTime;
         moParticlesSimpleArray    m_ParticlesSimpleArray;
         moParticlesSimpleArray    m_ParticlesSimpleArrayTmp;
         moParticlesSimplePhysics    m_Physics;
