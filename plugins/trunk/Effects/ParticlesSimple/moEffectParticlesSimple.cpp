@@ -194,6 +194,13 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 MOboolean
 moEffectParticlesSimple::Init()
 {
+
+  m_pParticleTime = new moInlet();
+  if (m_pParticleTime) {
+    ((moConnector*)m_pParticleTime)->Init( moText("particletime"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
+    m_Inlets.Add(m_pParticleTime);
+  }
+
     if (!PreInit()) return false;
 
 	moDefineParamIndex( PARTICLES_INLET, moText("inlet") );
@@ -720,7 +727,7 @@ void moEffectParticlesSimple::UpdateDt() {
 
     //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
 
-    dt = m_Config.Eval( moR(PARTICLES_SYNC),m_EffectState.tempo.ang) * dtrel * (double)(m_EffectState.tempo.delta) /  (double)100.0;
+    dt = m_Config.Eval( moR(PARTICLES_SYNC)) * dtrel * (double)(m_EffectState.tempo.delta) /  (double)100.0;
 
     last_tick = m_EffectState.tempo.ticks;
 
@@ -775,14 +782,14 @@ void moEffectParticlesSimple::UpdateParameters() {
     texture_mode = m_Config[moR(PARTICLES_TEXTUREMODE)][MO_SELECTED][0].Int();
 
     m_Physics.m_EyeVector = moVector3f(
-                                        m_Config.Eval( moR(PARTICLES_EYEX), m_EffectState.tempo.ang ),
-                                        m_Config.Eval( moR(PARTICLES_EYEY), m_EffectState.tempo.ang ),
-                                        m_Config.Eval( moR(PARTICLES_EYEZ), m_EffectState.tempo.ang )
+                                        m_Config.Eval( moR(PARTICLES_EYEX)),
+                                        m_Config.Eval( moR(PARTICLES_EYEY)),
+                                        m_Config.Eval( moR(PARTICLES_EYEZ))
                                        );
 
 
-    m_Physics.gravitational = m_Config.Eval( moR(PARTICLES_GRAVITY), m_EffectState.tempo.ang );
-    m_Physics.viscousdrag = m_Config.Eval( moR(PARTICLES_VISCOSITY), m_EffectState.tempo.ang );
+    m_Physics.gravitational = m_Config.Eval( moR(PARTICLES_GRAVITY));
+    m_Physics.viscousdrag = m_Config.Eval( moR(PARTICLES_VISCOSITY));
 
 
     /*
@@ -813,10 +820,10 @@ void moEffectParticlesSimple::UpdateParameters() {
 
     m_Physics.m_OrientationMode = (moParticlesOrientationMode) m_Config.Int( moR(PARTICLES_ORIENTATIONMODE) );
 
-    m_Physics.m_FadeIn = m_Config.Eval( moR(PARTICLES_FADEIN), m_EffectState.tempo.ang);
-    m_Physics.m_FadeOut = m_Config.Eval( moR(PARTICLES_FADEOUT), m_EffectState.tempo.ang);
-    m_Physics.m_SizeIn = m_Config.Eval( moR(PARTICLES_SIZEIN), m_EffectState.tempo.ang);
-    m_Physics.m_SizeOut = m_Config.Eval( moR(PARTICLES_SIZEOUT), m_EffectState.tempo.ang);
+    m_Physics.m_FadeIn = m_Config.Eval( moR(PARTICLES_FADEIN));
+    m_Physics.m_FadeOut = m_Config.Eval( moR(PARTICLES_FADEOUT));
+    m_Physics.m_SizeIn = m_Config.Eval( moR(PARTICLES_SIZEIN));
+    m_Physics.m_SizeOut = m_Config.Eval( moR(PARTICLES_SIZEOUT));
 
 
     /*
@@ -824,42 +831,42 @@ void moEffectParticlesSimple::UpdateParameters() {
     m_Physics.m_RandomVelocity = m_Config[moR(PARTICLES_RANDOMVELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_randomvelocity;
     m_Physics.m_RandomMotion = m_Config[moR(PARTICLES_RANDOMMOTION)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_randommotion;
     */
-    m_Physics.m_RandomPosition = m_Config.Eval( moR(PARTICLES_RANDOMPOSITION), m_EffectState.tempo.ang );
-    m_Physics.m_RandomVelocity = m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY), m_EffectState.tempo.ang );
-    m_Physics.m_RandomMotion = m_Config.Eval( moR(PARTICLES_RANDOMMOTION), m_EffectState.tempo.ang);
+    m_Physics.m_RandomPosition = m_Config.Eval( moR(PARTICLES_RANDOMPOSITION));
+    m_Physics.m_RandomVelocity = m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY));
+    m_Physics.m_RandomMotion = m_Config.Eval( moR(PARTICLES_RANDOMMOTION));
 
 
     m_Physics.m_EmitterType = (moParticlesSimpleEmitterType) m_Config.Int( moR(PARTICLES_EMITTERTYPE));
     m_Physics.m_AttractorType = (moParticlesSimpleAttractorType) m_Config.Int( moR(PARTICLES_ATTRACTORTYPE));
 
-    m_Physics.m_PositionVector = moVector3f(m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_X), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_Y), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_Z), m_EffectState.tempo.ang) );
+    m_Physics.m_PositionVector = moVector3f(m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_X)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_Y)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMPOSITION_Z)) );
 
-    m_Physics.m_EmitterSize = moVector3f(   m_Config.Eval( moR(PARTICLES_SIZEX), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_SIZEY), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_SIZEZ), m_EffectState.tempo.ang));
+    m_Physics.m_EmitterSize = moVector3f(   m_Config.Eval( moR(PARTICLES_SIZEX)),
+                                            m_Config.Eval( moR(PARTICLES_SIZEY)),
+                                            m_Config.Eval( moR(PARTICLES_SIZEZ)));
 
-    m_Physics.m_VelocityVector =  moVector3f( m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_X), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_Y), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_Z), m_EffectState.tempo.ang));
+    m_Physics.m_VelocityVector =  moVector3f( m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_X)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_Y)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMVELOCITY_Z)));
 
-    m_Physics.m_MotionVector =  moVector3f( m_Config.Eval( moR(PARTICLES_RANDOMMOTION_X), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMMOTION_Y), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_RANDOMMOTION_Z), m_EffectState.tempo.ang));
+    m_Physics.m_MotionVector =  moVector3f( m_Config.Eval( moR(PARTICLES_RANDOMMOTION_X)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMMOTION_Y)),
+                                            m_Config.Eval( moR(PARTICLES_RANDOMMOTION_Z)));
 
-    m_Physics.m_EmitterVector = moVector3f( m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_X), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_Y), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_Z), m_EffectState.tempo.ang));
+    m_Physics.m_EmitterVector = moVector3f( m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_X)),
+                                            m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_Y)),
+                                            m_Config.Eval( moR(PARTICLES_EMITTERVECTOR_Z)));
 
     if (m_bTrackerInit && m_Physics.m_EmitterType==PARTICLES_EMITTERTYPE_TRACKER2) {
         m_Physics.m_EmitterVector = moVector3f( m_TrackerBarycenter.X()*normalf, m_TrackerBarycenter.Y()*normalf, 0.0f );
     }
 
     m_Physics.m_AttractorMode = (moParticlesSimpleAttractorMode) m_Config.Int( moR(PARTICLES_ATTRACTORMODE));
-    m_Physics.m_AttractorVector = moVector3f( m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_X), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_Y), m_EffectState.tempo.ang),
-                                            m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_Z), m_EffectState.tempo.ang));
+    m_Physics.m_AttractorVector = moVector3f( m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_X)),
+                                            m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_Y)),
+                                            m_Config.Eval( moR(PARTICLES_ATTRACTORVECTOR_Z)));
 
     if (original_proportion!=1.0f) {
             if (original_proportion>1.0f) {
@@ -900,7 +907,7 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
     randomvelz = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Z() : m_Physics.m_VelocityVector.Z();
 
     moVector4d fullcolor;
-    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , m_EffectState.tempo.ang );
+    fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR));
     pParticle->Color = moVector3f(
                               fullcolor.X(),
                               fullcolor.Y(),
@@ -1260,7 +1267,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
             pPar->ImageProportion = 1.0;
             //pPar->Color = moVector3f(1.0,1.0,1.0);
             moVector4d fullcolor;
-            fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR) , m_EffectState.tempo.ang);
+            fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR));
             pPar->Color = moVector3f(
                                       fullcolor.X(),
                                       fullcolor.Y(),
@@ -2236,25 +2243,30 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                 tsizey = pPar->TSize.Y();
                 double part_timer = 0.001f * (double)(pPar->Age.Duration()); // particule ang = durationinmilis / 1000 ...
 
+                if (m_pParticleTime) {
+                  m_pParticleTime->GetData()->SetDouble(part_timer);
+                  m_pParticleTime->Update(true);
+                }
+
                 glPushMatrix();
 
                 glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
 
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) , part_timer ) + pPar->Rotation.Z(), 0.0, 0.0, 1.0 );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) , part_timer ) + pPar->Rotation.Y(), 0.0, 1.0, 0.0 );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) , part_timer ) + pPar->Rotation.X(), 1.0, 0.0, 0.0 );
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), 0.0, 0.0, 1.0 );
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), 0.0, 1.0, 0.0 );
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) ) + pPar->Rotation.X(), 1.0, 0.0, 0.0 );
 
                 //scale
-                glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE), part_timer )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE), part_timer )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE), part_timer )*pPar->Scale);
+                glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) )*pPar->Scale,
+                            m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) )*pPar->Scale,
+                            m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE) )*pPar->Scale);
 
 
-                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval(m_EffectState.tempo.ang) * pPar->Color.X() * m_EffectState.tintr,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval(m_EffectState.tempo.ang) * pPar->Color.Y() * m_EffectState.tintg,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval(m_EffectState.tempo.ang) * pPar->Color.Z() * m_EffectState.tintb,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval(m_EffectState.tempo.ang)
-                            * m_Config.Eval( moR(PARTICLES_ALPHA), m_EffectState.tempo.ang )
+                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval() * pPar->Color.X() * m_EffectState.tintr,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval() * pPar->Color.Y() * m_EffectState.tintg,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval() * pPar->Color.Z() * m_EffectState.tintb,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval()
+                            * m_Config.Eval( moR(PARTICLES_ALPHA))
                             * m_EffectState.alpha * pPar->Alpha );
 
 
@@ -2950,9 +2962,9 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
             gluLookAt(		m_Physics.m_EyeVector.X(),
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX), m_EffectState.tempo.ang),
-                            m_Config.Eval( moR(PARTICLES_VIEWY), m_EffectState.tempo.ang),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ), m_EffectState.tempo.ang),
+                            m_Config.Eval( moR(PARTICLES_VIEWX)),
+                            m_Config.Eval( moR(PARTICLES_VIEWY)),
+                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
                             0, 1, 0);
 
         } else {
@@ -2960,17 +2972,17 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
                gluLookAt(	m_Physics.m_EyeVector.X()-0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX), m_EffectState.tempo.ang)-0.1,
-                            m_Config.Eval( moR(PARTICLES_VIEWY), m_EffectState.tempo.ang),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ), m_EffectState.tempo.ang),
+                            m_Config.Eval( moR(PARTICLES_VIEWX))-0.1,
+                            m_Config.Eval( moR(PARTICLES_VIEWY)),
+                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
                             0, 1, 0);
             } else if ( m_EffectState.stereoside == MO_STEREO_RIGHT ) {
                 gluLookAt(	m_Physics.m_EyeVector.X()+0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX), m_EffectState.tempo.ang)+0.1,
-                            m_Config.Eval( moR(PARTICLES_VIEWY), m_EffectState.tempo.ang),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ), m_EffectState.tempo.ang),
+                            m_Config.Eval( moR(PARTICLES_VIEWX))+0.1,
+                            m_Config.Eval( moR(PARTICLES_VIEWY)),
+                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
                             0, 1, 0);
             }
 
@@ -3002,16 +3014,16 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     //setUpLighting();
 
-    tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX), m_EffectState.tempo.ang);
-    ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY), m_EffectState.tempo.ang);
-    tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ), m_EffectState.tempo.ang);
+    tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX));
+    ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY));
+    tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ));
 
 
-    rz = m_Config.Eval( moR(PARTICLES_ROTATEZ), m_EffectState.tempo.ang);
+    rz = m_Config.Eval( moR(PARTICLES_ROTATEZ));
 
-    sx = m_Config.Eval( moR(PARTICLES_SCALEX), m_EffectState.tempo.ang);
-    sy = m_Config.Eval( moR(PARTICLES_SCALEY), m_EffectState.tempo.ang);
-    sz = m_Config.Eval( moR(PARTICLES_SCALEZ), m_EffectState.tempo.ang);
+    sx = m_Config.Eval( moR(PARTICLES_SCALEX));
+    sy = m_Config.Eval( moR(PARTICLES_SCALEY));
+    sz = m_Config.Eval( moR(PARTICLES_SCALEZ));
 
     glTranslatef(   tx,
                     ty,
@@ -3019,8 +3031,8 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     //rotation
     glRotatef(  rz, 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY), m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX), m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY)), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX)), 1.0, 0.0, 0.0 );
 
 	//scale
 	glScalef(   sx,
@@ -3578,8 +3590,14 @@ int moEffectParticlesSimple::luaGetParticleSize(moLuaVirtualMachine& vm)
     if (Par) {
         Size = Par->Size;
         double part_timer = 0.001f * (double)(Par->Age.Duration());
-        double sx = m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE), part_timer ) * Par->Scale * Par->ImageProportion;
-        double sy = m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE), part_timer ) * Par->Scale;
+
+        if (m_pParticleTime) {
+          m_pParticleTime->GetData()->SetDouble(part_timer);
+          m_pParticleTime->Update(true);
+        }
+
+        double sx = m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) ) * Par->Scale * Par->ImageProportion;
+        double sy = m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) ) * Par->Scale;
 
         lua_pushnumber(state, (lua_Number) Size.X()*sx );
         lua_pushnumber(state, (lua_Number) Size.Y()*sy );
