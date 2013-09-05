@@ -31,8 +31,8 @@
 
 #include "moTypes.h"
 
-#ifndef __MO_NET_OSC_OUT_H__
-#define __MO_NET_OSC_OUT_H__
+#ifndef __MO_NET_TUIO_IN_H__
+#define __MO_NET_TUIO_IN_H__
 
 #include "moConfig.h"
 #include "moDeviceCode.h"
@@ -45,19 +45,18 @@
 #include "osc/OscOutboundPacketStream.h"
 #include "ip/UdpSocket.h"
 
-#include "TuioClient.h"
+#include "tuio/TuioClient.h"
 
 
 #include "moConnectors.h"
 
 enum moNetTUIOInParamIndex {
-    NETTUIOIN_PORT,
-    NETTUIOIN_HOST,
-	NETTUIOIN_LATENCY,
-	NETTUIOIN_SIZE,
-	NETTUIOIN_RECONNECTTIME,
 	NETTUIOIN_INLET,
-	NETTUIOIN_OUTLET
+	NETTUIOIN_OUTLET,
+	NETTUIOIN_SCRIPT,
+  NETTUIOIN_PORT,
+  NETTUIOIN_HOST,
+  NETTUIOIN_VERBOSE
 };
 
 using namespace TUIO;
@@ -65,11 +64,17 @@ using namespace TUIO;
 class moNetTUIOListener : public TuioListener, public moAbstract {
 
 public:
-	moNetTUIOListener(int port);
-	~moNetTUIOListener() {
+
+	moNetTUIOListener( moOutlets* p_Outlets, int port );
+	virtual bool Init( moOutlets* p_Outlets, int port );
+
+	virtual ~moNetTUIOListener() {
 		tuioClient->disconnect();
 		delete tuioClient;
+		tuioClient = NULL;
 	}
+
+
 
 	void addTuioObject(TuioObject *tobj);
 	void updateTuioObject(TuioObject *tobj);
@@ -83,11 +88,34 @@ public:
 
 	TuioClient *tuioClient;
 
+  void drawObjects();
+  void SetVerbose ( bool p_verbose = true );
+  void updateOutlets();
+
 private:
 
-	void drawObjects();
+  moOutlets*  m_pOutlets;
 
-	bool verbose, fullscreen, running;
+  moOutlet*   m_pOutletCursors; //vectors
+
+  moOutlet*   m_pOutletCursor1;
+  moOutlet*   m_pOutletCursor1X;
+  moOutlet*   m_pOutletCursor1Y;
+
+  moOutlet*   m_pOutletCursor2;
+  moOutlet*   m_pOutletCursor2X;
+  moOutlet*   m_pOutletCursor2Y;
+
+  moOutlet*   m_pOutletCursor3;
+  moOutlet*   m_pOutletCursor3X;
+  moOutlet*   m_pOutletCursor3Y;
+
+  moOutlet*   m_pOutletCursor4;
+  moOutlet*   m_pOutletCursor4X;
+  moOutlet*   m_pOutletCursor4Y;
+
+  bool verbose;
+	bool fullscreen, running;
 
 	int width, height;
 	int screen_width, screen_height;

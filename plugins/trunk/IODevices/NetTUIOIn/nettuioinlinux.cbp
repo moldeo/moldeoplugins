@@ -37,8 +37,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moNetTUIOIn.h" />
-		<Unit filename="src/moNetTUIOIn.cpp" />
+		<Unit filename="moNetTUIOIn.cpp" />
+		<Unit filename="moNetTUIOIn.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
