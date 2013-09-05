@@ -18,7 +18,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="glew_sharedd" />
+					<Add library="glew_staticdd" />
 					<Add library="libgled" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
@@ -36,7 +36,7 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Linker>
-					<Add library="glew_shared" />
+					<Add library="glew_staticd" />
 					<Add library="libgle" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
@@ -52,7 +52,10 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="-w" />
+			<Add option="-Wall" />
 			<Add option="-fno-strict-aliasing" />
+			<Add option="-DUNICODE" />
+			<Add option="-DGLEW_STATIC" />
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />
@@ -60,20 +63,13 @@
 			<Add directory="..\..\..\..\externlibs\lua\include" />
 			<Add directory="..\..\..\..\externlibs\SDL\include" />
 			<Add directory="$(OPEN_NI_INCLUDE)" />
-			<Add directory="C:\Program Files\PCL\include\pcl-1.1" />
-			<Add directory="C:\Program Files\Eigen 3.0.0\include\eigen3" />
-			<Add directory="C:\Program Files\Boost\include" />
-			<Add directory="C:\Program Files\flann 1.6.9\include" />
-			<Add directory="C:\Program Files\Boost\lib" />
+			<Add directory="%PROGRAMFILES%\PCL\include\pcl-1.1" />
+			<Add directory="%PROGRAMFILES%\Eigen 3.0.0\include\eigen3" />
+			<Add directory="%PROGRAMFILES%\Boost\include" />
+			<Add directory="%PROGRAMFILES%\flann 1.6.9\include" />
+			<Add directory="%PROGRAMFILES%\Boost\lib" />
 		</Compiler>
 		<Linker>
-			<Add library="libSDL" />
-			<Add library="libSDLmain" />
-			<Add library="liblua" />
-			<Add library="cg" />
-			<Add library="cgGL" />
-			<Add library="OpenAL32" />
-			<Add library="EFX-Util" />
 			<Add library="OpenNI" />
 			<Add library="NiSampleModule" />
 			<Add library="pcl_common" />
@@ -92,7 +88,6 @@
 			<Add library="pcl_range_image_border_extractor" />
 			<Add library="flann" />
 			<Add library="pcl_filters-gd" />
-			<Add directory="..\..\..\..\externlibs\SDL\lib" />
 			<Add directory="..\..\..\..\externlibs\glew\lib" />
 			<Add directory="..\..\..\..\externlibs\lua\lib" />
 			<Add directory="..\..\..\..\externlibs\cg\lib" />
@@ -100,9 +95,9 @@
 			<Add directory="..\..\..\..\externlibs\opengl\lib" />
 			<Add directory="..\..\..\..\binaries\lib\win" />
 			<Add directory="$(OPEN_NI_LIB)" />
-			<Add directory="C:\Program Files\PCL\lib" />
-			<Add directory="C:\Program Files\flann 1.6.9\lib" />
-			<Add directory="C:\Program Files\Boost\lib" />
+			<Add directory="%PROGRAMFILES%\PCL\lib" />
+			<Add directory="%PROGRAMFILES%\flann 1.6.9\lib" />
+			<Add directory="%PROGRAMFILES%\Boost\lib" />
 		</Linker>
 		<Unit filename="moKinect.cpp" />
 		<Unit filename="moKinect.h" />

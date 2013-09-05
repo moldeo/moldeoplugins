@@ -53,27 +53,17 @@
 #endif
 
 
-
+#include "moTypes.h"
 /**
 
 MOLDEO
 
 */
 
-
-
-#include "moTypes.h"
 #include "moConfig.h"
 #include "moDeviceCode.h"
 #include "moEventList.h"
 #include "moIODeviceManager.h"
-#include "moTypes.h"
-
-#ifdef MO_WIN32
-  #include "SDL.h"
-#else
-  #include "SDL/SDL.h"
-#endif
 
 
 enum moKinectParamIndex {
@@ -160,7 +150,7 @@ enum moKinectParamIndex {
 #define SDL_MOTION_REL_Y_RIGHT	5
 #define SDL_MOTION_POS_X		6
 #define SDL_MOTION_POS_Y		7
-
+/*
 class  moKinectButton {
 public:
 	MOboolean pushed;
@@ -242,7 +232,7 @@ public:
 		}
 	}
 };
-
+*/
 class  moKinectPosition {
 public:
 	MOboolean motion;//verdadero si se movio
@@ -898,8 +888,8 @@ private:
 
 
 	/** OPENNI KINECT*/
-	moKinectButton Buttons[3];
-	moKinectWheel Wheels[2];
+	//moKinectButton Buttons[3];
+	//moKinectWheel Wheels[2];
 	moKinectPosition Position[2];
 
 	moKinectCode *Codes;
@@ -942,10 +932,17 @@ private:
     moOutlet* m_LeftHandZ;
     moOutlet* m_LeftHandC;
 
+    moOutlet* m_Head;
+    moOutlet* m_HeadX;
+    moOutlet* m_HeadY;
+    moOutlet* m_HeadZ;
+    moOutlet* m_HeadC;
+
     moOutlet* m_Gesture;
 
     moVector4d m_VRightHand;
     moVector4d m_VLeftHand;
+    moVector4d m_VHead;
 
     moKinectGestureRecognition m_GestureRecognition;
 

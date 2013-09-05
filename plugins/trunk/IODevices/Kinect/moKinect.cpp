@@ -164,6 +164,12 @@ moKinect::moKinect() {
     m_LeftHandZ = NULL;
     m_LeftHandC = NULL;
 
+    m_Head = NULL;
+    m_HeadX = NULL;
+    m_HeadY = NULL;
+    m_HeadZ = NULL;
+    m_HeadC = NULL;
+
     m_Gesture = NULL;
 
 	show_callback = false;
@@ -399,6 +405,23 @@ void moKinect::UpdateParameters() {
         if (!m_LeftHandC) {
             m_LeftHandC = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_C") ) );
         }
+
+        if (!m_Head) {
+            m_Head = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD") ) );
+        }
+        if (!m_HeadX) {
+            m_HeadX = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_X") ) );
+        }
+        if (!m_HeadY) {
+            m_HeadY = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_Y") ) );
+        }
+        if (!m_HeadZ) {
+            m_HeadZ = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_Z") ) );
+        }
+        if (!m_HeadC) {
+            m_HeadC = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_C") ) );
+        }
+
 /**Gesture INFO*/
         if (!m_Gesture) {
             m_Gesture = m_Outlets.GetRef( this->GetOutletIndex( moText("GESTURE") ) );
@@ -438,6 +461,12 @@ void moKinect::UpdateParameters() {
 
         if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( -1.0f ); m_LeftHandC->Update(true);}
         if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
+
+        //RESET HEAD
+        m_VHead = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_HeadC) { m_HeadC->GetData()->SetFloat( -1.0f ); m_HeadC->Update(true);}
+        if (m_Head) { m_Head->GetData()->SetVector( (moVector4d*)&m_VHead ); m_Head->Update(true); }
 
 
 }
@@ -1139,8 +1168,8 @@ if (update_on>0 && this->Initialized() ) {
                 m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
                 m_VRightHand = moVector4d( pt.X, pt.Y, pt.Z, xnrighthand.fConfidence );
 
-                if (m_RightHandX) { m_RightHandX->GetData()->SetFloat( m_VRightHand.X() ); m_RightHandX->Update(true); }
-                if (m_RightHandY) { m_RightHandY->GetData()->SetFloat( m_VRightHand.Y() ); m_RightHandY->Update(true); }
+                if (m_RightHandX) { m_RightHandX->GetData()->SetFloat( (m_VRightHand.X()/640.0) -0.5f ); m_RightHandX->Update(true); }
+                if (m_RightHandY) { m_RightHandY->GetData()->SetFloat( (0.5f - m_VRightHand.Y()/480.0) ); m_RightHandY->Update(true); }
                 if (m_RightHandZ) { m_RightHandZ->GetData()->SetFloat( m_VRightHand.Z() ); m_RightHandZ->Update(true); }
                 if (m_RightHandC) { m_RightHandC->GetData()->SetFloat( xnrighthand.fConfidence ); m_RightHandC->Update(true); }
                 if (m_RightHand) { m_RightHand->GetData()->SetVector( (moVector4d*)&m_VRightHand ); m_RightHand->Update(true); }
@@ -1152,13 +1181,26 @@ if (update_on>0 && this->Initialized() ) {
                 m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
                 m_VLeftHand = moVector4d( pt.X, pt.Y, pt.Z, xnlefthand.fConfidence );
 
-                if (m_LeftHandX) { m_LeftHandX->GetData()->SetFloat( m_VLeftHand.X() ); m_LeftHandX->Update(true); }
-                if (m_LeftHandY) { m_LeftHandY->GetData()->SetFloat( m_VLeftHand.Y() ); m_LeftHandY->Update(true); }
+                if (m_LeftHandX) { m_LeftHandX->GetData()->SetFloat( (m_VLeftHand.X()/640.0) -0.5f  ); m_LeftHandX->Update(true); }
+                if (m_LeftHandY) { m_LeftHandY->GetData()->SetFloat( ( 0.5f - m_VLeftHand.Y()/480.0) ); m_LeftHandY->Update(true); }
                 if (m_LeftHandZ) { m_LeftHandZ->GetData()->SetFloat( m_VLeftHand.Z() ); m_LeftHandZ->Update(true); }
                 if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( xnlefthand.fConfidence ); m_LeftHandC->Update(true); }
                 if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
 
                 //MODebug2->Message("moKinect::Update > LeftHand: user" + IntToStr(i) + " X:" + FloatToStr(xnlefthand.position.X) + " Y:" + FloatToStr(xnlefthand.position.Y) );
+
+
+                XnSkeletonJointPosition xnhead;
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_HEAD, xnhead);
+                pt = xnhead.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VHead = moVector4d( pt.X, pt.Y, pt.Z, xnhead.fConfidence );
+
+                if (m_HeadX) { m_HeadX->GetData()->SetFloat( (m_VHead.X()/640.0) -0.5f ); m_HeadX->Update(true); }
+                if (m_HeadY) { m_HeadY->GetData()->SetFloat( (0.5f - m_VHead.Y()/480.0) ); m_HeadY->Update(true); }
+                if (m_HeadZ) { m_HeadZ->GetData()->SetFloat( m_VHead.Z() ); m_HeadZ->Update(true); }
+                if (m_HeadC) { m_HeadC->GetData()->SetFloat( xnhead.fConfidence ); m_HeadC->Update(true); }
+                if (m_Head) { m_Head->GetData()->SetVector( (moVector4d*)&m_VHead ); m_Head->Update(true); }
 
             }
 
