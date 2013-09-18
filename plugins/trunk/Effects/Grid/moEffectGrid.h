@@ -47,6 +47,21 @@
 #define MO_GRID_PITCH		8
 #define MO_GRID_TRIM		9
 
+enum moGridParamIndex {
+    GRID_INLET,
+	GRID_OUTLET,
+	GRID_SCRIPT,
+	GRID_ALPHA,
+	GRID_COLOR,
+	GRID_SYNC,
+	GRID_PHASE,
+	GRID_TEXTURE,
+	GRID_TEXTUREB,
+	GRID_MAP,
+	GRID_SCALES,
+	GRID_SIZE
+};
+
 class moEffectGrid: public moEffect
 {
 public:
@@ -58,15 +73,18 @@ public:
     MOboolean Init();
     void Draw(moTempo*, moEffectState* parentstate = NULL);
     MOboolean Finish();
+
+    moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
     void Interaction(moIODeviceManager*);
+
 private:
 	moTextureManager*	MOTextures;
-    MOint color, textura, texturab;
+    MOint color, texture, textureb;
     MOtexture   *textures;
     MOuint      ntextures;
 
-    PFNGLMULTITEXCOORD2FARBPROC  glMultiTexCoord2fARB;
-    PFNGLACTIVETEXTUREARBPROC    glActiveTextureARB;
+    //PFNGLMULTITEXCOORD2FARBPROC  glMultiTexCoord2fARB;
+    //PFNGLACTIVETEXTUREARBPROC    glActiveTextureARB;
 };
 
 class moEffectGridFactory : public moEffectFactory

@@ -66,8 +66,10 @@ moEffectGrid::moEffectGrid()
 	ncodes = 0;
 	SetName("grid");
 
-	glActiveTextureARB = NULL;
-	glMultiTexCoord2fARB = NULL;
+    Grid = NULL;
+
+	//glActiveTextureARB = NULL;
+	//glMultiTexCoord2fARB = NULL;
 	//Funciones de multitexture
         // wglGetProcAddress reemplazado por glutGetProcAddress(by Andres)
 	#ifdef _WIN32
@@ -77,7 +79,6 @@ moEffectGrid::moEffectGrid()
 	//glActiveTextureARB		=(PFNGLACTIVETEXTUREARBPROC) glutGetProcAddress("glActiveTextureARB");
 	//glMultiTexCoord2fARB	=(PFNGLMULTITEXCOORD2FARBPROC) glutGetProcAddress("glMultiTexCoord2fARB");
 	#endif
-	Grid = new TEngine_Utility();
 }
 
 moEffectGrid::~moEffectGrid()
@@ -86,52 +87,45 @@ moEffectGrid::~moEffectGrid()
 }
 
 
+moConfigDefinition *
+moEffectGrid::GetDefinition( moConfigDefinition *p_configdefinition ) {
+
+	//default: alpha, color, syncro
+	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, GRID_TEXTURE, moValue( "default", MO_VALUE_TXT) );
+	p_configdefinition->Add( moText("textureb"), MO_PARAM_TEXTURE, GRID_TEXTUREB, moValue( "default", MO_VALUE_TXT) );
+	p_configdefinition->Add( moText("map"), MO_PARAM_TEXT, GRID_MAP, moValue( "mapa/mapax.mp", MO_VALUE_TXT) );
+	p_configdefinition->Add( moText("scales"), MO_PARAM_NUMERIC, GRID_SCALES, moValue( "12", MO_VALUE_NUM_INT) );
+	p_configdefinition->Add( moText("size"), MO_PARAM_NUMERIC, GRID_SIZE, moValue( "45", MO_VALUE_NUM_INT) );
+	return p_configdefinition;
+}
+
 MOboolean moEffectGrid::Init()
 {
     if (!PreInit()) return true;
 
+    glewInit();
+    MODebug2->Message( moText("moEffectGrid::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
+    MODebug2->Message( moText("moEffectGrid::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
+
+    Grid = new TEngine_Utility( m_Config, m_pResourceManager );
 	MOTextures = m_pResourceManager->GetTextureMan();
 
-    // Hacer la inicializacion de este efecto en particular.
-    color = m_Config.GetParamIndex("color");
-    textura = m_Config.GetParamIndex("textura");
-	texturab = m_Config.GetParamIndex("texturab");
+    moDefineParamIndex( GRID_TEXTURE, moText("texture") );
+    moDefineParamIndex( GRID_TEXTUREB, moText("textureb") );
+    moDefineParamIndex( GRID_SCALES, moText("scales") );
+    moDefineParamIndex( GRID_SIZE, moText("size") );
+    moDefineParamIndex( GRID_MAP, moText("map") );
 
-	// Seteos de Texturas.
-	moText strimage;
-	MOint id;
-
-    m_Config.SetCurrentParamIndex(textura);
-    m_Config.FirstValue();
-	ntextures = m_Config.GetParam(textura).GetValuesCount();
-    textures = new MOtexture[ntextures];
-
-    for(MOuint i=0; i<ntextures; i++)
-    {
-		strimage = m_Config.GetParam().GetValue().GetSubValue(0).Text();
-		id = MOTextures->GetTextureMOId(strimage, true);
-        textures[i] = MOTextures->GetGLId(id);
-        m_Config.NextValue();
-    }
-
-
-
-	//Draw
+	//Start Engine
 	Grid->Start_Engine();
-
-
-    // Seteos generales
-    /*
-    if(preconfig.GetPreConfNum() > 0)
-        preconfig.PreConfFirst( GetConfig());
-        */
 
 	return true;
 }
 
 void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
-	int I, J, textura_a, textura_b;
+	int I, J, texture_a, texture_b;
 
     PreDraw( tempogral, parentstate);
 
@@ -148,13 +142,13 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
   //glBlendFunc(GL_SRC_ALPHA,GL_ONE);
   glDisable(GL_DEPTH_TEST);
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-	textura_a = m_Config.GetCurrentValueIndex(textura);               // textura actual.
-    glBindTexture(GL_TEXTURE_2D, textures[textura_a]);
+    glEnable(GL_ACTIVE_TEXTURE_ARB);
 
-	glActiveTextureARB(GL_TEXTURE1_ARB);
-	textura_b = m_Config.GetCurrentValueIndex(texturab);
-	glBindTexture(GL_TEXTURE_2D, textures[textura_b]);
+	if (glActiveTextureARB) glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(GRID_TEXTURE))  );
+
+	if (glActiveTextureARB) glActiveTextureARB(GL_TEXTURE1_ARB);
+	glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(GRID_TEXTUREB))  );
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
@@ -168,11 +162,10 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	Grid->Loop_Engine();
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
-    textura_a = m_Config.GetCurrentValueIndex(textura);               // textura actual.
-    glBindTexture(GL_TEXTURE_2D, textures[textura_a]);
+	if (glActiveTextureARB) glActiveTextureARB(GL_TEXTURE0_ARB);
+    glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(GRID_TEXTURE)) );
 
-	glDisable(GL_ACTIVE_TEXTURE_ARB);
+	//glDisable(GL_ACTIVE_TEXTURE_ARB);
   //glEnable(GL_BLEND);
   //glEnable(GL_ALPHA);
 
@@ -185,6 +178,8 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 }
+
+
 
 void
 moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
