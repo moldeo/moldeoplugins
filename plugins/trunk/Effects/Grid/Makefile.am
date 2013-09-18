@@ -22,7 +22,7 @@ supereg/tmotor.h \
 supereg/trdrmap.cpp \
 supereg/trdrmap.h
 
-libmoldeo_grid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./supereg
+libmoldeo_grid_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./supereg -fpermissive
 libmoldeo_grid_la_LDFLAGS =
 libmoldeo_grid_la_LIBADD = 
 libmoldeo_grid_la_LIBS = ${LIBMOLDEO_LIBS}
