@@ -30,7 +30,7 @@
 *******************************************************************************/
 
 #include "moEffectMovie.h"
-
+#include "SDL/SDL.h"
 //========================
 //  Factory
 //========================
@@ -174,6 +174,8 @@ moEffectMovie::Init() {
 	m_pAnim = NULL;
 	m_pMovie = NULL;
 	m_pTexture = NULL;
+
+	showmoviedata = true;/** Start timer to shut down display info*/
 
 /*
 	Sound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
@@ -353,6 +355,8 @@ void moEffectMovie::UpdateParameters() {
       ///TODO: calculo de frame (solo si esta en modo VCR y en MO_PLAYMODE_TIMEBASE??)
       if (m_pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
 
+        //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE start check."));
+
         m_FramePosition = m_pMovie->GetPosition();
         m_FramePositionF = (double)m_FramePosition;
 
@@ -361,24 +365,44 @@ void moEffectMovie::UpdateParameters() {
           /// caso por Timer PAUSADO
 
           if (moIsTimerPaused() || m_EffectState.tempo.Paused() ) {
+            //MODebug2->Message(moText("Timer is paused, pause movie!!"));
             m_pMovie->Pause();
           }
 
           /// caso por Timer PARADO (NOT STARTED)
           if (moIsTimerStopped()  || m_EffectState.tempo.State()==MO_TIMERSTATE_STOPPED ) {
+            //MODebug2->Message(moText("Timer is stopped, stop movie!!"));
             if (m_pMovie->IsPlaying())
               m_pMovie->Stop();
           }
         } else {
           if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
-             m_pMovie->Play();
-             MODebug2->Push(moText("Timer is started, movie not: Play()"));
+
+
+             if (m_pMovie->IsEOS()) {
+                 //MODebug2->Message(moText("Timer is playing, movie ended!!, do nothing...."));
+                 //m_pMovie->Play();
+                 this->Disable();
+                 this->TurnOff();
+             } else {
+                 //MODebug2->Message(moText("Timer is playing, movie is not, play movie!!"));
+                 m_pMovie->Play();
+                 //MODebug2->Message(moText("Timer is started, movie not: Play() was called..."));
+             }
+
+
           } else if(m_pMovie->IsPlaying() && (moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING  ) ) {
+
+             //MODebug2->Message(moText("Timer is playing, movie is playing too, if position is 0, then play!!"));
+
               if (m_pMovie->GetPosition()==0) {
+                  //MODebug2->Message(moText("position is 0, Play()!!"));
                   m_pMovie->Play();
               }
           }
+          //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE end check."));
         }
+
 /*
         MODebug2->Push(moText("TIMEBASE:") + IntToStr(m_Ticks-m_TicksAux)
                        + moText(" IsPlaying:")
@@ -665,7 +689,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 
 */
-  bool showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
+  //showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
 
   m_DisplayX = m_Config.Eval( moR(MOVIE_DISPLAY_X) );
   m_DisplayY = m_Config.Eval( moR(MOVIE_DISPLAY_Y) );
@@ -706,6 +730,7 @@ MOuint moEffectMovie::MovieGLId() {
             ///stop current
               if (m_pMovie) {
                 m_pMovie->Stop();
+                m_pMovie->Seek( 0 );
               }
 
               if (m_bLoop) {
@@ -747,6 +772,7 @@ MOuint moEffectMovie::MovieGLId() {
           ///stop current
           if (m_pMovie) {
             m_pMovie->Stop();
+            m_pMovie->Seek( 0 );
           }
 
           ///next clip...
@@ -1186,9 +1212,123 @@ moEffectMovie::Update( moEventList *Events ) {
 
     if ( !this->Activated() ) {
         if (m_pMovie) {
-            m_pMovie->Stop();
+            //m_pMovie->Pause();
         }
     }
+
+    moEvent *tmp;
+    moEvent *actual;
+
+    actual = Events->First;
+
+ while(actual!=NULL) {
+
+    float pr;
+    float pos;
+    int posi;
+
+      switch(actual->deviceid) {
+        case MO_IODEVICE_MOUSE:
+
+          switch(actual->devicecode) {
+            case SDL_MOUSEMOTION:
+              cout << "moMovie receiving mouse motion: x: " << actual->reservedvalue2 << " y:" << actual->reservedvalue3 << endl;
+              /** MAKE THE CONTROLS APPEAR*/
+              m_CursorX = actual->reservedvalue2;
+              m_CursorY = actual->reservedvalue3;
+
+              break;
+            case SDL_MOUSEBUTTONDOWN:
+              cout << "moMovie receiving mouse button down: " << actual->reservedvalue0 << " x:" << actual->reservedvalue1 << " y:" << actual->reservedvalue2 << endl;
+              //m_pWebView->InjectMouseMove( actual->reservedvalue1, actual->reservedvalue2 );
+              /** CHECK WHERE IT HITS > SEEEK*/
+              m_CursorX = actual->reservedvalue1;
+              m_CursorY = actual->reservedvalue2;
+
+
+              switch(actual->reservedvalue0) {
+                case SDL_BUTTON_LEFT:
+                  //m_pWebView->InjectMouseDown(Awesomium::kMouseButton_Left);
+                  //this->Disable();
+                  //this->TurnOff();
+
+                  break;
+                case SDL_BUTTON_MIDDLE:
+                  //m_pWebView->InjectMouseDown(Awesomium::kMouseButton_Middle);
+                  break;
+                case SDL_BUTTON_RIGHT:
+                  //m_pWebView->InjectMouseDown(Awesomium::kMouseButton_Right);
+                  break;
+              }
+              break;
+            case SDL_MOUSEBUTTONUP:
+              cout << "moMovie receiving mouse button up: " << actual->reservedvalue0 << " x:" << actual->reservedvalue1 << " y:" << actual->reservedvalue2 << endl;
+              //m_pWebView->InjectMouseMove( actual->reservedvalue1, actual->reservedvalue2 );
+
+              m_CursorX = actual->reservedvalue1;
+              m_CursorY = actual->reservedvalue2;
+
+
+              switch(actual->reservedvalue0) {
+                case SDL_BUTTON_LEFT:
+                 // m_pWebView->InjectMouseUp(Awesomium::kMouseButton_Left);
+
+                   /** SHOW CONTROLS*/
+                   if ( m_CursorX>0 && m_CursorX<1280
+                       && m_CursorY<720) {
+                        showmoviedata = !showmoviedata;
+
+                    }
+
+                   /** PLAY/PAUSE*/
+                   if ( m_CursorX>0 && m_CursorX<80
+                       && m_CursorY>720 && m_CursorY<800) {
+                      if (m_pMovie) {
+                          if (m_pMovie->State()!=MO_STREAMSTATE_PAUSED)
+                            this->Pause();
+                          else
+                            this->Play();
+                      }
+                  }
+
+                   /** FULLSCREEN BUTTON TOGGLE*/
+                   if ( m_CursorX>1200 && m_CursorX<1280
+                       && m_CursorY>720 && m_CursorY<800 ) {
+                        this->Disable();
+                        this->TurnOff();
+                    }
+
+                    /** SEEK BAR*/
+                    if ( m_CursorX>100 && m_CursorX<1180
+                       && m_CursorY>720 && m_CursorY<800 ) {
+                      pr = 1.0*(double)m_CursorX / 1280.0;
+                      pos = pr*(double)m_FramesLength;
+                      posi = (int) fabs(pos);
+                      if (m_pMovie) m_pMovie->Seek( posi );
+                  }
+                  break;
+                case SDL_BUTTON_MIDDLE:
+                  //m_pWebView->InjectMouseUp(Awesomium::kMouseButton_Middle);
+                  break;
+                case SDL_BUTTON_RIGHT:
+                  //m_pWebView->InjectMouseUp(Awesomium::kMouseButton_Right);
+                  break;
+              }
+              break;
+          }
+          break;
+
+        case MO_IODEVICE_KEYBOARD:
+
+          break;
+      }
+
+      tmp = actual;
+      actual = tmp->next;
+
+    }
+
+
 
 	//get the pointer from the Moldeo Object sending it...
 	moMoldeoObject::Update(Events);
