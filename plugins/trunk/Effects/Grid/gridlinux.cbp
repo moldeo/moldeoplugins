@@ -39,8 +39,29 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moEffectGrid.h" />
-		<Unit filename="src/moEffectGrid.cpp" />
+		<Unit filename="moEffectGrid.cpp" />
+		<Unit filename="moEffectGrid.h" />
+		<Unit filename="supereg/pcx.cpp" />
+		<Unit filename="supereg/pcx.h" />
+		<Unit filename="supereg/sup3d.cpp" />
+		<Unit filename="supereg/sup3d.h" />
+		<Unit filename="supereg/supereg.h" />
+		<Unit filename="supereg/suppal.cpp" />
+		<Unit filename="supereg/suppal.h" />
+		<Unit filename="supereg/suprand.cpp" />
+		<Unit filename="supereg/suprand.h" />
+		<Unit filename="supereg/tgrdutil.cpp" />
+		<Unit filename="supereg/tgrdutil.h" />
+		<Unit filename="supereg/tgrid.cpp" />
+		<Unit filename="supereg/tgrid.h" />
+		<Unit filename="supereg/tipos.cpp" />
+		<Unit filename="supereg/tipos.h" />
+		<Unit filename="supereg/tmapa.cpp" />
+		<Unit filename="supereg/tmapa.h" />
+		<Unit filename="supereg/tmotor.cpp" />
+		<Unit filename="supereg/tmotor.h" />
+		<Unit filename="supereg/trdrmap.cpp" />
+		<Unit filename="supereg/trdrmap.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

@@ -121,16 +121,12 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
     MOint indeximage;
     MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
     MOdouble alto, ancho;
-    float prop;
 
     PreDraw( tempogral, parentstate);
 
     int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
-    if ( w == 0 || h == 0 ) { w  = 1; h = 1; prop = 1.0; }
-    else {
-      prop = (float) h / (float) w;
-    }
+    double  prop = m_pResourceManager->GetRenderMan()->ScreenProportion();
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
@@ -155,9 +151,9 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
                   m_Config.Eval( moR(PLANE_TRANSLATEZ))
               );
 
-	glRotatef(  m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
+	glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
+    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
 
 	glScalef(   m_Config.Eval( moR(PLANE_SCALEX)),
               m_Config.Eval( moR(PLANE_SCALEY)),

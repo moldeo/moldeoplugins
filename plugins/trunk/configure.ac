@@ -21,6 +21,7 @@ AC_CONFIG_SUBDIRS(
 	IODevices/NetOscOut
 	IODevices/Serial
 	IODevices/Kinect
+    IODevices/NetTUIOIn
 	)
 #		
 #	 

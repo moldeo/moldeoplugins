@@ -36,16 +36,19 @@
 #include "moldeo.h"
 #include "supereg/tmotor.h"
 
-#define MO_GRID_UP 		0
-#define MO_GRID_DOWN		1
-#define MO_GRID_TURN_LEFT	2
-#define MO_GRID_TURN_RIGHT	3
-#define MO_GRID_TILT_LEFT	4
-#define MO_GRID_TILT_RIGHT	5
-#define MO_GRID_FORWARD	6
-#define MO_GRID_BACK		7
-#define MO_GRID_PITCH		8
-#define MO_GRID_TRIM		9
+enum moGridCoddes {
+MO_GRID_UP 		= 0,
+MO_GRID_DOWN	,
+MO_GRID_TURN_LEFT,
+MO_GRID_TURN_RIGHT,
+MO_GRID_TILT_LEFT,
+MO_GRID_TILT_RIGHT,
+MO_GRID_FORWARD,
+MO_GRID_BACK,
+MO_GRID_PITCH,
+MO_GRID_TRIM,
+MO_GRID_WIREFRAME
+};
 
 enum moGridParamIndex {
     GRID_INLET,
@@ -59,7 +62,8 @@ enum moGridParamIndex {
 	GRID_TEXTUREB,
 	GRID_MAP,
 	GRID_SCALES,
-	GRID_SIZE
+	GRID_SIZE,
+	GRID_WIREFRAME
 };
 
 class moEffectGrid: public moEffect
@@ -83,8 +87,6 @@ private:
     MOtexture   *textures;
     MOuint      ntextures;
 
-    //PFNGLMULTITEXCOORD2FARBPROC  glMultiTexCoord2fARB;
-    //PFNGLACTIVETEXTUREARBPROC    glActiveTextureARB;
 };
 
 class moEffectGridFactory : public moEffectFactory
