@@ -76,21 +76,22 @@ public:
 
 
 
-	void addTuioObject(TuioObject *tobj);
-	void updateTuioObject(TuioObject *tobj);
-	void removeTuioObject(TuioObject *tobj);
+	virtual void addTuioObject(TuioObject *tobj);
+	virtual void updateTuioObject(TuioObject *tobj);
+	virtual void removeTuioObject(TuioObject *tobj);
 
-	void addTuioCursor(TuioCursor *tcur);
-	void updateTuioCursor(TuioCursor *tcur);
-	void removeTuioCursor(TuioCursor *tcur);
+	virtual void addTuioCursor(TuioCursor *tcur);
+	virtual void updateTuioCursor(TuioCursor *tcur);
+	virtual void removeTuioCursor(TuioCursor *tcur);
 
-	void refresh(TuioTime frameTime);
+	virtual void refresh(TuioTime frameTime);
 
 	TuioClient *tuioClient;
 
   void drawObjects();
   void SetVerbose ( bool p_verbose = true );
   void updateOutlets();
+  void updateEvents( moEventList* Events );
 
 private:
 
@@ -120,6 +121,7 @@ private:
 	int width, height;
 	int screen_width, screen_height;
 	int window_width, window_height;
+	moEventList m_CachedEvents;
 };
 
 // moNetTUIOIn class **************************************************
@@ -146,6 +148,8 @@ private:
     // Parameters.
     moTextArray host_name;
     moIntArray host_port;
+
+
 
 	float sendInterval;
 	int maxEventNum;

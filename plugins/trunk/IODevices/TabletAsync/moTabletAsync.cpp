@@ -270,7 +270,7 @@ void moTabletListener::RegisterEvents(Display* display, Window window, XDevice* 
 
 
     printf("En RegisterEvents, WACOM TABLET\n");
-    printf("La ventana es %i\n", window);
+    printf("La ventana es %i\n", (int)window);
 
 
                 // button events

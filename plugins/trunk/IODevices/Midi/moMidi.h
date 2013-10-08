@@ -50,6 +50,14 @@
 	//#include "setupapi.h"
 	//#include "hidsdi.h"
 	#include "mmsystem.h"
+	#include "tchar.h"
+    #include "wchar.h"
+
+    #ifdef UNICODE
+        #define m_stricmp wcsicmp
+    #else
+        #define m_stricmp stricmp
+    #endif
 #endif
 
 #ifndef __MO_MIDIDEVICES_H

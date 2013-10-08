@@ -411,7 +411,7 @@ moMouse::Update(moEventList *Events) {
 			}
 			//ya usado lo borramos de la lista
 			tmp = actual->next;
-			Events->Delete(actual);
+			//Events->Delete(actual);
 			actual = tmp;
 		}
 		else actual = actual->next;//no es nuestro pasamos al next

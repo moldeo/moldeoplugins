@@ -37,8 +37,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moMouse.h" />
-		<Unit filename="src/moMouse.cpp" />
+		<Unit filename="moMouse.cpp" />
+		<Unit filename="moMouse.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

@@ -47,12 +47,14 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-DUNICODE" />
+			<Add option="-DGLEW_STATIC" />
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\opengl\include" />
 			<Add directory="..\..\..\..\externlibs\lua\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
+			
 		</Compiler>
 		<Linker>
 			<Add library="liblua" />
@@ -65,8 +67,8 @@
 			<Add directory="..\..\..\..\binaries\lib\win" />
 			<Add directory="..\..\..\..\externlibs\glew\lib" />
 		</Linker>
-		<Unit filename="moMidi.h" />
 		<Unit filename="moMidi.cpp" />
+		<Unit filename="moMidi.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
