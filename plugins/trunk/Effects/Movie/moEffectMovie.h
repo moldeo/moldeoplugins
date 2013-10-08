@@ -246,7 +246,8 @@ protected:
 	double					m_DiffFrame;
 	bool					m_bInterpolation;
 
-
+    int                     m_CursorX,m_CursorY;
+    bool                    showmoviedata;
 	//additional fields
 
     // CUSTOM 1
