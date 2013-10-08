@@ -29,7 +29,7 @@
 *******************************************************************************/
 
 #include "moNetTUIOIn.h"
-
+#include <SDL/SDL.h>
 //========================
 //  Factory
 //========================
@@ -57,8 +57,10 @@ void moNetTUIOInFactory::Destroy(moIODevice* fx) {
 
 
 void moNetTUIOListener::addTuioObject(TuioObject *tobj) {
-  if (verbose)
-    MODebug2->Push(moText("Add Object"));
+    cout << "addTuioObject cursor" << endl;
+
+    if (verbose)
+        MODebug2->Push(moText("Add Object"));
 /*	if (verbose)
 		std::cout << "add obj " << tobj->getSymbolID() << " (" << tobj->getSessionID() << ") "<< tobj->getX() << " " << tobj->getY() << " " << tobj->getAngle() << std::endl;
 */
@@ -85,8 +87,12 @@ void moNetTUIOListener::removeTuioObject(TuioObject *tobj) {
 }
 
 void moNetTUIOListener::addTuioCursor(TuioCursor *tcur) {
+
+    //here this is a mouse down event!!!
+    if (tcur->getCursorID()==0) m_CachedEvents.Add( MO_IODEVICE_MOUSE, SDL_MOUSEBUTTONDOWN, SDL_BUTTON_LEFT, tcur->getX()*1280, tcur->getY()*800 );
+
     if (verbose)
-    MODebug2->Push(
+    MODebug2->Message(
         moText("Add Cursor: id: ")
         + IntToStr(tcur->getCursorID())
         + moText(" x: ")
@@ -100,8 +106,11 @@ void moNetTUIOListener::addTuioCursor(TuioCursor *tcur) {
 }
 
 void moNetTUIOListener::updateTuioCursor(TuioCursor *tcur) {
+    //here this is a mouse motion event
+    if (tcur->getCursorID()==0) m_CachedEvents.Add( MO_IODEVICE_MOUSE, SDL_MOUSEMOTION, tcur->getX()*1280, tcur->getY()*800, tcur->getX()*1280, tcur->getY()*800  );
+    //m_CachedEvents.Add( MO_IODEVICE_MOUSE, SDL_MOUSEMOTION, x-m_MouseX, y-m_MouseY, x, y );
     if (verbose)
-    MODebug2->Push(
+    MODebug2->Message(
         moText("Update Cursor: id: ")
         + IntToStr(tcur->getCursorID())
         + moText(" x: ")
@@ -118,8 +127,11 @@ void moNetTUIOListener::updateTuioCursor(TuioCursor *tcur) {
 }
 
 void moNetTUIOListener::removeTuioCursor(TuioCursor *tcur) {
+    //here this is a mouse up event
+    if (tcur->getCursorID()==0) m_CachedEvents.Add( MO_IODEVICE_MOUSE, SDL_MOUSEBUTTONUP, SDL_BUTTON_LEFT, tcur->getX(), tcur->getY() );
+
     if (verbose)
-    MODebug2->Push(
+    MODebug2->Message(
         moText("Remove Cursor id: ")
         + IntToStr(tcur->getCursorID())
         + moText(" session id: ")
@@ -214,7 +226,7 @@ void moNetTUIOListener::drawObjects() {
 
 }
 
-void moNetTUIOListener::updateOutlets() {
+void moNetTUIOListener::updateOutlets(  ) {
 
   if (!m_pOutlets || !tuioClient) return;
 
@@ -279,6 +291,33 @@ void moNetTUIOListener::updateOutlets() {
   tuioClient->unlockCursorList();
 
 }
+
+  void moNetTUIOListener::updateEvents( moEventList* pEvents ) {
+        moEvent* tmp;
+        moEvent* actual;
+        actual = m_CachedEvents.First;
+
+        while(actual!=NULL) {
+          //cout << "PollEvents: Adding new event " << actual << endl;
+          if (pEvents) {
+            //cout << "PollEvents: GetEvents(): First: " << GetEvents()->First << " Last:" << GetEvents()->Last << endl;
+            //pEvents->Add( (moEvent*)actual );
+            pEvents->Add( actual->deviceid,
+                          actual->devicecode,
+                          actual->reservedvalue0,
+                          actual->reservedvalue1,
+                          actual->reservedvalue2,
+                          actual->reservedvalue3,
+                          actual->pointer );
+            //cout << "PollEvents: GetEvents(): First: " << GetEvents()->First << " Last:" << GetEvents()->Last << endl;
+            //cout << "PollEvents: Added OK!!!" << endl;
+          }
+
+          tmp = actual;
+          actual = tmp->next;
+        }
+        m_CachedEvents.Finish();
+  }
 
 /*
 void moNetTUIOListener::drawString(char *str) {
@@ -526,6 +565,7 @@ void moNetTUIOIn::Update(moEventList *Eventos)
         //m_pListener->drawObjects();
         m_pListener->SetVerbose( ( 1 == m_Config.Int( moR(NETTUIOIN_VERBOSE) )) );
         m_pListener->updateOutlets();
+        m_pListener->updateEvents(Eventos);
     }
 
     moMoldeoObject::Update(Eventos);

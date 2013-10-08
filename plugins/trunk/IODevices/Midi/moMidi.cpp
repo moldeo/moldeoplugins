@@ -107,7 +107,7 @@ void moMidiDevice::PrintMidiInErrorMsg(unsigned long err)
 {
 #ifdef WIN32
 #define BUFFERSIZE 200
-	char	buffer[BUFFERSIZE];
+	TCHAR	buffer[BUFFERSIZE];
 
 	if (!(err = midiInGetErrorText(err, &buffer[0], BUFFERSIZE)))
 	{
@@ -133,7 +133,7 @@ void moMidiDevice::midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWO
 {
 	LPMIDIHDR		lpMIDIHeader;
 	unsigned char *	ptr;
-	TCHAR			buffer[80];
+	char			buffer[80];
 	unsigned char 	bytes;
 	moMidiDevice*	pMidiDevice = NULL;
 	pMidiDevice = (moMidiDevice*)dwInstance;
@@ -146,7 +146,7 @@ void moMidiDevice::midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWO
 		{
 			/* Display the time stamp, and the bytes. (Note: I always display 3 bytes even for
 			Midi messages that have less) */
-			sprintf(&buffer[0], "0x%08X 0x%02X 0x%02X 0x%02X\0", dwParam2, dwParam1 & 0x000000FF, (dwParam1>>8) & 0x000000FF, (dwParam1>>16) & 0x000000FF);
+			 sprintf(&buffer[0], "0x%08X 0x%02X 0x%02X 0x%02X\0", dwParam2, dwParam1 & 0x000000FF, (dwParam1>>8) & 0x000000FF, (dwParam1>>16) & 0x000000FF);
 
 			_cputs(&buffer[0]);
 
@@ -321,12 +321,28 @@ moMidiDevice::Init( moText devicetext ) {
 		/* Get info about the next device */
 		if (!midiInGetDevCaps(i, &moc, sizeof(MIDIINCAPS)))
 		{
+
+            //CString mycstring(moc.szPname);
+            //char* nam = mycstringa.GetBuffer( mycstring.GetLength());
 			/* Display its Device ID and name */
-			MODebug2->Message( moText("Device ID #") + IntToStr(i) + moText(":") + moText(moc.szPname));
-			if ( !stricmp(moc.szPname, devicetext) ) {
-				m_DeviceId = i;
-				break;
-			}
+
+			char* nam = "xxsss";
+			MODebug2->Message( moText("Device ID #")
+                     + IntToStr(i) + moText(":")
+                     + moText(nam) );
+            #ifdef UNICODE
+                std::wstring wc( 1024, L'#' );
+                mbstowcs( &wc[0], devicetext, 1024 );
+                if ( !m_stricmp( moc.szPname, (wchar_t*)wc.c_str() ) ) {
+                    m_DeviceId = i;
+                    break;
+                }
+            #else
+                if ( !m_stricmp( moc.szPname, devicetext) ) {
+                    m_DeviceId = i;
+                    break;
+                }
+            #endif
 		}
 	}
 

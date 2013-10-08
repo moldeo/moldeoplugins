@@ -280,7 +280,7 @@ moMixer::Update(moEventList *Events) {
 			}
 			//ya usado lo borramos de la lista
 			tmp = actual->next;
-			Events->Delete(actual);
+			//Events->Delete(actual);
 			actual = tmp;
 		} else if (actual->deviceid == MO_IODEVICE_MIDI) {
 			switch(actual->devicecode) {

@@ -59,6 +59,7 @@
 		<Compiler>
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
+			<Add option="-DWIN32" />
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />

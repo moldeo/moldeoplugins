@@ -109,13 +109,6 @@ MOLDEO
 #include "moIODeviceManager.h"
 #include "moTypes.h"
 
-#ifdef MO_WIN32
-  #include "SDL.h"
-#else
-  #include "SDL/SDL.h"
-#endif
-
-
 #ifdef KINECT_OPENNI
 
     #include "moKinectUserGenerator.h"
@@ -258,7 +251,7 @@ enum moKinectParamIndex {
 #define SDL_MOTION_REL_Y_RIGHT	5
 #define SDL_MOTION_POS_X		6
 #define SDL_MOTION_POS_Y		7
-
+/*
 class  moKinectButton {
 public:
 	MOboolean pushed;
@@ -340,7 +333,7 @@ public:
 		}
 	}
 };
-
+*/
 class  moKinectPosition {
 public:
 	MOboolean motion;//verdadero si se movio
@@ -513,8 +506,8 @@ private:
     #endif
 
 	/** OPENNI KINECT*/
-	moKinectButton Buttons[3];
-	moKinectWheel Wheels[2];
+	//moKinectButton Buttons[3];
+	//moKinectWheel Wheels[2];
 	moKinectPosition Position[2];
 
 	moKinectCode *Codes;
