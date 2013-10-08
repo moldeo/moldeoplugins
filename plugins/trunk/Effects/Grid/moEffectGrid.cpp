@@ -104,21 +104,26 @@ MOboolean moEffectGrid::Init()
 {
     if (!PreInit()) return true;
 
-    glewInit();
-    MODebug2->Message( moText("moEffectGrid::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
-    MODebug2->Message( moText("moEffectGrid::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
+    if (glActiveTextureARB) {
+    } else {
+      glewInit();
+      MODebug2->Message( moText("moEffectGrid::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
+      MODebug2->Message( moText("moEffectGrid::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
+    }
+
 
     Grid = new TEngine_Utility( m_Config, m_pResourceManager );
 	MOTextures = m_pResourceManager->GetTextureMan();
 
     moDefineParamIndex( GRID_TEXTURE, moText("texture") );
     moDefineParamIndex( GRID_TEXTUREB, moText("textureb") );
+    moDefineParamIndex( GRID_MAP, moText("map") );
     moDefineParamIndex( GRID_SCALES, moText("scales") );
     moDefineParamIndex( GRID_SIZE, moText("size") );
-    moDefineParamIndex( GRID_MAP, moText("map") );
 
-	//Start Engine
-	Grid->Start_Engine();
+
+    //Start Engine
+    Grid->Start_Engine();
 
 	return true;
 }
@@ -158,7 +163,10 @@ void moEffectGrid::Draw( moTempo* tempogral,moEffectState* parentstate)
                     m_Config.GetParam(color).GetValue().GetSubValue(MO_BLUE).Float()*m_EffectState.tintb,
                     m_Config.GetParam(color).GetValue().GetSubValue(MO_ALPHA).Float()*m_EffectState.alpha);
 
-	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+	//glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CW);
 
 	Grid->Loop_Engine();
 
@@ -197,14 +205,6 @@ moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
 			valor = IODeviceManager->IODevices().GetRef(did)->GetValue(cid);
 			if(state)
 			switch(i) {
-				case MO_GRID_PITCH:
-					Grid->Pitch(valor);
-					MODebug2->Push(IntToStr(valor));
-					break;
-				case MO_GRID_TRIM:
-					Grid->Trim(valor);
-					//MODebug2->Push(IntToStr(valor));
-					break;
 				case MO_GRID_UP:
 					Grid->Check_Keyb(2);
 					break;
@@ -229,6 +229,18 @@ moEffectGrid::Interaction(moIODeviceManager *IODeviceManager) {
 				case MO_GRID_BACK:
 					Grid->Check_Keyb(7);
 					break;
+				case MO_GRID_PITCH:
+					Grid->Pitch(valor);
+					MODebug2->Push(IntToStr(valor));
+					break;
+				case MO_GRID_TRIM:
+					Grid->Trim(valor);
+					//MODebug2->Push(IntToStr(valor));
+					break;
+				case MO_GRID_WIREFRAME:
+					Grid->Wireframe();
+					MODebug2->Push(IntToStr(Grid->wireframe_mode));
+					break;
 			}
 		temp = temp->next;
 		}
@@ -239,9 +251,7 @@ MOboolean moEffectGrid::Finish()
 {
 	Grid->Stop_Engine();
 	delete Grid;
-
-    if(textures != NULL)
-        delete[] textures;
+	Grid = NULL;
 
     return PreFinish();
 }

@@ -18,6 +18,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
+					<Add library="glew_staticdd" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
 					<Add library="libglut" />
@@ -34,6 +35,7 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Linker>
+					<Add library="glew_staticd" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
 					<Add library="libglut" />
@@ -47,13 +49,14 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-DUNICODE" />
+			<Add option="-DGLEW_STATIC" />
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
+			
 			<Add directory="..\..\..\..\externlibs\opengl\include" />
 			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
 		</Compiler>
 		<Linker>
 			<Add library="liblua" />
@@ -62,6 +65,7 @@
 			<Add directory="..\..\..\..\binaries\lib\win" />
 			<Add directory="..\..\..\..\externlibs\lua\lib" />
 			<Add directory="..\..\..\..\externlibs\cg\lib" />
+			<Add directory="..\..\..\..\externlibs\glew-1.9.0\lib" />
 		</Linker>
 		<Unit filename="moEffectIcon.cpp" />
 		<Unit filename="moEffectIcon.h" />

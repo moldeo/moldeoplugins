@@ -47,10 +47,12 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-DUNICODE" />
+			<Add option="-DGLEW_STATIC" />
 			<Add directory=".\" />
 			<Add directory="..\..\..\..\binaries\include" />
 			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
+			
 			<Add directory="..\..\..\..\externlibs\opengl\include" />
 			<Add directory="..\..\..\..\externlibs\lua\include" />
 		</Compiler>
@@ -62,8 +64,8 @@
 			<Add directory="..\..\..\..\externlibs\cg\lib" />
 			<Add directory="..\..\..\..\binaries\lib\win" />
 		</Linker>
-		<Unit filename="moMasterEffectPresetPanel.h" />
 		<Unit filename="moMasterEffectPresetPanel.cpp" />
+		<Unit filename="moMasterEffectPresetPanel.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

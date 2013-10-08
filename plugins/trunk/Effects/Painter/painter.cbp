@@ -18,7 +18,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="glew_sharedd" />
+					<Add library="glew_staticdd" />
 					<Add library="libgled" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
@@ -36,7 +36,7 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Linker>
-					<Add library="glew_shared" />
+					<Add library="glew_staticd" />
 					<Add library="libgle" />
 					<Add library="libopengl32" />
 					<Add library="libglut32" />
@@ -56,7 +56,7 @@
 			
 			
 			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\TUIO_CPP" />
+			
 			<Add directory="..\..\..\..\externlibs\opengl\include" />
 			<Add directory="..\..\..\..\externlibs\opentnl\include" />
 			<Add directory="..\..\..\..\externlibs\openal\include" />
@@ -65,20 +65,13 @@
 			<Add directory="..\..\..\..\externlibs\lua\include" />
 			<Add directory="..\..\..\..\externlibs\muparser\include" />
 			<Add directory="..\..\..\..\externlibs\SDL\include" />
-			<Add directory="..\..\..\..\externlibs\SDL_image\include" />
-			<Add directory="..\..\..\..\externlibs\SDL_net\include" />
+			
 			<Add directory="..\..\..\..\externlibs\gstreamer\include" />
 			<Add directory="..\..\..\..\externlibs\gstreamer\include\glib-2.0" />
 			<Add directory="..\..\..\..\externlibs\gstreamer\lib\glib-2.0\include" />
 		</Compiler>
 		<Linker>
-			<Add library="libSDL" />
-			<Add library="libSDLmain" />
-			<Add library="liblua" />
-			<Add library="cg" />
-			<Add library="cgGL" />
-			<Add library="OpenAL32" />
-			<Add library="EFX-Util" />
+			
 			<Add directory="..\..\..\..\externlibs\SDL\lib" />
 			<Add directory="..\..\..\..\externlibs\glew\lib" />
 			<Add directory="..\..\..\..\externlibs\lua\lib" />
