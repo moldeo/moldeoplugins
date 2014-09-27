@@ -37,8 +37,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moNetOSCOut.h" />
-		<Unit filename="src/moNetOSCOut.cpp" />
+		<Unit filename="moNetOSCOut.cpp" />
+		<Unit filename="moNetOSCOut.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

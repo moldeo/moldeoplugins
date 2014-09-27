@@ -160,9 +160,10 @@ void moEffectDemocube::Draw( moTempo* tempogral, moEffectState* parentstate)
 {
 	PreDraw(tempogral, parentstate);
 
-	m_temp_angle = fmod(float(state.tempo.ang), float(2.0 * MO_PI));
+	m_temp_angle = fmod(float(GetEffectState().tempo.ang), float(2.0 * MO_PI));
 
-	SetColor();
+  SetColor( m_Config[moR(DEMOCUBE_COLOR)], m_Config[moR(DEMOCUBE_ALPHA)], m_EffectState );
+
 	SetBlending();
 
     glMatrixMode(GL_PROJECTION);
@@ -216,7 +217,8 @@ void moEffectDemocube::Interaction( moIODeviceManager *IODeviceManager )
 					break;
 				case MO_KEY_PRESS_C:
 					show_cursor = !show_cursor;
-					SDL_ShowCursor(show_cursor);
+					///TODO: show cursor in ::Draw!!!
+					/*SDL_ShowCursor(show_cursor);*/
 					break;
 			}
 		temp = temp->next;
@@ -224,9 +226,10 @@ void moEffectDemocube::Interaction( moIODeviceManager *IODeviceManager )
 	}
     UpdateRotation();
 }
-
+/*
 void moEffectDemocube::SetColor()
 {
+
 	MOfloat color[4];
 
     for (int i = MO_RED; i <= MO_ALPHA; i++)
@@ -236,8 +239,9 @@ void moEffectDemocube::SetColor()
               color[1] * state.tintg,
               color[2] * state.tintb,
               color[3] * state.alpha);
-}
 
+}
+*/
 void moEffectDemocube::SetBlending()
 {
 	MOint blending;

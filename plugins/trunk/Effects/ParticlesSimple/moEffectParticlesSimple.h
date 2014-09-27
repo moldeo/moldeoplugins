@@ -153,6 +153,13 @@ enum moParticlesOrientationMode {
     PARTICLES_ORIENTATIONMODE_ACCELERATION=3
 };
 
+enum moParticlesOrderingMode {
+    PARTICLES_ORDERING_MODE_NONE=0, /** no reordering for drawing */
+    PARTICLES_ORDERING_MODE_ZDEPTHTEST=1, /** reordered */
+    PARTICLES_ORDERING_MODE_ZPOSITION=2, /** zposition -> simple order relative to particle Z calculated position */
+    PARTICLES_ORDERING_MODE_COMPLETE=3 /** complete view dependent ordering >  */
+};
+
 
 enum moParticlesSimpleParamIndex {
   PARTICLES_INLET,
@@ -171,11 +178,6 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_FOLDERS,
 	PARTICLES_TEXTUREMODE,
 	PARTICLES_BLENDING,
-	PARTICLES_TIMETOREVELATION,
-	PARTICLES_TIMEOFREVELATION,
-	PARTICLES_TIMETORESTORATION,
-	PARTICLES_TIMEOFRESTORATION,
-	PARTICLES_DRAWINGFEATURES,
 
 	PARTICLES_WIDTH,
 	PARTICLES_HEIGHT,
@@ -187,18 +189,19 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VISCOSITY,
 
 	PARTICLES_MAXAGE,
-	PARTICLES_RANDOMMETHOD,
-	PARTICLES_CREATIONMETHOD,
-	PARTICLES_ORIENTATIONMODE,
 	PARTICLES_EMITIONPERIOD,
 	PARTICLES_EMITIONRATE,
 	PARTICLES_DEATHPERIOD,
-    PARTICLES_SCRIPT2,
+  PARTICLES_SCRIPT2,
 
 	PARTICLES_FADEIN,
 	PARTICLES_FADEOUT,
 	PARTICLES_SIZEIN,
 	PARTICLES_SIZEOUT,
+
+	PARTICLES_RANDOMMETHOD,
+	PARTICLES_CREATIONMETHOD,
+	PARTICLES_ORIENTATIONMODE,
 
 	PARTICLES_RANDOMPOSITION,
 	PARTICLES_RANDOMPOSITION_X,
@@ -227,16 +230,23 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_ATTRACTORVECTOR_Y,
 	PARTICLES_ATTRACTORVECTOR_Z,
 
-    PARTICLES_SCALEX_PARTICLE,
-	PARTICLES_SCALEY_PARTICLE,
-	PARTICLES_SCALEZ_PARTICLE,
 	PARTICLES_ROTATEX_PARTICLE,
 	PARTICLES_ROTATEY_PARTICLE,
 	PARTICLES_ROTATEZ_PARTICLE,
+  PARTICLES_SCALEX_PARTICLE,
+	PARTICLES_SCALEY_PARTICLE,
+	PARTICLES_SCALEZ_PARTICLE,
+
+	PARTICLES_TIMETOREVELATION,
+	PARTICLES_TIMEOFREVELATION,
+	PARTICLES_TIMETORESTORATION,
+	PARTICLES_TIMEOFRESTORATION,
+	PARTICLES_DRAWINGFEATURES,
+
 	PARTICLES_TRANSLATEX,
 	PARTICLES_TRANSLATEY,
 	PARTICLES_TRANSLATEZ,
-    PARTICLES_SCALEX,
+  PARTICLES_SCALEX,
 	PARTICLES_SCALEY,
 	PARTICLES_SCALEZ,
 	PARTICLES_ROTATEX,
@@ -248,10 +258,7 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VIEWX,
 	PARTICLES_VIEWY,
 	PARTICLES_VIEWZ,
-
-	PARTICLES_LIGHTX,
-	PARTICLES_LIGHTY,
-	PARTICLES_LIGHTZ
+  PARTICLES_ORDERING_MODE
 };
 
 class moParticlesSimple : public moAbstract {
@@ -422,6 +429,7 @@ class moParticlesSimplePhysics : public moAbstract {
       m_CreationMethod = PARTICLES_CREATIONMETHOD_LINEAR;
       m_RandomMethod = PARTICLES_RANDOMMETHOD_NOISY;
       m_OrientationMode = PARTICLES_ORIENTATIONMODE_FIXED;
+      m_OrderingMode = PARTICLES_ORDERING_MODE_NONE;
 
       m_FadeIn = 0.0;
       m_FadeOut = 0.0;
@@ -475,7 +483,7 @@ class moParticlesSimplePhysics : public moAbstract {
     moParticlesCreationMethod   m_CreationMethod;
     moParticlesRandomMethod     m_RandomMethod;
     moParticlesOrientationMode  m_OrientationMode;
-
+    moParticlesOrderingMode     m_OrderingMode;
 
     double          m_FadeIn;
     double            m_FadeOut;
@@ -530,6 +538,8 @@ enum enumRevelationStatus {
 
 moDeclareDynamicArray( moParticlesSimple*, moParticlesSimpleArray );
 
+typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
+
 
 /// Clase Particle Simple
 /**
@@ -576,6 +586,7 @@ class moEffectParticlesSimple : public moEffect
 
         void TrackParticle( int partid );
 
+        void OrderParticles();
 
     private:
 
@@ -706,6 +717,8 @@ class moEffectParticlesSimple : public moEffect
         long drawing_features; /// 0: nothing 1: motion  2: all
         long texture_mode;
 
+
+
         bool ortho;
 
     ///internal
@@ -752,6 +765,8 @@ class moEffectParticlesSimple : public moEffect
         float tx,ty,tz;
         float sx,sy,sz;
         float rx,ry,rz;
+
+        TMapDepthToParticleSimple m_OrderedParticles;
 
         double dtrel;
         double dt;

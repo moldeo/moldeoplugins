@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\posteffects\debug_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../binaries/plugins/posteffects/debug_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -21,15 +21,13 @@
 					<Add library="glew_staticdd" />
 					<Add library="libgled" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeod" />
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\posteffects\debug.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../binaries/plugins/posteffects/debug.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -39,8 +37,6 @@
 					<Add library="glew_staticd" />
 					<Add library="libgle" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeo" />
@@ -53,34 +49,33 @@
 		<Compiler>
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
-			<Add directory=".\" />
-			<Add directory="..\..\..\..\binaries\include" />
-			<Add directory="..\..\..\..\externlibs\glew\include" />
-			
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\openal\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\SDL\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include\glib-2.0" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\lib\glib-2.0\include" />
-			<Add directory="..\..\..\..\externlibs\cg\include" />
+			<Add directory="./" />
+			<Add directory="../../../../binaries/include" />
+			<Add directory="../../../../externlibs/glew/include" />
+			<Add directory="../../../../externlibs/opengl/include" />
+			<Add directory="../../../../externlibs/openal/include" />
+			<Add directory="../../../../externlibs/lua/include" />
+			<Add directory="../../../../externlibs/SDL/include" />
+			<Add directory="../../../../externlibs/gstreamer/include" />
+			<Add directory="../../../../externlibs/gstreamer/include/glib-2.0" />
+			<Add directory="../../../../externlibs/gstreamer/lib/glib-2.0/include" />
+			<Add directory="../../../../externlibs/cg/include" />
 		</Compiler>
 		<Linker>
-			
-			<Add directory="..\..\..\..\externlibs\SDL\lib" />
-			<Add directory="..\..\..\..\externlibs\glew\lib" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\externlibs\cg\lib" />
-			<Add directory="..\..\..\..\externlibs\openal\libs\win32" />
-			<Add directory="..\..\..\..\externlibs\opengl\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="../../../../externlibs/SDL/lib" />
+			<Add directory="../../../../externlibs/glew/lib" />
+			<Add directory="../../../../externlibs/lua/lib" />
+			<Add directory="../../../../externlibs/cg/lib" />
+			<Add directory="../../../../externlibs/openal/libs/win32" />
+			<Add directory="../../../../externlibs/opengl/lib" />
+			<Add directory="../../../../binaries/lib/win" />
 		</Linker>
 		<Unit filename="moPostEffectDebug.cpp" />
 		<Unit filename="moPostEffectDebug.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

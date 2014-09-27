@@ -117,7 +117,8 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 
 	p_configdefinition->Add( moText("maxage"), MO_PARAM_NUMERIC, PARTICLES_MAXAGE, moValue( "3000", "NUM").Ref() );
 	p_configdefinition->Add( moText("emitionperiod"), MO_PARAM_NUMERIC, PARTICLES_EMITIONPERIOD, moValue( "10", "NUM").Ref() );
-	p_configdefinition->Add( moText("emitionrate"), MO_PARAM_NUMERIC, PARTICLES_EMITIONRATE, moValue( "1", "NUM").Ref() );
+	//p_configdefinition->Add( moText("emitionrate"), MO_PARAM_NUMERIC, PARTICLES_EMITIONRATE, moValue( "1", "NUM").Ref() );
+	p_configdefinition->Add( moText("emitionrate"), MO_PARAM_FUNCTION, PARTICLES_EMITIONRATE, moValue( "1", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("deathperiod"), MO_PARAM_NUMERIC, PARTICLES_DEATHPERIOD, moValue( "1", "NUM").Ref() );
 	p_configdefinition->Add( moText("particlescript"), MO_PARAM_SCRIPT, PARTICLES_SCRIPT2 );
 
@@ -160,7 +161,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("randommotionz"), MO_PARAM_FUNCTION, PARTICLES_RANDOMMOTION_Z, moValue( "0.0", "FUNCTION").Ref() );
 
 	p_configdefinition->Add( moText("rotatex_particle"), MO_PARAM_ROTATEX, PARTICLES_ROTATEX_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
-    p_configdefinition->Add( moText("rotatey_particle"), MO_PARAM_ROTATEY, PARTICLES_ROTATEY_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
+  p_configdefinition->Add( moText("rotatey_particle"), MO_PARAM_ROTATEY, PARTICLES_ROTATEY_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("rotatez_particle"), MO_PARAM_ROTATEZ, PARTICLES_ROTATEZ_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
 
 	p_configdefinition->Add( moText("scalex_particle"), MO_PARAM_SCALEX, PARTICLES_SCALEX_PARTICLE, moValue( "1.0", "FUNCTION").Ref() );
@@ -177,7 +178,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PARTICLES_TRANSLATEY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, PARTICLES_TRANSLATEZ, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, PARTICLES_ROTATEX, moValue( "0.0", "FUNCTION").Ref() );
-    p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PARTICLES_ROTATEY, moValue( "0.0", "FUNCTION").Ref() );
+  p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PARTICLES_ROTATEY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("rotatez"), MO_PARAM_ROTATEZ, PARTICLES_ROTATEZ, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("scalex"), MO_PARAM_SCALEX, PARTICLES_SCALEX, moValue( "1.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, PARTICLES_SCALEY, moValue( "1.0", "FUNCTION").Ref() );
@@ -188,6 +189,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("viewx"), MO_PARAM_FUNCTION, PARTICLES_VIEWX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewy"), MO_PARAM_FUNCTION, PARTICLES_VIEWY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewz"), MO_PARAM_FUNCTION, PARTICLES_VIEWZ, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM") );
 	return p_configdefinition;
 }
 
@@ -196,10 +198,12 @@ moEffectParticlesSimple::Init()
 {
 
   m_pParticleTime = new moInlet();
+
   if (m_pParticleTime) {
     ((moConnector*)m_pParticleTime)->Init( moText("particletime"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
     m_Inlets.Add(m_pParticleTime);
   }
+
 
     if (!PreInit()) return false;
 
@@ -209,9 +213,9 @@ moEffectParticlesSimple::Init()
 
 	moDefineParamIndex( PARTICLES_ALPHA, moText("alpha") );
 	moDefineParamIndex( PARTICLES_COLOR, moText("color") );
-	moDefineParamIndex( PARTICLES_PARTICLECOLOR, moText("particlecolor") );
 	moDefineParamIndex( PARTICLES_SYNC, moText("syncro") );
 	moDefineParamIndex( PARTICLES_PHASE, moText("phase") );
+	moDefineParamIndex( PARTICLES_PARTICLECOLOR, moText("particlecolor") );
 	moDefineParamIndex( PARTICLES_FONT, moText("font") );
 	moDefineParamIndex( PARTICLES_TEXT, moText("text") );
 	moDefineParamIndex( PARTICLES_ORTHO, moText("ortho") );
@@ -301,6 +305,7 @@ moEffectParticlesSimple::Init()
 	moDefineParamIndex( PARTICLES_VIEWX, moText("viewx") );
 	moDefineParamIndex( PARTICLES_VIEWY, moText("viewy") );
 	moDefineParamIndex( PARTICLES_VIEWZ, moText("viewz") );
+	moDefineParamIndex( PARTICLES_ORDERING_MODE, moText("orderingmode") );
 
     m_Physics.m_ParticleScript = moText("");
 
@@ -738,13 +743,13 @@ void moEffectParticlesSimple::UpdateParameters() {
 
     this->UpdateDt();  // now in ::Update()
 
-    time_tofull_restoration = m_Config[moR(PARTICLES_TIMETORESTORATION)][MO_SELECTED][0].Int();
-    time_of_restoration = m_Config[moR(PARTICLES_TIMEOFRESTORATION)][MO_SELECTED][0].Int();
+    time_tofull_restoration = m_Config.Int( moR(PARTICLES_TIMETORESTORATION) );
+    time_of_restoration = m_Config.Int( moR(PARTICLES_TIMEOFRESTORATION) );
 
-    time_tofull_revelation = m_Config[moR(PARTICLES_TIMETOREVELATION)][MO_SELECTED][0].Int();
-    time_of_revelation = m_Config[moR(PARTICLES_TIMEOFREVELATION)][MO_SELECTED][0].Int();
+    time_tofull_revelation = m_Config.Int( moR(PARTICLES_TIMETOREVELATION));
+    time_of_revelation = m_Config.Int( moR(PARTICLES_TIMEOFREVELATION) );
 
-    ortho = (bool)m_Config[moR(PARTICLES_ORTHO)][MO_SELECTED][0].Int();
+    ortho = (bool) m_Config.Int( moR(PARTICLES_ORTHO) );
 
     if ( moIsTimerStopped() || !m_EffectState.tempo.Started() ) {
         ResetTimers();
@@ -752,9 +757,9 @@ void moEffectParticlesSimple::UpdateParameters() {
     }
 
     //if script is modified... recompile
-	if ((moText)m_Physics.m_ParticleScript!=m_Config[moParamReference(PARTICLES_SCRIPT2)][MO_SELECTED][0].Text()) {
+	if ((moText)m_Physics.m_ParticleScript!=m_Config.Text( moR(PARTICLES_SCRIPT2) ) ) {
 
-        m_Physics.m_ParticleScript = m_Config[moParamReference(PARTICLES_SCRIPT2)][MO_SELECTED][0].Text();
+        m_Physics.m_ParticleScript = m_Config.Text( moR(PARTICLES_SCRIPT2) );
         moText fullscript = m_pResourceManager->GetDataMan()->GetDataPath()+ moSlash + (moText)m_Physics.m_ParticleScript;
 
         if ( CompileFile(fullscript) ) {
@@ -778,8 +783,8 @@ void moEffectParticlesSimple::UpdateParameters() {
         }
     }
 
-    drawing_features = m_Config[moR(PARTICLES_DRAWINGFEATURES)][MO_SELECTED][0].Int();
-    texture_mode = m_Config[moR(PARTICLES_TEXTUREMODE)][MO_SELECTED][0].Int();
+    drawing_features = m_Config.Int( moR(PARTICLES_DRAWINGFEATURES));
+    texture_mode = m_Config.Int( moR(PARTICLES_TEXTUREMODE));
 
     m_Physics.m_EyeVector = moVector3f(
                                         m_Config.Eval( moR(PARTICLES_EYEX)),
@@ -811,7 +816,9 @@ void moEffectParticlesSimple::UpdateParameters() {
     m_Physics.m_EmitionPeriod = m_Config.Int( moR(PARTICLES_EMITIONPERIOD) );
     //m_Physics.m_EmitionPeriod = m_Config[moR(PARTICLES_EMITIONPERIOD)][MO_SELECTED][0].Int();
     //MODebug2->Message(moText("Emiperiod:")+IntToStr(m_Physics.m_EmitionPeriod));
-    m_Physics.m_EmitionRate = m_Config.Int( moR(PARTICLES_EMITIONRATE) );
+
+    //m_Physics.m_EmitionRate = m_Config.Int( moR(PARTICLES_EMITIONRATE) );
+    m_Physics.m_EmitionRate = m_Config.Eval( moR(PARTICLES_EMITIONRATE) );
     m_Physics.m_DeathPeriod = m_Config.Int( moR(PARTICLES_DEATHPERIOD) );
 
 
@@ -898,13 +905,13 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
 
     double len=0,index=0,index_normal=0;
 
-    randomposx = (m_Physics.m_RandomPosition>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.X() : m_Physics.m_PositionVector.X();
-    randomposy = (m_Physics.m_RandomPosition>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Y() : m_Physics.m_PositionVector.Y();
-    randomposz = (m_Physics.m_RandomPosition>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Z() : m_Physics.m_PositionVector.Z();
+    randomposx = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.X() : m_Physics.m_PositionVector.X();
+    randomposy = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Y() : m_Physics.m_PositionVector.Y();
+    randomposz = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Z() : m_Physics.m_PositionVector.Z();
 
-    randomvelx = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.X() : m_Physics.m_VelocityVector.X();
-    randomvely = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Y() : m_Physics.m_VelocityVector.Y();
-    randomvelz = (m_Physics.m_RandomVelocity>0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Z() : m_Physics.m_VelocityVector.Z();
+    randomvelx = ( fabs(m_Physics.m_RandomVelocity) >0.0)? (moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.X() : m_Physics.m_VelocityVector.X();
+    randomvely = ( fabs(m_Physics.m_RandomVelocity) >0.0)? (moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Y() : m_Physics.m_VelocityVector.Y();
+    randomvelz = ( fabs(m_Physics.m_RandomVelocity) >0.0)? (moMathf::UnitRandom())*m_Physics.m_RandomVelocity*m_Physics.m_VelocityVector.Z() : m_Physics.m_VelocityVector.Z();
 
     moVector4d fullcolor;
     fullcolor = m_Config.EvalColor( moR(PARTICLES_PARTICLECOLOR));
@@ -1227,7 +1234,11 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
         Shot();
     }
 
-    m_pResourceManager->GetTimeMan()->ClearByObjectId(  this->GetId() );
+    if (m_pResourceManager){
+        if (m_pResourceManager->GetTimeMan()) {
+          m_pResourceManager->GetTimeMan()->ClearByObjectId(  this->GetId() );
+        }
+    }
 
     //if (p_cols==m_cols && p_rows==m_rows && !forced)  {
 
@@ -2135,6 +2146,12 @@ void moEffectParticlesSimple::TrackParticle( int partid ) {
 
 }
 
+void moEffectParticlesSimple::OrderParticles() {
+
+  /// order here or elsewhere
+
+
+}
 
 void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectState* parentstate ) {
 
@@ -2244,8 +2261,10 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                 double part_timer = 0.001f * (double)(pPar->Age.Duration()); // particule ang = durationinmilis / 1000 ...
 
                 if (m_pParticleTime) {
-                  m_pParticleTime->GetData()->SetDouble(part_timer);
-                  m_pParticleTime->Update(true);
+                  if (m_pParticleTime->GetData()) {
+                      m_pParticleTime->GetData()->SetDouble(part_timer);
+                      m_pParticleTime->Update(true);
+                  }
                 }
 
                 glPushMatrix();
@@ -2579,8 +2598,8 @@ void moEffectParticlesSimple::DrawTracker() {
             if (pInlet->Updated()) {
                 m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
                 // chequeando info
-                /*
-                MODebug2->Push( moText("ParticlesSimple varX: ") + FloatToStr( m_pTrackerData->GetVariance().X())
+
+                /*MODebug2->Push( moText("ParticlesSimple varX: ") + FloatToStr( m_pTrackerData->GetVariance().X())
                        + moText(" varY: ") + FloatToStr(m_pTrackerData->GetVariance().Y()) );
                 */
             }
@@ -2941,14 +2960,20 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
 
     if (ortho) {
+
         glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
         //glDepthMask(GL_FALSE);
         glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
         glLoadIdentity();									// Reset The Projection Matrix
         glOrtho(-0.5,0.5,-0.5*h/w,0.5*h/w,-1,1);                              // Set Up An Ortho Screen
+
     } else {
+
         glDisable(GL_DEPTH_TEST);
+
+        //glClear( GL_DEPTH_BUFFER_BIT );
         //glDepthMask(GL_FALSE);
+
         glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
         glLoadIdentity();									// Reset The Projection Matrix
         m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
@@ -3067,6 +3092,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
     EndDraw();
 
+  //glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix

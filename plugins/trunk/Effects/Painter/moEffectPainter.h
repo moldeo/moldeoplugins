@@ -26,7 +26,7 @@
   Authors:
   Andrés Colubri
   Fabricio Costa
-  
+
 *******************************************************************************/
 
 #ifndef __MO_EFFECT_PAINTER_H__
@@ -35,6 +35,13 @@
 #include "moPlugin.h"
 
 enum moPainterParamIndex {
+  /*PAINTER_INLET,
+  PAINTER_OUTLET,
+  PAINTER_SCRIPT,*/
+  PAINTER_ALPHA,
+  PAINTER_COLOR,
+  PAINTER_SYNC,
+	PAINTER_BLENDING,
 	PAINTER_FILTER_SHADER,
 	PAINTER_MOVEPART_SHADER,
 	PAINTER_COLORPART_SHADER,
@@ -61,10 +68,7 @@ enum moPainterParamIndex {
 	PAINTER_AVE_INTERVAL,
 	PAINTER_FOLLOW_GRAD,
 	PAINTER_NOISE_PROB,
-	PAINTER_NOISE_MAG,
-	PAINTER_COLOR,
-	PAINTER_SYNCRO,
-	PAINTER_BLENDING
+	PAINTER_NOISE_MAG
 };
 
 #define MO_MOUSE_MOTION_Y_RIGHT		0
@@ -104,7 +108,7 @@ private:
 	// Parameters.
 	moText sourceTexture;
 	int currentBrush;
-	int canvasWidth; 
+	int canvasWidth;
     int canvasHeight;
     int boxWidth;
     int boxHeight;
@@ -179,8 +183,8 @@ private:
     float currentTime, lastChangeTime, changeCoeff;
     bool swapedImageTex;
     int aveCount;
-    int startClock;	
-	
+    int startClock;
+
     void initRandom();
 	void initParameters();
 	void initTex();
@@ -193,7 +197,7 @@ private:
 	void initVelTex();
 	void initRandTex();
 	void initColorTex();
-	void initGradTex();	
+	void initGradTex();
 	void initShaders();
 	void initParticles();
 	void finishParticles();
@@ -210,7 +214,6 @@ private:
 	void moveParticles();
 	void colorParticles();
 	void setCanvasView();
-	void setBlendMode();
 	void setGLState();
 
 	void applyFilter();

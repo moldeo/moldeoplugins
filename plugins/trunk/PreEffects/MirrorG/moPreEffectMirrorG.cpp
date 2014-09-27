@@ -355,6 +355,8 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
     glLoadIdentity();
 
     glDisable(GL_DEPTH_TEST);
+  	glClear(GL_DEPTH_BUFFER_BIT);
+
 
 /*
     glDisable(GL_DEPTH_TEST);
@@ -389,7 +391,7 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     // Aca van los comandos OpenGL del efecto.
 
-	glClear(GL_DEPTH_BUFFER_BIT);
+
 	glMatrixMode( GL_MODELVIEW );
 	glLoadIdentity( );
 

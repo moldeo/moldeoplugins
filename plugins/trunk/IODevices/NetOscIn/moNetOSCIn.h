@@ -35,6 +35,7 @@
 #define __MO_NET_OSC_OUT_H__
 
 #include "moConfig.h"
+#include "moActions.h"
 #include "moDeviceCode.h"
 #include "moEventList.h"
 #include "moIODeviceManager.h"
@@ -54,7 +55,8 @@ enum moNetOSCInParamIndex {
     NETOSCIN_HOSTS,
     NETOSCIN_PORT,
     NETOSCIN_RECEIVEEVENTS,
-    NETOSCIN_DEBUG
+    NETOSCIN_DEBUG,
+    NETOSCIN_PROCESSMOLDEOAPI
 };
 
 
@@ -73,13 +75,29 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
 
         void Init( moOutlets* pOutlets );
 
-        void Update( moOutlets* pOutlets, bool _debug_is_on );
+        int Update( moOutlets* pOutlets,
+                   bool p_debug_is_on,
+                   moEventList* pEvents,
+                   int p_ProcessMoldeoApi = false,
+                   int p_MoldeoId = -1 );
 
         moDataMessages        Messages;
         UdpListeningReceiveSocket* m_pUdpRcv;
 
     protected:
         moLock  m_Semaphore;
+
+         moOutlet*   pOutBeatFreq;
+         moOutlet*   pOutBeatValue;
+
+         moOutlet*   pOutBeatHighFreq;
+         moOutlet*   pOutBeatHighValue;
+
+         moOutlet*   pOutBeatLowFreq;
+         moOutlet*   pOutBeatLowValue;
+
+         moOutlet*   pOutBeatMediumFreq;
+         moOutlet*   pOutBeatMediumValue;
 
         moOutlet*   pOutEvents;
         moOutlet*   pOutTracker;
@@ -147,6 +165,7 @@ private:
     void SendEvent(int i);
 
     int m_ReceiveEvents;
+    int m_ProcessMoldeoApi;
 };
 
 class moNetOSCInFactory : public moIODeviceFactory {

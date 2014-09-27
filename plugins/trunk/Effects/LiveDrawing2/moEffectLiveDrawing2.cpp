@@ -64,6 +64,8 @@ moEffectLiveDrawing2::moEffectLiveDrawing2() {
 	SetName("livedrawing2");
 	gestures = lastGesture = NULL;
 	nGestures = 0;
+	m_pDrawCursorX = NULL;
+	m_pDrawCursorY = NULL;
 }
 
 moEffectLiveDrawing2::~moEffectLiveDrawing2() {
@@ -159,6 +161,24 @@ moEffectLiveDrawing2::Init() {
 
 	midi_roto_start = 1.0;
 
+	moInlet* pInlet = NULL;
+	for( int i=0; i<GetInlets()->Count(); i++) {
+
+    pInlet = GetInlets()->Get(i);
+
+    if (pInlet) {
+        if (pInlet->GetConnectorLabelName() == moText("DRAWCURSORX")) {
+            m_pDrawCursorX = pInlet;
+            MODebug2->Message( moText("DRAWCURSORX inlet ready.") );
+        }
+         if (pInlet->GetConnectorLabelName() == moText("DRAWCURSORY")) {
+            m_pDrawCursorY = pInlet;
+            MODebug2->Message( moText("DRAWCURSORY inlet ready.") );
+        }
+    }
+
+	}
+
 	return true;
 }
 
@@ -212,12 +232,16 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	//if (!inInteractionMode)
 	updateInteractionParameters();
 
+
+
+
 	if (icon_mode)
 		sel_tex = m_Config[ moParamReference(LIVEDRAW2_ICO_TEXTURES) ].GetIndexValue();
 	else
 		sel_tex = m_Config[ moParamReference(LIVEDRAW2_BACK_TEXTURES) ].GetIndexValue();
 
 	updateFlowVelocity();
+
 
 
 	if (pressure <= (float)min_pressure / (float)max_pressure) drawing = false;
@@ -246,7 +270,7 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
         else if (d > min_line_length)
 	    {
             lastGesture->AddPoint(penX, penY, pressure, pen_color_rgb);
-			lastGesture->compile();
+            lastGesture->compile();
 			//MODebug2->Push( moText("compile last point penX:") + FloatToStr(penX) + moText(" penY:") + FloatToStr(penY)  );
         }
 		else
@@ -631,6 +655,40 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 		}
 	}
 
+    if (m_pDrawCursorX) {
+
+      if (m_pDrawCursorX->Updated()) {
+
+          penX0 = penX;
+          leftClicked = true;
+          min_pressure = min_pressure/40;
+          max_pressure = max_pressure/40;
+
+          //pressure = momin(pressure, 1.0);
+          //pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
+           if (m_pDrawCursorX->GetData()) penX = m_pDrawCursorX->GetData()->Float()
+              *GetResourceManager()->GetRenderMan()->ScreenWidth();
+          //MODebug2->Message( "DRAWCURSORX:"+FloatToStr(penX));
+
+      }
+
+    }
+
+    if (m_pDrawCursorY) {
+
+      if (m_pDrawCursorY->Updated()) {
+        penY0 = penY;
+        leftClicked = true;
+        min_pressure = min_pressure/40;
+        max_pressure = max_pressure/40;
+        //pressure = momin(pressure, 1.0);
+        //pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
+        if (m_pDrawCursorY->GetData()) penY = (1-m_pDrawCursorY->GetData()->Float())
+                  *GetResourceManager()->GetRenderMan()->ScreenHeight();
+        //MODebug2->Message( "DRAWCURSORY:"+FloatToStr(penY));
+      }
+
+    }
 
 	//hay que comentar esto para q ande el tracker para el laser....
 	//if (!tabletDetected)
@@ -640,6 +698,8 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 			// Cuando no hay una tableta disponible, la "presión" queda determinada por la velocidad del mouse.
 			float dx = penX - penX0;
 			float dy = penY - penY0;
+			if ((fabs(dx)+fabs(dy))>0.0f)MODebug2->Message("dx:"+FloatToStr(dx)+" dy:"+FloatToStr(dy));
+
 			float diff = sqrt(dx * dx + dy * dy);
 
 			// La presión está definida como la recíproca de la velocidad: cuanto más rápido
@@ -654,6 +714,9 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 			pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
 		}
 		else pressure = (float)min_pressure / (float)max_pressure;
+
+
+
 
 	}
 
@@ -759,6 +822,7 @@ void moEffectLiveDrawing2::initShaders()
 	if (shader_fn != moText(""))
 	{
 		MODebug2->Push("Loading livedrawing shader...");
+		/*
 		moShaderGLSL* pglsl;
 		line_shader = m_pResourceManager->GetShaderMan()->AddShader(shader_fn);
 		pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(line_shader);
@@ -772,6 +836,7 @@ void moEffectLiveDrawing2::initShaders()
 		line_shader_point2 = pglsl->GetAttribID("point2");
 		line_shader_quad_width = pglsl->GetAttribID("quad_width");
 		line_shader_pressure = pglsl->GetAttribID("pressure");
+		*/
 	}
 	else
 	{
@@ -1642,31 +1707,36 @@ void Poly2f::Draw(float tintr, float tintg, float tintb, float alpha, bool stret
 			}
 
 			glBegin(GL_QUADS);
+			/*
 				SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
 								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
 								line_shader_point0, line_shader_point1, line_shader_point2,
 								line_shader_quad_width, line_shader_pressure);
+				*/
 				glTexCoord2f(s0, t0);
 				glVertex2f(xpoints[0], ypoints[0]);
 
-				SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
+				/*SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
 								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
 								line_shader_point0, line_shader_point1, line_shader_point2,
 								line_shader_quad_width, line_shader_pressure);
+				*/
 				glTexCoord2f(s1, t1);
 				glVertex2f(xpoints[1], ypoints[1]);
-
+/*
 				SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
 								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
 								line_shader_point0, line_shader_point1, line_shader_point2,
 								line_shader_quad_width, line_shader_pressure);
+	*/
 				glTexCoord2f(s2, t2);
 				glVertex2f(xpoints[2], ypoints[2]);
-
+/*
 				SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
 								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
 								line_shader_point0, line_shader_point1, line_shader_point2,
 								line_shader_quad_width, line_shader_pressure);
+*/
 				glTexCoord2f(s3, t3);
 				glVertex2f(xpoints[3], ypoints[3]);
 			glEnd();
@@ -1917,6 +1987,8 @@ void moEffectLiveDrawing2::Update(moEventList *Events)
 {
 
     moMoldeoObject::Update(Events);
+
+
 
     moEvent* actual = Events->First;
 	//recorremos todos los events y parseamos el resultado

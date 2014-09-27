@@ -29,7 +29,7 @@
 *******************************************************************************/
 
 #include "GL/glew.h"
-#include "GL/glx.h"
+//#include "GL/glx.h"
 #include "moEffectWebview.h"
 #include <Awesomium/STLHelpers.h>
 //========================
@@ -66,10 +66,10 @@ moEffectWebview::moEffectWebview() {
 	m_idsurface = -1;
 	m_glidsurface = -1;
 	m_pMoldeoSurface = NULL;
-  m_pWebCore = NULL;
-  m_Url = "";
-  m_CursorX = 0.0;
-  m_CursorY = 0.0;
+	m_pWebCore = NULL;
+	m_Url = "";
+	m_CursorX = 0.0;
+	m_CursorY = 0.0;
 }
 
 moEffectWebview::~moEffectWebview() {
@@ -262,11 +262,13 @@ glTranslatef(   m_Config.Eval( moR(WEBVIEW_TRANSLATEX) ),
   glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
   glLoadIdentity();									// Reset The View
 
-    ancho = 20;
-    alto = 20;
-
-    glBindTexture( GL_TEXTURE_2D, -1 );
-SetColor( m_Config[moR(WEBVIEW_COLOR)], m_Config[moR(WEBVIEW_ALPHA)], m_EffectState );
+    ancho = 2;
+    alto = 2;
+	
+    
+	SetColor( m_Config[moR(WEBVIEW_COLOR)], m_Config[moR(WEBVIEW_ALPHA)], m_EffectState );
+	
+	glBindTexture( GL_TEXTURE_2D, -1 );
     glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
 		glVertex2f( -ancho*0.5+m_CursorX, -alto*0.5+h-m_CursorY);
@@ -280,6 +282,7 @@ SetColor( m_Config[moR(WEBVIEW_COLOR)], m_Config[moR(WEBVIEW_ALPHA)], m_EffectSt
 		glTexCoord2f( 0.0, 1.0);
 		glVertex2f( -ancho*0.5+m_CursorX,  alto*0.5+h-m_CursorY);
 	glEnd();
+	
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glLoadIdentity();									// Reset The View
 
@@ -363,8 +366,81 @@ moEffectWebview::Update( moEventList *Events ) {
 
       if (m_pWebView)
       switch(actual->deviceid) {
-        case MO_IODEVICE_MOUSE:
+		case MO_IODEVICE_TOUCH:
+			switch(actual->devicecode) {
 
+				case MO_TOUCH_START:
+					m_WebTouchEvent.type = kWebTouchEventType_Start;
+					m_WebTouchEvent.touches[0].id = 0;//actual->reservedvalue0;
+					m_WebTouchEvent.touches[0].position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches[0].force = 0;
+					m_WebTouchEvent.touches[0].state = kWebTouchPointState_Pressed;
+					m_WebTouchEvent.touches[0].screen_position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].screen_position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches_length = 1;
+					m_WebTouchEvent.target_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.target_touches_length = 1;
+					m_WebTouchEvent.changed_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.changed_touches_length = 1;
+					m_pWebView->InjectTouchEvent( m_WebTouchEvent );
+
+					m_CursorX = actual->reservedvalue1;
+					m_CursorY = actual->reservedvalue2;
+					//MODebug2->Message("moEffectWebview::InjectTouchEvent() > MO_TOUCH_START at ");
+					break;
+
+				case MO_TOUCH_END:
+					m_WebTouchEvent.type = kWebTouchEventType_End;
+					m_WebTouchEvent.touches[0].id = 0; //actual->reservedvalue0;
+					m_WebTouchEvent.touches[0].position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches[0].force = 0;
+					m_WebTouchEvent.touches[0].state = kWebTouchPointState_Released;
+					m_WebTouchEvent.touches[0].screen_position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].screen_position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches_length = 1;
+
+
+					m_WebTouchEvent.target_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.target_touches_length = 1;
+
+					m_WebTouchEvent.changed_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.changed_touches_length = 1;
+					m_pWebView->InjectTouchEvent( m_WebTouchEvent );
+
+					m_CursorX = actual->reservedvalue1;
+					m_CursorY = actual->reservedvalue2;
+					//MODebug2->Message("moEffectWebview::InjectTouchEvent() > MO_TOUCH_END at ");
+					break;
+
+				case MO_TOUCH_MOVE:
+					m_WebTouchEvent.type = kWebTouchEventType_Move;
+					m_WebTouchEvent.touches[0].id = 0; //actual->reservedvalue0;
+					m_WebTouchEvent.touches[0].position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches[0].force = 0;
+					m_WebTouchEvent.touches[0].state = kWebTouchPointState_Moved;
+					m_WebTouchEvent.touches[0].screen_position_x = actual->reservedvalue1;
+					m_WebTouchEvent.touches[0].screen_position_y = actual->reservedvalue2;
+					m_WebTouchEvent.touches_length = 1;
+
+					m_WebTouchEvent.target_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.target_touches_length = 1;
+
+					m_WebTouchEvent.changed_touches[0] = m_WebTouchEvent.touches[0];
+					m_WebTouchEvent.changed_touches_length = 1;
+					m_pWebView->InjectTouchEvent( m_WebTouchEvent );
+
+					m_CursorX = actual->reservedvalue1;
+					m_CursorY = actual->reservedvalue2;
+					//MODebug2->Message("moEffectWebview::InjectTouchEvent() > MO_TOUCH_MOVE at ");
+					break;
+			}
+			break;
+			
+        case MO_IODEVICE_MOUSE:
+			
           switch(actual->devicecode) {
             case SDL_MOUSEMOTION:
               //cout << "Webview receiving mouse motion: x: " << actual->reservedvalue2 << " y:" << actual->reservedvalue3 << endl;
@@ -413,7 +489,7 @@ moEffectWebview::Update( moEventList *Events ) {
               break;
           }
           break;
-
+		  
         case MO_IODEVICE_KEYBOARD:
 
           break;

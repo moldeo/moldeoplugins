@@ -36,7 +36,22 @@
 #include "moldeo.h"
 #include "supereg/tmotor.h"
 
-enum moGridCoddes {
+enum moGridKeys {
+  GRID_TURN_LEFT = 0,
+  GRID_TURN_RIGHT = 1,
+  GRID_KEYUP = 2,
+  GRID_KEYDOWN = 3,
+  GRID_TILT_RIGHT = 4,
+  GRID_TILT_LEFT = 5,
+  GRID_FORWARD = 6,
+  GRID_BACK = 7,
+  GRID_PITCH = 8,
+  GRID_TRIM = 9,
+  GRID_RESET = 10
+
+};
+
+enum moGridCodes {
 MO_GRID_UP 		= 0,
 MO_GRID_DOWN	,
 MO_GRID_TURN_LEFT,
@@ -47,7 +62,8 @@ MO_GRID_FORWARD,
 MO_GRID_BACK,
 MO_GRID_PITCH,
 MO_GRID_TRIM,
-MO_GRID_WIREFRAME
+MO_GRID_WIREFRAME,
+MO_GRID_RESETPOSITION
 };
 
 enum moGridParamIndex {
@@ -60,16 +76,60 @@ enum moGridParamIndex {
 	GRID_PHASE,
 	GRID_TEXTURE,
 	GRID_TEXTUREB,
-	GRID_MAP,
+	GRID_TEXTUREC,
+	GRID_TEXTURED,
+	GRID_TEXTUREE,
+	GRID_TEXTUREF,
+	GRID_TEXTUREG,
+	GRID_TEXTUREH,
+  GRID_MAP,
 	GRID_SCALES,
 	GRID_SIZE,
-	GRID_WIREFRAME
+	GRID_WIREFRAME,
+	GRID_WIREFRAME_WIDTH,
+	GRID_WIREFRAME_CONFIGURATION,
+
+	GRID_HEIGHT_MULTIPLY,
+	GRID_HEIGHT_RANDOMIZER,
+  GRID_PLANET_FACTOR,
+  GRID_TORUS_FACTOR,
+  GRID_WAVE_AMPLITUDE,
+
+  GRID_CONTROL_ALTITUDE,
+	GRID_CONTROL_ROLL_ANGLE,
+	GRID_CONTROL_ROLL_FORCE,
+	GRID_CONTROL_LIFT_ANGLE,
+	GRID_CONTROL_LIFT_FORCE,
+
+	GRID_CONTROL_SPEED,
+	GRID_CONTROL_SPEED_ACCELERATION,
+	GRID_CONTROL_MINIMUM_SPEED,
+	GRID_CONTROL_MAXIMUM_SPEED,
+
+	GRID_CONTROL_GRAVITY_FORCE,
+	GRID_CONTROL_MINIMUM_ALTITUDE,
+	GRID_CONTROL_MAXIMUM_ALTITUDE,
+	GRID_CONTROL_MINIMUM_SURFACE_ALTITUDE,
+
+	GRID_TRANSLATEX,
+	GRID_TRANSLATEY,
+	GRID_TRANSLATEZ,
+
+	GRID_SCALEX,
+	GRID_SCALEY,
+	GRID_SCALEZ,
+
+	GRID_ROTATEX,
+	GRID_ROTATEY,
+	GRID_ROTATEZ
+
 };
 
 class moEffectGrid: public moEffect
 {
 public:
     TEngine_Utility *Grid;
+    moOutlet* m_pOutletCameraHeight;
 
     moEffectGrid();
     virtual ~moEffectGrid();
@@ -77,15 +137,17 @@ public:
     MOboolean Init();
     void Draw(moTempo*, moEffectState* parentstate = NULL);
     MOboolean Finish();
+    void UpdateParameters();
 
     moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
     void Interaction(moIODeviceManager*);
-
+    float turnAngle;
 private:
 	moTextureManager*	MOTextures;
     MOint color, texture, textureb;
     MOtexture   *textures;
     MOuint      ntextures;
+    moInlet*    m_pGesture;
 
 };
 

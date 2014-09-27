@@ -30,7 +30,12 @@
 *******************************************************************************/
 
 #include "moEffectMovie.h"
-#include "SDL/SDL.h"
+#ifdef MO_WIN32
+    #include "SDL.h"
+#else
+    #include "SDL/SDL.h"
+#endif
+
 //========================
 //  Factory
 //========================
@@ -689,7 +694,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
 
 */
-  //showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
+  showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
 
   m_DisplayX = m_Config.Eval( moR(MOVIE_DISPLAY_X) );
   m_DisplayY = m_Config.Eval( moR(MOVIE_DISPLAY_Y) );

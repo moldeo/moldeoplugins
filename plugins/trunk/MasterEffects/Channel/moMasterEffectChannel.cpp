@@ -645,10 +645,14 @@ moMasterEffectChannel::Interaction( moIODeviceManager *IODeviceManager ) {
 
 
 				default:
+
 					aux = devicecode[MO_ACTION_SEL_UNIQUE].First;
-					aux2 = devicecode[MO_ACTION_SEL_MULTIPLE].First;
 					estaux = IODeviceManager->IODevices().GetRef(aux->device)->GetStatus(aux->devicecode);
-					estaux2 = IODeviceManager->IODevices().GetRef(aux2->device)->GetStatus(aux->devicecode);
+
+                    if ( ncodes > MO_ACTION_SEL_MULTIPLE ) {
+                        aux2 = devicecode[MO_ACTION_SEL_MULTIPLE].First;
+                        estaux2 = IODeviceManager->IODevices().GetRef(aux2->device)->GetStatus(aux->devicecode);
+				    } else MODebug2->Error("moMasterEffectChannel::Interaction > update channel0.cfg, missing codes for multiple selection feature.");
 
 					if(MO_ACTION_SEL_EFFECT_0<=i && i<=MO_ACTION_SEL_EFFECT_39) {
 

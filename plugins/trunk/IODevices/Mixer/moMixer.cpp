@@ -267,9 +267,11 @@ moMixer::Update(moEventList *Events) {
 
 			switch(actual->devicecode) {
 				case BUTTON_PUSHED:
+				    //MODebug2->Message(moText("BUTTON_PUSHED :") + IntToStr(actual->reservedvalue0) );
 					Buttons[actual->reservedvalue0].Push(actual->reservedvalue1);
 					break;
 				case BUTTON_RELEASED:
+				    //MODebug2->Message(moText("BUTTON_RELEASED :") + IntToStr(actual->reservedvalue0) );
 					Buttons[actual->reservedvalue0].Release(actual->reservedvalue1);
 					break;
 				case WHEEL_MOTION:

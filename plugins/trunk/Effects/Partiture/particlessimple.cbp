@@ -21,8 +21,8 @@
 					<Add library="glew_sharedd" />
 					<Add library="libgled" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
+					
+					
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeod" />
@@ -39,8 +39,8 @@
 					<Add library="glew_shared" />
 					<Add library="libgle" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
+					
+					
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeo" />
