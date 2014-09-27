@@ -39,6 +39,7 @@
 #include "moEventList.h"
 #include "moIODeviceManager.h"
 #include "moTypes.h"
+#include "moFilterManager.h"
 
 #include "osc/OscReceivedElements.h"
 #include "osc/OscPacketListener.h"
@@ -47,6 +48,11 @@
 
 #include "tuio/TuioClient.h"
 
+enum tuioDef {
+  MO_TOUCH_START,
+  MO_TOUCH_END,
+  MO_TOUCH_MOVE
+};
 
 #include "moConnectors.h"
 
@@ -74,8 +80,6 @@ public:
 		tuioClient = NULL;
 	}
 
-
-
 	virtual void addTuioObject(TuioObject *tobj);
 	virtual void updateTuioObject(TuioObject *tobj);
 	virtual void removeTuioObject(TuioObject *tobj);
@@ -87,6 +91,7 @@ public:
 	virtual void refresh(TuioTime frameTime);
 
 	TuioClient *tuioClient;
+  moOutlet*   m_pTrackerNetTUIOIn;
 
   void drawObjects();
   void SetVerbose ( bool p_verbose = true );
@@ -100,18 +105,38 @@ private:
   moOutlet*   m_pOutletCursors; //vectors
 
   moOutlet*   m_pOutletCursor1;
+  moOutlet*   m_pOutletCursor1TouchStart;
+  moOutlet*   m_pOutletCursor1TouchOn;
+  moOutlet*   m_pOutletCursor1TouchEnd;
+  moOutlet*   m_pOutletCursor1TouchOff;
+  moOutlet*   m_pOutletCursor1TouchMove;
   moOutlet*   m_pOutletCursor1X;
   moOutlet*   m_pOutletCursor1Y;
 
   moOutlet*   m_pOutletCursor2;
+  moOutlet*   m_pOutletCursor2TouchStart;
+  moOutlet*   m_pOutletCursor2TouchOn;
+  moOutlet*   m_pOutletCursor2TouchEnd;
+  moOutlet*   m_pOutletCursor2TouchOff;
+  moOutlet*   m_pOutletCursor2TouchMove;
   moOutlet*   m_pOutletCursor2X;
   moOutlet*   m_pOutletCursor2Y;
 
   moOutlet*   m_pOutletCursor3;
+  moOutlet*   m_pOutletCursor3TouchStart;
+  moOutlet*   m_pOutletCursor3TouchOn;
+  moOutlet*   m_pOutletCursor3TouchEnd;
+  moOutlet*   m_pOutletCursor3TouchOff;
+  moOutlet*   m_pOutletCursor3TouchMove;
   moOutlet*   m_pOutletCursor3X;
   moOutlet*   m_pOutletCursor3Y;
 
   moOutlet*   m_pOutletCursor4;
+  moOutlet*   m_pOutletCursor4TouchStart;
+  moOutlet*   m_pOutletCursor4TouchOn;
+  moOutlet*   m_pOutletCursor4TouchEnd;
+  moOutlet*   m_pOutletCursor4TouchOff;
+  moOutlet*   m_pOutletCursor4TouchMove;
   moOutlet*   m_pOutletCursor4X;
   moOutlet*   m_pOutletCursor4Y;
 
@@ -149,6 +174,7 @@ private:
     moTextArray host_name;
     moIntArray host_port;
 
+    moTrackerSystemData*  m_pTrackerSystemData;
 
 
 	float sendInterval;

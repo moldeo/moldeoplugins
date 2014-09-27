@@ -70,12 +70,36 @@ moEffectTunel::~moEffectTunel()
 	Finish();
 }
 
+moConfigDefinition *
+moEffectTunel::GetDefinition( moConfigDefinition *p_configdefinition ) {
+
+	//default: alpha, color, syncro
+	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, TUNEL_TEXTURE, moValue( "default", "TXT")  );
+	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, TUNEL_TRANSLATEX );
+	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, TUNEL_TRANSLATEY );
+	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, TUNEL_TRANSLATEZ );
+	p_configdefinition->Add( moText("rotate"), MO_PARAM_ROTATEZ, TUNEL_ROTATE );
+	p_configdefinition->Add( moText("target_translatex"), MO_PARAM_TRANSLATEX, TUNEL_TARGET_TRANSLATEX );
+	p_configdefinition->Add( moText("target_translatey"), MO_PARAM_TRANSLATEY, TUNEL_TARGET_TRANSLATEY );
+	p_configdefinition->Add( moText("target_translatez"), MO_PARAM_TRANSLATEZ, TUNEL_TARGET_TRANSLATEZ );
+	p_configdefinition->Add( moText("target_rotate"), MO_PARAM_ROTATEZ, TUNEL_TARGET_ROTATE );
+	p_configdefinition->Add( moText("sides"), MO_PARAM_NUMERIC, TUNEL_SIDES, moValue("12", "INT" ) );
+	p_configdefinition->Add( moText("segments"), MO_PARAM_NUMERIC, TUNEL_SEGMENTS, moValue("32", "INT" ) );
+  p_configdefinition->Add( moText("wireframe"), MO_PARAM_NUMERIC, TUNEL_SEGMENTS, moValue("0", "INT" ) );
+
+	return p_configdefinition;
+}
 
 MOboolean moEffectTunel::Init()
 {
     if (!PreInit()) return false;
 
-    moDefineParamIndex( TUNEL_ALPHA, moText("alpha") );
+	moDefineParamIndex( TUNEL_INLET, moText("inlet") );
+	moDefineParamIndex( TUNEL_OUTLET, moText("outlet") );
+	moDefineParamIndex( TUNEL_SCRIPT, moText("script") );
+
+	moDefineParamIndex( TUNEL_ALPHA, moText("alpha") );
 	moDefineParamIndex( TUNEL_COLOR, moText("color") );
 	moDefineParamIndex( TUNEL_SYNC, moText("syncro") );
 	moDefineParamIndex( TUNEL_PHASE, moText("phase") );
@@ -83,10 +107,32 @@ MOboolean moEffectTunel::Init()
 	moDefineParamIndex( TUNEL_TRANSLATEX, moText("translatex") );
 	moDefineParamIndex( TUNEL_TRANSLATEY, moText("translatey") );
 	moDefineParamIndex( TUNEL_TRANSLATEZ, moText("translatez") );
-	moDefineParamIndex( TUNEL_INLET, moText("inlet") );
-	moDefineParamIndex( TUNEL_OUTLET, moText("outlet") );
+	moDefineParamIndex( TUNEL_ROTATE, moText("rotate") );
+	moDefineParamIndex( TUNEL_TARGET_TRANSLATEX, moText("target_translatex") );
+	moDefineParamIndex( TUNEL_TARGET_TRANSLATEY, moText("target_translatey") );
+	moDefineParamIndex( TUNEL_TARGET_TRANSLATEZ, moText("target_translatez") );
+	moDefineParamIndex( TUNEL_TARGET_ROTATE, moText("target_rotate") );
+
+  moDefineParamIndex( TUNEL_SIDES, moText("sides") );
+  moDefineParamIndex( TUNEL_SEGMENTS, moText("segments") );
+  moDefineParamIndex( TUNEL_WIREFRAME, moText("wireframe") );
+
 
 	return true;
+}
+
+void moEffectTunel::UpdateParameters() {
+
+  sides = m_Config.Int( moR(TUNEL_SIDES) );
+
+  if (sides>MAXTUNELSIDES) sides = MAXTUNELSIDES;
+
+  segments = m_Config.Int( moR(TUNEL_SEGMENTS) );
+
+  if (segments>MAXTUNELSEGMENTS) segments = MAXTUNELSEGMENTS;
+
+  wireframe_mode = m_Config.Int( moR(TUNEL_WIREFRAME) ) == 1;
+
 }
 
 void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
@@ -95,77 +141,123 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 	GLdouble C, J1, J2;
 	GLdouble Angle, Speed;
 
-    PreDraw( tempogral, parentstate);
+  BeginDraw( tempogral, parentstate);
+
+  UpdateParameters();
 
 	Angle =(m_EffectState.tempo.getTempo()/2.0);
 	Speed =(m_EffectState.tempo.getTempo()/2.0)*TEXTURE_SPEED;
 
-    // Guardar y resetar la matriz de vista del modelo //
-    glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
-    glPushMatrix();                                     // Store The Modelview Matrix
+  // Guardar y resetar la matriz de vista del modelo //
+  glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
+  glPushMatrix();                                     // Store The Modelview Matrix
 	glLoadIdentity();									// Reset The View
 
-    // Funcion de blending y de alpha channel //
-    glEnable(GL_BLEND);
+  // Funcion de blending y de alpha channel //
+  glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_ALPHA);
 
-    // Cambiar la proyeccion para usar el z-buffer //
+  // Cambiar la proyeccion para usar el z-buffer //
 	glEnable(GL_DEPTH_TEST);							// Enables Depth Testing
 	glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
 
-    // Draw
-	glTranslatef(   m_Config[moR(TUNEL_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TUNEL_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TUNEL_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+  if (wireframe_mode) {
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+  } else {
+    glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+  }
 
-    moTexture* pImage = (moTexture*) m_Config[moR(TUNEL_TEXTURE)].GetData()->Pointer();
-    if (pImage!=NULL) {
-        if (pImage->GetType()==MO_TYPE_MOVIE) {
-            glBlendFunc(GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR);
-        } else {
-            glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-        }
-    }
-    glBindTexture( GL_TEXTURE_2D, m_Config[moR(TUNEL_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL ) );
+    // Draw
+	glTranslatef(   m_Config.Eval( moR(TUNEL_TRANSLATEX) ),
+                  m_Config.Eval( moR(TUNEL_TRANSLATEY) ),
+                  m_Config.Eval( moR(TUNEL_TRANSLATEZ) )
+              );
+
+  glRotatef(  m_Config.Eval( moR(TUNEL_ROTATE)), 0.0, 0.0, 1.0 );
+
+  /*
+  moTexture* pImage = (moTexture*) m_Config.Texture( [moR(TUNEL_TEXTURE) );
+  if (pImage!=NULL) {
+      if (pImage->GetType()==MO_TYPE_MOVIE) {
+          glBlendFunc(GL_SRC_COLOR,GL_ONE_MINUS_SRC_COLOR);
+      } else {
+          glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+      }
+  }
+  */
+  glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(TUNEL_TEXTURE)) );
 
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
 
 	// setup TUNEL coordinates
-	for( I=0; I<=12; I++)
-		for( J=0; J<=32; J++)
+	float fsides = (float)sides;
+	float fsegments = (float)segments;
+	int segments_end = ( segments * 2 ) / 3 ;
+
+	for( I=0; I<=sides; I++)
+		for( J=0; J<segments; J++)
 		{
-			Tunnels[I][J].X =(3.0 - J/12.0)*cos(2*MO_PI/12.0*I) + 2*sin((Angle+2.0*J)/29) + cos((Angle+2*J)/13) - 2*sin(Angle/29) - cos(Angle/13);
-			Tunnels[I][J].Y =(3.0 - J/12.0)*sin(2*MO_PI/12.0*I) + 2*cos((Angle+2.0*J)/33) + sin((Angle+2*J)/17) - 2*cos(Angle/33) - sin(Angle/17);
-			Tunnels[I][J].Z = -J;
+      float radius = (3.0 - J/fsides);//se achica con la distancia...
+      /*
+      float target_x = m_Config.Eval( moR(TUNEL_TARGET_TRANSLATEX));
+      float target_y = m_Config.Eval( moR(TUNEL_TARGET_TRANSLATEY));
+      float target_z = m_Config.Eval( moR(TUNEL_TARGET_TRANSLATEZ));
+      float target_rotate = m_Config.Eval( moR(TUNEL_TARGET_ROTATE)) * 2.0f * MO_PI / 180.0f;
+      */
+      float target_x = m_Config.Eval( moR(TUNEL_TARGET_TRANSLATEX)) * ( 2*sin((Angle+2.0*J)/29) + cos((Angle+2*J)/13) - 2*sin(Angle/29) - cos(Angle/13) );
+      float target_y = m_Config.Eval( moR(TUNEL_TARGET_TRANSLATEY)) * ( 2*cos((Angle+2.0*J)/33) + sin((Angle+2*J)/17) - 2*cos(Angle/33) - sin(Angle/17) );
+      float target_z = 0.0;
+      float target_rotate = (J/fsides) * m_Config.Eval( moR(TUNEL_TARGET_ROTATE)) * 2.0f * MO_PI / 180.0f;
+      ///fade rotation with distance...
+
+			Tunnels[I][J].X = radius*cos( target_rotate + (I* 2*MO_PI )/fsides ) + target_x;// + 2*sin((Angle+2.0*J)/29) + cos((Angle+2*J)/13) - 2*sin(Angle/29) - cos(Angle/13);
+			Tunnels[I][J].Y = radius*sin( target_rotate + (I* 2*MO_PI )/fsides ) + target_y;// + 2*cos((Angle+2.0*J)/33) + sin((Angle+2*J)/17) - 2*cos(Angle/33) - sin(Angle/17);
+			Tunnels[I][J].Z = -J + (target_z*J) / (float)segments ;
 		}
 
+
 	// draw TUNEL
-	for( J=30; J>=0; J--)
+	for( J=segments-2; J>=0; J--)
 	{
 		// precalculate texture v coords for speed
-		J1 = J/32.0 + Speed;
-		J2 =(J+1.0)/32.0 + Speed;
+		J1 = J/fsegments + Speed;
+		J2 =(J+1.0)/fsegments + Speed;
 
 		// near the end of the TUNEL, fade the effect away
-		if(J > 20.0)
-			C = 1.0-(J-20.0)/10.0;
+		if(J > segments_end )
+			C = 1.0-(J-segments_end)/(segments-segments_end);
 		else
 			C = 1.0;
 
-	SetColor( m_Config[moR(TUNEL_COLOR)][MO_SELECTED], m_Config[moR(TUNEL_ALPHA)][MO_SELECTED], m_EffectState );
+    SetColor( m_Config[moR(TUNEL_COLOR)][MO_SELECTED], m_Config[moR(TUNEL_ALPHA)][MO_SELECTED], m_EffectState );
 
 		glBegin(GL_QUADS);
-		for( I=0; I<=11; I++)
+		for( I=0; I<sides; I++)
 		{
-			glTexCoord2f((I-3.0)/12.0, J1); glVertex3f(Tunnels[  I][   J].X, Tunnels[  I][   J].Y, Tunnels[  I][   J].Z);
-			glTexCoord2f((I-2.0)/12.0, J1); glVertex3f(Tunnels[I+1][   J].X, Tunnels[I+1][   J].Y, Tunnels[I+1][   J].Z);
-			glTexCoord2f((I-2.0)/12.0, J2); glVertex3f(Tunnels[I+1][ J+1].X, Tunnels[I+1][ J+1].Y, Tunnels[I+1][ J+1].Z);
-			glTexCoord2f((I-3.0)/12.0, J2); glVertex3f(Tunnels[  I][ J+1].X, Tunnels[  I][ J+1].Y, Tunnels[  I][ J+1].Z);
+			glTexCoord2f((I-3.0)/fsides, J1);
+			glVertex3f(Tunnels[  I][   J].X,
+              Tunnels[  I][   J].Y,
+              Tunnels[  I][   J].Z);
+
+			glTexCoord2f((I-2.0)/fsides, J1);
+			glVertex3f(Tunnels[I+1][   J].X,
+              Tunnels[I+1][   J].Y,
+              Tunnels[I+1][   J].Z);
+
+			glTexCoord2f((I-2.0)/fsides, J2);
+			glVertex3f(Tunnels[I+1][ J+1].X,
+              Tunnels[I+1][ J+1].Y,
+              Tunnels[I+1][ J+1].Z);
+
+			glTexCoord2f((I-3.0)/fsides, J2);
+			glVertex3f(Tunnels[  I][ J+1].X,
+              Tunnels[  I][ J+1].Y,
+              Tunnels[  I][ J+1].Z);
 		}
 		glEnd();
 	}
@@ -177,6 +269,7 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 
+  EndDraw();
 }
 
 MOboolean moEffectTunel::Finish()
@@ -185,14 +278,4 @@ MOboolean moEffectTunel::Finish()
 }
 
 
-moConfigDefinition *
-moEffectTunel::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
-	//default: alpha, color, syncro
-	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, TUNEL_TEXTURE, moValue( "default", "TXT")  );
-	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, TUNEL_TRANSLATEX );
-	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, TUNEL_TRANSLATEY );
-	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, TUNEL_TRANSLATEZ );
-	return p_configdefinition;
-}

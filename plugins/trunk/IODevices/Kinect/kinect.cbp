@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\iodevices\kinect_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../binaries/plugins/iodevices/kinect_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -21,15 +21,13 @@
 					<Add library="glew_staticdd" />
 					<Add library="libgled" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeod" />
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\iodevices\kinect.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../binaries/plugins/iodevices/kinect.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -39,11 +37,55 @@
 					<Add library="glew_staticd" />
 					<Add library="libgle" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeo" />
+				</Linker>
+			</Target>
+			<Target title="releasepcl">
+				<Option output="kinect" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Linker>
+					<Add library="pcl_common" />
+					<Add library="pcl_io" />
+					<Add library="pcl_filters" />
+					<Add library="pcl_features" />
+					<Add library="pcl_visualization" />
+					<Add library="pcl_kdtree" />
+					<Add library="pcl_octree" />
+					<Add library="pcl_range_image" />
+					<Add library="pcl_registration" />
+					<Add library="pcl_segmentation" />
+					<Add library="pcl_sample_consensus" />
+					<Add library="pcl_surface" />
+					<Add library="pcl_keypoints" />
+					<Add library="pcl_range_image_border_extractor" />
+					<Add library="flann" />
+					<Add library="pcl_filters-gd" />
+				</Linker>
+			</Target>
+			<Target title="debugpcl">
+				<Option output="kinect" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Linker>
+					<Add library="pcl_common" />
+					<Add library="pcl_io" />
+					<Add library="pcl_filters" />
+					<Add library="pcl_features" />
+					<Add library="pcl_visualization" />
+					<Add library="pcl_kdtree" />
+					<Add library="pcl_octree" />
+					<Add library="pcl_range_image" />
+					<Add library="pcl_registration" />
+					<Add library="pcl_segmentation" />
+					<Add library="pcl_sample_consensus" />
+					<Add library="pcl_surface" />
+					<Add library="pcl_keypoints" />
+					<Add library="pcl_range_image_border_extractor" />
+					<Add library="flann" />
+					<Add library="pcl_filters-gd" />
 				</Linker>
 			</Target>
 		</Build>
@@ -56,51 +98,41 @@
 			<Add option="-fno-strict-aliasing" />
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
-			<Add directory=".\" />
-			<Add directory="..\..\..\..\binaries\include" />
-			<Add directory="..\..\..\..\externlibs\glew\include" />
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\SDL\include" />
+			<Add directory="./" />
+			<Add directory="../../../../binaries/include" />
+			<Add directory="../../../../externlibs/glew/include" />
+			<Add directory="../../../../externlibs/opengl/include" />
+			<Add directory="../../../../externlibs/lua/include" />
+			<Add directory="../../../../externlibs/SDL/include" />
 			<Add directory="$(OPEN_NI_INCLUDE)" />
-			<Add directory="%PROGRAMFILES%\PCL\include\pcl-1.1" />
-			<Add directory="%PROGRAMFILES%\Eigen 3.0.0\include\eigen3" />
-			<Add directory="%PROGRAMFILES%\Boost\include" />
-			<Add directory="%PROGRAMFILES%\flann 1.6.9\include" />
-			<Add directory="%PROGRAMFILES%\Boost\lib" />
+			<Add directory="%PROGRAMFILES%/PCL/include/pcl-1.1" />
+			<Add directory="%PROGRAMFILES%/Eigen 3.0.0/include/eigen3" />
+			<Add directory="%PROGRAMFILES%/Boost/include" />
+			<Add directory="%PROGRAMFILES%/flann 1.6.9/include" />
+			<Add directory="%PROGRAMFILES%/Boost/lib" />
 		</Compiler>
 		<Linker>
 			<Add library="OpenNI" />
 			<Add library="NiSampleModule" />
-			<Add library="pcl_common" />
-			<Add library="pcl_io" />
-			<Add library="pcl_filters" />
-			<Add library="pcl_features" />
-			<Add library="pcl_visualization" />
-			<Add library="pcl_kdtree" />
-			<Add library="pcl_octree" />
-			<Add library="pcl_range_image" />
-			<Add library="pcl_registration" />
-			<Add library="pcl_segmentation" />
-			<Add library="pcl_sample_consensus" />
-			<Add library="pcl_surface" />
-			<Add library="pcl_keypoints" />
-			<Add library="pcl_range_image_border_extractor" />
-			<Add library="flann" />
-			<Add library="pcl_filters-gd" />
-			<Add directory="..\..\..\..\externlibs\glew\lib" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\externlibs\cg\lib" />
-			<Add directory="..\..\..\..\externlibs\openal\libs\win32" />
-			<Add directory="..\..\..\..\externlibs\opengl\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="../../../../externlibs/glew/lib" />
+			<Add directory="../../../../externlibs/lua/lib" />
+			<Add directory="../../../../externlibs/cg/lib" />
+			<Add directory="../../../../externlibs/openal/libs/win32" />
+			<Add directory="../../../../externlibs/opengl/lib" />
+			<Add directory="../../../../binaries/lib/win" />
 			<Add directory="$(OPEN_NI_LIB)" />
-			<Add directory="%PROGRAMFILES%\PCL\lib" />
-			<Add directory="%PROGRAMFILES%\flann 1.6.9\lib" />
-			<Add directory="%PROGRAMFILES%\Boost\lib" />
+			<Add directory="%PROGRAMFILES%/PCL/lib" />
+			<Add directory="%PROGRAMFILES%/flann 1.6.9/lib" />
+			<Add directory="%PROGRAMFILES%/Boost/lib" />
 		</Linker>
-		<Unit filename="moKinect.cpp" />
-		<Unit filename="moKinect.h" />
+		<Unit filename="moKinect.cpp">
+			<Option target="debug" />
+			<Option target="release" />
+		</Unit>
+		<Unit filename="moKinect.h">
+			<Option target="debug" />
+			<Option target="release" />
+		</Unit>
 		<Extensions>
 			<code_completion>
 				<search_path add="$(OPEN_NI_INCLUDE)" />
@@ -108,6 +140,7 @@
 			<debugger>
 				<search_path add="$(OPEN_NI_INCLUDE)" />
 			</debugger>
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

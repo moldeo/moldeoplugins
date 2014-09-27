@@ -20,8 +20,8 @@
 				<Linker>
 					<Add library="glew_staticdd" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
+					
+					
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeod" />
@@ -37,8 +37,8 @@
 				<Linker>
 					<Add library="glew_staticd" />
 					<Add library="libopengl32" />
-					<Add library="libglut32" />
-					<Add library="libglut" />
+					
+					
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeo" />

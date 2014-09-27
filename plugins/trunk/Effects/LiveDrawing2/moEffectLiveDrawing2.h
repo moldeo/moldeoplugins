@@ -403,6 +403,8 @@ protected:
     float midi_dissolve_start, midi_dissolve_time;
     float midi_roto_start;
 
+    moInlet* m_pDrawCursorX;
+    moInlet* m_pDrawCursorY;
 };
 
 class moEffectLiveDrawing2Factory : public moEffectFactory

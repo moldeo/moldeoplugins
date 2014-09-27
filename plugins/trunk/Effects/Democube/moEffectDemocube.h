@@ -123,7 +123,6 @@ private:
     Matrix3fT   LastRot;                 // Last Rotation
     Matrix3fT   ThisRot;                 // This Rotation
 
-	void SetColor();
 	void SetBlending();
 	void SetView();
 

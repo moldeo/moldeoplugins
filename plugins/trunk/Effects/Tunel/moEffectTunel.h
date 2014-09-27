@@ -35,7 +35,8 @@
 #include "moPlugin.h"
 
 /// Esto tiene que estar en el m_Config.
-#define TUNELSLIDES     36
+#define MAXTUNELSIDES     64
+#define MAXTUNELSEGMENTS     64
 #define TEXTURE_SPEED   0.5
 
 class ajCoord {
@@ -60,6 +61,9 @@ public:
 
 
 enum moTunelParamIndex {
+	TUNEL_INLET,
+	TUNEL_OUTLET,
+	TUNEL_SCRIPT,
 	TUNEL_ALPHA,
 	TUNEL_COLOR,
 	TUNEL_SYNC,
@@ -68,8 +72,15 @@ enum moTunelParamIndex {
 	TUNEL_TRANSLATEX,
 	TUNEL_TRANSLATEY,
 	TUNEL_TRANSLATEZ,
-	TUNEL_INLET,
-	TUNEL_OUTLET
+	TUNEL_ROTATE,
+	TUNEL_TARGET_TRANSLATEX,
+	TUNEL_TARGET_TRANSLATEY,
+	TUNEL_TARGET_TRANSLATEZ,
+	TUNEL_TARGET_ROTATE,
+	TUNEL_SIDES,
+	TUNEL_SEGMENTS,
+	TUNEL_WIREFRAME
+
 };
 
 class moEffectTunel: public moEffect
@@ -83,9 +94,13 @@ public:
     MOboolean Finish();
     moConfigDefinition *GetDefinition( moConfigDefinition *p_configdefinition );
 
-private:
+    void UpdateParameters();
 
-    ajCoord Tunnels[TUNELSLIDES][TUNELSLIDES];
+private:
+    int sides;
+    int segments;
+    bool wireframe_mode;
+    ajCoord Tunnels[MAXTUNELSIDES+1][MAXTUNELSEGMENTS];
 
 };
 

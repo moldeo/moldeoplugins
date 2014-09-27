@@ -79,7 +79,7 @@ MOboolean moEffectPainter::Init()
 						m_pResourceManager->GetRenderMan()->MultiTextureSupported();
 	if (!painterSupported)
 	{
-		MODebug->Push("Error: painter cannot run on this machine");
+		MODebug2->Push("Error: painter cannot run on this machine");
 		return false;
 	}
 
@@ -210,6 +210,11 @@ void moEffectPainter::initRandom()
 
 void moEffectPainter::initParameters()
 {
+
+	moDefineParamIndex( PAINTER_ALPHA, moText("alpha") );
+	moDefineParamIndex( PAINTER_COLOR, moText("color") );
+  moDefineParamIndex( PAINTER_SYNC, moText("syncro") );
+	moDefineParamIndex( PAINTER_BLENDING, moText("blending") );
 	moDefineParamIndex( PAINTER_FILTER_SHADER, moText("filterShader") );
 	moDefineParamIndex( PAINTER_MOVEPART_SHADER, moText("movePartShader") );
 	moDefineParamIndex( PAINTER_COLORPART_SHADER, moText("colorPartShader") );
@@ -237,8 +242,7 @@ void moEffectPainter::initParameters()
 	moDefineParamIndex( PAINTER_FOLLOW_GRAD, moText("followGrad") );
 	moDefineParamIndex( PAINTER_NOISE_PROB, moText("noiseProb") );
 	moDefineParamIndex( PAINTER_NOISE_MAG, moText("noiseMag") );
-	moDefineParamIndex( PAINTER_COLOR, moText("color") );
-	moDefineParamIndex( PAINTER_BLENDING, moText("blending") );
+
 
 	loadInitParameters();
 
@@ -379,59 +383,71 @@ void moEffectPainter::initShaders()
 {
 	moShaderGLSL* pglsl;
 
-	MODebug->Push("Loading filter shader...");
+	MODebug2->Push("Loading filter shader...");
 	filterShader = m_pResourceManager->GetShaderMan()->AddShader(filterShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(filterShader);
-	pglsl->PrintFragShaderLog();
-	filterShaderTexUnitImage = pglsl->GetUniformID("src_tex_unit0");
-	filterShaderTexScale = pglsl->GetUniformID("src_tex_offset0");
+	if (pglsl) {
+      pglsl->PrintFragShaderLog();
+      filterShaderTexUnitImage = pglsl->GetUniformID("src_tex_unit0");
+      filterShaderTexScale = pglsl->GetUniformID("src_tex_offset0");
+	}
 
-	MODebug->Push("Loading movePart shader...");
+	MODebug2->Push("Loading movePart shader...");
 	movePartShader = m_pResourceManager->GetShaderMan()->AddShader(movePartShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(movePartShader);
-	movePartShaderTexUnitPos = pglsl->GetUniformID("tex_unit_pos");
-	movePartShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
-	movePartShaderTexUnitVel = pglsl->GetUniformID("tex_unit_vel");
-	movePartShaderMaxPos = pglsl->GetUniformID("max_pos");
-	movePartShaderVelMean = pglsl->GetUniformID("vel_mean");
-	movePartShaderFollowGrad = pglsl->GetUniformID("follow_grad");
-	movePartShaderApplyNoise = pglsl->GetUniformID("apply_noise");
-	movePartShaderNoiseMag = pglsl->GetUniformID("noise_mag");
+	if (pglsl) {
+    movePartShaderTexUnitPos = pglsl->GetUniformID("tex_unit_pos");
+    movePartShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
+    movePartShaderTexUnitVel = pglsl->GetUniformID("tex_unit_vel");
+    movePartShaderMaxPos = pglsl->GetUniformID("max_pos");
+    movePartShaderVelMean = pglsl->GetUniformID("vel_mean");
+    movePartShaderFollowGrad = pglsl->GetUniformID("follow_grad");
+    movePartShaderApplyNoise = pglsl->GetUniformID("apply_noise");
+    movePartShaderNoiseMag = pglsl->GetUniformID("noise_mag");
+	}
 
-	MODebug->Push("Loading colorPart shader...");
+	MODebug2->Push("Loading colorPart shader...");
 	colorPartShader = m_pResourceManager->GetShaderMan()->AddShader(colorPartShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(colorPartShader);
-	colorPartShaderTexUnitImage = pglsl->GetUniformID("tex_unit_image");
-	colorPartShaderTexUnitNewImage = pglsl->GetUniformID("tex_unit_newimage");
-	colorPartShaderTexUnitColor = pglsl->GetUniformID("tex_unit_color");
-	colorPartShaderTexUnitColorAux = pglsl->GetUniformID("tex_unit_coloraux");
-	colorPartShaderBrushLength = pglsl->GetUniformID("brush_length");
-	colorPartShaderNewImageCoeff = pglsl->GetUniformID("newimage_coeff");
-	colorPartShaderColorChgFrac = pglsl->GetUniformID("colorchg_frac");
-	colorPartShaderColorChgPow = pglsl->GetUniformID("colorchg_pow");
+	if (pglsl) {
+    colorPartShaderTexUnitImage = pglsl->GetUniformID("tex_unit_image");
+    colorPartShaderTexUnitNewImage = pglsl->GetUniformID("tex_unit_newimage");
+    colorPartShaderTexUnitColor = pglsl->GetUniformID("tex_unit_color");
+    colorPartShaderTexUnitColorAux = pglsl->GetUniformID("tex_unit_coloraux");
+    colorPartShaderBrushLength = pglsl->GetUniformID("brush_length");
+    colorPartShaderNewImageCoeff = pglsl->GetUniformID("newimage_coeff");
+    colorPartShaderColorChgFrac = pglsl->GetUniformID("colorchg_frac");
+    colorPartShaderColorChgPow = pglsl->GetUniformID("colorchg_pow");
+	}
 
-	MODebug->Push("Loading renderGrad2fp shader...");
+	MODebug2->Push("Loading renderGrad2fp shader...");
 	renderGrad2fpShader = m_pResourceManager->GetShaderMan()->AddShader(renderGrad2fpShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(renderGrad2fpShader);
-	renderGrad2fpShaderTexUnitImage = pglsl->GetUniformID("tex_unit_image");
-	renderGrad2fpShaderTexUnitRandom = pglsl->GetUniformID("tex_unit_random");
-	renderGrad2fpShaderTexScale = pglsl->GetUniformID("tex_scale");
+	if (pglsl) {
+    renderGrad2fpShaderTexUnitImage = pglsl->GetUniformID("tex_unit_image");
+    renderGrad2fpShaderTexUnitRandom = pglsl->GetUniformID("tex_unit_random");
+    renderGrad2fpShaderTexScale = pglsl->GetUniformID("tex_scale");
+	}
 
-	MODebug->Push("Loading renderAveGrad shader...");
+	MODebug2->Push("Loading renderAveGrad shader...");
 	renderAveGradShader = m_pResourceManager->GetShaderMan()->AddShader(renderAveGradShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(renderAveGradShader);
-	renderAveGradShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
-	renderAveGradShaderTexUnitRandom = pglsl->GetUniformID("tex_unit_random");
-	renderAveGradShaderTexUnitNewGrad = pglsl->GetUniformID("tex_unit_newgrad");
-	renderAveGradShaderTexScale = pglsl->GetUniformID("tex_scale");
-	renderAveGradShaderNewGradCoeff = pglsl->GetUniformID("newgrad_coeff");
+	if (pglsl) {
+    renderAveGradShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
+    renderAveGradShaderTexUnitRandom = pglsl->GetUniformID("tex_unit_random");
+    renderAveGradShaderTexUnitNewGrad = pglsl->GetUniformID("tex_unit_newgrad");
+    renderAveGradShaderTexScale = pglsl->GetUniformID("tex_scale");
+    renderAveGradShaderNewGradCoeff = pglsl->GetUniformID("newgrad_coeff");
+	}
 
-	MODebug->Push("Loading renderBrushes shader...");
+	MODebug2->Push("Loading renderBrushes shader...");
 	renderBrushesShader = m_pResourceManager->GetShaderMan()->AddShader(renderBrushesShaderFn);
 	pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(renderBrushesShader);
-	renderBrushesShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
-	renderBrushesShaderTexUnitBrush = pglsl->GetUniformID("tex_unit_brush");
-	renderBrushesShaderTexUnitColor = pglsl->GetUniformID("tex_unit_color");
+	if (pglsl) {
+    renderBrushesShaderTexUnitGrad = pglsl->GetUniformID("tex_unit_grad");
+    renderBrushesShaderTexUnitBrush = pglsl->GetUniformID("tex_unit_brush");
+    renderBrushesShaderTexUnitColor = pglsl->GetUniformID("tex_unit_color");
+	}
 }
 
 void moEffectPainter::initParticles()
@@ -566,7 +582,7 @@ float moEffectPainter::random(float a, float b)
 
 void moEffectPainter::updateVel()
 {
-	velMean *= state.tempo.delta;
+	velMean *= m_EffectState.tempo.delta;
 }
 
 void moEffectPainter::updateBrushes()
@@ -635,12 +651,8 @@ void moEffectPainter::updateBrushes()
 
 void moEffectPainter::drawToScreen()
 {
-    glColor4f(color[0] * state.tintr,
-              color[1] * state.tintg,
-              color[2] * state.tintb,
-              color[3] * state.alpha);
-
-	setBlendMode();
+    SetColor( m_Config[moR(PAINTER_COLOR)], m_Config[moR(PAINTER_ALPHA)], m_EffectState );
+    SetBlending( (moBlendingModes) m_Config.Int( moR(PAINTER_BLENDING) ) );
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_pResourceManager->GetTextureMan()->GetGLId(tex2dCanvas));
@@ -673,70 +685,6 @@ void moEffectPainter::drawToScreen()
         glVertex2f(0.0, canvasHeight);
     glEnd();
     glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-void moEffectPainter::setBlendMode()
-{
-    glEnable(GL_BLEND);
-	switch (blending)
-	{
-		//ALPHA DEPENDENT
-		case 0:
-			//TRANSPARENCY [Rs * As] + [Rd *(1 -As)] = As*(Rs-Rd) + Rd
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-			break;
-		case 1:
-			//ADDITIVE WITH TRANSPARENCY: Rs*As + Rd*Ad
-			glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
-			break;
-
-		//NON ALPHA
-		case 2:
-			//MIXING [Rs *( 1 - Rd )] + [ Rd * 1] = Rs + Rd - Rs*Rd
-			//additive without saturation
-			glBlendFunc( GL_ONE_MINUS_DST_COLOR, GL_ONE );
-			break;
-		case 3:
-			//MULTIPLY: [Rs * Rd] + [Rd * 0] = Rs * Rd
-			glBlendFunc( GL_DST_COLOR, GL_ZERO );
-			break;
-		case 4:
-			//EXCLUSION: [Rs *(1 - Rd)] + [Rd *(1 - Rs)] = Rs + Rd - 2*Rs*Rd
-			glBlendFunc( GL_ONE_MINUS_DST_COLOR, GL_ONE_MINUS_SRC_COLOR);//
-			break;
-		case 5:
-			//ADDITIVE Rs+Rd
-			glBlendFunc( GL_ONE, GL_ONE );
-			break;
-		case 6:
-			//OVERLAY: 2*Rs*Rd
-			glBlendFunc( GL_DST_COLOR, GL_SRC_COLOR );
-			break;
-		case 7:
-			//SUBSTRACTIVE [Rs *( 1 - Rd )] + [ Rd * 0] = Rs - Rs*Rd
-			//substractive
-			glBlendFunc( GL_ONE_MINUS_DST_COLOR, GL_ZERO );
-			break;
-		case 8:
-			// [Rs * momin(As,1-Ad) ] + [ Rd * Ad]
-			//
-			glBlendFunc( GL_SRC_ALPHA_SATURATE,  GL_DST_ALPHA);
-			break;
-			//Multiply mode:(a*b)
-			//Average mode:(a+b)/2
-			//Screen mode:  f(a,b) = 1 -(1-a) *(1-b)
-			//Difference mode:  f(a,b) = |a - b|
-			//Negation mode:  f(a,b) = 1 - |1 - a - b|
-			//Exclusion mode f(a,b) = a + b - 2ab or f(a,b) = average(difference(a,b),negation(a,b))
-			//Overlay mode f(a,b) =   	2ab(for a < ½) 1 - 2 *(1 - a) *(1 - b)(else)
-			//Color dodge mode:  f(a,b) = a /(1 - b)
-			//Color burn mode:  f(a,b) = 1 -(1 - a) / b
-			//Inverse color dodge mode:  f(a,b) = b /(1 - a)
-			//Inverse color burn mode:  f(a,b) = 1 -(1 - b) / a
-		default:
-			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-			break;
-	}
 }
 
 void moEffectPainter::setGLState()
@@ -800,7 +748,7 @@ void moEffectPainter::moveParticles()
 
 	// Update positions.
 	moShaderGLSL* pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(movePartShader);
-	pglsl->StartShader();
+	if (pglsl) pglsl->StartShader();
 	glUniform1iARB(movePartShaderTexUnitPos, 0);
 	glUniform1iARB(movePartShaderTexUnitGrad, 1);
 	glUniform1iARB(movePartShaderTexUnitVel, 2);
@@ -833,7 +781,7 @@ void moEffectPainter::moveParticles()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(fptexTarget, 0);
 
-	pglsl->StopShader();
+	if (pglsl) pglsl->StopShader();
 
 	swapPosTex();
 
@@ -912,7 +860,7 @@ void moEffectPainter::drawBrushes()
 	m_pResourceManager->GetFBMan()->BindFBO(FBO[1], m_pResourceManager->GetTextureMan()->GetFBOAttachPoint(tex2dPaint));
 
 	moShaderGLSL* pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(renderBrushesShader);
-	pglsl->StartShader();
+	if (pglsl) pglsl->StartShader();
 
 	glUniform1iARB(renderBrushesShaderTexUnitGrad, 0);
 	glUniform1iARB(renderBrushesShaderTexUnitBrush, 1);
@@ -1099,6 +1047,10 @@ moConfigDefinition *
 moEffectPainter::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("alpha"), MO_PARAM_FUNCTION, PAINTER_ALPHA );
+	p_configdefinition->Add( moText("color"), MO_PARAM_FUNCTION, PAINTER_COLOR );
+	p_configdefinition->Add( moText("syncro"), MO_PARAM_FUNCTION, PAINTER_SYNC );
+	p_configdefinition->Add( moText("blending"), MO_PARAM_FUNCTION, PAINTER_BLENDING );
 	p_configdefinition->Add( moText("filterShader"), MO_PARAM_TEXT, PAINTER_FILTER_SHADER );
 	p_configdefinition->Add( moText("movePartShader"), MO_PARAM_TEXT, PAINTER_MOVEPART_SHADER );
 	p_configdefinition->Add( moText("colorPartShader"), MO_PARAM_TEXT, PAINTER_COLORPART_SHADER );
@@ -1126,49 +1078,50 @@ moEffectPainter::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("followGrad"), MO_PARAM_FUNCTION, PAINTER_FOLLOW_GRAD );
 	p_configdefinition->Add( moText("noiseProb"), MO_PARAM_FUNCTION, PAINTER_NOISE_PROB );
 	p_configdefinition->Add( moText("noiseMag"), MO_PARAM_FUNCTION, PAINTER_NOISE_MAG );
-	p_configdefinition->Add( moText("color"), MO_PARAM_FUNCTION, PAINTER_COLOR );
-	p_configdefinition->Add( moText("syncro"), MO_PARAM_FUNCTION, PAINTER_SYNCRO );
-	p_configdefinition->Add( moText("blending"), MO_PARAM_FUNCTION, PAINTER_BLENDING );
+
 	return p_configdefinition;
 }
 
 void moEffectPainter::loadInitParameters()
 {
-	filterShaderFn = m_Config[moParamReference(PAINTER_FILTER_SHADER)][MO_SELECTED][0].Text();
-	movePartShaderFn = m_Config[moParamReference(PAINTER_MOVEPART_SHADER)][MO_SELECTED][0].Text();
-	colorPartShaderFn = m_Config[moParamReference(PAINTER_COLORPART_SHADER)][MO_SELECTED][0].Text();
-	renderGrad2fpShaderFn = m_Config[moParamReference(PAINTER_RENDERGRAD2FP_SHADER)][MO_SELECTED][0].Text();
-	renderAveGradShaderFn = m_Config[moParamReference(PAINTER_RENDERAVEGRAD_SHADER)][MO_SELECTED][0].Text();
-	renderBrushesShaderFn = m_Config[moParamReference(PAINTER_RENDERBRUSHES_SHADER)][MO_SELECTED][0].Text();
+	filterShaderFn = m_Config.Text( moR(PAINTER_FILTER_SHADER));
+	movePartShaderFn = m_Config.Text( moR(PAINTER_MOVEPART_SHADER) );
+	colorPartShaderFn = m_Config.Text( moR(PAINTER_COLORPART_SHADER) );
+	renderGrad2fpShaderFn = m_Config.Text( moR(PAINTER_RENDERGRAD2FP_SHADER) );
+	renderAveGradShaderFn = m_Config.Text( moR(PAINTER_RENDERAVEGRAD_SHADER) );
+	renderBrushesShaderFn = m_Config.Text( moR(PAINTER_RENDERBRUSHES_SHADER) );
 
-	renderMode = m_Config[moR(PAINTER_RENDER_MODE)].GetData()->Int();
-	numParticles0 = m_Config[moR(PAINTER_NUM_PARTICLES)].GetData()->Int();
+	renderMode = m_Config.Int( moR(PAINTER_RENDER_MODE) );
+	numParticles0 = m_Config.Int( moR(PAINTER_NUM_PARTICLES) );
 
-	sourceTexture = m_Config[moParamReference(PAINTER_SOURCE_TEXTURE)][MO_SELECTED][0].Text();
+	sourceTexture = m_Config.Text( moR(PAINTER_SOURCE_TEXTURE) );
 }
 
 void moEffectPainter::updateParameters()
 {
-	brushSize = m_Config[moR(PAINTER_BRUSH_SIZE)].GetData()->Fun()->Eval(state.tempo.ang);
-	brushLength = m_Config[moR(PAINTER_BRUSH_LENGTH)].GetData()->Fun()->Eval(state.tempo.ang);
-	brushMinLengthCoeff = m_Config[moR(PAINTER_BRUSH_MIN_LENGHT_COEFF)].GetData()->Fun()->Eval(state.tempo.ang);
-	brushMaxLengthCoeff = m_Config[moR(PAINTER_BRUSH_MAX_LENGTH_COEFF)].GetData()->Fun()->Eval(state.tempo.ang);
-	brushChangeFrac = m_Config[moR(PAINTER_BRUSH_CHANGE_FRAC)].GetData()->Fun()->Eval(state.tempo.ang);
-	brushChangePow = m_Config[moR(PAINTER_BRUSH_CHANGE_POW)].GetData()->Fun()->Eval(state.tempo.ang);
-	velMean = m_Config[moR(PAINTER_VEL_MEAN)].GetData()->Fun()->Eval(state.tempo.ang);
-	velCoeffMin = m_Config[moR(PAINTER_VEL_COEFF_MIN)].GetData()->Fun()->Eval(state.tempo.ang);
-	velCoeffMax = m_Config[moR(PAINTER_VEL_COEFF_MAX)].GetData()->Fun()->Eval(state.tempo.ang);
-	stillTime = m_Config[moR(PAINTER_STILL_TIME)].GetData()->Fun()->Eval(state.tempo.ang);
-	changeTime = m_Config[moR(PAINTER_CHANGE_TIME)].GetData()->Fun()->Eval(state.tempo.ang);
+	brushSize = m_Config.Eval( moR(PAINTER_BRUSH_SIZE) );
+	brushLength = m_Config.Eval( moR(PAINTER_BRUSH_LENGTH) );
+	brushMinLengthCoeff = m_Config.Eval( moR(PAINTER_BRUSH_MIN_LENGHT_COEFF) );
+	brushMaxLengthCoeff = m_Config.Eval( moR(PAINTER_BRUSH_MAX_LENGTH_COEFF) );
+	brushChangeFrac = m_Config.Eval( moR(PAINTER_BRUSH_CHANGE_FRAC) );
+	brushChangePow = m_Config.Eval( moR(PAINTER_BRUSH_CHANGE_POW) );
+	velMean = m_Config.Eval( moR(PAINTER_VEL_MEAN) );
+	velCoeffMin = m_Config.Eval( moR(PAINTER_VEL_COEFF_MIN) );
+	velCoeffMax = m_Config.Eval( moR(PAINTER_VEL_COEFF_MAX) );
+	stillTime = m_Config.Eval( moR(PAINTER_STILL_TIME) );
+	changeTime = m_Config.Eval( moR(PAINTER_CHANGE_TIME) );
 	 //m_Config[moR(PAINTER_UPDATE_NOISE_TIME)].GetData()->Float();
-	numAveIter = m_Config[moR(PAINTER_NUM_AVE_ITER)].GetData()->Int();
-	aveInterval = m_Config[moR(PAINTER_AVE_INTERVAL)].GetData()->Int();
-	followGrad = m_Config[moR(PAINTER_FOLLOW_GRAD)].GetData()->Int();
-	noiseProb = m_Config[moR(PAINTER_NOISE_PROB)].GetData()->Fun()->Eval(state.tempo.ang);
-	noiseMag = m_Config[moR(PAINTER_NOISE_MAG)].GetData()->Fun()->Eval(state.tempo.ang);
+	numAveIter = m_Config.Int( moR(PAINTER_NUM_AVE_ITER) );
+	aveInterval = m_Config.Int( moR(PAINTER_AVE_INTERVAL) );
+	followGrad = m_Config.Int( moR(PAINTER_FOLLOW_GRAD) );
+	noiseProb = m_Config.Eval( moR(PAINTER_NOISE_PROB) );
+	noiseMag = m_Config.Eval( moR(PAINTER_NOISE_MAG) );
+	/*
 	for (int i = MO_RED; i <= MO_ALPHA; i++)
-		color[i] = m_Config[moR(PAINTER_COLOR)][MO_SELECTED][i].GetData()->Fun()->Eval(state.tempo.ang);
-	blending = m_Config[moR(PAINTER_BLENDING)].GetIndexValue();
+		color[i] = m_Config.Eval( moR(PAINTER_COLOR) );
+  blending = m_Config[moR(PAINTER_BLENDING)].GetIndexValue();
+  */
+
 }
 
 void moEffectPainter::updateInteractionParameters()

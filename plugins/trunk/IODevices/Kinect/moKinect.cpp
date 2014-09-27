@@ -49,6 +49,7 @@ moDefineDynamicArray(moKinectGestures)
 moDefineDynamicArray(moKinectGestureRules)
 moDefineDynamicArray(moVector3fs)
 
+moP5 P5;
 
 //========================
 //  Factory
@@ -123,6 +124,7 @@ moVector3d RGBtoHSV( double r, double g, double b ) {
 }
 
 moKinect::moKinect() {
+
 	Codes = NULL;
 	SetName("kinect");
 
@@ -136,41 +138,90 @@ moKinect::moKinect() {
 	pCloud = NULL;
 	pCloudDif = NULL;
 
-    m_pTex1 = NULL;
-    m_pTex2 = NULL;
-    m_pTex3 = NULL;
+  m_pTex1 = NULL;
+  m_pTex2 = NULL;
+  m_pTex3 = NULL;
 
-    pDataObj1 = NULL;
-    pDataObj2 = NULL;
-    pDataObj3 = NULL;
+  pDataObj1 = NULL;
+  pDataObj2 = NULL;
+  pDataObj3 = NULL;
 
-    id_tex1 = -1;
-    id_tex2 = -1;
-    id_tex3 = -1;
+  id_tex1 = -1;
+  id_tex2 = -1;
+  id_tex3 = -1;
 
-    dif_tex1 = -1;
-    dif_tex2 = -1;
-    dif_tex3 = -1;
+  dif_tex1 = -1;
+  dif_tex2 = -1;
+  dif_tex3 = -1;
 
-    m_RightHand = NULL;
-    m_RightHandX = NULL;
-    m_RightHandY = NULL;
-    m_RightHandZ = NULL;
-    m_RightHandC = NULL;
+  m_RightHand = NULL;
+  m_RightHandX = NULL;
+  m_RightHandY = NULL;
+  m_RightHandZ = NULL;
+  m_RightHandC = NULL;
+  m_RightHandVx = NULL;
+  m_RightHandVy = NULL;
+  m_RightHandVz = NULL;
 
-    m_LeftHand = NULL;
-    m_LeftHandX = NULL;
-    m_LeftHandY = NULL;
-    m_LeftHandZ = NULL;
-    m_LeftHandC = NULL;
+  m_LeftHand = NULL;
+  m_LeftHandX = NULL;
+  m_LeftHandY = NULL;
+  m_LeftHandZ = NULL;
+  m_LeftHandC = NULL;
+  m_LeftHandVx = NULL;
+  m_LeftHandVy = NULL;
+  m_LeftHandVz = NULL;
 
-    m_Head = NULL;
-    m_HeadX = NULL;
-    m_HeadY = NULL;
-    m_HeadZ = NULL;
-    m_HeadC = NULL;
+  m_Head = NULL;
+  m_HeadX = NULL;
+  m_HeadY = NULL;
+  m_HeadZ = NULL;
+  m_HeadC = NULL;
+  m_HeadVx = NULL;
+  m_HeadVy = NULL;
+  m_HeadVz = NULL;
 
-    m_Gesture = NULL;
+
+  m_Body = NULL;
+  m_BodyX = NULL;
+  m_BodyY = NULL;
+  m_BodyZ = NULL;
+  m_BodyC = NULL;
+  m_BodyVx = NULL;
+  m_BodyVy = NULL;
+  m_BodyVz = NULL;
+
+  m_LeftKnee = NULL;
+  m_LeftKneeX = NULL;
+  m_LeftKneeY = NULL;
+  m_LeftKneeZ = NULL;
+  m_LeftKneeC = NULL;
+  m_LeftKneeVx = NULL;
+  m_LeftKneeVy = NULL;
+  m_LeftKneeVz = NULL;
+
+  m_RightKnee = NULL;
+  m_RightKneeX = NULL;
+  m_RightKneeY = NULL;
+  m_RightKneeZ = NULL;
+  m_RightKneeC = NULL;
+  m_RightKneeVx = NULL;
+  m_RightKneeVy = NULL;
+  m_RightKneeVz = NULL;
+
+  m_KneeSeparation = NULL;
+  m_KneeSeparationX = NULL;
+  m_KneeSeparationY = NULL;
+  m_KneeSeparationZ = NULL;
+  m_KneeSeparationC = NULL;
+  m_KneeSeparationVx = NULL;
+  m_KneeSeparationVy = NULL;
+  m_KneeSeparationVz = NULL;
+
+  m_ShouldersAngle = NULL;
+  m_HandsAngle = NULL;
+
+  m_Gesture = NULL;
 
 	show_callback = false;
 }
@@ -274,6 +325,7 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
     p_configdefinition->Add( moText("texture3"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
 
     p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, KINECT_UPDATE_ON, moValue( "0", "INT") );
+    p_configdefinition->Add( moText("verbose"), MO_PARAM_NUMERIC, KINECT_VERBOSE, moValue( "0", "INT") );
 
 	return p_configdefinition;
 }
@@ -329,6 +381,7 @@ void moKinect::UpdateParameters() {
         umbral_objeto_z_near = m_Config.Int( moR(KINECT_UMBRAL_OBJETO_Z_NEAR ) );
 
         update_on = m_Config.Int( moR(KINECT_UPDATE_ON) );
+        verbose_on = m_Config.Int( moR(KINECT_VERBOSE) );
 /*
         moTexture Tex1( m_Config.Texture( moR(KINECT_OBJECT_TEXTURE1) ) );
         moTexture Tex2( m_Config.Texture( moR(KINECT_OBJECT_TEXTURE2) ) );
@@ -389,6 +442,16 @@ void moKinect::UpdateParameters() {
         if (!m_RightHandC) {
             m_RightHandC = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_C") ) );
         }
+        if (!m_RightHandVx) {
+            m_RightHandVx = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_VX") ) );
+        }
+        if (!m_RightHandVy) {
+            m_RightHandVy = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_VY") ) );
+        }
+        if (!m_RightHandVz) {
+            m_RightHandVz = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_HAND_VZ") ) );
+        }
+
 
         if (!m_LeftHand) {
             m_LeftHand = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND") ) );
@@ -404,6 +467,15 @@ void moKinect::UpdateParameters() {
         }
         if (!m_LeftHandC) {
             m_LeftHandC = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_C") ) );
+        }
+        if (!m_LeftHandVx) {
+            m_LeftHandVx = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_VX") ) );
+        }
+        if (!m_LeftHandVy) {
+            m_LeftHandVy = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_VY") ) );
+        }
+        if (!m_LeftHandVz) {
+            m_LeftHandVz = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_HAND_VZ") ) );
         }
 
         if (!m_Head) {
@@ -421,8 +493,127 @@ void moKinect::UpdateParameters() {
         if (!m_HeadC) {
             m_HeadC = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_C") ) );
         }
+        if (!m_HeadVx) {
+            m_HeadVx = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_VX") ) );
+        }
+        if (!m_HeadVy) {
+            m_HeadVy = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_VY") ) );
+        }
+        if (!m_HeadVz) {
+            m_HeadVz = m_Outlets.GetRef( this->GetOutletIndex( moText("HEAD_VZ") ) );
+        }
 
-/**Gesture INFO*/
+        if (!m_Body) {
+            m_Body = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO") ) );
+        }
+        if (!m_BodyX) {
+            m_BodyX = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_X") ) );
+        }
+        if (!m_BodyY) {
+            m_BodyY = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_Y") ) );
+        }
+        if (!m_BodyZ) {
+            m_BodyZ = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_Z") ) );
+        }
+        if (!m_BodyC) {
+            m_BodyC = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_C") ) );
+        }
+        if (!m_BodyVx) {
+            m_BodyVx = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_VX") ) );
+        }
+        if (!m_BodyVy) {
+            m_BodyVy = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_VY") ) );
+        }
+        if (!m_BodyVz) {
+            m_BodyVz = m_Outlets.GetRef( this->GetOutletIndex( moText("TORSO_VZ") ) );
+        }
+
+        if (!m_RightKnee) {
+            m_RightKnee = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE") ) );
+        }
+        if (!m_RightKneeX) {
+            m_RightKneeX = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_X") ) );
+        }
+        if (!m_RightKneeY) {
+            m_RightKneeY = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_Y") ) );
+        }
+        if (!m_RightKneeZ) {
+            m_RightKneeZ = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_Z") ) );
+        }
+        if (!m_RightKneeC) {
+            m_RightKneeC = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_C") ) );
+        }
+        if (!m_RightKneeVx) {
+            m_RightKneeVx = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_VX") ) );
+        }
+        if (!m_RightKneeVy) {
+            m_RightKneeVy = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_VY") ) );
+        }
+        if (!m_RightKneeVz) {
+            m_RightKneeVz = m_Outlets.GetRef( this->GetOutletIndex( moText("RIGHT_KNEE_VZ") ) );
+        }
+
+
+        if (!m_LeftKnee) {
+            m_LeftKnee = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE") ) );
+        }
+        if (!m_LeftKneeX) {
+            m_LeftKneeX = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_X") ) );
+        }
+        if (!m_LeftKneeY) {
+            m_LeftKneeY = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_Y") ) );
+        }
+        if (!m_LeftKneeZ) {
+            m_LeftKneeZ = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_Z") ) );
+        }
+        if (!m_LeftKneeC) {
+            m_LeftKneeC = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_C") ) );
+        }
+        if (!m_LeftKneeVx) {
+            m_LeftKneeVx = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_VX") ) );
+        }
+        if (!m_LeftKneeVy) {
+            m_LeftKneeVy = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_VY") ) );
+        }
+        if (!m_LeftKneeVz) {
+            m_LeftKneeVz = m_Outlets.GetRef( this->GetOutletIndex( moText("LEFT_KNEE_VZ") ) );
+        }
+
+        if (!m_KneeSeparation) {
+            m_KneeSeparation = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION") ) );
+        }
+        if (!m_KneeSeparationX) {
+            m_KneeSeparationX = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_X") ) );
+        }
+        if (!m_KneeSeparationY) {
+            m_KneeSeparationY = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_Y") ) );
+        }
+        if (!m_KneeSeparationZ) {
+            m_KneeSeparationZ = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_Z") ) );
+        }
+        if (!m_KneeSeparationC) {
+            m_KneeSeparationC = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_C") ) );
+        }
+        if (!m_KneeSeparationVx) {
+            m_KneeSeparationVx = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_VX") ) );
+        }
+        if (!m_KneeSeparationVy) {
+            m_KneeSeparationVy = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_VY") ) );
+        }
+        if (!m_KneeSeparationVz) {
+            m_KneeSeparationVz = m_Outlets.GetRef( this->GetOutletIndex( moText("KNEE_SEPARATION_VZ") ) );
+        }
+
+
+        if (!m_ShouldersAngle) {
+            m_ShouldersAngle = m_Outlets.GetRef( this->GetOutletIndex( moText("SHOULDERS_ANGLE") ) );
+        }
+
+        if (!m_HandsAngle) {
+            m_HandsAngle = m_Outlets.GetRef( this->GetOutletIndex( moText("HANDS_ANGLE") ) );
+        }
+
+/** Gesture INFO */
         if (!m_Gesture) {
             m_Gesture = m_Outlets.GetRef( this->GetOutletIndex( moText("GESTURE") ) );
         }
@@ -439,8 +630,11 @@ void moKinect::UpdateParameters() {
             pDataMessage->Add( moData("TESTING 2") );
 */
 
-            //moData tdata = pDataMessage->Get(0);
-            //MODebug2->Message( moText("Testing datamessage sending: ") + moText( tdata.Text() ) );
+            for( int d = 0; d< m_GestureRecognition.m_DataMessage.Count(); d++ ) {
+              moData tdata = m_GestureRecognition.m_DataMessage.Get(d);
+              //MODebug2->Message( moText("Testing datamessage sending: ") + moText( tdata.Text() ) );
+
+            }
 
             //m_GestureRecognition.m_DataMessage.Add( moData("TESTING") );
             //m_GestureRecognition.m_DataMessage.Add( moData("TESTING 2") );
@@ -468,7 +662,30 @@ void moKinect::UpdateParameters() {
         if (m_HeadC) { m_HeadC->GetData()->SetFloat( -1.0f ); m_HeadC->Update(true);}
         if (m_Head) { m_Head->GetData()->SetVector( (moVector4d*)&m_VHead ); m_Head->Update(true); }
 
+        //RESET TORSO
+        m_VBody = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
 
+        if (m_BodyC) { m_BodyC->GetData()->SetFloat( -1.0f ); m_BodyC->Update(true);}
+        if (m_Body) { m_Body->GetData()->SetVector( (moVector4d*)&m_VBody ); m_Body->Update(true); }
+
+
+        //RESET RIGHT KNEE
+        m_VRightKnee = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_RightKneeC) { m_RightKneeC->GetData()->SetFloat( -1.0f ); m_RightKneeC->Update(true);}
+        if (m_RightKnee) { m_RightKnee->GetData()->SetVector( (moVector4d*)&m_VRightKnee ); m_RightKnee->Update(true); }
+
+        //RESET LEFT KNEE
+        m_VLeftKnee = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_LeftKneeC) { m_LeftKneeC->GetData()->SetFloat( -1.0f );m_LeftKneeC->Update(true);}
+        if (m_LeftKnee) { m_LeftKnee->GetData()->SetVector( (moVector4d*)&m_VLeftKnee ); m_LeftKnee->Update(true); }
+
+        //RESET LEFT KNEE
+        m_VKneeSeparation = moVector4d( -1.0f, -1.0f, -1.0f, -1.0f );
+
+        if (m_KneeSeparationC) { m_KneeSeparationC->GetData()->SetFloat( -1.0f );m_KneeSeparationC->Update(true);}
+        if (m_KneeSeparation) { m_KneeSeparation->GetData()->SetVector( (moVector4d*)&m_VKneeSeparation ); m_KneeSeparation->Update(true); }
 }
 
 MOboolean
@@ -552,6 +769,7 @@ moKinect::Init() {
     moDefineParamIndex( KINECT_OBJECT_TEXTURE3, moText("texture3") );
 
     moDefineParamIndex( KINECT_UPDATE_ON, moText("update_on") );
+	moDefineParamIndex( KINECT_VERBOSE, moText("verbose") );
 
     UpdateParameters();
 
@@ -572,6 +790,7 @@ moKinect::Init() {
 
     int Mid = -1;
 
+#define KINECT_OPENNI 1
 #ifdef KINECT_OPENNI
 
     m_nRetVal = m_Context.Init();
@@ -840,20 +1059,30 @@ moKinect::Init() {
 	}
 
   m_GestureRecognition.Init();
-
+/*
   moKinectGesture SlideHorizontalRight;
   SlideHorizontalRight.m_GestureEvent = "SLIDE_HORIZONTAL_RIGHT";
   SlideHorizontalRight.m_Interval = moKinectGestureInterval( 6, 0, 6 );
   SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
-                                            moVector3f( 1 /*Proportion VX over VY*/, 0 /*only VX*/, 0/*VY*/ ),
-                                            /*MIN*/moVector3f( 2.5f, 0, 0 ),
-                                            /*MAX*/ moVector3f( 1000000.0f, 0, 0 ) );
+                                            moVector3f( 1 ,//*Proportion VX over VY,
+                                                        0 ,//only VX
+                                                        0 // VY
+                                                         ),
+                                            moVector3f( 2.5f, 0, 0 ),
+                                             moVector3f( 1000000.0f, 0, 0 ) );
   SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_LEFT,
-                                            moVector3f( 0 /*Lenght V*/, 1 /*only VX*/, 0/*VY*/ ),
-                                            /*MIN*/moVector3f( 0, 1.0f, 0 ),
-                                            /*MAX*/ moVector3f( 0, 100000.0f, 0 ) );
+                                            moVector3f( 0 ,//Lenght V
+                                                        1 ,//only VX
+                                                        0 //VY
+                                                         ),
+                                            moVector3f( 0, 1.0f, 0 ),
+                                            moVector3f( 0, 100000.0f, 0 ) );
 
-  //SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_LEFT, moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ), /*MIN*/moVector3f( 0, 0, -2 ), /*MAX*/ moVector3f( 0, 0, 2 ) );
+  //SlideHorizontalRight.AddGestureRule( MO_KIN_SPEED_ABS_HAND_LEFT, moVector3f( 0 , //Lenght 0 x
+                                                                                 1 , //Y
+                                                                                 ),
+                                        moVector3f( 0, 0, -2 ),
+                                        moVector3f( 0, 0, 2 ) );
   m_GestureRecognition.m_Gestures.Add( SlideHorizontalRight );
 
 
@@ -861,17 +1090,139 @@ moKinect::Init() {
   SlideVerticalRight.m_GestureEvent = "SLIDE_VERTICAL_RIGHT";
   SlideVerticalRight.m_Interval = moKinectGestureInterval( 6, 0, 6 );
   SlideVerticalRight.AddGestureRule( MO_KIN_SPEED_PROP_HAND_LEFT,
-                                            moVector3f( 0 /*Proportion VX over VY*/, 1 /*Proportion VX over VY*/, 0/*VY*/ ),
-                                            /*MIN*/moVector3f( 0.0f, 2.5f, 0 ),
-                                            /*MAX*/ moVector3f( 0, 1000000.0f, 0 ) );
+                                            moVector3f( 0 ,//Proportion VX over VY
+                                                       1 ,//Proportion VX over VY
+                                                       0 //VY
+                                                        ),
+                                            moVector3f( 0.0f, 2.5f, 0 ),
+                                            moVector3f( 0, 1000000.0f, 0 ) );
   SlideVerticalRight.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_LEFT,
-                                      moVector3f( 0 /*Lenght*/, 0 /*only X*/, 1/*Y*/ ),
-                                    /*MIN*/moVector3f( 0, 0, 1.0f ),
-                                    /*MAX*/ moVector3f( 0, 0, 100000.0f ) );
+                                      moVector3f( 0 ,//Length
+                                                  0 ,//only X
+                                                  1 //Y
+                                                   ),
+                                      moVector3f( 0, 0, 1.0f ),
+                                      moVector3f( 0, 0, 100000.0f ) );
   m_GestureRecognition.m_Gestures.Add( SlideVerticalRight );
+*/
+
+  moKinectGesture TurnRight;
+  TurnRight.m_GestureEvent = "TURN_RIGHT";
+  TurnRight.m_Interval = moKinectGestureInterval( 2, 0, 2 );
+  TurnRight.AddGestureRule(  MO_KIN_ANGLE_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 0.2f, 0.0f, 0.0f ),
+                              moVector3f( 10.0f, 0.0f, 0.0f ) );
+  TurnRight.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 1400.0f, 0.0f, 0.0f ),
+                              moVector3f( 10000.0f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( TurnRight );
+
+/**
+  moKinectGesture TurnValue;
+  TurnValue.m_GestureEvent = "TURN_VALUE";
+  TurnValue.m_Interval = moKinectGestureInterval( 6, 0, 6 );
+  TurnValue.AddGestureRule(  MO_KIN_ANGLE_SHOULDERS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( -3.1415f, 0.0f, 0.0f ),
+                              moVector3f( 3.1415f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( TurnValue );
+*/
+  moKinectGesture TurnLeft;
+  TurnLeft.m_GestureEvent = "TURN_LEFT";
+  TurnLeft.m_Interval = moKinectGestureInterval( 2, 0, 2 );
+  TurnLeft.AddGestureRule(  MO_KIN_ANGLE_HANDS,
+                            moVector3f( 1.0, 0, 0 ),
+                            moVector3f( -10.0f, 0.0f, 0.0f ),
+                            moVector3f( -0.2f, 0.0f, 0.0f ) );
+  TurnLeft.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 1400.0f, 0.0f, 0.0f ),
+                              moVector3f( 10000.0f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( TurnLeft );
 
 
 
+  moKinectGesture ManosJuntas;
+  ManosJuntas.m_GestureEvent = "MANOS_JUNTAS";
+  ManosJuntas.m_Interval = moKinectGestureInterval( 12, 0, 12 );
+  ManosJuntas.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 10.0f, 0.0f, 0.0f ),
+                              moVector3f( 200.0f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( ManosJuntas );
+
+
+  moKinectGesture AllOff;
+  AllOff.m_GestureEvent = "ALLOFF";
+  AllOff.m_Interval = moKinectGestureInterval( 12, 0, 12 );
+  AllOff.AddGestureRule(  MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_LEFT,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 1.0f, 0.0f, 0.0f ),
+                              moVector3f( 200.0f, 0.0f, 0.0f ) );
+  AllOff.AddGestureRule(  MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_RIGHT,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 1.0f, 0.0f, 0.0f ),
+                              moVector3f( 200.0f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( AllOff );
+
+
+
+  moKinectGesture Lluvia;
+  Lluvia.m_GestureEvent = "LLUVIA";
+  Lluvia.m_Interval = moKinectGestureInterval( 24, 0, 24 );
+  ///distancia Y
+  Lluvia.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 1.0f, 0 ),
+                              moVector3f( 200.0f, 0.0f, 0.0f ),
+                              moVector3f( 300.0f, 60.0f, 0.0f ) );
+  Lluvia.AddGestureRule(  MO_KIN_ANGLE_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 0.0f, 0.0f, 0.0f ),
+                              moVector3f( 0.3f, 0.0f, 0.0f ) );
+
+  Lluvia.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_LEFT,
+                              moVector3f( 0 ,//Length
+                                          0 ,//only X
+                                          1 //Y
+                                           ),
+                              moVector3f( 0.0f, 0.0f, 20.0f ),
+                              moVector3f( 0.0f, 0.0f, 80.0f ) );
+  Lluvia.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_RIGHT,
+                              moVector3f( 0 ,//Length
+                                          0 ,//only X
+                                          1 //Y
+                                           ),
+                              moVector3f( 0.0f, 0.0f, 20.0f ),
+                              moVector3f( 0.0f, 0.0f, 80.0f ) );
+
+  m_GestureRecognition.m_Gestures.Add( Lluvia );
+
+
+  /** ALETEO*/
+  moKinectGesture Flutter;
+  Flutter.m_GestureEvent = "FLUTTER";
+  Flutter.m_Interval = moKinectGestureInterval( 20, 0, 20 );
+  Flutter.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 1400.0f, 0.0f, 0.0f ),
+                              moVector3f( 10000.0f, 0.0f, 0.0f ) );
+  Flutter.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_LEFT,
+                              moVector3f( 1 ,//Length
+                                          0 ,//only X
+                                          1 //Y
+                                           ),
+                              moVector3f( 10.0f, 0.0f, -50.0f ),
+                              moVector3f( 100.0f, 0.0f, 50.0f ) );
+  Flutter.AddGestureRule(  MO_KIN_SPEED_ABS_HAND_RIGHT,
+                              moVector3f( 1 ,//Length
+                                          0 ,//only X
+                                          1 //Y
+                                           ),
+                              moVector3f( 10.0f, 0.0f, -50.0f ),
+                              moVector3f( 100.0f, 0.0f, 50.0f ) );
+  m_GestureRecognition.m_Gestures.Add( Flutter );
 
 
     /**MARK AS INITIALIZES*/
@@ -936,6 +1287,7 @@ moKinect::GetCode(moText strcod) {
 
 bool moKinect::DrawLimb(XnUserID player, XnSkeletonJoint eJoint1, XnSkeletonJoint eJoint2)
 {
+  /*
 	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
 	{
 		//printf("not tracked!\n");
@@ -947,16 +1299,16 @@ bool moKinect::DrawLimb(XnUserID player, XnSkeletonJoint eJoint1, XnSkeletonJoin
 	{
 		return false;
 	}
-
+*/
 	XnSkeletonJointPosition joint1, joint2;
 	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint1, joint1);
 	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint2, joint2);
-
+/*
 	if (joint1.fConfidence < 0.5 || joint2.fConfidence < 0.5)
 	{
 		return true;
 	}
-
+*/
 	XnPoint3D pt[2];
 	pt[0] = joint1.position;
 	pt[1] = joint2.position;
@@ -985,6 +1337,7 @@ void moKinect::drawCircle(float x, float y, float radius)
 }
 void moKinect::DrawJoint(XnUserID player, XnSkeletonJoint eJoint)
 {
+  /*
 	if (!m_UserGenerator.GetSkeletonCap().IsTracking(player))
 	{
 		//printf("not tracked!\n");
@@ -995,15 +1348,16 @@ void moKinect::DrawJoint(XnUserID player, XnSkeletonJoint eJoint)
 	{
 		return;
 	}
+	*/
 
 	XnSkeletonJointPosition joint;
 	m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, eJoint, joint);
-
-	if (joint.fConfidence < 0.5)
+/*
+	if (joint.fConfidence < 0.7)
 	{
 		return;
 	}
-
+*/
 	XnPoint3D pt;
 	pt = joint.position;
 
@@ -1049,7 +1403,16 @@ void moKinect::DrawGestureRecognition() {
     glVertex3f( xpos, ypos+sscale, 0.0 );
   glEnd();
 
+  int smaxy = 10;
 
+  for( int sy=0; sy < smaxy; sy++ ) {
+    int sypos = ypos + sy * sscale/smaxy;
+    glBegin(GL_LINES);
+      glVertex3i( xpos, sypos, 0 );
+      glVertex3i( xpos-10.0, sypos, 0 );
+    glEnd();
+
+  }
 
   ///Draw values:
   ///take ring gesture, and draw last gesture in position 0, to last... in ...
@@ -1069,11 +1432,17 @@ void moKinect::DrawGestureRecognition() {
     //MODebug2->Push( "ri: " + IntToStr(ri) + " MO_KIN_REL_HAND_LEFT: " + FloatToStr( Posture.m_PostureVector[MO_KIN_REL_HAND_LEFT].X() ) );
 
     glBegin(GL_POINTS);
-/*
+
       ///DIST BETWEEN HANDS: RED
       glColor4f( 1.0f, 0.0f, 0.0f, 1.0f);
-      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_DIST_ABS_INTER_HANDS].X() / 10.0f, 0.0 );
+      glVertex3f( xpos + r, ypos + Posture.m_PostureVector[MO_KIN_DIST_ABS_INTER_HANDS].X() / 10.0f, 0.0 );
 
+      glColor4f( 1.0f, 0.0f, 1.0f, 1.0f);
+      glVertex3f( xpos + r, ypos + Posture.m_PostureVector[MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_LEFT].X() / 10.0f, 0.0 );
+      glColor4f( 1.0f, 0.0f, 1.0f, 1.0f);
+      glVertex3f( xpos + r, ypos + Posture.m_PostureVector[MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_RIGHT].X() / 10.0f, 0.0 );
+
+/*
       ///REL HAND LEFT (to neck): green
       glColor4f( 0.0f, 1.0f, 0.0f, 1.0f);
       glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_REL_HAND_LEFT].X() / 10.0f, 0.0 );
@@ -1107,10 +1476,22 @@ void moKinect::DrawGestureRecognition() {
       glColor4f( 0.0f, 0.0f, 1.0f, 1.0f);
       glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_ABS_HAND_LEFT].Z(), 0.0 );
       */
+      /*
+      glColor4f(    0.0f, 1.0f, 1.0f, 1.0f);
+      glVertex3f(   xpos + r,
+                    ypos + Posture.m_PostureVector[MO_KIN_SPEED_PROP_HAND_LEFT].X(),
+                    0.0 );
+*/
 
-      glColor4f( 0.0f, 1.0f, 1.0f, 1.0f);
-      glVertex3f( xpos+r, ypos+Posture.m_PostureVector[MO_KIN_SPEED_PROP_HAND_LEFT].X(), 0.0 );
+      glColor4f(    1.0f, 1.0f, 0.5f, 1.0f);
+      glVertex3f(   xpos + r,
+                    ypos + 100.0f + Posture.m_PostureVector[MO_KIN_ANGLE_HANDS].X()*100.0f,
+                    0.0 );
 
+      glColor4f(    1.0f, 1.0f, 0.0f, 1.0f);
+      glVertex3f(   xpos + r,
+                    ypos + 100.0f + Posture.m_PostureVector[MO_KIN_ANGLE_SHOULDERS].X()*100.0f,
+                    0.0 );
 
     glEnd();
 
@@ -1125,40 +1506,80 @@ moKinect::Update(moEventList *Events) {
 	MOuint i;
 	moEvent *actual,*tmp;
 
-    UpdateParameters();
+  UpdateParameters();
 
-
+#define KINECT_OPENNI
 #ifdef KINECT_OPENNI
 if (update_on>0 && this->Initialized() ) {
 
     //MODebug2->Message("moKinect::Update > Updating");
 
     m_nRetVal = m_Context.WaitNoneUpdateAll();
+
+
     //m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
 
    // MODebug2->Message("moKinect::Update > m_Context.WaitNoneUpdateAll() " + IntToStr(m_nRetVal) );
 
     /** USER GENERATOR */
     //m_nRetVal = m_Context.WaitOneUpdateAll(m_UserGenerator);
-    if (!CheckError()) {
+    if (!CheckError() || m_nRetVal!=XN_STATUS_OK) {
         MODebug2->Error("Kinect Failed to update data.");
     } else if (1==1) {
 
-        /**  TODO: hahcer algo aqui (dibujar los esqueletos ? ) */
+        /**  TODO: hacer algo aqui (dibujar los esqueletos ? ) */
         XnUserID aUsers[15] = {0};
         XnUInt16 nUsers = 15;
         m_UserGenerator.GetUsers(aUsers, nUsers);
 
+        bool process_user_in_front = false;
+        XnPoint3D pt;
+        XnSkeletonJointPosition xnbody;
+
+        int userinfront = -1;
+        double min_distance_center = 100000.0f;
+        double distanceCenter = -1.0;
+        bool bTrackingNeed  = true;
+
         for (i = 0; i < nUsers; ++i)
         {
 
-            if ( m_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i]) )
-            {
+            if (
+                 !bTrackingNeed
+                ||
+                ( bTrackingNeed
+                  &&
+                  m_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i]) )
+                 ) {
 
-                m_GestureRecognition.UpdateUser( aUsers[i] );
+              m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_TORSO, xnbody);
+              pt = xnbody.position;
+              m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
 
+              distanceCenter = fabs( pt.X - 320.0 );
 
-                XnPoint3D pt;
+              if (verbose_on) {
+                  MODebug2->Message(" user: " + IntToStr(i) + " aUsers[i]:" + IntToStr(aUsers[i]) + " pt.X:" + FloatToStr(pt.X) + " dcenter:" + FloatToStr( distanceCenter) );
+              }
+              if (distanceCenter<=min_distance_center) {
+                userinfront = i;
+                min_distance_center = distanceCenter;
+                process_user_in_front = true;
+              }
+            }
+        }
+
+        if (process_user_in_front && verbose_on)
+            MODebug2->Message("USER IN FRONT userinfront: " + IntToStr(userinfront) + " dcenter:" + FloatToStr( distanceCenter) );
+
+        //if (userinfront>=0)  MODebug2->Message("moKinect > User in front: " + IntToStr(userinfront) + " x:" + FloatToStr(pt.X) );
+        /// if (nUsers>0) nUsers = 1
+
+        for (i = 0; i < nUsers; ++i)
+        {
+
+            /// SOLO ENVIA INFO DEL USUARIO EN LA ZONA DE ACTIVACION
+            if ( process_user_in_front && userinfront == i ) {
 
                 //sacar posicion de la mano....(pasar esto a un inlet, para poder ser pasado a la consola y ser consultado...) enviar como feature???
                 //NO, enviar como mano....
@@ -1167,10 +1588,31 @@ if (update_on>0 && this->Initialized() ) {
                 pt = xnrighthand.position;
                 m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
                 m_VRightHand = moVector4d( pt.X, pt.Y, pt.Z, xnrighthand.fConfidence );
-
-                if (m_RightHandX) { m_RightHandX->GetData()->SetFloat( (m_VRightHand.X()/640.0) -0.5f ); m_RightHandX->Update(true); }
-                if (m_RightHandY) { m_RightHandY->GetData()->SetFloat( (0.5f - m_VRightHand.Y()/480.0) ); m_RightHandY->Update(true); }
-                if (m_RightHandZ) { m_RightHandZ->GetData()->SetFloat( m_VRightHand.Z() ); m_RightHandZ->Update(true); }
+                float auxpos = 0.0f;
+                if (m_RightHandX) {
+                    auxpos = m_RightHandX->GetData()->Float();
+                    m_RightHandX->GetData()->SetFloat( (m_VRightHand.X()/640.0) -0.5f ); m_RightHandX->Update(true);
+                    if (m_RightHandVx) {
+                        m_RightHandVx->GetData()->SetFloat( auxpos - m_RightHandX->GetData()->Float() );
+                        m_RightHandVx->Update(true);
+                    }
+                }
+                if (m_RightHandY) {
+                    auxpos = m_RightHandY->GetData()->Float();
+                    m_RightHandY->GetData()->SetFloat( (0.5f - m_VRightHand.Y()/480.0) ); m_RightHandY->Update(true);
+                    if (m_RightHandVy) {
+                        m_RightHandVy->GetData()->SetFloat( auxpos - m_RightHandY->GetData()->Float() );
+                        m_RightHandVy->Update(true);
+                    }
+                }
+                if (m_RightHandZ) {
+                    auxpos = m_RightHandZ->GetData()->Float();
+                    m_RightHandZ->GetData()->SetFloat( m_VRightHand.Z() ); m_RightHandZ->Update(true);
+                    if (m_RightHandVz) {
+                        m_RightHandVz->GetData()->SetFloat( auxpos - m_RightHandZ->GetData()->Float() );
+                        m_RightHandVz->Update(true);
+                    }
+                }
                 if (m_RightHandC) { m_RightHandC->GetData()->SetFloat( xnrighthand.fConfidence ); m_RightHandC->Update(true); }
                 if (m_RightHand) { m_RightHand->GetData()->SetVector( (moVector4d*)&m_VRightHand ); m_RightHand->Update(true); }
 
@@ -1181,9 +1623,30 @@ if (update_on>0 && this->Initialized() ) {
                 m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
                 m_VLeftHand = moVector4d( pt.X, pt.Y, pt.Z, xnlefthand.fConfidence );
 
-                if (m_LeftHandX) { m_LeftHandX->GetData()->SetFloat( (m_VLeftHand.X()/640.0) -0.5f  ); m_LeftHandX->Update(true); }
-                if (m_LeftHandY) { m_LeftHandY->GetData()->SetFloat( ( 0.5f - m_VLeftHand.Y()/480.0) ); m_LeftHandY->Update(true); }
-                if (m_LeftHandZ) { m_LeftHandZ->GetData()->SetFloat( m_VLeftHand.Z() ); m_LeftHandZ->Update(true); }
+                if (m_LeftHandX) {
+                    auxpos = m_LeftHandX->GetData()->Float();
+                    m_LeftHandX->GetData()->SetFloat( (m_VLeftHand.X()/640.0) -0.5f ); m_LeftHandX->Update(true);
+                    if (m_LeftHandVx) {
+                        m_LeftHandVx->GetData()->SetFloat( auxpos - m_LeftHandX->GetData()->Float() );
+                        m_LeftHandVx->Update(true);
+                    }
+                }
+                if (m_LeftHandY) {
+                    auxpos = m_LeftHandY->GetData()->Float();
+                    m_LeftHandY->GetData()->SetFloat( (0.5f - m_VLeftHand.Y()/480.0) ); m_LeftHandY->Update(true);
+                    if (m_LeftHandVy) {
+                        m_LeftHandVy->GetData()->SetFloat( auxpos - m_LeftHandY->GetData()->Float() );
+                        m_LeftHandVy->Update(true);
+                    }
+                }
+                if (m_LeftHandZ) {
+                    auxpos = m_LeftHandZ->GetData()->Float();
+                    m_LeftHandZ->GetData()->SetFloat( m_VLeftHand.Z() ); m_LeftHandZ->Update(true);
+                    if (m_LeftHandVz) {
+                        m_LeftHandVz->GetData()->SetFloat( auxpos - m_LeftHandZ->GetData()->Float() );
+                        m_LeftHandVz->Update(true);
+                    }
+                }
                 if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( xnlefthand.fConfidence ); m_LeftHandC->Update(true); }
                 if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
 
@@ -1202,10 +1665,222 @@ if (update_on>0 && this->Initialized() ) {
                 if (m_HeadC) { m_HeadC->GetData()->SetFloat( xnhead.fConfidence ); m_HeadC->Update(true); }
                 if (m_Head) { m_Head->GetData()->SetVector( (moVector4d*)&m_VHead ); m_Head->Update(true); }
 
+                /** TORSO */
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_TORSO, xnbody);
+                pt = xnbody.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VBody = moVector4d( pt.X, pt.Y, pt.Z, xnbody.fConfidence );
+
+                if (m_BodyX) { m_BodyX->GetData()->SetFloat( (m_VBody.X()/640.0) -0.5f ); m_BodyX->Update(true); }
+                if (m_BodyY) { m_BodyY->GetData()->SetFloat( (0.5f - m_VBody.Y()/480.0) ); m_BodyY->Update(true); }
+                if (m_BodyZ) { m_BodyZ->GetData()->SetFloat( m_VBody.Z() ); m_BodyZ->Update(true); }
+                if (m_BodyC) { m_BodyC->GetData()->SetFloat( xnbody.fConfidence ); m_BodyC->Update(true); }
+                if (m_Body) { m_Body->GetData()->SetVector( (moVector4d*)&m_VBody ); m_Body->Update(true); }
+
+
+              //MODebug2->Message("moKinect::Update > RightHand: user" + IntToStr(i) + " X:" + FloatToStr(xnrighthand.position.X) + " Y:" + FloatToStr(xnrighthand.position.Y) + " C:" + FloatToStr(xnrighthand.fConfidence) );
+                XnSkeletonJointPosition xnleftknee;
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_LEFT_KNEE, xnleftknee);
+                pt = xnleftknee.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VLeftKnee = moVector4d( pt.X, pt.Y, pt.Z, xnleftknee.fConfidence );
+
+                if (m_LeftKneeX) {
+                    auxpos = m_LeftKneeX->GetData()->Float();
+                    m_LeftKneeX->GetData()->SetFloat( (m_VLeftKnee.X()/640.0) -0.5f ); m_LeftKneeX->Update(true);
+                    if (m_LeftKneeVx) {
+                        m_LeftKneeVx->GetData()->SetFloat( auxpos - m_LeftKneeX->GetData()->Float() );
+                        m_LeftKneeVx->Update(true);
+                    }
+                }
+                if (m_LeftKneeY) {
+                    auxpos = m_LeftKneeY->GetData()->Float();
+                    m_LeftKneeY->GetData()->SetFloat( (0.5f - m_VLeftKnee.Y()/480.0) ); m_LeftKneeY->Update(true);
+                    if (m_LeftKneeVy) {
+                        m_LeftKneeVy->GetData()->SetFloat( auxpos - m_LeftKneeY->GetData()->Float() );
+                        m_LeftKneeVy->Update(true);
+                    }
+                }
+                if (m_LeftKneeZ) {
+                    auxpos = m_LeftKneeZ->GetData()->Float();
+                    m_LeftKneeZ->GetData()->SetFloat( m_VLeftKnee.Z() ); m_LeftKneeZ->Update(true);
+                    if (m_LeftKneeVz) {
+                        m_LeftKneeVz->GetData()->SetFloat( auxpos - m_LeftKneeVz->GetData()->Float() );
+                        m_LeftKneeVz->Update(true);
+                    }
+                }
+                if (m_LeftKneeC) { m_LeftKneeC->GetData()->SetFloat( xnleftknee.fConfidence ); m_LeftKneeC->Update(true); }
+                if (m_LeftKnee) { m_LeftKnee->GetData()->SetVector( (moVector4d*)&m_VLeftKnee ); m_LeftKnee->Update(true); }
+
+
+
+                //MODebug2->Message("moKinect::Update > RightHand: user" + IntToStr(i) + " X:" + FloatToStr(xnrighthand.position.X) + " Y:" + FloatToStr(xnrighthand.position.Y) + " C:" + FloatToStr(xnrighthand.fConfidence) );
+                XnSkeletonJointPosition xnrightknee;
+                m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_RIGHT_KNEE, xnrightknee);
+                pt = xnrightknee.position;
+                m_Depth.ConvertRealWorldToProjective(1, &pt, &pt);
+                m_VRightKnee = moVector4d( pt.X, pt.Y, pt.Z, xnrightknee.fConfidence );
+
+                if (m_RightKneeX) {
+                    auxpos = m_RightKneeX->GetData()->Float();
+                    m_RightKneeX->GetData()->SetFloat( (m_VRightKnee.X()/640.0) -0.5f ); m_RightKneeX->Update(true);
+                    if (m_RightKneeVx) {
+                        m_RightKneeVx->GetData()->SetFloat( auxpos - m_RightKneeX->GetData()->Float() );
+                        m_RightKneeVx->Update(true);
+                    }
+                }
+                if (m_RightKneeY) {
+                    auxpos = m_RightKneeY->GetData()->Float();
+                    m_RightKneeY->GetData()->SetFloat( (0.5f - m_VRightKnee.Y()/480.0) ); m_RightKneeY->Update(true);
+                    if (m_RightKneeVy) {
+                        m_RightKneeVy->GetData()->SetFloat( auxpos - m_RightKneeY->GetData()->Float() );
+                        m_RightKneeVy->Update(true);
+                    }
+                }
+                if (m_RightKneeZ) {
+                    auxpos = m_RightKneeZ->GetData()->Float();
+                    m_RightKneeZ->GetData()->SetFloat( m_VRightKnee.Z() ); m_RightKneeZ->Update(true);
+                    if (m_RightKneeVz) {
+                        m_RightKneeVz->GetData()->SetFloat( auxpos - m_RightKneeVz->GetData()->Float() );
+                        m_RightKneeVz->Update(true);
+                    }
+                }
+                if (m_RightKneeC) { m_RightKneeC->GetData()->SetFloat( xnrightknee.fConfidence ); m_RightKneeC->Update(true); }
+                if (m_RightKnee) { m_RightKnee->GetData()->SetVector( (moVector4d*)&m_VRightKnee ); m_RightKnee->Update(true); }
+
+                /** KNEE SEPARATION **/
+                m_VKneeSeparation = moVector4d( m_VLeftKnee.X() - m_VRightKnee.X(),
+                                               m_VLeftKnee.Y() - m_VRightKnee.Y(),
+                                               m_VLeftKnee.Z() - m_VRightKnee.Z(),
+                                               (m_VLeftKnee.W() + m_VRightKnee.W())*0.5 );
+
+                if (m_KneeSeparationX) {
+                    auxpos = m_KneeSeparationX->GetData()->Float();
+                    m_KneeSeparationX->GetData()->SetFloat( m_VKneeSeparation.X()/640.0 ); m_KneeSeparationX->Update(true);
+                    if (m_KneeSeparationVx) {
+                        m_KneeSeparationVx->GetData()->SetFloat( auxpos - m_KneeSeparationX->GetData()->Float() );
+                        m_KneeSeparationVx->Update(true);
+                    }
+                }
+
+                if (m_KneeSeparationY) {
+                    auxpos = m_KneeSeparationY->GetData()->Float();
+                    m_KneeSeparationY->GetData()->SetFloat( m_VKneeSeparation.Y()/480.0 ); m_KneeSeparationY->Update(true);
+                    if (m_KneeSeparationVy) {
+                        m_KneeSeparationVy->GetData()->SetFloat( auxpos - m_KneeSeparationY->GetData()->Float() );
+                        m_KneeSeparationVy->Update(true);
+                    }
+                }
+
+                if (m_KneeSeparationZ) {
+                    auxpos = m_KneeSeparationZ->GetData()->Float();
+                    m_KneeSeparationZ->GetData()->SetFloat( m_VKneeSeparation.Z() ); m_KneeSeparationZ->Update(true);
+                    if (m_KneeSeparationVz) {
+                        m_KneeSeparationVz->GetData()->SetFloat( auxpos - m_KneeSeparationZ->GetData()->Float() );
+                        m_KneeSeparationVz->Update(true);
+                    }
+                }
             }
 
         }
 
+        m_GestureRecognition.UpdateBegin();
+
+        if (process_user_in_front) {
+          m_GestureRecognition.UpdateUser( aUsers[userinfront] );
+
+          moVector3f angleVec = m_GestureRecognition.m_ActualPosture.m_PostureVector.Get( (int) MO_KIN_ANGLE_SHOULDERS );
+          float angleVal = angleVec.X();
+          if (m_ShouldersAngle) {
+            m_ShouldersAngle->GetData()->SetFloat(angleVal);
+            m_ShouldersAngle->Update(true);
+            //MODebug2->Message("moKinect::Update() > m_ShouldersAngle: " + FloatToStr(angleVal) );
+          }
+
+          angleVec = m_GestureRecognition.m_ActualPosture.m_PostureVector.Get( (int) MO_KIN_ANGLE_HANDS );
+          angleVal = angleVec.X();
+          if (m_HandsAngle) {
+              m_HandsAngle->GetData()->SetFloat(angleVal);
+              m_HandsAngle->Update(true);
+              //MODebug2->Message("moKinect::Update() > m_HandsAngle: "
+              //                  + m_HandsAngle->GetData()->ToText()  );
+          }
+
+        }
+
+
+
+        m_GestureRecognition.UpdateEnd();
+
+        if (process_user_in_front==false) {
+          /** RESET ALL VALUES !!!*/
+
+          if (m_BodyX) {
+            m_BodyX->GetData()->SetFloat( 0.0 );
+            m_BodyX->Update(true);
+          }
+
+          if (m_BodyY) {
+            m_BodyY->GetData()->SetFloat( 0.0 );
+            m_BodyY->Update(true);
+          }
+
+          if (m_BodyZ) {
+            m_BodyZ->GetData()->SetFloat( 0.0 );
+            m_BodyZ->Update(true);
+          }
+
+          if (m_LeftKneeZ) {
+            m_LeftKneeZ->GetData()->SetFloat( 0.0 );
+            m_LeftKneeZ->Update(true);
+          }
+
+          if (m_RightKneeX) {
+            m_RightKneeX->GetData()->SetFloat( 0.0 );
+            m_RightKneeX->Update(true);
+          }
+
+          if (m_RightKneeY) {
+            m_RightKneeY->GetData()->SetFloat( 0.0 );
+            m_RightKneeY->Update(true);
+          }
+
+          if (m_RightKneeZ) {
+            m_RightKneeZ->GetData()->SetFloat( 0.0 );
+            m_RightKneeZ->Update(true);
+          }
+
+          if (m_KneeSeparationVx) {
+            m_KneeSeparationVx->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationVx->Update(true);
+          }
+
+          if (m_KneeSeparationVx) {
+            m_KneeSeparationVx->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationVx->Update(true);
+          }
+
+          if (m_KneeSeparationVz) {
+            m_KneeSeparationVz->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationVz->Update(true);
+          }
+
+          if (m_KneeSeparationX) {
+            m_KneeSeparationX->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationX->Update(true);
+          }
+
+          if (m_KneeSeparationY) {
+            m_KneeSeparationY->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationY->Update(true);
+          }
+
+          if (m_KneeSeparationZ) {
+            m_KneeSeparationZ->GetData()->SetFloat( 0.0 );
+            m_KneeSeparationZ->Update(true);
+          }
+
+        }
 
 
         if (pFBO && m_pUserTexture) {
@@ -1233,9 +1908,17 @@ if (update_on>0 && this->Initialized() ) {
             for (i = 0; i < nUsers; ++i)
             {
 
-              if (i==0) glColor4f( 1.0, 1.0, 1.0, 1.0 );
-              if (i==1) glColor4f( 0.0, 1.0, 0.0, 1.0 );
-              if (i==2) glColor4f( 1.0, 0.0, 0.0, 1.0 );
+              if (i==0) glColor4f( 1.0, 1.0, 1.0, 1.0 ); //white
+              if (i==1) glColor4f( 0.0, 1.0, 0.0, 1.0 ); //green
+              if (i==2) glColor4f( 1.0, 0.0, 0.0, 1.0 ); //red
+              if (i==3) glColor4f( 1.0, 1.0, 0.0, 1.0 ); //yellow
+              if (i==4) glColor4f( 0.0, 1.0, 1.0, 1.0 ); //cyan
+
+              //if (m_UserGenerator.GetSkeletonCap().IsTracking(aUsers[i])) {
+
+                  //P5.triangle( 0+i*5, 0, 5+i*5, 5, 0+i*5, 10 );
+                  drawCircle( 10 + i*5, 10, 8);
+              //}
 
               // Try to draw all joints
               DrawJoint(aUsers[i], XN_SKEL_HEAD);
@@ -1448,9 +2131,12 @@ if (update_on>0 && this->Initialized() ) {
                             ) {
 
                             pData[i*3+j*m_OutputMode.nXRes*3] = (*pDepthMap - (int)m_Offset.X() );
-                            pData[i*3+j*m_OutputMode.nXRes*3] = ( pData[i*3+j*m_OutputMode.nXRes*3] >> 1 ) % 255;
+                            pData[i*3+j*m_OutputMode.nXRes*3] = (int)( (float)(*pDepthMap)*255.0f/disoff);
+                            //pData[i*3+j*m_OutputMode.nXRes*3] = ( pData[i*3+j*m_OutputMode.nXRes*3] >> 3 ) % 255;
                             //pData[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
                             //pData[i*3+2+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
+
+                            //grey values:
                             pData[i*3+1+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
                             pData[i*3+2+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
 
@@ -1699,7 +2385,7 @@ void User_NewUser(xn::UserGenerator& generator, XnUserID nId, void* pCookie)
 {
 	//printf("New User %d\n", nId);
 
-	moAbstract::MODebug2->Push( moText("New user:") + IntToStr(nId));
+	//moAbstract::MODebug2->Push( moText("New user:") + IntToStr(nId));
 
 	// New user found
 	if (m_bNeedPose)
@@ -1716,7 +2402,7 @@ void User_NewUser(xn::UserGenerator& generator, XnUserID nId, void* pCookie)
 // Callback: An existing user was lost
 void User_LostUser(xn::UserGenerator& generator, XnUserID nId, void* pCookie)
 {
-	moAbstract::MODebug2->Push( moText("Lost user:") + IntToStr(nId));
+	//moAbstract::MODebug2->Push( moText("Lost user:") + IntToStr(nId));
 	//printf("Lost user %d\n", nId);
 }
 
@@ -1733,7 +2419,7 @@ void UserPose_PoseDetected(xn::PoseDetectionCapability& capability, const XnChar
 // Callback: Started calibration
 void UserCalibration_CalibrationStart(xn::SkeletonCapability& capability, XnUserID nId, void* pCookie)
 {
-    moAbstract::MODebug2->Push( moText("Calibration started for user:") + IntToStr(nId));
+    //moAbstract::MODebug2->Push( moText("Calibration started for user:") + IntToStr(nId));
 	//printf("Calibration started for user %d\n", nId);
 }
 // Callback: Finished calibration
@@ -1742,7 +2428,7 @@ void UserCalibration_CalibrationEnd(xn::SkeletonCapability& capability, XnUserID
 	if (bSuccess)
 	{
 		// Calibration succeeded
-		moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
+		//moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
 		//printf("Calibration complete, start tracking user %d\n", nId);
 		m_UserGenerator.GetSkeletonCap().StartTracking(nId);
 	}
@@ -1750,7 +2436,7 @@ void UserCalibration_CalibrationEnd(xn::SkeletonCapability& capability, XnUserID
 	{
 		// Calibration failed
 		//printf("Calibration failed for user %d\n", nId);
-		moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
+		//moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
 		if (m_bNeedPose)
 		{
 			m_UserGenerator.GetPoseDetectionCap().StartPoseDetection(m_strPose, nId);
@@ -1768,14 +2454,14 @@ void UserCalibration_CalibrationComplete(xn::SkeletonCapability& capability, XnU
 	{
 		// Calibration succeeded
 		//printf("Calibration complete, start tracking user %d\n", nId);
-		moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
+		//moAbstract::MODebug2->Push( moText("Calibration complete, start tracking user:") + IntToStr(nId));
 		m_UserGenerator.GetSkeletonCap().StartTracking(nId);
 	}
 	else
 	{
 		// Calibration failed
 		//printf("Calibration failed for user %d\n", nId);
-		moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
+		//moAbstract::MODebug2->Push( moText("Calibration failed for user:") + IntToStr(nId));
 		if (m_bNeedPose)
 		{
 			m_UserGenerator.GetPoseDetectionCap().StartPoseDetection(m_strPose, nId);
@@ -1830,6 +2516,13 @@ void LoadCalibration()
 
 
 void
+moKinectPosture::Reset() {
+    m_PostureVectorOld = m_PostureVector;
+    m_PostureVector.Empty();
+    m_PostureVector.Init( MO_KIN_MAX + 1, moVector3f(0.0f, 0.0f, 0.0f) );
+}
+
+void
 moKinectPosture::Calculate( XnUserID player ) {
 
     XnSkeletonJointPosition joint;
@@ -1842,12 +2535,15 @@ moKinectPosture::Calculate( XnUserID player ) {
     moVector3f JointPositionLeftHand;
     moVector3f JointPositionRightHand;
 
+    moVector3f JointPositionRightShoulder;
+    moVector3f JointPositionLeftShoulder;
+    moVector3f VectorElementShoulderAngle;
+    moMathf    mathFloat;
+
     //MODebug2->Push( "player: " + IntToStr(player) );
 
     //save old...
-    m_PostureVectorOld = m_PostureVector;
-    m_PostureVector.Empty();
-    m_PostureVector.Init( MO_KIN_MAX + 1, moVector3f(0.0f, 0.0f, 0.0f) );
+
 
     m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_NECK, joint);
     VectorElementNeck = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
@@ -1869,6 +2565,36 @@ moKinectPosture::Calculate( XnUserID player ) {
     m_PostureVector.Set( MO_KIN_REL_HAND_RIGHT, JointPosition);
     //MODebug2->Push( "JointPositionRightHand: X: " + FloatToStr(JointPositionRightHand.X()) + " Y: " + FloatToStr(JointPositionRightHand.Y()) );
 
+    m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_RIGHT_SHOULDER, joint);
+    JointPositionRightShoulder = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
+    JointPosition = JointPositionRightShoulder - VectorElementNeck;
+    m_PostureVector.Set( MO_KIN_REL_SHOULDER_RIGHT, JointPosition);
+    //MODebug2->Push( "JointPositionRightHand: X: " + FloatToStr(JointPositionRightHand.X()) + " Y: " + FloatToStr(JointPositionRightHand.Y()) );
+
+    m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(player, XN_SKEL_LEFT_SHOULDER, joint);
+    JointPositionLeftShoulder = moVector3f( joint.position.X, joint.position.Y, joint.position.Z );
+    JointPosition = JointPositionLeftShoulder - VectorElementNeck;
+    m_PostureVector.Set( MO_KIN_REL_SHOULDER_LEFT, JointPosition);
+    //MODebug2->Push( "JointPositionRightHand: X: " + FloatToStr(JointPositionRightHand.X()) + " Y: " + FloatToStr(JointPositionRightHand.Y()) );
+
+
+///====== VECTORS ==============
+
+    VectorElement = JointPositionRightShoulder - JointPositionLeftShoulder;
+    float mSign = mathFloat.Sign( VectorElement.Y() );
+    float angleShoulders = mSign * VectorElement.Angle( moVector3f( 1.0f, 0.0f, 0.0f ) );
+    m_PostureVector.Set( MO_KIN_VECTOR_SHOULDERS, VectorElement);
+
+    VectorElement = JointPositionRightHand - JointPositionLeftHand;
+    mSign = mathFloat.Sign( VectorElement.Y() );
+    float angleHands = mSign*VectorElement.Angle( moVector3f( 1.0f, 0.0f, 0.0f ) );
+    m_PostureVector.Set( MO_KIN_VECTOR_SHOULDERS, VectorElement);
+
+///====== ANGLES ==============
+
+    m_PostureVector.Set( MO_KIN_ANGLE_SHOULDERS, moVector3f( angleShoulders, 0.0, 0.0 ) );
+    m_PostureVector.Set( MO_KIN_ANGLE_HANDS,  moVector3f( angleHands, 0.0, 0.0 ));
+
 
 ///====== DISTANCES ===========
 
@@ -1887,6 +2613,24 @@ moKinectPosture::Calculate( XnUserID player ) {
     JointPosition = JointPositionRightHand - VectorElementNeck;
     JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
     m_PostureVector.Set(  MO_KIN_DIST_ABS_HAND_RIGHT_REL, JointPosition );
+
+
+
+    JointPosition = JointPositionLeftHand - JointPositionLeftShoulder;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_LEFT, JointPosition );
+
+    JointPosition = JointPositionLeftHand - JointPositionRightShoulder;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_RIGHT, JointPosition );
+
+    JointPosition = JointPositionRightHand - JointPositionRightShoulder;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_RIGHT, JointPosition );
+
+    JointPosition = JointPositionRightHand - JointPositionLeftShoulder;
+    JointPosition = moVector3f( JointPosition.Length(), 0.0f, 0.0f);
+    m_PostureVector.Set( MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_LEFT, JointPosition );
 
 ///====== SPEED ===========
     float prop_horizontal = 0.0f;

@@ -330,7 +330,7 @@ void moEffectSound::Draw( moTempo* tempogral, moEffectState* parentstate )
 
       float mVolume = m_Config.Eval( moR(SOUND_VOLUME) );
 
-      if ( mVolume !=Sound->GetVolume() || bReBalance ) {
+      if ( mVolume != Sound->GetVolume() || bReBalance ) {
         Sound->SetVolume( mVolume );
       }
 

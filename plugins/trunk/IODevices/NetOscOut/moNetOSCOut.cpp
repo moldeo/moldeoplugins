@@ -100,6 +100,7 @@ MOboolean moNetOSCOut::Init()
     moDefineParamIndex( NETOSCOUT_MAXEVENTS, moText("max_events") );
     moDefineParamIndex( NETOSCOUT_SENDEVENTS, moText("send_events") );
     moDefineParamIndex( NETOSCOUT_DELETEEVENTS, moText("delete_events") );
+    moDefineParamIndex( NETOSCOUT_SENDMOLDEOAPI, moText("send_moldeo_api") );
 
 
 
@@ -155,7 +156,7 @@ MOboolean moNetOSCOut::Init()
 
         moText str = buffer;
 
-	    //MODebug2->Message( moText("moNetOscOut:: host: ") + moText(host_name[i]) + moText(" ip int:") + (moText)str );
+	    MODebug2->Message( moText("moNetOscOut:: host: ") + moText(host_name[i]) + moText(" ip int:") + (moText)str );
 
 
 
@@ -164,15 +165,16 @@ MOboolean moNetOSCOut::Init()
 
 		transmitSockets[i] = new UdpTransmitSocket( ipendpointname );
 		if (transmitSockets[i]) {
-            MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
-        }
+        MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
+    }
 
 
 	    //eventPacket[i] = new moEventPacket(sendInterval, maxEventNum);
 	}
 
 
-    OUTPUT_BUFFER_SIZE = 1024; // 10 = maximum length of a 32 bit int in decimal rep.
+    //OUTPUT_BUFFER_SIZE = 1024; // 10 = maximum length of a 32 bit int in decimal rep.
+    OUTPUT_BUFFER_SIZE = 60000;
     packetBuffer = new char[OUTPUT_BUFFER_SIZE];
     packetStream = new osc::OutboundPacketStream( packetBuffer, OUTPUT_BUFFER_SIZE );
 	return true;
@@ -186,6 +188,7 @@ moNetOSCOut::UpdateParameters() {
     maxEventNum = m_Config.Int( moR( NETOSCOUT_MAXEVENTS ) );
     m_SendEvents  = m_Config.Int( moR( NETOSCOUT_SENDEVENTS ) );
     delete_events = m_Config.Int( moR( NETOSCOUT_DELETEEVENTS ) );
+    m_sendMoldeoApi = m_Config.Int( moR( NETOSCOUT_SENDMOLDEOAPI )  );
 
 }
 
@@ -225,17 +228,18 @@ moNetOSCOut::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("send_events"), MO_PARAM_NUMERIC, NETOSCOUT_SENDEVENTS, moValue( "0", "INT") );
 	p_configdefinition->Add( moText("delete_events"), MO_PARAM_NUMERIC, NETOSCOUT_DELETEEVENTS, moValue( "0", "INT") );
 
+	p_configdefinition->Add( moText("send_moldeo_api"), MO_PARAM_NUMERIC, NETOSCOUT_SENDMOLDEOAPI, moValue("1","INT") );
+
 	return p_configdefinition;
 }
 
 void moNetOSCOut::Update(moEventList *Eventos)
 {
-	MOuint i;
+    MOuint i;
 
     bool res;
     moEvent *tmp;
     moEvent *actual;
-
 
     UpdateParameters();
     // Sending over the network the events that correspond to recognized devices.
@@ -274,7 +278,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                 pData.SetInt( actual->reservedvalue3 );
                 event_data_message.Add(pData);
 
-                for (i = 0; i < host_name.Count(); i++)
+                for (i = 0; i < (int)host_name.Count(); i++)
                     {
                         /*
                         res = eventPacket[i]->AddEvent(actual);
@@ -289,6 +293,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     }
             }
 
+
             if (delete_events)
             {
                 tmp = actual->next;
@@ -300,6 +305,38 @@ void moNetOSCOut::Update(moEventList *Eventos)
 
     }
 
+
+
+    if (m_sendMoldeoApi) {
+        actual = Eventos->First;
+        while(actual != NULL)
+        {
+            if ( actual->deviceid == MO_IODEVICE_CONSOLE
+                && actual->devicecode == MO_ACTION_MOLDEOAPI_EVENT_SEND
+                && actual->reservedvalue3 == MO_DATAMESSAGE
+                && actual->pointer ) {
+
+              /// moldeoapi_data_message
+              MODebug2->Message( moText("moNetOSCOut::Update > Sending Moldeo API Message!") );
+              moDataMessage* MoldeoAPIMessage = (moDataMessage*)actual->pointer;
+
+              for (i = 0; i < host_name.Count(); i++)
+                {
+                    //res = eventPacket[i]->AddEvent(actual);
+                    //if (eventPacket[i]->ReadyToSend())
+                    {
+                        //MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
+                        SendDataMessage( i, *MoldeoAPIMessage );
+                        //eventPacket[i]->ClearPacket();
+                        //if (!res) eventPacket[i]->AddEvent(actual);
+                    }
+                }
+
+            }
+
+            actual = actual->next;
+        }
+    }
 /*
 
 */
@@ -379,21 +416,21 @@ void moNetOSCOut::Update(moEventList *Eventos)
 
                     pData.SetText( moText("MP") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
+                    for(i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetPositionMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
 
                     pData.SetText( moText("MM") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
+                    for(i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetMotionMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
 
                     pData.SetText( moText("MA") );
                     tracker_data_message.Add(pData);
-                    for(int i=0;i<m_pTrackerData->m_Zones;i++) {
+                    for(i=0;i<m_pTrackerData->m_Zones;i++) {
                         pData.SetInt( m_pTrackerData->GetAccelerationMatrix(m_pTrackerData->ZoneToPosition(i)) );
                         tracker_data_message.Add(pData);
                     }
@@ -483,39 +520,76 @@ void moNetOSCOut::SendEvent(int i)
 }
 
 void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
+    if (packetStream==NULL) {
+        cout << "moNetOSCOut::SendDataMessage > error: packetStream is NULL" << endl;
+        return;
+    }
+
+	//cout << "moNetOSCOut::SendDataMessage > start" << endl;
 
 	packetStream->Clear();
+	//cout << "moNetOSCOut::SendDataMessage > Clear() ok." << endl;
+
     (*packetStream) << osc::BeginBundleImmediate;
+    //cout << "moNetOSCOut::SendDataMessage > BeginBundleImmediate ok." << endl;
 
     (*packetStream) << osc::BeginMessage( moText("")+ IntToStr(datamessage.Count()) );
+    //cout << "moNetOSCOut::SendDataMessage > data in messages:" << datamessage.Count() << endl;
 
-    for(int j=0; j< datamessage.Count(); j++) {
-        moData data = datamessage[j];
-        switch(data.Type()) {
-            case MO_DATA_NUMBER_FLOAT:
-                (*packetStream) << data.Float();
-                break;
-            case MO_DATA_NUMBER_INT:
-                (*packetStream) << data.Int();
-                break;
-            case MO_DATA_NUMBER_LONG:
-                (*packetStream) << data.Long();
-                break;
-            case MO_DATA_NUMBER_DOUBLE:
-                (*packetStream) << data.Double();
-                break;
-            case MO_DATA_TEXT:
-                (*packetStream) << (char*)data.Text();
-                break;
+    moData data;
 
-        }
+    try {
+      for(int j=0; j< datamessage.Count(); j++) {
+          data = datamessage[j];
+          //cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText() << endl;
+          switch(data.Type()) {
+              case MO_DATA_NUMBER_FLOAT:
+                  (*packetStream) << data.Float();
+                  break;
+              case MO_DATA_NUMBER_INT:
+                  (*packetStream) << data.Int();
+                  break;
+              case MO_DATA_NUMBER_LONG:
+                  (*packetStream) << data.Long();
+                  break;
+              case MO_DATA_NUMBER_DOUBLE:
+                  (*packetStream) << data.Double();
+                  break;
+              case MO_DATA_TEXT:
+                  (*packetStream) << (char*)data.Text();
+                  break;
 
+          }
+
+          //MODebug2->Message(moText("moNetOSCOut > data size: ") +  );
+      }
+    } catch(osc::Exception E) {
+      //cout << "moNetOSCOut::SendDataMessage > exception!!" << endl;
+
+      MODebug2->Error( moText("moNetOSCOut > Exception: ") + E.what()
+                      + " packet actual size: (" + IntToStr( (*packetStream).Size() ) + ") "
+                      + " Data too long for buffer: (max OUTPUT_BUFFER_SIZE:" + IntToStr(OUTPUT_BUFFER_SIZE) + ") "
+                      + data.ToText()
+                      + " (size:"+ IntToStr(data.ToText().Length())+" )"
+                      + " (total size:" + IntToStr( data.ToText().Length() + (*packetStream).Size() ) + ")" );
     }
+
     (*packetStream) << osc::EndMessage;
-    (*packetStream) << osc::EndBundle;
+    //cout << "moNetOSCOut::SendDataMessage > osc::EndMessage ok" << endl;
+    //cout << "osc::EndBundle: " << endl;
+    //cout << osc::EndBundle << endl;
+
+    #ifdef MO_WIN32
+        (*packetStream) << osc::EndBundle;
+    #endif
+    //cout << "moNetOSCOut::SendDataMessage > osc::EndBundle ok" << endl;
+
+    //cout << "moNetOSCOut::SendDataMessage > sending." << endl;
+
     if (transmitSockets[i]) {
+        MODebug2->Message(moText("moNetOSCOut > sending ") + IntToStr(i) + " size:" + IntToStr(packetStream->Size()) );
         transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
-        //MODebug2->Push(moText("sending") + IntToStr(i));
+
     }
 
     //MODebug2->Push(moText("sending"));

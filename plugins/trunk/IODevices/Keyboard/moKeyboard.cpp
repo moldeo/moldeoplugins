@@ -413,8 +413,8 @@ moKeyboard::Update(moEventList *Events) {
 
 			switch(actual->devicecode) {
 				case SDL_KEYDOWN:
-                    MODebug2->Push( moText("val0:") + IntToStr(actual->reservedvalue0)
-                                   + moText(" val1:") + IntToStr(actual->reservedvalue1) );
+                   // MODebug2->Message( moText("SDL_KEYDOWN key:") + IntToStr(actual->reservedvalue0)
+                   //                + moText(" mod:") + IntToStr(actual->reservedvalue1) );
 					Keys[actual->reservedvalue0].Push(actual->reservedvalue1);
 					//genero el evento virtual para la consola virtual(pushed de una key)
 					//disp,devcode,val0=botonid,val1=mod(keys especiales)
@@ -439,6 +439,9 @@ moKeyboard::Update(moEventList *Events) {
 					break;
 
 				case SDL_KEYUP:
+				    //MODebug2->Message( moText("SDL_KEYUP key:") + IntToStr(actual->reservedvalue0)
+                    //               + moText(" mod:") + IntToStr(actual->reservedvalue1) );
+
 					Keys[actual->reservedvalue0].Release(actual->reservedvalue1);
 					//genero el evento virtual para la consola virtual(released de una key)
 					//si pertenece al panel
@@ -487,12 +490,14 @@ moKeyboard::Update(moEventList *Events) {
 
 		switch(Codes[i].type) {
 			case 0:
+			    //MODebug2->Message("key pushed");
 				Codes[i].state = Keys[Codes[i].key].pushed;
 				Codes[i].value = Keys[Codes[i].key].pushed;
 				break;
 			case 1:
 				//condicion, pressedmod->sin SHIFT ni CTRL ni ALT
 				if(!( Keys[Codes[i].key].pressedmod &(KMOD_SHIFT & KMOD_CTRL & KMOD_ALT))) {
+                    //MODebug2->Message("key pressed");
 					Codes[i].state = Keys[Codes[i].key].pressed;
 					Codes[i].value = Keys[Codes[i].key].pressed;
 				}
@@ -503,9 +508,10 @@ moKeyboard::Update(moEventList *Events) {
 					(Keys[Codes[i].key].pressedmod & KMOD_SHIFT) &&
 					!(Keys[Codes[i].key].pressedmod &(KMOD_CTRL & KMOD_ALT) )
 					) {
+                    //MODebug2->Message("shift with key pressed");
 					Codes[i].state = Keys[Codes[i].key].pressed;
 					Codes[i].value = Keys[Codes[i].key].pressed;
-				}
+				} else MODebug2->Message("case 2: shift test: bad");
 				break;
 			case 3:
 				//condicion, pressedmod->sin SHIFT con CTRL sin ALT
@@ -518,6 +524,7 @@ moKeyboard::Update(moEventList *Events) {
 				}
 				break;
 			default:
+			   // MODebug2->Message("No special key pressed.");
 				break;
 		}
 	}

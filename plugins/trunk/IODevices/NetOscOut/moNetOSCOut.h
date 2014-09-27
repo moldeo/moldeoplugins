@@ -30,6 +30,7 @@
 *******************************************************************************/
 
 #include "moTypes.h"
+#include "moActions.h"
 
 #ifndef __MO_NET_OSC_OUT_H__
 #define __MO_NET_OSC_OUT_H__
@@ -48,13 +49,17 @@
 moDeclareDynamicArray( UdpTransmitSocket*, moUdpTransmitSocketArray )
 
 enum moNetOSCOutParamIndex {
-    NETOSCOUT_HOSTS=2,
-    NETOSCOUT_PORT=3,
-    NETOSCOUT_DEVICES=4,
-    NETOSCOUT_LATENCY=5,
-    NETOSCOUT_MAXEVENTS=6,
-    NETOSCOUT_SENDEVENTS=7,
-    NETOSCOUT_DELETEEVENTS=8
+    NETOSCOUT_INLET,
+    NETOSCOUT_OUTLET,
+    NETOSCOUT_SCRIPT,
+    NETOSCOUT_HOSTS,
+    NETOSCOUT_PORT,
+    NETOSCOUT_DEVICES,
+    NETOSCOUT_LATENCY,
+    NETOSCOUT_MAXEVENTS,
+    NETOSCOUT_SENDEVENTS,
+    NETOSCOUT_DELETEEVENTS,
+    NETOSCOUT_SENDMOLDEOAPI
 };
 
 
@@ -85,6 +90,7 @@ private:
 	moEventPacketArray eventPacket;
 	int OUTPUT_BUFFER_SIZE;
 
+  int m_sendMoldeoApi;
 	int m_SendEvents;
     int m_Port;
 

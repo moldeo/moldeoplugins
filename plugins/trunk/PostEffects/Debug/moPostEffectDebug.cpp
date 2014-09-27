@@ -94,14 +94,22 @@ moPostEffectDebug::Init()
 
 void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
-    PreDraw( tempogral, parentstate);
-
-    MOulong timecodeticks;
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
 	//calculamos ticks y frames x seg
 	moTextArray TextArray;
+    MOulong timecodeticks;
+    int w;
+    int h;
+
+    BeginDraw( tempogral, parentstate);
+
+    if (m_pResourceManager) {
+        w = m_pResourceManager->GetRenderMan()->ScreenWidth();
+        h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+    }
+
+
+
 
 	ticksprevious = ticks;
 	ticks = moGetTicksAbsolute();
@@ -166,7 +174,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 */
 
 
-    moFont* pFont = m_Config[moR(DEBUG_FONT)].GetData()->Font();
+    moFont mFont = m_Config.Font( moR(DEBUG_FONT) );
 
     PreDraw( tempogral, parentstate);
 
@@ -182,7 +190,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
     glEnable(GL_BLEND);
 
     //color
-    SetColor( m_Config[moR(DEBUG_COLOR)][MO_SELECTED], m_Config[moR(DEBUG_ALPHA)][MO_SELECTED], m_EffectState );
+    SetColor( m_Config[moR(DEBUG_COLOR)], m_Config[moR(DEBUG_ALPHA)], m_EffectState );
 
     moText Texto = moText("");
 
@@ -191,7 +199,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
     int seconds;
     int frames;
 
-    if (pFont) {
+    //if (mFont) {
         /*
         pFont->Draw(    0.0,
                         0.0,
@@ -212,7 +220,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
                 moText(" timecode: ") + (moText)IntToStr(minutes, 2) + moText(":") + (moText)IntToStr(seconds,2) + moText(":") + (moText)IntToStr(frames,2);
 
         //glTranslatef( 0.0, 2.0, 0.0 );
-        pFont->Draw(    0.0,
+        mFont.Draw(    0.0,
                         0.0,
                         Texto,
                         m_Config[moR(DEBUG_FONT)][MO_SELECTED][2].Int(),
@@ -238,11 +246,11 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
             Final = MODebug2->Pop();
         }
         */
-        pFont->Draw( 0.0, 48.0, Final );
+        mFont.Draw( 0.0, 48.0, Final );
 
         //moText infod = moText("screen width:")+IntToStr(w)+moText(" screen height:")+IntToStr(h);
         //pFont->Draw( 0, 0, infod, m_Config[moR(TEXT_FONT)][MO_SELECTED][2].Int(), 0, 2.0, 2.0, 0.0);
-    }
+    //}
 
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix

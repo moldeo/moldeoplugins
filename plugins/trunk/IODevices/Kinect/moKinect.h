@@ -34,7 +34,7 @@
 
 
 //#define KINECT_PCL
-#define KINECT_OPENNI
+#define KINECT_OPENNI 1
 
 
 #include <iostream>
@@ -44,9 +44,9 @@
 *  KINECT OPENNI
 */
 #ifdef KINECT_OPENNI
-    /*C wrapper*/
+    /** C wrapper*/
     #include "XnOpenNI.h"
-    /*C** wrapper*/
+    /** C** wrapper*/
     #include <XnCodecIDs.h>
     #include "XnCppWrapper.h"
 
@@ -65,6 +65,7 @@ MOLDEO
 #include "moEventList.h"
 #include "moIODeviceManager.h"
 
+#include "moP5.h"
 
 enum moKinectParamIndex {
 
@@ -127,7 +128,8 @@ enum moKinectParamIndex {
 	KINECT_OBJECT_TEXTURE2,
 	KINECT_OBJECT_TEXTURE3,
 
-	KINECT_UPDATE_ON
+	KINECT_UPDATE_ON,
+	KINECT_VERBOSE
 };
 
 //Buttons
@@ -395,11 +397,25 @@ enum moKinectElement {
   MO_KIN_REL_SHOULDER_LEFT,
   MO_KIN_REL_SHOULDER_RIGHT,
 
-
   /**distances*/
   MO_KIN_DIST_ABS_INTER_HANDS,
   MO_KIN_DIST_ABS_HAND_LEFT_REL,
   MO_KIN_DIST_ABS_HAND_RIGHT_REL,
+  MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_LEFT,
+  MO_KIN_DIST_ABS_HAND_LEFT_SHOULDER_RIGHT,
+  MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_RIGHT,
+  MO_KIN_DIST_ABS_HAND_RIGHT_SHOULDER_LEFT,
+
+  /** vectors */
+  MO_KIN_VECTOR_SHOULDERS,
+  MO_KIN_VECTOR_HANDS,
+  MO_KIN_VECTOR_FEETS,
+  MO_KIN_VECTOR_KNEES,
+
+  /** angles */
+  MO_KIN_ANGLE_SHOULDERS,
+  MO_KIN_ANGLE_HANDS,
+
 
   /**speeds*/
   MO_KIN_SPEED_ABS_HAND_LEFT,
@@ -449,6 +465,7 @@ class moKinectPosture : public moAbstract {
     }
 
     void Calculate( XnUserID player );
+    void Reset();
 
     moVector3fs  m_PostureVector;
     moVector3fs  m_PostureVectorOld;
@@ -469,11 +486,16 @@ class moKinectGestureRule : public moAbstract {
       (*this) = src;
     }
 
-    moKinectGestureRule(  moKinectElement p_Element, const moVector3f& p_VectorElement, const moVector3f& p_Min, const moVector3f& p_Max ) {
+    moKinectGestureRule(  moKinectElement p_Element,
+                          const moVector3f& p_VectorElement,
+                          const moVector3f& p_Min,
+                          const moVector3f& p_Max ) {
+
       m_KinectElement = p_Element;
       m_VectorElement = p_VectorElement;
       m_MinElement = p_Min;
       m_MaxElement = p_Max;
+
     }
 
 
@@ -491,9 +513,18 @@ class moKinectGestureRule : public moAbstract {
 
       moVector3f V,VMIN, VMAX;
       V = p_Posture.m_PostureVector.Get((int)(m_KinectElement));
-      V =  moVector3f( V.X()*m_VectorElement.X(), V.Y()*m_VectorElement.Y(), V.Z()*m_VectorElement.Z() );
-      VMIN = moVector3f( m_MinElement.X()*m_VectorElement.X(), m_MinElement.Y()*m_VectorElement.Y(), m_MinElement.Z()*m_VectorElement.Z() );
-      VMAX = moVector3f( m_MaxElement.X()*m_VectorElement.X(), m_MaxElement.Y()*m_VectorElement.Y(), m_MaxElement.Z()*m_VectorElement.Z() );
+
+      V =  moVector3f(  V.X()*m_VectorElement.X(),
+                        V.Y()*m_VectorElement.Y(),
+                        V.Z()*m_VectorElement.Z() );
+
+      VMIN = moVector3f(  m_MinElement.X()*m_VectorElement.X(),
+                          m_MinElement.Y()*m_VectorElement.Y(),
+                          m_MinElement.Z()*m_VectorElement.Z() );
+
+      VMAX = moVector3f(  m_MaxElement.X()*m_VectorElement.X(),
+                          m_MaxElement.Y()*m_VectorElement.Y(),
+                          m_MaxElement.Z()*m_VectorElement.Z() );
 
       //MODebug2->Message( "Evaluate: VMIN.X: " + FloatToStr(VMIN.X()) + " V.X:"+FloatToStr(V.X()) + " VMAX.X:"+FloatToStr(VMAX.X()) );
       valid = valid && ( VMIN.X() <= V.X() );
@@ -720,12 +751,20 @@ class moKinectGestureRecognition : public moAbstract {
       m_RingGesture.Set( m_RingPosition, posture );
     }
 
+    void UpdateBegin() {
+      m_ActualPosture.Reset();
+    }
+
     /**
     * Update actual posture for user i
     */
     bool UpdateUser( XnUserID p_user ) {
 
       m_ActualPosture.Calculate( p_user );
+      return true;
+    }
+
+    void UpdateEnd() {
       m_RingGesture.Set( m_RingPosition, m_ActualPosture );
       m_RingPosition++;
       if (m_RingPosition>=m_RingMaxPosition) {
@@ -733,7 +772,6 @@ class moKinectGestureRecognition : public moAbstract {
       }
 
       Recognize();
-      return true;
     }
 
 
@@ -748,11 +786,12 @@ class moKinectGestureRecognition : public moAbstract {
         if ( m_Gestures[g].EvaluateRules( m_ActualPosture ) ) {
 
           ///Send Event Message!!!
-          MODebug2->Message("SENDING MESSAGE FROM GESTURES!!!!**************************************************");
-          MODebug2->Message("GESTURE: " + m_Gestures[g].m_GestureEvent);
+          //MODebug2->Message("SENDING MESSAGE FROM GESTURES!!!!**************************************************");
+          //MODebug2->Message("GESTURE: " + m_Gestures[g].m_GestureEvent);
 
           moData actual_data;
           actual_data.SetText( m_Gestures[g].m_GestureEvent );
+          //moKinectGesture::m_Rules
           m_DataMessage.Add( actual_data );
 
         }
@@ -871,6 +910,7 @@ public:
     moLock  m_DataLock;
 
     int update_on;
+    int verbose_on;
 
     int NDIF1;
     int NDIF2;
@@ -925,24 +965,76 @@ private:
     moOutlet* m_RightHandY;
     moOutlet* m_RightHandZ;
     moOutlet* m_RightHandC;
+    moOutlet* m_RightHandVx;
+    moOutlet* m_RightHandVy;
+    moOutlet* m_RightHandVz;
 
     moOutlet* m_LeftHand;
     moOutlet* m_LeftHandX;
     moOutlet* m_LeftHandY;
     moOutlet* m_LeftHandZ;
     moOutlet* m_LeftHandC;
+    moOutlet* m_LeftHandVx;
+    moOutlet* m_LeftHandVy;
+    moOutlet* m_LeftHandVz;
 
     moOutlet* m_Head;
     moOutlet* m_HeadX;
     moOutlet* m_HeadY;
     moOutlet* m_HeadZ;
     moOutlet* m_HeadC;
+    moOutlet* m_HeadVx;
+    moOutlet* m_HeadVy;
+    moOutlet* m_HeadVz;
+
+    moOutlet* m_LeftKnee;
+    moOutlet* m_LeftKneeX;
+    moOutlet* m_LeftKneeY;
+    moOutlet* m_LeftKneeZ;
+    moOutlet* m_LeftKneeC;
+    moOutlet* m_LeftKneeVx;
+    moOutlet* m_LeftKneeVy;
+    moOutlet* m_LeftKneeVz;
+
+    moOutlet* m_RightKnee;
+    moOutlet* m_RightKneeX;
+    moOutlet* m_RightKneeY;
+    moOutlet* m_RightKneeZ;
+    moOutlet* m_RightKneeC;
+    moOutlet* m_RightKneeVx;
+    moOutlet* m_RightKneeVy;
+    moOutlet* m_RightKneeVz;
+
+    moOutlet* m_Body;
+    moOutlet* m_BodyX;
+    moOutlet* m_BodyY;
+    moOutlet* m_BodyZ;
+    moOutlet* m_BodyC;
+    moOutlet* m_BodyVx;
+    moOutlet* m_BodyVy;
+    moOutlet* m_BodyVz;
+
+    moOutlet* m_KneeSeparation;
+    moOutlet* m_KneeSeparationX;
+    moOutlet* m_KneeSeparationY;
+    moOutlet* m_KneeSeparationZ;
+    moOutlet* m_KneeSeparationC;
+    moOutlet* m_KneeSeparationVx;
+    moOutlet* m_KneeSeparationVy;
+    moOutlet* m_KneeSeparationVz;
 
     moOutlet* m_Gesture;
 
     moVector4d m_VRightHand;
     moVector4d m_VLeftHand;
     moVector4d m_VHead;
+    moVector4d m_VBody;
+    moVector4d m_VLeftKnee;
+    moVector4d m_VRightKnee;
+    moVector4d m_VKneeSeparation;
+
+    moOutlet* m_ShouldersAngle;
+    moOutlet* m_HandsAngle;
 
     moKinectGestureRecognition m_GestureRecognition;
 

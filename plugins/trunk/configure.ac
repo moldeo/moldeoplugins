@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MoldeoPlugins], [0.7.9.7], [info@moldeointeractive.com.ar], [moldeoplugins])
+AC_INIT([MoldeoPlugins], [0.9.1.0], [info@moldeointeractive.com.ar], [moldeoplugins])
 
 AM_INIT_AUTOMAKE
 AM_PROG_LIBTOOL
@@ -20,14 +20,14 @@ AC_CONFIG_SUBDIRS(
 	IODevices/NetOscIn 
 	IODevices/NetOscOut
 	IODevices/Serial
+	IODevices/NetTUIOIn
 	IODevices/Kinect
-    IODevices/NetTUIOIn
-	)
-#		
+)
+#	
 #	 
 #	IODevices/Midi 
 #	
-#	IODevices/NetTUIOIn
+#	
 #	IODevices/Tablet 
 #	IODevices/TabletAsync
 AC_CONFIG_SUBDIRS(
@@ -74,9 +74,10 @@ AC_CONFIG_SUBDIRS(
 	Effects/Text3D
 	Effects/Tunel
 	Effects/ParticlesSimple
+	Effects/Grid
 	)
 
-#	Effects/Grid
+#	
 #	Effects/Democube
 #	Effects/Painter
 #	Effects/Partiture

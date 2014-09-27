@@ -81,6 +81,20 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutOrientationY = NULL;
     pOutOrientationZ = NULL;
 
+
+    pOutBeatFreq = NULL;
+    pOutBeatValue = NULL;
+
+    pOutBeatHighFreq = NULL;
+    pOutBeatHighValue = NULL;
+
+    pOutBeatLowFreq = NULL;
+    pOutBeatLowValue = NULL;
+
+    pOutBeatMediumFreq = NULL;
+    pOutBeatMediumValue = NULL;
+
+
     debug_is_on = false;
 }
 
@@ -142,23 +156,86 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
                     pOutAccelerationZ = pOutlet;
                 }
 
+                /*BEAT*/
+                if (pOutlet->GetConnectorLabelName() == moText("BEATFREQ")) {
+                    pOutBeatFreq = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATVAL")) {
+                    pOutBeatValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATHIGHFREQ")) {
+                    pOutBeatHighFreq = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATHIGHVAL")) {
+                    pOutBeatHighValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATLOWFREQ")) {
+                    pOutBeatLowFreq = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATLOWVAL")) {
+                    pOutBeatLowValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATMEDIUMFREQ")) {
+                    pOutBeatMediumFreq = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("BEATMEDIUMVAL")) {
+                    pOutBeatMediumValue = pOutlet;
+                }
+
+
             }
 
     }
 }
 
-void
-moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
+int
+moOscPacketListener::Update( moOutlets* pOutlets,
+                            bool p_debug_is_on,
+                            moEventList* pEvents,
+                            int p_ProcessMoldeoApi,
+                            int p_MoldeoId  ) {
     //block message
     m_Semaphore.Lock();
 
-    debug_is_on = _debug_is_on;
+    debug_is_on = p_debug_is_on;
 
     moOutlet* poutlet = NULL;
 
     if (pOutEvents==NULL) {
         Init(pOutlets);
     }
+
+    if (pEvents) {
+      	moEvent *actual=NULL,*tmp;
+        moMessage *pmessage;
+
+        if (pEvents) actual = pEvents->First;
+
+        ///Procesamos los eventos recibidos de los MoldeoObject Outlets
+        while(actual!=NULL) {
+          tmp = actual->next;
+          ///procesamos aquellos Outlet q estan dirigidos a este objeto
+          if (actual->deviceid==MO_IODEVICE_CONSOLE
+              && actual->devicecode == MO_ACTION_MOLDEOAPI_EVENT_RECEIVE
+              && actual->reservedvalue0 == p_MoldeoId
+              && actual->reservedvalue3 == MO_DATAMESSAGE) {
+                  moDataMessage* mpDataMessage = (moDataMessage*) actual->pointer;
+                  delete mpDataMessage;
+                  actual->pointer = NULL;
+                  pEvents->Delete(actual);
+          }
+          actual = tmp;
+        }
+
+    }
+
 
     //MODebug2->Push( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
 
@@ -168,7 +245,7 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
         poutlet = NULL;
 
         message = Messages.Get(j);
-        //MODebug2->Push( moText( "Message:" ) + IntToStr( j ) + moText(" Count:") + IntToStr( message.Count() ) ) ;
+
 
         //sumamos a los mensajes....
         ///primer dato debe contener el codigo interno del evento o palabra que lo represente
@@ -178,6 +255,95 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
         if (message.Count()>0) {
              DataCode = message.Get(0);
+             if (debug_is_on) {
+                moText argumentsText;
+                for( int cc = 1; cc < message.Count(); cc++ ) {
+                  argumentsText+= moText(" Arg ") + IntToStr(cc) + moText(": ") + message.Get(cc).ToText();
+                }
+
+                MODebug2->Push( moText( "Message:" ) + DataCode.Text() + moText( " Arguments:" ) + IntToStr(message.Count()-1) + moText(" > ") + argumentsText );
+
+             }
+        }
+
+        if (
+            DataCode.Text() == moText("BEAT")
+            && message.Count()>=2
+            ) {
+            moData Freq = message.Get(1);
+            moData Value = message.Get(2);
+            if (pOutBeatFreq) {
+                pOutBeatFreq->GetData()->SetDouble(Freq.Double());
+                pOutBeatFreq->Update();
+            }
+            if (pOutBeatValue) {
+                pOutBeatValue->GetData()->SetDouble(Value.Double());
+                pOutBeatValue->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Beat Freq: " )
+                                            + FloatToStr(Freq.Double())
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+
+        if (
+            DataCode.Text() == moText("BEATHIGH")
+            && message.Count()>=2
+            ) {
+            moData Freq = message.Get(1);
+            moData Value = message.Get(2);
+            if (pOutBeatHighFreq) {
+                pOutBeatHighFreq->GetData()->SetDouble(Freq.Double());
+                pOutBeatHighFreq->Update();
+            }
+            if (pOutBeatHighValue) {
+                pOutBeatHighValue->GetData()->SetDouble(Value.Double());
+                pOutBeatHighValue->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Beat High Freq: " )
+                                            + FloatToStr(Freq.Double())
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+
+        if (
+            DataCode.Text() == moText("BEATMEDIUM")
+            && message.Count()>=2
+            ) {
+            moData Freq = message.Get(1);
+            moData Value = message.Get(2);
+            if (pOutBeatMediumFreq) {
+                pOutBeatMediumFreq->GetData()->SetDouble(Freq.Double());
+                pOutBeatMediumFreq->Update();
+            }
+            if (pOutBeatMediumValue) {
+                pOutBeatMediumValue->GetData()->SetDouble(Value.Double());
+                pOutBeatMediumValue->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Beat Medium Freq: " )
+                                            + FloatToStr(Freq.Double())
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+
+        if (
+            DataCode.Text() == moText("BEATLOW")
+            && message.Count()>=2
+            ) {
+            moData Freq = message.Get(1);
+            moData Value = message.Get(2);
+            if (pOutBeatLowFreq) {
+                pOutBeatLowFreq->GetData()->SetDouble(Freq.Double());
+                pOutBeatLowFreq->Update();
+            }
+            if (pOutBeatLowValue) {
+                pOutBeatLowValue->GetData()->SetDouble(Value.Double());
+                pOutBeatLowValue->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Beat Low Freq: " )
+                                            + FloatToStr(Freq.Double())
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
         }
 
         if ( DataCode.Text() == moText("EVENT") ) {
@@ -274,6 +440,29 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
         }
 
+        if (
+            DataCode.Text() == moText("MOLDEO") ) {
+
+            if (debug_is_on)
+                MODebug2->Push( moText( "MOLDEO COMMAND received" ) );
+
+            if (p_ProcessMoldeoApi!=0) {
+              if (pEvents) {
+                  MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
+                  moText ApiMessage = message.Get(1).ToText();
+                  moDataMessage* sendMessage = new moDataMessage();
+                  sendMessage->Copy( message, 1, message.Count()-1);
+                  //sendMessage->Add( moData( ApiMessage ) );
+                  /*process messages....*/
+                  pEvents->Add( MO_IODEVICE_CONSOLE,
+                                MO_ACTION_MOLDEOAPI_EVENT_RECEIVE,
+                                p_MoldeoId, 0, 0, MO_DATAMESSAGE, sendMessage );
+
+
+              }
+            }
+        }
+
         if (poutlet) {
 
             poutlet->Update();
@@ -291,9 +480,11 @@ moOscPacketListener::Update( moOutlets* pOutlets, bool _debug_is_on ) {
 
 
     }
+    int nmess = Messages.Count();
     Messages.Empty();
 
     m_Semaphore.Unlock();
+    return nmess;
 }
 
 
@@ -308,33 +499,48 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 
         moData  data0;
 
-        if (debug_is_on) moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
-        if (debug_is_on) moAbstract::MODebug2->Push(moText("TypeTag: ")+ moText(m.TypeTags()) );
-
-
 
         try {
             //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
 
             /*AND OSC*/
             /// El primer dato corresponderá a una palabra que represente la secuencia de datos.
+
             if (
-                    moText( m.TypeTags() ) == moText("ff") /*andOSC*/
-                || moText( m.TypeTags() ) == moText("ifff") /*OSCTouch*/ /* i = finger_id, f: x f: y f:size  */
+                    moText( m.AddressPattern() ) == moText("/1/xy") //andOSC
+                || moText( m.AddressPattern() ) == moText("/touch") //OSCTouch i = finger_id, f: x f: y f:size
 
                 ) {
 
                 data0 = moData( moText( "POSITION" ) );
                 message.Add( data0 );
-            }
-            if ( moText( m.TypeTags() ) == moText("iii") ) {
+            } else if ( moText( m.AddressPattern() ) == moText("/ori") ) {
                 data0 = moData( moText( "ORIENTATION" ) );
                 message.Add( data0 );
-            }
-            if ( moText( m.TypeTags() ) == moText("fff") ) {
+            } else if ( moText( m.AddressPattern() ) == moText("/acc") ) {
                 data0 = moData( moText( "ACCELERATION" ) );
                 message.Add( data0 );
+            } else/*AnalyseSOundMonar*/
+            if ( moText( m.AddressPattern() ) == moText("/beat") ) {
+                data0 = moData( moText( "BEAT" ) );
+                message.Add( data0 );
+            } else if ( moText( m.AddressPattern() ) == moText("/beathigh") ) {
+                data0 = moData( moText( "BEATHIGH" ) );
+                message.Add( data0 );
+            } else if ( moText( m.AddressPattern() ) == moText("/beatmedium") ) {
+                data0 = moData( moText( "BEATMEDIUM" ) );
+                message.Add( data0 );
+            } else if ( moText( m.AddressPattern() ) == moText("/beatlow") ) {
+                data0 = moData( moText( "BEATLOW" ) );
+                message.Add( data0 );
+            } else if ( moText( m.AddressPattern() ).SubText(0,6) == moText("/moldeo") ) {
+                data0 = moData( moText( "MOLDEO" ) );
+                message.Add( data0 );
+            } else {
+                data0 = moData( moText(  m.AddressPattern() ) );
+                message.Add( data0 );
             }
+
 
             osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 
@@ -418,10 +624,9 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
                     data = moData( pointer, size, dtype );
                     message.Add( data );
                 }
-                if (debug_is_on) moAbstract::MODebug2->Push( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
+                //if (debug_is_on) MODebug2->Push( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
                 (arg++);
             }
-
         }
         catch( osc::Exception& e ){
             // any parsing errors such as unexpected argument types, or
@@ -471,6 +676,7 @@ MOboolean moNetOSCIn::Init() {
 	moDefineParamIndex( NETOSCIN_PORT , moText("port") );
 	moDefineParamIndex( NETOSCIN_RECEIVEEVENTS, moText("receive_events") );
 	moDefineParamIndex( NETOSCIN_DEBUG, moText("debug") );
+	moDefineParamIndex( NETOSCIN_PROCESSMOLDEOAPI, moText("process_moldeo_api") );
 
     bool events_present;
     bool trackersystem_present;
@@ -630,6 +836,7 @@ moNetOSCIn::UpdateParameters() {
 
     m_ReceiveEvents = m_Config.Int( moR(NETOSCIN_RECEIVEEVENTS) );
     debug_is_on = ( 0 != m_Config.Int( moR(NETOSCIN_DEBUG) ) );
+    m_ProcessMoldeoApi = m_Config.Int( moR(NETOSCIN_PROCESSMOLDEOAPI) );
 
 }
 
@@ -642,6 +849,8 @@ moNetOSCIn::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCIN_PORT, moValue("7400","INT") );
 	p_configdefinition->Add( moText("receive_events"), MO_PARAM_NUMERIC, NETOSCIN_RECEIVEEVENTS, moValue("0","INT") );
 	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, NETOSCIN_DEBUG, moValue("0","INT") );
+	p_configdefinition->Add( moText("process_moldeo_api"), MO_PARAM_NUMERIC, NETOSCIN_PROCESSMOLDEOAPI, moValue("1","INT") );
+
 
 	return p_configdefinition;
 }
@@ -662,7 +871,7 @@ MOdevcode moNetOSCIn::GetCode(moText strcod) {
     return(-1);
 }
 
-void moNetOSCIn::Update(moEventList *Eventos) {
+void moNetOSCIn::Update(moEventList *Events) {
 
     MOuint i;
 
@@ -692,7 +901,12 @@ void moNetOSCIn::Update(moEventList *Eventos) {
 
         if (pListener) {
             //MODebug2->Push( moText("Updating outlets "));
-            pListener->Update( GetOutlets(), debug_is_on );
+            int nnn = pListener->Update( GetOutlets(),
+                                        debug_is_on,
+                                        Events,
+                                        m_ProcessMoldeoApi,
+                                        GetMobDefinition().GetMoldeoId()  );
+            if (nnn>0 && debug_is_on) MODebug2->Push( moText("Updating outlets with messages: ") + IntToStr(nnn) );
         }
 
 	}
@@ -701,7 +915,7 @@ void moNetOSCIn::Update(moEventList *Eventos) {
         if (m_pEvents) {
 
             //MODebug2->Push( moText("Checking events "));
-
+/*
             for(int i = 0; i<m_pEvents->GetMessages().Count();  i++) {
 
                 moDataMessage& mess( m_pEvents->GetMessages().GetRef(i) );
@@ -731,13 +945,14 @@ void moNetOSCIn::Update(moEventList *Eventos) {
                                 + IntToStr(val3)
                 );
 
-                Eventos->Add( did, cid, val0, val1, val2, val3 );
+                Events->Add( did, cid, val0, val1, val2, val3 );
 
             }
+            */
         }
     }
 
-	moMoldeoObject::Update(Eventos);
+	moMoldeoObject::Update(Events);
 
     for(i=0; i<GetOutlets()->Count();i++) {
         moOutlet* pOutlet = GetOutlets()->Get(i);

@@ -78,6 +78,12 @@ enum moWebviewParamIndex {
 	WEBVIEW_SHOWCURSOR
 };
 
+enum tuioDef {
+  MO_TOUCH_START,
+  MO_TOUCH_END,
+  MO_TOUCH_MOVE
+};
+
 /*
 const char* html_str = "<h1>Hello World</h1>";
 
@@ -208,6 +214,7 @@ virtual void OnChangeTitle(Awesomium::WebView* caller,
         double           m_CursorX;
         double           m_CursorY;
         moEventList     m_JSEvents;
+		WebTouchEvent	m_WebTouchEvent;
 
         void setUpLighting();
 };
