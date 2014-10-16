@@ -94,6 +94,7 @@ moEffectGrid::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
+	p_configdefinition->Add( moText("shader"), MO_PARAM_TEXT, GRID_SHADER, moValue( "", MO_VALUE_TXT) );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, GRID_TEXTURE, moValue( "default", MO_VALUE_TXT) );
 	p_configdefinition->Add( moText("textureb"), MO_PARAM_TEXTURE, GRID_TEXTUREB, moValue( "default", MO_VALUE_TXT) );
 	p_configdefinition->Add( moText("texturec"), MO_PARAM_TEXTURE, GRID_TEXTUREC, moValue( "default", MO_VALUE_TXT) );
@@ -163,6 +164,7 @@ MOboolean moEffectGrid::Init()
     moDefineParamIndex( GRID_COLOR, moText("color") );
     moDefineParamIndex( GRID_SYNC, moText("syncro") );
     moDefineParamIndex( GRID_PHASE, moText("phase") );
+    moDefineParamIndex( GRID_SHADER, moText("shader") );
 
     moDefineParamIndex( GRID_TEXTURE, moText("texture") );
     moDefineParamIndex( GRID_TEXTUREB, moText("textureb") );
@@ -252,7 +254,7 @@ void moEffectGrid::UpdateParameters() {
       Grid->m_GridDefinition.m_wave_amplitude = wave_amplitude;
       Grid->m_GridDefinition.m_wireframe_width = wireframe_width;
       Grid->m_GridDefinition.m_wireframe_configuration = wireframe_configuration;
-      Grid->m_GridDefinition.m_alpha = alpha;
+      Grid->m_GridDefinition.m_alpha = alpha*this->m_EffectState.alpha;
       Grid->m_GridDefinition.m_minimum_surface_altitude = control_minimum_surface_altitude;
       //MODebug2->Message( "height_multiply: "+ FloatToStr(height_multiply) );
 
