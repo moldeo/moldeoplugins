@@ -102,7 +102,12 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
         moOutlet*   pOutEvents;
         moOutlet*   pOutTracker;
         moOutlet*   pOutTuio;
+
         moOutlet*   pOutData;
+        moOutlet*   pOutDataMessages;
+
+        moOutlet*   pOutNote;
+        moOutlet*   pOutNoteVel;
 
         moOutlet*   pOutAndOsc;
 
