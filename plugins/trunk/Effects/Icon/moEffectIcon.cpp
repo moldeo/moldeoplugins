@@ -128,15 +128,14 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     BeginDraw( tempogral, parentstate);
 
     // Guardar y resetar la matriz de vista del modelo //
-    glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
-    glLoadIdentity();									// Reset The View
     // Cambiar la proyeccion para una vista ortogonal //
-    glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
-    //glDepthMask(GL_FALSE);
+
 
     m_pResourceManager->GetGLMan()->SetOrthographicView();
 
     glEnable(GL_ALPHA);
+    glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
+    glDepthMask(GL_FALSE);
 
     ancho = m_Config.Eval( moR(ICON_WIDTH));
     alto = m_Config.Eval( moR(ICON_HEIGHT));
@@ -158,7 +157,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
-    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo) );
+    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE)) );
 
 
     glBegin(GL_QUADS);
@@ -194,6 +193,11 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
           }
       }
     }
+
+    glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+    glPopMatrix();										// Restore The Old Projection Matrix
+    glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+    glPopMatrix();										// Restore The Old Projection Matrix
 
     EndDraw();
 }
