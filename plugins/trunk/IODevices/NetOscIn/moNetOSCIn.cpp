@@ -65,7 +65,8 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     m_pUdpRcv = NULL;
     pOutEvents = NULL;
     pOutTracker = NULL;
-
+    pOutData = NULL;
+    pOutDataMessages = NULL;
 
     pOutAndOsc = NULL;
 
@@ -118,6 +119,18 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
             if (pOutlet) {
                 if (pOutlet->GetConnectorLabelName() == moText("EVENTS")) {
                     pOutEvents = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("NOTE")) {
+                    pOutNote = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("NOTEVEL")) {
+                    pOutNoteVel = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("DATA")) {
+                    pOutData = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("DATAMESSAGES")) {
+                    pOutDataMessages = pOutlet;
                 }
                 if (pOutlet->GetConnectorLabelName() == moText("TRACKERSYSTEM")) {
                     pOutTracker = pOutlet;
@@ -463,6 +476,22 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             }
         }
 
+        if (
+            DataCode.Text() == moText("note") || DataCode.Text() == moText("NOTE") ) {
+            if (message.Count()>=4 && pOutNote && pOutNoteVel ) {
+                moData NoteValue = message.Get(1);
+                moData VelMessage = message.Get(2);
+                moData VelValue = message.Get(3);
+
+                pOutNote->GetData()->SetInt(  NoteValue.Int() );
+                pOutNoteVel->GetData()->SetInt(  VelValue.Int() );
+                pOutNote->Update();
+                pOutNoteVel->Update();
+            }
+        }
+
+
+
         if (poutlet) {
 
             poutlet->Update();
@@ -480,6 +509,17 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
 
     }
+
+    if (pOutDataMessages) {
+      moDataMessages& msgs( pOutDataMessages->GetMessages() );
+      msgs.Empty();
+      msgs = Messages;
+      if ( pOutDataMessages->GetType()==MO_DATA_MESSAGES ) {
+        pOutDataMessages->GetData()->SetMessages( &msgs );
+        pOutDataMessages->Update();
+      }
+    }
+
     int nmess = Messages.Count();
     Messages.Empty();
 
