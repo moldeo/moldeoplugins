@@ -1042,6 +1042,8 @@ private:
     XnMapOutputMode m_OutputMode;
 
     moTexture* m_pDepthTexture;
+    moTexture* m_pDepthFloatTexture;
+
     moTexture* m_pRGBTexture;
     moTexture* m_pIRTexture;
     moTexture* m_pUserTexture;
@@ -1052,6 +1054,8 @@ private:
     unsigned char* pData2;
     unsigned char* pImage;
     unsigned char* pIR;
+
+    float* pFData;
 
     unsigned char* pDataObj1;
     unsigned char* pDataObj2;

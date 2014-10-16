@@ -129,10 +129,12 @@ moKinect::moKinect() {
 	SetName("kinect");
 
 	pData = NULL;
+	pFData = NULL;
 	pData2 = NULL;
 	pImage = NULL;
 	m_pDepthTexture = NULL;
 	m_pDepthTexture2 = NULL;
+	m_pDepthFloatTexture = NULL;
 	m_pRGBTexture = NULL;
 	m_pUserTexture = NULL;
 	pCloud = NULL;
@@ -909,7 +911,6 @@ moKinect::Init() {
 
         /** WE CREATE THE 640x480 TEXTURE*/
         moTexParam tparam = MODefTex2DParams;
-        //tparam.internal_format = GL_RGBA32F_ARB;
         tparam.internal_format = GL_RGB;
         int Mid = -1;
 
@@ -926,6 +927,13 @@ moKinect::Init() {
             if (Mid>0) {
                 m_pDepthTexture2 = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
             }
+
+            tparam.internal_format = GL_RGBA32F;
+            Mid = GetResourceManager()->GetTextureMan()->AddTexture( "KINECTDEPTHFLOAT", m_OutputMode.nXRes, m_OutputMode.nYRes, tparam );
+            if (Mid>0) {
+                m_pDepthFloatTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+            }
+
 
             pCloud = new moVector3f [m_OutputMode.nXRes*m_OutputMode.nYRes];
             //pCloudDif = new moVector3f[m_OutputMode.nXRes*m_OutputMode.nYRes];
@@ -1144,15 +1152,42 @@ moKinect::Init() {
 
 
 
+  moKinectGesture Kamehameha;
+  Kamehameha.m_GestureEvent = "KAMEHAMEHA";
+  Kamehameha.m_Interval = moKinectGestureInterval( 120, 0, 120 );
+  Kamehameha.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 10.0f, 0.0f, 0.0f ),
+                              moVector3f( 100.0f, 0.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( Kamehameha );
+
+
   moKinectGesture ManosJuntas;
   ManosJuntas.m_GestureEvent = "MANOS_JUNTAS";
-  ManosJuntas.m_Interval = moKinectGestureInterval( 12, 0, 12 );
+  ManosJuntas.m_Interval = moKinectGestureInterval( 30, 0, 30 );
   ManosJuntas.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
                               moVector3f( 1.0, 0, 0 ),
                               moVector3f( 10.0f, 0.0f, 0.0f ),
-                              moVector3f( 200.0f, 0.0f, 0.0f ) );
+                              moVector3f( 100.0f, 0.0f, 0.0f ) );
   m_GestureRecognition.m_Gestures.Add( ManosJuntas );
 
+
+  moKinectGesture ManosArriba;
+  ManosArriba.m_GestureEvent = "MANOS_ARRIBA";
+  ManosArriba.m_Interval = moKinectGestureInterval( 20, 0, 20 );
+  ManosArriba.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
+                              moVector3f( 1.0, 0, 0 ),
+                              moVector3f( 800.0f, 0.0f, 0.0f ),
+                              moVector3f( 10000.0f, 0.0f, 0.0f ) );
+  ManosArriba.AddGestureRule(  MO_KIN_REL_HAND_LEFT,
+                              moVector3f( 0.0, 1, 0 ),
+                              moVector3f( 0.0f, 400.0f, 0.0f ),
+                              moVector3f( 0.0f, 10000.0f, 0.0f ) );
+  ManosArriba.AddGestureRule(  MO_KIN_REL_HAND_RIGHT,
+                              moVector3f( 0.0, 1, 0 ),
+                              moVector3f( 0.0f, 400.0f, 0.0f ),
+                              moVector3f( 0.0f, 10000.0f, 0.0f ) );
+  m_GestureRecognition.m_Gestures.Add( ManosArriba );
 
   moKinectGesture AllOff;
   AllOff.m_GestureEvent = "ALLOFF";
@@ -1171,12 +1206,12 @@ moKinect::Init() {
 
   moKinectGesture Lluvia;
   Lluvia.m_GestureEvent = "LLUVIA";
-  Lluvia.m_Interval = moKinectGestureInterval( 24, 0, 24 );
+  Lluvia.m_Interval = moKinectGestureInterval( 10, 0, 10 );
   ///distancia Y
   Lluvia.AddGestureRule(  MO_KIN_DIST_ABS_INTER_HANDS,
                               moVector3f( 1.0, 1.0f, 0 ),
-                              moVector3f( 200.0f, 0.0f, 0.0f ),
-                              moVector3f( 300.0f, 60.0f, 0.0f ) );
+                              moVector3f( 100.0f, 0.0f, 0.0f ),
+                              moVector3f( 400.0f, 60.0f, 0.0f ) );
   Lluvia.AddGestureRule(  MO_KIN_ANGLE_HANDS,
                               moVector3f( 1.0, 0, 0 ),
                               moVector3f( 0.0f, 0.0f, 0.0f ),
@@ -2076,6 +2111,10 @@ if (update_on>0 && this->Initialized() ) {
                 pData =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
 
             }
+            if (!pFData) {
+                pFData =  new float [ m_OutputMode.nXRes * m_OutputMode.nYRes * 4 ];
+
+            }
             if (!pData2) {
                 pData2 =  new unsigned char [ m_OutputMode.nXRes * m_OutputMode.nYRes * 3 ];
 
@@ -2104,7 +2143,7 @@ if (update_on>0 && this->Initialized() ) {
             jcal = 0;
             if (disoff==0) disoff=1.0;
 
-            if (pData && pData2) {
+            if (pData && pData2 && pFData) {
                 for( int j=0; j<m_OutputMode.nYRes; j++ ) {
                     for( int i=0; i<m_OutputMode.nXRes; i++ ) {
 
@@ -2118,8 +2157,8 @@ if (update_on>0 && this->Initialized() ) {
 
                         if (
 
-                                m_Offset.X()<(*pDepthMap)
-                            && (*pDepthMap)<m_Offset.Y()
+                                m_Offset.X()<z
+                            && z<m_Offset.Y()
 
                             && (int)(m_OffsetBox.X())<=i
                             && i<=(int)(m_OffsetBox.Y())
@@ -2130,13 +2169,23 @@ if (update_on>0 && this->Initialized() ) {
 
                             ) {
 
-                            pData[i*3+j*m_OutputMode.nXRes*3] = (*pDepthMap - (int)m_Offset.X() );
-                            pData[i*3+j*m_OutputMode.nXRes*3] = (int)( (float)(*pDepthMap)*255.0f/disoff);
+
+                            pData[i*3+j*m_OutputMode.nXRes*3] = (z - (int)m_Offset.X() );
+                            pData[i*3+j*m_OutputMode.nXRes*3] = (float)( z*255.0f/disoff);
                             //pData[i*3+j*m_OutputMode.nXRes*3] = ( pData[i*3+j*m_OutputMode.nXRes*3] >> 3 ) % 255;
                             //pData[i*3+1+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
                             //pData[i*3+2+j*m_OutputMode.nXRes*3] = (*pDepthMap - disoff) % 255;
 
+                            //FLOAT TEXTURE
+                            pFData[i*4+j*m_OutputMode.nXRes*4] = z/10000.0f;
+
                             //grey values:
+
+                            pFData[i*4+1+j*m_OutputMode.nXRes*4] = pFData[i*4+j*m_OutputMode.nXRes*4];
+                            pFData[i*4+2+j*m_OutputMode.nXRes*4] = pFData[i*4+j*m_OutputMode.nXRes*4];
+                            pFData[i*4+3+j*m_OutputMode.nXRes*4] = 1.0f;
+
+
                             pData[i*3+1+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
                             pData[i*3+2+j*m_OutputMode.nXRes*3] = pData[i*3+j*m_OutputMode.nXRes*3];
 
@@ -2171,6 +2220,11 @@ if (update_on>0 && this->Initialized() ) {
                             pData2[i*3+1+j*m_OutputMode.nXRes*3] = 0;
                             pData2[i*3+2+j*m_OutputMode.nXRes*3] = 0;
 
+                            pFData[i*4+j*m_OutputMode.nXRes*4] = 0.0f;
+                            pFData[i*4+1+j*m_OutputMode.nXRes*4] = 0.0f;
+                            pFData[i*4+2+j*m_OutputMode.nXRes*4] = 0.0f;
+                            pFData[i*4+3+j*m_OutputMode.nXRes*4] = 0.0f;
+
                         }
 
 
@@ -2180,6 +2234,10 @@ if (update_on>0 && this->Initialized() ) {
 
                 if (m_pDepthTexture) {
                     m_pDepthTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pData, GL_RGB, GL_UNSIGNED_BYTE );
+                }
+
+                if (m_pDepthFloatTexture) {
+                    m_pDepthFloatTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pFData, GL_RGBA, GL_FLOAT );
                 }
 
 
