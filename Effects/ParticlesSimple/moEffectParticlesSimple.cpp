@@ -210,8 +210,8 @@ moEffectParticlesSimple::Init()
   if (glActiveTextureARB) {
   } else {
     glewInit();
-    MODebug2->Message( moText("moEffectParticlesSimple::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
-    MODebug2->Message( moText("moEffectParticlesSimple::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
+    //MODebug2->Message( moText("moEffectParticlesSimple::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
+    //MODebug2->Message( moText("moEffectParticlesSimple::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
   }
 
 	moDefineParamIndex( PARTICLES_INLET, moText("inlet") );
