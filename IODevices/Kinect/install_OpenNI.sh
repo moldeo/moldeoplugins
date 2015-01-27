@@ -8,7 +8,7 @@ cd kinect
 git clone https://github.com/OpenNI/OpenNI.git -b unstable
 cd ~/kinect/OpenNI/Platform/Linux/CreateRedist
 bash RedistMaker
-cd ../Redist/OpenNI-Bin-Dev-Linux-x86*/
+cd ../Redist/OpenNI-Bin-Dev-Linux-*/
 sudo ./install.sh
 
 #wget http://www.openni.org/wp-content/uploads/2012/12/OpenNI-Bin-Dev-Linux-x64-v1.5.4.0.tar.zip
@@ -21,10 +21,11 @@ sudo ./install.sh
 #unzip SensorKinect-unstable.zip
 #mv SensorKinect-unstable sensorkin
 #git clone https://github.com/avin2/SensorKinect -b unstable
+cd ~/kinect
 git clone https://github.com/ph4m/SensorKinect.git -b unstable
 cd ~/kinect/SensorKinect/Platform/Linux/CreateRedist
 bash RedistMaker
-cd ../Redist/Sensor-Bin-Linux-x86*
+cd ../Redist/Sensor-Bin-Linux-*
 sudo sh install.sh
 
 #wget http://www.openni.org/wp-content/uploads/2012/12/Sensor-Bin-Linux-x64-v5.1.2.1.tar.zip
@@ -38,7 +39,7 @@ sudo sh install.sh
 cd ~/kinect
 wget http://www.mira-project.org/downloads/3rdparty/bin-linux/nite-bin-linux-x64-v1.5.2.21.tar.bz2
 tar -xvf nite-bin-linux-x64-v1.5.2.21.tar.bz2
-mv nite-bin-linux-x64-v1.5.2.21 nite
+mv NITE-Bin-Dev-Linux-x64-v1.5.2.21 nite
 cd ~/kinect/nite/
 chmod a+x install.sh
 sudo ./install.sh
