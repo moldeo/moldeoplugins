@@ -39,7 +39,7 @@ moDefineDynamicArray( moOpenCVSystems )
 
   NOTAS:
 
-  el tracker podrÃ¡ funcionar como un thread que vaya calculando en funcion de q va llegando la info,
+  el tracker podrá funcionar como un thread que vaya calculando en funcion de q va llegando la info,
   o mejor aun, que trate de calcular, y cuando llega a un resultado el efecto en cuestion tome ese valor.
 
   //para que el tracker funcione sin shaders, debemos hacer el calculo antes de que se pase la informacion a la textura,
@@ -87,6 +87,12 @@ void moOpenCVFactory::Destroy(moResource* fx) {
 
 moOpenCV::moOpenCV() {
 	SetName(moText("opencv"));
+	m_pCVSourceTexture = NULL;
+	m_pCVResultTexture = NULL;
+	m_pCVResult2Texture = NULL;
+	m_pCVResult3Texture = NULL;
+  m_OutletDataMessage = NULL;
+  m_pDataMessage = NULL;
 }
 
 moOpenCV::~moOpenCV() {
@@ -98,8 +104,20 @@ moConfigDefinition * moOpenCV::GetDefinition( moConfigDefinition *p_configdefini
 	//default: alpha, color, syncro
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, OPENCV_TEXTURE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("recognition_mode"), MO_PARAM_NUMERIC, OPENCV_RECOGNITION_MODE, moValue( "0", "NUM"), moText("Face,Gpu Motion,Blobs,Color,Motion Detection") );
+	p_configdefinition->Add( moText("reduce_width"), MO_PARAM_NUMERIC, OPENCV_REDUCE_WIDTH, moValue( "64","INT").Ref() );
+	p_configdefinition->Add( moText("reduce_height"), MO_PARAM_NUMERIC, OPENCV_REDUCE_HEIGHT, moValue( "64","INT").Ref() );
 	p_configdefinition->Add( moText("threshold"), MO_PARAM_NUMERIC, OPENCV_THRESHOLD, moValue( "50", "INT").Ref() );
 	p_configdefinition->Add( moText("threshold_max"), MO_PARAM_NUMERIC, OPENCV_THRESHOLD_MAX, moValue( "255", "INT").Ref() );
+
+	p_configdefinition->Add( moText("crop_min_x"), MO_PARAM_FUNCTION, OPENCV_CROP_MIN_X, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("crop_max_x"), MO_PARAM_FUNCTION, OPENCV_CROP_MAX_X, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("crop_min_y"), MO_PARAM_FUNCTION, OPENCV_CROP_MIN_Y, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("crop_max_y"), MO_PARAM_FUNCTION, OPENCV_CROP_MAX_Y, moValue( "1.0", "FUNCTION").Ref() );
+
+	p_configdefinition->Add( moText("motion_pixels"), MO_PARAM_NUMERIC, OPENCV_MOTION_PIXELS, moValue( "5", "INT").Ref() );
+	p_configdefinition->Add( moText("motion_deviation"), MO_PARAM_NUMERIC, OPENCV_MOTION_DEVIATION, moValue( "20", "INT").Ref() );
+
 
 	return p_configdefinition;
 
@@ -107,17 +125,28 @@ moConfigDefinition * moOpenCV::GetDefinition( moConfigDefinition *p_configdefini
 
 MOboolean moOpenCV::Init() {
 
-    moText configname;
-	MOint nvalues;
-	MOint trackersystems;
+  moText configname;
+  MOint nvalues;
+  MOint trackersystems;
 
-    if ( GetConfigName().Length()==0 ) return false;
+  if ( GetConfigName().Length()==0 ) return false;
 
-    if (!moResource::Init()) return false;
+  if (!moResource::Init()) return false;
 
-    moDefineParamIndex( OPENCV_TEXTURE, "texture" );
-	moDefineParamIndex( OPENCV_THRESHOLD, moText("threshold") );
-	moDefineParamIndex( OPENCV_THRESHOLD_MAX, moText("threshold_max") );
+  moDefineParamIndex( OPENCV_TEXTURE, "texture" );
+  moDefineParamIndex( OPENCV_RECOGNITION_MODE, "recognition_mode" );
+  moDefineParamIndex( OPENCV_REDUCE_WIDTH, moText("reduce_width") );
+  moDefineParamIndex( OPENCV_REDUCE_HEIGHT, moText("reduce_height") );
+  moDefineParamIndex( OPENCV_THRESHOLD, moText("threshold") );
+  moDefineParamIndex( OPENCV_THRESHOLD_MAX, moText("threshold_max") );
+
+  moDefineParamIndex( OPENCV_CROP_MIN_X, "crop_min_x" );
+  moDefineParamIndex( OPENCV_CROP_MAX_X, "crop_max_x" );
+  moDefineParamIndex( OPENCV_CROP_MIN_Y, "crop_min_y" );
+  moDefineParamIndex( OPENCV_CROP_MAX_Y, "crop_max_y" );
+
+  moDefineParamIndex( OPENCV_MOTION_PIXELS, "motion_pixels" );
+  moDefineParamIndex( OPENCV_MOTION_DEVIATION, "motion_deviation" );
 
 /*
 	img = cvCreateImage( cvSize(w,w), 8, 1 );
@@ -136,6 +165,12 @@ MOboolean moOpenCV::Init() {
 
     //contours = cvApproxPoly( contours, sizeof(CvContour), storage, CV_POLY_APPROX_DP, 3, 1 );
 */
+
+    m_pBuffer = NULL;
+    m_pIplImage = NULL;
+
+    m_RecognitionMode = OPENCV_RECOGNITION_MODE_UNDEFINED;
+    m_bReInit = true;
 
     m_pSrcTexture = NULL;
     m_pDest0Texture = NULL;
@@ -156,6 +191,68 @@ MOboolean moOpenCV::Init() {
 
     switch_texture = -1;
 
+    m_FacePositionX = NULL;
+    m_FacePositionY = NULL;
+    m_FaceSizeWidth = NULL;
+    m_FaceSizeHeight = NULL;
+
+    m_MotionDetection = NULL;
+    m_MotionDetectionX = NULL;
+    m_MotionDetectionY = NULL;
+
+    m_EyeLeftX = NULL;
+    m_EyeLeftY = NULL;
+    m_EyeRightX = NULL;
+    m_EyeRightY = NULL;
+
+    m_OutTracker = NULL;
+    m_OutletDataMessage = NULL;
+    m_pDataMessage = NULL;
+    m_pDataMessage = new moDataMessage();
+
+    moTexParam tparam = MODefTex2DParams;
+    //tparam.internal_format = GL_RGBA32F_ARB;
+    tparam.internal_format = GL_RGB;
+    int Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVSOURCE", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVSourceTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVSourceTexture->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVSOURCE texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVSOURCE");
+    }
+
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVRESULT", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVResultTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVResultTexture->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVRESULT texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVRESULT");
+    }
+
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVRESULT2", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVResult2Texture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVResult2Texture->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVRESULT2 texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVRESULT");
+    }
+
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVRESULT3", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVResult3Texture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVResult3Texture->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVRESULT3 texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVRESULT");
+    }
+
     UpdateParameters();
 
 	return true;
@@ -164,406 +261,895 @@ MOboolean moOpenCV::Init() {
 
 void moOpenCV::UpdateParameters() {
 
-	m_pSrcTexture = NULL;
+  moOpenCVRecognitionMode mode = (moOpenCVRecognitionMode) m_Config.Int( moR(OPENCV_RECOGNITION_MODE) );
 
-    moData* pTexData = m_Config[moR( OPENCV_TEXTURE )].GetData();
+  if (m_RecognitionMode != mode ) {
+    m_bReInit = true;
+    m_RecognitionMode = mode;
+  }
+
+  int reduce_width = m_Config.Int(moR(OPENCV_REDUCE_WIDTH ));
+  int reduce_height = m_Config.Int(moR(OPENCV_REDUCE_HEIGHT ));
+  if ( m_reduce_width!=reduce_width || m_reduce_height!=reduce_height ) m_bReInit = true;
+
+  m_reduce_width = reduce_width;
+  m_reduce_height = reduce_height;
+  m_threshold = m_Config.Int( moR(OPENCV_THRESHOLD));
+  m_threshold_max = m_Config.Int( moR(OPENCV_THRESHOLD_MAX));
+  m_crop_min_x =  m_Config.Eval( moR(OPENCV_CROP_MIN_X));
+  m_crop_max_x =  m_Config.Eval( moR(OPENCV_CROP_MAX_X));
+  m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
+  m_crop_max_y =  m_Config.Eval( moR(OPENCV_CROP_MAX_Y));
+
+  m_motion_pixels = m_Config.Eval( moR(OPENCV_MOTION_PIXELS));
+  m_motion_deviation = m_Config.Eval( moR(OPENCV_MOTION_DEVIATION));
+
+  moData* pTexData = m_Config[moR( OPENCV_TEXTURE )].GetData();
+  //moTexture rTexture = m_Config.Texture( moR( OPENCV_TEXTURE );
+  if (pTexData
+      && pTexData->Texture()) {
+        //MODebug2->Message( "moOpenCV::UpdateParameters() > " + pTexData->Texture()->GetName() );
+  } else {
+    MODebug2->Error("moOpenCV::UpdateParameters() > no  TexData !! Trying updating the connectors..." );
+    moMoldeoObject::UpdateConnectors();
+    pTexData = m_Config[moR( OPENCV_TEXTURE )].GetData();
+    if ( pTexData)
+      if (pTexData->Texture())
+        MODebug2->Message( "moOpenCV::UpdateParameters() > " + pTexData->Texture()->GetName() );
+  }
+
+  moTexture* m_pRecTexture = NULL;
+
+  if (m_pSrcTexture==NULL) {
+      m_bReInit = true;
+  }
+
+  if (m_pDataMessage)
+    m_pDataMessage->Empty();
 
 	if (pTexData) {
-            ///segun el modelo aplicamos...
-            pTexData->GetGLId();
+    ///segun el modelo aplicamos...
+    pTexData->GetGLId();
 
-            switch(pTexData->Type()) {
+    switch(pTexData->Type()) {
+        case MO_DATA_IMAGESAMPLE:
+            m_pRecTexture = pTexData->Texture();
+            break;
+        case MO_DATA_IMAGESAMPLE_FILTERED:
+            m_pRecTexture = pTexData->TextureDestination();
+            break;
+        default:
+            m_pRecTexture = NULL;
+            break;
+    }
+	} else {
 
-                case MO_DATA_IMAGESAMPLE:
-                    m_pSrcTexture = pTexData->Texture();
-                    break;
+	}
 
-                case MO_DATA_IMAGESAMPLE_FILTERED:
-                    m_pSrcTexture = pTexData->TextureDestination();
-                    break;
+	if (m_pRecTexture) {
+    if (m_pSrcTexture) {
+      if (m_pRecTexture->GetName()!=m_pSrcTexture->GetName()) {
+        MODebug2->Message("moOpenCV::UpdateParameters() > m_bReInit TRUE! for " + m_pRecTexture->GetName());
+        m_bReInit = true;
+      }
+    } else {
+      MODebug2->Message("moOpenCV::UpdateParameters() > set texture to " + m_pRecTexture->GetName());
+    }
+
+    m_pSrcTexture = m_pRecTexture;
+	}
+
+	if (m_pSrcTexture==NULL) {
+      MODebug2->Error("moOpenCV::UpdateParameters() > texture is null ");
+      return;
+	}
+
+  switch( m_RecognitionMode ) {
+    case OPENCV_RECOGNITION_MODE_FACE:
+      {
+      int stepN = 10;
+      ( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
+      if (m_steps==stepN) { FaceDetection(); }
+      }
+      break;
+    case OPENCV_RECOGNITION_MODE_GPU_MOTION:
+      GpuMotionRecognition();
+      break;
+    case OPENCV_RECOGNITION_MODE_BLOBS:
+      BlobRecognition();
+      break;
+    case OPENCV_RECOGNITION_MODE_COLOR:
+      ColorRecognition();
+      break;
+    case OPENCV_RECOGNITION_MODE_MOTION:
+      MotionRecognition();
+      break;
+    default:
+      m_bReInit = false;
+      break;
+
+  }
+
+  if (!m_OutletDataMessage) {
+      m_OutletDataMessage = m_Outlets.GetRef( GetOutletIndex( moText("DATAMESSAGE") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    //m_OutletDataMessage->GetData()->SetInt(  (int)(number_of_sequence>0) );
+    if (m_pDataMessage) {
+      m_OutletDataMessage->GetData()->SetMessage(m_pDataMessage);
+      m_OutletDataMessage->Update(true);
+    }
+
+  }
+
+
+}
+
+#include "moDebugManager.h"
+// Check if there is motion in the result matrix
+// count the number of changes and return.
+int moOpenCV::detectMotion(const Mat & motion, Mat & result, Mat & result_cropped,
+                 int x_start, int x_stop, int y_start, int y_stop,
+                 int max_deviation,
+                 Scalar & color)
+{
+    Scalar mean, stddev;
+    meanStdDev(motion, mean, stddev);
+    // if not to much changes then the motion is real (neglect agressive snow, temporary sunlight)
+    if(stddev[0] < max_deviation)
+    {
+        //MODebug2->Message("max_deviation ok");
+        int number_of_changes = 0;
+        int min_x = motion.cols, max_x = 0;
+        int min_y = motion.rows, max_y = 0;
+        // loop over image and detect changes
+        for(int j = y_start; j < y_stop; j+=2){ // height
+            for(int i = x_start; i < x_stop; i+=2){ // width
+                // check if at pixel (j,i) intensity is equal to 255
+                // this means that the pixel is different in the sequence
+                // of images (prev_frame, current_frame, next_frame)
+                int pi = static_cast<int>(motion.at<uchar>(j,i));
+                if( pi == 255)
+                {
+                    number_of_changes++;
+                    if(min_x>i) min_x = i;
+                    if(max_x<i) max_x = i;
+                    if(min_y>j) min_y = j;
+                    if(max_y<j) max_y = j;
+                }
+                /*
+                if (pi>100)
+                MODebug2->Message( "i,j: (" + IntToStr(i)
+                                  + "," + IntToStr(j)
+                                  + "): " + IntToStr(pi)  );
+                                  */
             }
+        }
+        if(number_of_changes){
+            //check if not out of bounds
+            if(min_x-10 > 0) min_x -= 10;
+            if(min_y-10 > 0) min_y -= 10;
+            if(max_x+10 < result.cols-1) max_x += 10;
+            if(max_y+10 < result.rows-1) max_y += 10;
+            // draw rectangle round the changed pixel
+            Point x(min_x,min_y);
+            Point y(max_x,max_y);
+            Rect rect(x,y);
+            Mat cropped = result(rect);
+            cropped.copyTo(result_cropped);
+            rectangle(result,rect,color,1);
+        }
+        return number_of_changes;
+    }
+    return 0;
+}
+
+void
+moOpenCV::MotionRecognition() {
+
+  Mat d1, d2, motion;
+  Mat motioncolor;
+  Scalar mean_, color(0,255,255); // yellow
+  Mat kernel_ero = getStructuringElement(MORPH_RECT, Size(2,2));
+
+  //MODebug2->Message("MotionRecognition");
+
+  // Detect motion in window
+  int x_start = (int)((float)128.0*m_crop_min_x), x_stop = (int)((float)128.0*m_crop_max_x);
+  int y_start = (int)((float)128.0*m_crop_min_y), y_stop = (int)((float)128.0*m_crop_max_y);
+
+  // If more than 'there_is_motion' pixels are changed, we say there is motion
+  // and store an image on disk
+  int there_is_motion = m_motion_pixels;
+
+  // Maximum deviation of the image, the higher the value, the more motion is allowed
+  int max_deviation = m_motion_deviation;
+
+  if (m_pSrcTexture==NULL) {
+
+      MODebug2->Message("moOpenCV::MotionRecognition >> no src texture");
+
+      return;
+  }
+
+  moVector2i resizer( 128, 128 );
+  IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
+
+  if (srcframe==NULL) {
+    MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
+    return;
+  }
+
+  Mat frame( srcframe );
+  Mat framecol;
+
+  CvMatToTexture( frame, 0 , 0, 0, m_pCVSourceTexture );
+
+  if (m_bReInit) {
+      MODebug2->Message("MotionRecognition INIT");
+      number_of_sequence = 0;
+      cvtColor(frame, next_frame, COLOR_BGR2GRAY);
+
+      next_frame.copyTo(prev_frame);
+      next_frame.copyTo(current_frame);
+  }
+
+  /**CONVERT AND ENHANCE TO GRAYSCALE*/
+  current_frame.copyTo(prev_frame);
+  next_frame.copyTo(current_frame);
+  cvtColor(frame, next_frame, COLOR_BGR2GRAY);
+
+  Mat result, result_cropped;
+  result = next_frame;
+
+  absdiff(prev_frame, next_frame, d1);
+  absdiff(next_frame, current_frame, d2);
+
+/*
+  Mat motioncolor1;
+  cvtColor( next_frame, motioncolor1, COLOR_GRAY2RGB);
+  CvMatToTexture( motioncolor1, 0 , 0, 0, m_pCVResultTexture );
+
+  Mat motioncolor2;
+  cvtColor( current_frame, motioncolor2, COLOR_GRAY2RGB);
+  CvMatToTexture( motioncolor2, 0 , 0, 0, m_pCVResult2Texture );
+
+  Mat motioncolor3;
+  cvtColor( prev_frame, motioncolor3, COLOR_GRAY2RGB);
+  CvMatToTexture( motioncolor3, 0 , 0, 0, m_pCVResult3Texture );
+*/
+  bitwise_and(d1, d2, motion);
+  threshold(motion, motion, 35, 255, CV_THRESH_BINARY);
+  erode(motion, motion, kernel_ero);
+
+  Mat motioncolor1;
+  cvtColor( motion, motioncolor1, COLOR_GRAY2RGB);
+  CvMatToTexture( motioncolor1, 0 , 0, 0, m_pCVResultTexture );
+
+  number_of_changes = detectMotion(motion, result, result_cropped,  x_start, x_stop, y_start, y_stop, max_deviation, color);
+  //MODebug2->Push( "number_of_changes: " + IntToStr(number_of_changes)
+  //               + "there_is_motion: " +  IntToStr(there_is_motion) );
+
+  // If a lot of changes happened, we assume something changed.
+  if(number_of_changes>=there_is_motion)
+  {
+      MODebug2->Push( "number_of_changes: " + IntToStr(number_of_changes)
+                 + "there_is_motion: " +  IntToStr(there_is_motion) );
+      number_of_sequence++;
+      if(number_of_sequence>0){
+          MODebug2->Message("Motion Detected!");
+
+          //saveImg(result,DIR,EXT,DIR_FORMAT.c_str(),FILE_FORMAT.c_str());
+          //saveImg(result_cropped,DIR,EXT,DIR_FORMAT.c_str(),CROPPED_FILE_FORMAT.c_str());
+      }
 
 
-            if (m_pSrcTexture) {
-                //crea textura que recibe frame0 desde el SrcTexture
-
-                //crea textura que recibe frame1
-
-                //crea textura que recibe frame_diff
-                int idt = -1;
-
-                ///creamos la textura de destino de la copia:
-                /// y su shader asociado
-                if (!m_pTFDest2Texture && m_pSrcTexture->GetWidth()>0 ) {
-                        moTextArray copy_filter_0;
-                        copy_filter_0.Add( moText("LIVEIN0 shaders/Copy.cfg res:64x64 livein0dest2") );
-                        int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
-                        if (idx>-1) {
-                            m_pTFDest2Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
-                            MODebug2->Push( moText("filter loaded m_pTFDest2Texture") );
-                        }
-                }
+  }
+  else
+  {
+      number_of_sequence = 0;
+  }
 
 
-                ///creamos la textura de destino de la copia del cuadro anterior
-                /// y su shader asociado
-                if (!m_pTFDest1Texture && m_pSrcTexture->GetWidth()>0 ) {
-                    moTextArray copy_filter_0;
-                    copy_filter_0.Add( moText("livein0dest2 shaders/Copy.cfg res:64x64 livein0dest1") );
-                    int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
-                    if (idx>-1) {
-                        m_pTFDest1Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
-                        MODebug2->Push( moText("filter loaded m_pTFDest1Texture") );
-                    }
-                }
+  if (!m_MotionDetection) {
+      m_MotionDetection = m_Outlets.GetRef( GetOutletIndex( moText("MOTION_DETECTION") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_MotionDetection->GetData()->SetInt(  (int)(number_of_sequence>0) );
+    m_MotionDetection->Update(true);
+  }
+
+  if (!m_MotionDetectionX) {
+      m_MotionDetectionX = m_Outlets.GetRef( GetOutletIndex( moText("MOTION_DETECTION_X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_MotionDetectionX->GetData()->SetInt(  (int)(number_of_sequence>0) );
+    m_MotionDetectionX->Update(true);
+  }
+
+  if (!m_MotionDetectionY) {
+      m_MotionDetectionY = m_Outlets.GetRef( GetOutletIndex( moText("MOTION_DETECTION_Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_MotionDetectionY->GetData()->SetInt(  (int)(number_of_sequence>0) );
+    m_MotionDetectionY->Update(true);
+  }
 
 
-                ///creamos la textura de destino de la copia del cuadro anterior
-                /// y su shader asociado
-                if (!m_pTFDest0Texture && m_pSrcTexture->GetWidth()>0 ) {
-                    moTextArray copy_filter_0;
-                    copy_filter_0.Add( moText("livein0dest1 shaders/Copy.cfg res:64x64 livein0dest0") );
-                    int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
-                    if (idx>-1) {
-                        m_pTFDest0Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
-                        MODebug2->Push( moText("filter loaded m_pTFDest0Texture") );
-                    }
-                }
+  //SENDING DATAMESSAGE
+  if (m_pDataMessage) {
+    m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
+    moData pData;
+
+    pData.SetText( moText("opencv") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetText( moText("MOTION_DETECTION") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetInt( (int)(number_of_sequence>0) );
+    m_pDataMessage->Add(pData);
+/*
+    moText ccc = "";
+    for( int c=0; c<m_pDataMessage->Count(); c++) {
+      ccc = ccc + m_pDataMessage->Get(c).ToText();
+    }
+    //MODebug2->Push(ccc);
+*/
+  }
+
+  m_bReInit = false;
+}
+
+void
+moOpenCV::GpuMotionRecognition() {
 
 
-                ///creamos la textura final, que contendra la diferencia entre el cuadro actual y el anterior..
-                /// y su shader asociado
-                if (!m_pTFDestDiff2Texture && m_pSrcTexture->GetWidth()>0 ) {
-                    moTextArray copy_filter_0;
-                    copy_filter_0.Add( moText("livein0dest1 livein0dest2 shaders/Diff.cfg res:64x64 livein0diff2") );
-                    int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
-                    if (idx>-1) {
-                        m_pTFDestDiff2Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
-                        if (m_pTFDestDiff2Texture) {
-                            m_pDestDiff2Texture = m_pTFDestDiff2Texture->GetDestTex()->GetTexture(0);
-                            MODebug2->Push( moText("filter loaded m_pTFDestDiff2Texture") );
-                        }
-                    }
-                }
 
-                ///creamos la textura final, que contendra la diferencia entre el cuadro anterior y el ante-ultimo..
-                /// y su shader asociado
-                if (!m_pTFDestDiff1Texture && m_pSrcTexture->GetWidth()>0 ) {
-                    moTextArray copy_filter_0;
-                    copy_filter_0.Add( moText("livein0dest0 livein0dest1 shaders/Diff.cfg res:64x64 livein0diff1") );
-                    int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
-                    if (idx>-1) {
-                        m_pTFDestDiff1Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
-                        if (m_pTFDestDiff1Texture) {
-                            m_pDestDiff1Texture = m_pTFDestDiff1Texture->GetDestTex()->GetTexture(0);
-                            MODebug2->Push( moText("filter loaded m_pTFDestDiff1Texture") );
-                        }
-                    }
-                }
+  if (m_pSrcTexture==NULL) {
+
+      MODebug2->Message("moOpenCV::GpuMotionRecognition >> no src texture");
+
+      return;
+  }
+
+  moText reduce_resolution = IntToStr(m_reduce_width)+moText("x")+IntToStr(m_reduce_height);
+
+  if (m_bReInit) {
+    MODebug2->Message("moOpenCV::GpuMotionRecognition >> REINIT");
+
+    m_pTFDest0Texture = NULL;
+    m_pTFDest1Texture = NULL;
+    m_pTFDest2Texture = NULL;
+
+    m_pTFDestDiff1Texture = NULL;
+    m_pTFDestDiff2Texture = NULL;
+
+  }
+
+  //crea textura que recibe frame0 desde el SrcTexture
+
+  //crea textura que recibe frame1
+
+  //crea textura que recibe frame_diff
+  int idt = -1;
+
+  ///creamos la textura de destino de la copia:
+  /// y su shader asociado
+  if (!m_pTFDest2Texture && m_pSrcTexture->GetWidth()>0 ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add( m_pSrcTexture->GetName()+moText(" shaders/Copy.cfg res:"+reduce_resolution+" "+m_pSrcTexture->GetName()+"dest2") );
+    int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
+    if (idx>-1) {
+        m_pTFDest2Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
+        MODebug2->Push( moText("filter loaded m_pTFDest2Texture") );
+    }
+  }
+
+
+  ///creamos la textura de destino de la copia del cuadro anterior
+  /// y su shader asociado
+  if (!m_pTFDest1Texture && m_pSrcTexture->GetWidth()>0 ) {
+      moTextArray copy_filter_0;
+      copy_filter_0.Add( moText("livein0dest2 shaders/Copy.cfg res:"+reduce_resolution+" "+m_pSrcTexture->GetName()+"dest1") );
+      int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
+      if (idx>-1) {
+          m_pTFDest1Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
+          MODebug2->Push( moText("filter loaded m_pTFDest1Texture") );
+      }
+  }
+
+
+  ///creamos la textura de destino de la copia del cuadro anterior
+  /// y su shader asociado
+  if (!m_pTFDest0Texture && m_pSrcTexture->GetWidth()>0 ) {
+      moTextArray copy_filter_0;
+      copy_filter_0.Add( moText("livein0dest1 shaders/Copy.cfg res:"+reduce_resolution+" "+m_pSrcTexture->GetName()+"dest0") );
+      int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
+      if (idx>-1) {
+          m_pTFDest0Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
+          MODebug2->Push( moText("filter loaded m_pTFDest0Texture") );
+      }
+  }
+
+
+  ///creamos la textura final, que contendra la diferencia entre el cuadro actual y el anterior..
+  /// y su shader asociado
+  if (!m_pTFDestDiff2Texture && m_pSrcTexture->GetWidth()>0 ) {
+      moTextArray copy_filter_0;
+      copy_filter_0.Add( moText("livein0dest1 livein0dest2 shaders/Diff.cfg res:"+reduce_resolution+" "+m_pSrcTexture->GetName()+"diff2") );
+      int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
+      if (idx>-1) {
+          m_pTFDestDiff2Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
+          if (m_pTFDestDiff2Texture) {
+              m_pDestDiff2Texture = m_pTFDestDiff2Texture->GetDestTex()->GetTexture(0);
+              MODebug2->Push( moText("filter loaded m_pTFDestDiff2Texture") );
+          }
+      }
+  }
+
+  ///creamos la textura final, que contendra la diferencia entre el cuadro anterior y el ante-ultimo..
+  /// y su shader asociado
+  if (!m_pTFDestDiff1Texture && m_pSrcTexture->GetWidth()>0 ) {
+      moTextArray copy_filter_0;
+      copy_filter_0.Add( moText("livein0dest0 livein0dest1 shaders/Diff.cfg res:"+reduce_resolution+" "+m_pSrcTexture->GetName()+"diff1") );
+      int idx = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->LoadFilters( &copy_filter_0 );
+      if (idx>-1) {
+          m_pTFDestDiff1Texture = m_pResourceManager->GetShaderMan()->GetTextureFilterIndex()->Get(idx-1);
+          if (m_pTFDestDiff1Texture) {
+              m_pDestDiff1Texture = m_pTFDestDiff1Texture->GetDestTex()->GetTexture(0);
+              MODebug2->Push( moText("filter loaded m_pTFDestDiff1Texture") );
+          }
+      }
+  }
 
 
 /*
 
-                pFBO->AddTexture(   160,
-                                    120,
-                                    m_pSrcTexture->GetTexParam(),
-                                    m_pSrcTexture->GetGLId(),
-                                    attach_point );
+  pFBO->AddTexture(   160,
+                      120,
+                      m_pSrcTexture->GetTexParam(),
+                      m_pSrcTexture->GetGLId(),
+                      attach_point );
 
-                m_pSrcTexture->SetFBO( pFBO );
-                m_pSrcTexture->SetFBOAttachPoint( attach_point );
+  m_pSrcTexture->SetFBO( pFBO );
+  m_pSrcTexture->SetFBOAttachPoint( attach_point );
 */
-                ///Guarda el frame ante-anterior....
-                if (m_pTFDest0Texture) {
-                    m_pTFDest0Texture->Apply( (GLuint)0 );
-                }
+  ///Guarda el frame ante-anterior....
+  if (m_pTFDest0Texture) {
+      m_pTFDest0Texture->Apply( (GLuint)0 );
+  }
 
-
-                ///Guarda el frame anterior....
-                if (m_pTFDest1Texture) {
-                    m_pTFDest1Texture->Apply( (GLuint)0 );
-                }
-
-
-                ///Guarda el frame actual.... (esto lo hacemos ultimo para no perder los anteriores.
-                if (m_pTFDest2Texture) {
-                    m_pTFDest2Texture->Apply( (GLuint)0 );
-                }
-
-                ///Calcular la diferencia del frame anterior con el anterior a este
-                if (m_pTFDestDiff1Texture) {
-                    m_pTFDestDiff1Texture->Apply( (GLuint)0 );
-                }
-
-                ///Calcular la diferencia con el frame anterior
-                if (m_pTFDestDiff2Texture) {
-                    m_pTFDestDiff2Texture->Apply( (GLuint)0 );
-                }
-
-
-                if (m_pDestDiff2Texture) {
-
-                    /// BAJAR A BUFFER Y PASAR A ARRAY DE TRACKING FEATURES.... (BLOBS CON OPENCV ?)
-
-                        if (!m_pBucketDiff2) {
-                            MODebug2->Push("moOpenCV::UpdateParameters > moBucket Object created to receive TextureFilters Data.");
-                            m_pBucketDiff2 = new moBucket();
-                        }
-
-                        if (m_pBucketDiff2) {
-                            ///ATENCION!!! al hacer un BuildBucket, hay que hacer un EmptyBucket!!!
-                            //pBucket->BuildBucket( pTexSample->m_VideoFormat.m_BufferSize, 0);
-                            m_pBucketDiff2->BuildBucket( m_pDestDiff2Texture->GetWidth()*m_pDestDiff2Texture->GetHeight()*4, 0);
-                            m_pDestDiff2Texture->GetBuffer( (void*) m_pBucketDiff2->GetBuffer(), GL_RGBA, GL_UNSIGNED_BYTE );
-
-                            ///asignamos el bucket al videosample
-                            //pTexSample->m_pSampleBuffer = pBucket;
-                        }
-
-                        if (!m_pTrackerSystemData) {
-                            MODebug2->Push("moOpenCV::UpdateParameters > creating moTrackerSystemData() Object.");
-                            m_pTrackerSystemData = new moTrackerSystemData();
-                            if (m_pTrackerSystemData) {
-                                MODebug2->Push( "moOpenCV::UpdateParameters > moTrackerSystemData() Object OK.");
-                                MODebug2->Push( moText("moOpenCV::UpdateParameters > m_pDestDiff2Texture->GetWidth().")
-                                               + IntToStr( m_pDestDiff2Texture->GetWidth() )
-                                               + moText(" m_pDestDiff2Texture->GetHeight().")
-                                               + IntToStr( m_pDestDiff2Texture->GetHeight() )
-                                                );
-
-                            }
-                        }
-
-                        if (m_pTrackerSystemData) {
-
-                            m_pTrackerSystemData->GetVideoFormat().m_Width = m_pDestDiff2Texture->GetWidth();
-                            m_pTrackerSystemData->GetVideoFormat().m_Height = m_pDestDiff2Texture->GetHeight();
-                            m_pTrackerSystemData->GetVideoFormat().m_BufferSize = m_pDestDiff2Texture->GetWidth()*m_pDestDiff2Texture->GetHeight();
-
-                            for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-                                if (m_pTrackerSystemData->GetFeatures().GetRef(i)!=NULL)
-                                delete m_pTrackerSystemData->GetFeatures().GetRef(i);
-                            }
-
-                            ///RESET DATA !!!!
-                            m_pTrackerSystemData->GetFeatures().Empty();
-                            m_pTrackerSystemData->ResetMatrix();
-
-                            ///GET NEW DATA!!!!
-                            moTrackerFeature* TF = NULL;
-                            MOubyte* pBuf = NULL;
-
-                            if (m_pBucketDiff2)
-                                pBuf = (MOubyte*) m_pBucketDiff2->GetBuffer();
-
-                            int validfeatures = 0;
-
-                            float sumX = 0.0f,sumY = 0.0f;
-                            float sumN = 0.0f;
-                            float varX = 0.0f, varY = 0.0f;
-                            float minX = 1.0f, minY = 1.0;
-                            float maxX = 0.0f, maxY = 0.0;
-
-                            float vel=0.0,acc=0.0,tor=0.0;
-                            float velAverage = 0.0, accAverage =0.0, torAverage=0.0;
-                            moVector2f velAverage_v(0,0);
-
-                            for(int j=0; j < m_pTrackerSystemData->GetVideoFormat().m_Height && pBuf; j++ ) {
-                                for(int i=0; i < m_pTrackerSystemData->GetVideoFormat().m_Width && pBuf; i++ ) {
-                                    if (pBuf) {
-
-                                        int idx = i+j*m_pTrackerSystemData->GetVideoFormat().m_Width;
-
-                                        if ( 0<=idx && idx < m_pBucketDiff2->GetSize()  ) {
-                                            int r = pBuf[idx*4];
-                                            //int g = pBuf[idx*4+1];
-                                            //int b = pBuf[idx*4+2];
-                                            //int a = pBuf[idx*4+3];
-                                            if ( r > 0) {
-                                                //crear el feature aquÃ­....
-                                                TF = new moTrackerFeature();
-                                                if (TF) {
-                                                    TF->x = (float) i / (float)m_pTrackerSystemData->GetVideoFormat().m_Width;
-                                                    TF->y =  (float) j / (float)m_pTrackerSystemData->GetVideoFormat().m_Height;
-                                                    TF->val = 0;
-                                                    TF->valid = 1;
-                                                    TF->tr_x = TF->x;
-                                                    TF->tr_y = TF->y;
-
-                                                    ///CALCULATE AVERAGE FOR BARYCENTER AND VARIANCE
-                                                    sumX+= TF->x;
-                                                    sumY+= TF->y;
-
-                                                    sumN+= 1.0f;
-
-                                                    if (sumN==1.0f) {
-                                                        /*
-                                                        MODebug2->Push( moText("moOpenCV::UpdateParameters > TF > TF->x:")
-                                                                    + FloatToStr(TF->x)
-                                                                    + moText(" TF->y:")
-                                                                    + FloatToStr(TF->y)
-                                                                   );
-                                                        */
-                                                    }
-
-                                                    ///maximos
-                                                    if (TF->x>maxX) maxX = TF->x;
-                                                    if (TF->y>maxY) maxY = TF->y;
-
-                                                    ///minimos
-                                                    if (TF->x<minX) minX = TF->x;
-                                                    if (TF->y<minY) minY = TF->y;
-
-                                                    ///esta es simplemente una matriz que cuenta la cantidad de....
-                                                    m_pTrackerSystemData->SetPositionMatrix( TF->x, TF->y, 1 );
-                                                    ///genera la matrix de referencia rapida por zonas
-                                                    ///m_pTrackerSystemData->SetPositionMatrix( TF );
-
-                                                    ///CALCULATE VELOCITY AND ACCELERATION
-                                                    TF->ap_x = TF->a_x;
-                                                    TF->ap_y = TF->a_x;
-                                                    TF->vp_x = TF->v_x;
-                                                    TF->vp_y = TF->v_x;
-                                                    TF->v_x = TF->x - TF->tr_x;
-                                                    TF->v_y = TF->y - TF->tr_y;
-                                                    TF->a_x = TF->v_x - TF->vp_x;
-                                                    TF->a_y = TF->v_y - TF->vp_y;
-                                                    TF->t_x = TF->a_x - TF->ap_x;
-                                                    TF->t_y = TF->a_y - TF->ap_y;
-
-                                                    vel = moVector2f( TF->v_x, TF->v_y ).Length();
-                                                    acc = moVector2f( TF->a_x, TF->a_y ).Length();
-                                                    tor = moVector2f( TF->t_x, TF->t_y ).Length();
-                                                    velAverage+= vel;
-                                                    accAverage+= acc;
-                                                    torAverage+= tor;
-                                                    velAverage_v+= moVector2f( fabs(TF->v_x), fabs(TF->v_y) );
-
-
-                                                    if ( vel >= 0.001 && vel <=0.05 ) m_pTrackerSystemData->SetMotionMatrix( TF->x, TF->y, 1 );
-                                                    if ( acc >= 0.001 ) m_pTrackerSystemData->SetAccelerationMatrix( TF->x, TF->y, 1 );
-
-                                                }
-                                                m_pTrackerSystemData->GetFeatures().Add(TF);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-
-                            moVector2f previous_B = m_pTrackerSystemData->GetBarycenter();
-                            moVector2f previous_BM = m_pTrackerSystemData->GetBarycenterMotion();
-
-                            moVector2f BarPos;
-                            moVector2f BarMot;
-                            moVector2f BarAcc;
-
-                            m_pTrackerSystemData->SetBarycenter( 0, 0 );
-                            m_pTrackerSystemData->SetBarycenterMotion( 0, 0);
-                            m_pTrackerSystemData->SetBarycenterAcceleration( 0, 0 );
-
-                            m_pTrackerSystemData->SetMax( 0, 0 );
-                            m_pTrackerSystemData->SetMin( 0, 0 );
-
-                            m_pTrackerSystemData->SetDeltaValidFeatures( m_pTrackerSystemData->GetValidFeatures() - (int)sumN );
-                            m_pTrackerSystemData->SetValidFeatures( (int)sumN );
-
-                            if (sumN>=1.0f) {
-
-                                BarPos = moVector2f( sumX/sumN, sumY/sumN);
-
-                                BarMot = BarPos - previous_B;
-                                BarAcc = BarMot - previous_BM;
-
-                                m_pTrackerSystemData->SetBarycenter( BarPos.X(), BarPos.Y() );
-                                m_pTrackerSystemData->SetBarycenterMotion( BarMot.X(), BarMot.Y() );
-                                m_pTrackerSystemData->SetBarycenterAcceleration( BarAcc.X(), BarAcc.Y() );
-
-                                velAverage = velAverage / (float)sumN;
-                                accAverage = accAverage / (float)sumN;
-                                torAverage = torAverage / (float)sumN;
-                                velAverage_v = velAverage_v * 1.0f / (float)sumN;
-
-                                m_pTrackerSystemData->SetAbsoluteSpeedAverage( velAverage );
-                                m_pTrackerSystemData->SetAbsoluteAccelerationAverage( accAverage );
-                                m_pTrackerSystemData->SetAbsoluteTorqueAverage( torAverage );
-
-                                m_pTrackerSystemData->SetMax( maxX, maxY );
-                                m_pTrackerSystemData->SetMin( minX, minY );
-
-                                ///CALCULATE VARIANCE FOR EACH COMPONENT
-
-                                moVector2f Bar = m_pTrackerSystemData->GetBarycenter();
-                                for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-                                    TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
-                                    if (TF) {
-                                        if (TF->val>=0) {
-                                            varX+= moMathf::Sqr( TF->x - Bar.X() );
-                                            varY+= moMathf::Sqr( TF->y - Bar.Y() );
-                                        }
-                                    }
-                                }
-                                m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
-                                //m_pTrackerSystemData->SetVariance( velAverage_v.X(), velAverage_v.Y() );
-
-                                /*
-                                MODebug2->Push( moText("TrackerKLT: varX: ") + FloatToStr( m_pTrackerSystemData->GetVariance().X())
-                                               + moText(" varY: ") + FloatToStr(m_pTrackerSystemData->GetVariance().Y()) );
-                                               */
-
-                                ///CALCULATE CIRCULAR MATRIX
-                                for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
-                                    TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
-                                    if (TF) {
-                                        if (TF->val>=0) {
-                                            m_pTrackerSystemData->SetPositionMatrixC( TF->x, TF->y, 1 );
-                                            vel = moVector2f( TF->v_x, TF->v_y ).Length();
-                                            //acc = moVector2f( TF->a_x, TF->a_y ).Length();
-                                            if (vel>=0.01) m_pTrackerSystemData->SetMotionMatrixC( TF->x, TF->y, 1 );
-                                        }
-                                    }
-                                }
-                                /*
-
-                                MODebug2->Push( moText("moOpenCV::UpdateParameters > ValidFeatures: ")
-                                                                + FloatToStr(sumN)
-                                                                + moText(" GetValidFeatures:")
-                                                                + IntToStr( m_pTrackerSystemData->GetValidFeatures() )
-                                                               );*/
-
-
-
-                            }
-
-
-                        }
-
-                        if (m_Outlets.Count()>=1 && m_Outlets[0] && m_pTrackerSystemData) {
-                            m_Outlets[0]->GetData()->SetPointer( (MOpointer) m_pTrackerSystemData, sizeof(moTrackerSystemData) );
-                            m_Outlets[0]->Update(); ///to notify Inlets!!
-                        }
-                        if (m_pBucketDiff2) {
-                            m_pBucketDiff2->EmptyBucket();
-                        }
-
-
-                }
-
-            }
-
-
-
-
-
-	}
-
-
-    threshold = m_Config[moR(OPENCV_THRESHOLD)][MO_SELECTED][0].Int();
-    threshold_max = m_Config[moR(OPENCV_THRESHOLD_MAX)][MO_SELECTED][0].Int();
-
+
+  ///Guarda el frame anterior....
+  if (m_pTFDest1Texture) {
+      m_pTFDest1Texture->Apply( (GLuint)0 );
+  }
+
+
+  ///Guarda el frame actual.... (esto lo hacemos ultimo para no perder los anteriores.
+  if (m_pTFDest2Texture) {
+      m_pTFDest2Texture->Apply( (GLuint)0 );
+  }
+
+  ///Calcular la diferencia del frame anterior con el anterior a este
+  if (m_pTFDestDiff1Texture) {
+      m_pTFDestDiff1Texture->Apply( (GLuint)0 );
+  }
+
+  ///Calcular la diferencia con el frame anterior
+  if (m_pTFDestDiff2Texture) {
+      m_pTFDestDiff2Texture->Apply( (GLuint)0 );
+  }
+
+
+  if (m_pDestDiff2Texture) {
+
+      /// BAJAR A BUFFER Y PASAR A ARRAY DE TRACKING FEATURES.... (BLOBS CON OPENCV ?)
+
+          if (!m_pBucketDiff2) {
+              MODebug2->Push("moOpenCV::UpdateParameters > moBucket Object created to receive TextureFilters Data.");
+              m_pBucketDiff2 = new moBucket();
+          }
+
+          if (m_pBucketDiff2) {
+              ///ATENCION!!! al hacer un BuildBucket, hay que hacer un EmptyBucket!!!
+              //pBucket->BuildBucket( pTexSample->m_VideoFormat.m_BufferSize, 0);
+              m_pBucketDiff2->BuildBucket( m_pDestDiff2Texture->GetWidth()*m_pDestDiff2Texture->GetHeight()*4, 0);
+              m_pDestDiff2Texture->GetBuffer( (void*) m_pBucketDiff2->GetBuffer(), GL_RGBA, GL_UNSIGNED_BYTE );
+
+              ///asignamos el bucket al videosample
+              //pTexSample->m_pSampleBuffer = pBucket;
+          }
+
+          if (!m_pTrackerSystemData) {
+              MODebug2->Push("moOpenCV::UpdateParameters > creating moTrackerSystemData() Object.");
+              m_pTrackerSystemData = new moTrackerSystemData();
+              if (m_pTrackerSystemData) {
+                  MODebug2->Push( "moOpenCV::UpdateParameters > moTrackerSystemData() Object OK.");
+                  MODebug2->Push( moText("moOpenCV::UpdateParameters > m_pDestDiff2Texture->GetWidth().")
+                                 + IntToStr( m_pDestDiff2Texture->GetWidth() )
+                                 + moText(" m_pDestDiff2Texture->GetHeight().")
+                                 + IntToStr( m_pDestDiff2Texture->GetHeight() )
+                                  );
+
+              }
+          }
+
+          if (m_pTrackerSystemData) {
+
+              m_pTrackerSystemData->GetVideoFormat().m_Width = m_pDestDiff2Texture->GetWidth();
+              m_pTrackerSystemData->GetVideoFormat().m_Height = m_pDestDiff2Texture->GetHeight();
+              m_pTrackerSystemData->GetVideoFormat().m_BufferSize = m_pDestDiff2Texture->GetWidth()*m_pDestDiff2Texture->GetHeight();
+
+              for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
+                  if (m_pTrackerSystemData->GetFeatures().GetRef(i)!=NULL)
+                  delete m_pTrackerSystemData->GetFeatures().GetRef(i);
+              }
+
+              ///RESET DATA !!!!
+              m_pTrackerSystemData->GetFeatures().Empty();
+              m_pTrackerSystemData->ResetMatrix();
+
+              ///GET NEW DATA!!!!
+              moTrackerFeature* TF = NULL;
+              MOubyte* pBuf = NULL;
+
+              if (m_pBucketDiff2)
+                  pBuf = (MOubyte*) m_pBucketDiff2->GetBuffer();
+
+              int validfeatures = 0;
+
+              float sumX = 0.0f,sumY = 0.0f;
+              float sumN = 0.0f;
+              float varX = 0.0f, varY = 0.0f;
+              float minX = 1.0f, minY = 1.0;
+              float maxX = 0.0f, maxY = 0.0;
+
+              float vel=0.0,acc=0.0,tor=0.0;
+              float velAverage = 0.0, accAverage =0.0, torAverage=0.0;
+              moVector2f velAverage_v(0,0);
+
+              for(int j=0; j < m_pTrackerSystemData->GetVideoFormat().m_Height && pBuf; j++ ) {
+                  for(int i=0; i < m_pTrackerSystemData->GetVideoFormat().m_Width && pBuf; i++ ) {
+                      if (pBuf) {
+
+                          int idx = i+j*m_pTrackerSystemData->GetVideoFormat().m_Width;
+
+                          if ( 0<=idx && idx < m_pBucketDiff2->GetSize()  ) {
+                              int r = pBuf[idx*4];
+                              //int g = pBuf[idx*4+1];
+                              //int b = pBuf[idx*4+2];
+                              //int a = pBuf[idx*4+3];
+                              if ( r > 0) {
+                                  //crear el feature aquí....
+                                  TF = new moTrackerFeature();
+                                  if (TF) {
+                                      TF->x = (float) i / (float)m_pTrackerSystemData->GetVideoFormat().m_Width;
+                                      TF->y =  (float) j / (float)m_pTrackerSystemData->GetVideoFormat().m_Height;
+                                      TF->val = 0;
+                                      TF->valid = 1;
+                                      TF->tr_x = TF->x;
+                                      TF->tr_y = TF->y;
+
+                                      ///CALCULATE AVERAGE FOR BARYCENTER AND VARIANCE
+                                      sumX+= TF->x;
+                                      sumY+= TF->y;
+
+                                      sumN+= 1.0f;
+
+                                      if (sumN==1.0f) {
+                                          /*
+                                          MODebug2->Push( moText("moOpenCV::UpdateParameters > TF > TF->x:")
+                                                      + FloatToStr(TF->x)
+                                                      + moText(" TF->y:")
+                                                      + FloatToStr(TF->y)
+                                                     );
+                                          */
+                                      }
+
+                                      ///maximos
+                                      if (TF->x>maxX) maxX = TF->x;
+                                      if (TF->y>maxY) maxY = TF->y;
+
+                                      ///minimos
+                                      if (TF->x<minX) minX = TF->x;
+                                      if (TF->y<minY) minY = TF->y;
+
+                                      ///esta es simplemente una matriz que cuenta la cantidad de....
+                                      m_pTrackerSystemData->SetPositionMatrix( TF->x, TF->y, 1 );
+                                      ///genera la matrix de referencia rapida por zonas
+                                      ///m_pTrackerSystemData->SetPositionMatrix( TF );
+
+                                      ///CALCULATE VELOCITY AND ACCELERATION
+                                      TF->ap_x = TF->a_x;
+                                      TF->ap_y = TF->a_x;
+                                      TF->vp_x = TF->v_x;
+                                      TF->vp_y = TF->v_x;
+                                      TF->v_x = TF->x - TF->tr_x;
+                                      TF->v_y = TF->y - TF->tr_y;
+                                      TF->a_x = TF->v_x - TF->vp_x;
+                                      TF->a_y = TF->v_y - TF->vp_y;
+                                      TF->t_x = TF->a_x - TF->ap_x;
+                                      TF->t_y = TF->a_y - TF->ap_y;
+
+                                      vel = moVector2f( TF->v_x, TF->v_y ).Length();
+                                      acc = moVector2f( TF->a_x, TF->a_y ).Length();
+                                      tor = moVector2f( TF->t_x, TF->t_y ).Length();
+                                      velAverage+= vel;
+                                      accAverage+= acc;
+                                      torAverage+= tor;
+                                      velAverage_v+= moVector2f( fabs(TF->v_x), fabs(TF->v_y) );
+
+
+                                      if ( vel >= 0.001 && vel <=0.05 ) m_pTrackerSystemData->SetMotionMatrix( TF->x, TF->y, 1 );
+                                      if ( acc >= 0.001 ) m_pTrackerSystemData->SetAccelerationMatrix( TF->x, TF->y, 1 );
+
+                                  }
+                                  m_pTrackerSystemData->GetFeatures().Add(TF);
+                              }
+                          }
+                      }
+                  }
+              }
+
+
+              moVector2f previous_B = m_pTrackerSystemData->GetBarycenter();
+              moVector2f previous_BM = m_pTrackerSystemData->GetBarycenterMotion();
+
+              moVector2f BarPos;
+              moVector2f BarMot;
+              moVector2f BarAcc;
+
+              m_pTrackerSystemData->SetBarycenter( 0, 0 );
+              m_pTrackerSystemData->SetBarycenterMotion( 0, 0);
+              m_pTrackerSystemData->SetBarycenterAcceleration( 0, 0 );
+
+              m_pTrackerSystemData->SetMax( 0, 0 );
+              m_pTrackerSystemData->SetMin( 0, 0 );
+
+              m_pTrackerSystemData->SetDeltaValidFeatures( m_pTrackerSystemData->GetValidFeatures() - (int)sumN );
+              m_pTrackerSystemData->SetValidFeatures( (int)sumN );
+
+              if (sumN>=1.0f) {
+
+                  BarPos = moVector2f( sumX/sumN, sumY/sumN);
+
+                  BarMot = BarPos - previous_B;
+                  BarAcc = BarMot - previous_BM;
+
+                  m_pTrackerSystemData->SetBarycenter( BarPos.X(), BarPos.Y() );
+                  m_pTrackerSystemData->SetBarycenterMotion( BarMot.X(), BarMot.Y() );
+                  m_pTrackerSystemData->SetBarycenterAcceleration( BarAcc.X(), BarAcc.Y() );
+
+                  velAverage = velAverage / (float)sumN;
+                  accAverage = accAverage / (float)sumN;
+                  torAverage = torAverage / (float)sumN;
+                  velAverage_v = velAverage_v * 1.0f / (float)sumN;
+
+                  m_pTrackerSystemData->SetAbsoluteSpeedAverage( velAverage );
+                  m_pTrackerSystemData->SetAbsoluteAccelerationAverage( accAverage );
+                  m_pTrackerSystemData->SetAbsoluteTorqueAverage( torAverage );
+
+                  m_pTrackerSystemData->SetMax( maxX, maxY );
+                  m_pTrackerSystemData->SetMin( minX, minY );
+
+                  ///CALCULATE VARIANCE FOR EACH COMPONENT
+
+                  moVector2f Bar = m_pTrackerSystemData->GetBarycenter();
+                  for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
+                      TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
+                      if (TF) {
+                          if (TF->val>=0) {
+                              varX+= moMathf::Sqr( TF->x - Bar.X() );
+                              varY+= moMathf::Sqr( TF->y - Bar.Y() );
+                          }
+                      }
+                  }
+                  m_pTrackerSystemData->SetVariance( varX/sumN, varY/sumN );
+                  //m_pTrackerSystemData->SetVariance( velAverage_v.X(), velAverage_v.Y() );
+
+                  /*
+                  MODebug2->Push( moText("TrackerKLT: varX: ") + FloatToStr( m_pTrackerSystemData->GetVariance().X())
+                                 + moText(" varY: ") + FloatToStr(m_pTrackerSystemData->GetVariance().Y()) );
+                                 */
+
+                  ///CALCULATE CIRCULAR MATRIX
+                  for(int i=0; i<m_pTrackerSystemData->GetFeatures().Count(); i++ ) {
+                      TF = m_pTrackerSystemData->GetFeatures().GetRef(i);
+                      if (TF) {
+                          if (TF->val>=0) {
+                              m_pTrackerSystemData->SetPositionMatrixC( TF->x, TF->y, 1 );
+                              vel = moVector2f( TF->v_x, TF->v_y ).Length();
+                              //acc = moVector2f( TF->a_x, TF->a_y ).Length();
+                              if (vel>=0.01) m_pTrackerSystemData->SetMotionMatrixC( TF->x, TF->y, 1 );
+                          }
+                      }
+                  }
+                  /*
+
+                  MODebug2->Push( moText("moOpenCV::UpdateParameters > ValidFeatures: ")
+                                                  + FloatToStr(sumN)
+                                                  + moText(" GetValidFeatures:")
+                                                  + IntToStr( m_pTrackerSystemData->GetValidFeatures() )
+                                                 );*/
+
+
+
+              }
+
+
+          }
+
+          if (m_OutTracker==NULL) {
+              int oidx = GetOutletIndex("TRACKER");
+              if ( oidx>=0 ) {
+                m_OutTracker = m_Outlets.Get( oidx );
+              }
+          }
+
+          if (m_OutTracker && m_pTrackerSystemData) {
+              m_OutTracker->GetData()->SetPointer( (MOpointer) m_pTrackerSystemData, sizeof(moTrackerSystemData) );
+              m_OutTracker->Update(true); ///to notify Inlets!!
+          }
+
+          if (m_pBucketDiff2) {
+              m_pBucketDiff2->EmptyBucket();
+          }
+
+
+  }
+
+  m_bReInit = false;
+}
+
+
+
+
+void
+moOpenCV::FaceDetection() {
+
+  std::vector<Rect> faces;
+
+
+  if (m_pSrcTexture==NULL) {
+    MODebug2->Error("moOpenCV::FaceDetection() > Source Texture not selected " );
+    return;
+  }
+
+  /**INIT CASCADE CLASIFFIER with haarcascades standard training XML files*/
+  if (m_bReInit) {
+    moText cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_frontalface_alt.xml";
+    string cfile( (char*)cascade_file );
+    if (!face_cascade.load(cfile))
+    {
+        MODebug2->Error("Error loading : " + cascade_file );
+        return;
+    }
+    MODebug2->Message("Loaded! : " + cascade_file );
+
+
+    cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_eye.xml";
+    cfile = (char*)cascade_file;
+    if (!eye_cascade.load(cfile))
+    {
+        MODebug2->Error("Error loading : " + cascade_file );
+        return;
+    }
+    MODebug2->Message("Loaded! : " + cascade_file );
+
+  }
+
+  /**GET THE IMAGE: resized*/
+  moVector2i resizer( 200, 150 );
+  IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
+  if (srcframe==NULL) {
+    MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
+    return;
+  }
+
+  /**CONVERT AND ENHANCE TO GRAYSCALE*/
+  Mat frame( srcframe );
+  Mat frame_gray;
+  cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
+  //equalizeHist(frame_gray, frame_gray);
+
+// Detect faces
+  face_cascade.detectMultiScale( frame_gray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+
+  float FaceLeft = 0,FaceTop = 0;
+  float FaceWidth  = 0,FaceHeight = 0;
+
+  float EyeLeftX = 0,EyeLeftY = 0;
+  float EyeLeftWidth = 0,EyeLeftHeight = 0;
+  float EyeRightX = 0,EyeRightY = 0;
+  float EyeRightWidth = 0,EyeRightHeight = 0;
+
+  if (resizer.X()==0 ) resizer = moVector2i( m_pSrcTexture->GetWidth(),m_pSrcTexture->GetHeight() );
+  for (int ic = 0; ic < faces.size(); ic++) // Iterate through all current elements (detected faces)
+  {
+
+
+      FaceWidth = ((float)faces[ic].width)/(float)resizer.X();
+      FaceHeight = ((float)faces[ic].height)/(float)resizer.Y();
+
+      FaceLeft = (float)faces[ic].x/(float)resizer.X() - 0.5f  + FaceWidth*0.5f;
+      FaceTop = -(float)faces[ic].y/(float)resizer.Y() + 0.5f - FaceHeight*0.5f;
+
+      FaceWidth*=1.3;
+      FaceHeight*=1.3;
+
+      std::vector<Rect> eyes;
+
+      //eyes = eye_cascade.detectMultiScale(roi_gray)
+      Mat roi_gray( frame_gray, cvRect( faces[ic].x,faces[ic].y, faces[ic].width, faces[ic].height ) );
+      eye_cascade.detectMultiScale( roi_gray, eyes, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30, 30) );
+      for (int ice = 0; ice < eyes.size(); ice++) // Iterate through all current elements (detected faces)
+      {
+        EyeLeftWidth = ((float)eyes[ice].width)/(float)resizer.X();
+        EyeLeftHeight = ((float)eyes[ice].height)/(float)resizer.Y();
+
+        EyeLeftX = (float)eyes[ic].x/(float)resizer.X() - 0.5f  + EyeLeftWidth*0.5f;
+        EyeLeftY = -(float)eyes[ic].y/(float)resizer.Y() + 0.5f - EyeLeftHeight*0.5f;
+
+        EyeLeftWidth*=1.3;
+        EyeLeftHeight*=1.3;
+      }
+  }
+
+  if (faces.size()) {
+    MODebug2->Message("moOpenCV::FaceDetection on '"+m_pSrcTexture->GetName()+"' > "
+    + moText(" FaceLeft:") + FloatToStr( FaceLeft )
+    + moText(" FaceTop:")+ FloatToStr( FaceTop )
+    + moText(" FaceLeft:") + FloatToStr( FaceWidth )
+    + moText(" FaceTop:")+ FloatToStr( FaceHeight )
+    );
+  }
+
+  if (!m_FacePositionX) {
+      m_FacePositionX = m_Outlets.GetRef( GetOutletIndex( moText("FACE_POSITION_X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_FacePositionX->GetData()->SetFloat(  FaceLeft );
+    m_FacePositionX->Update(true);
+  }
+  if (!m_FacePositionY) {
+      m_FacePositionY = m_Outlets.GetRef( this->GetOutletIndex( moText("FACE_POSITION_Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_Y: "+IntToStr((int)m_FacePositionY));
+  } else {
+    m_FacePositionY->GetData()->SetFloat(  FaceTop );
+    m_FacePositionY->Update(true);
+  }
+
+  if (!m_FaceSizeWidth) {
+      m_FaceSizeWidth = m_Outlets.GetRef( this->GetOutletIndex( moText("FACE_SIZE_WIDTH") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_SIZE_WIDTH: "+IntToStr((int)m_FaceSizeWidth));
+  } else {
+    m_FaceSizeWidth->GetData()->SetFloat(  FaceWidth );
+    m_FaceSizeWidth->Update(true);
+  }
+  if (!m_FaceSizeHeight) {
+      m_FaceSizeHeight = m_Outlets.GetRef( this->GetOutletIndex( moText("FACE_SIZE_HEIGHT") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_SIZE_HEIGHT: "+IntToStr((int)m_FaceSizeHeight));
+  } else {
+    m_FaceSizeHeight->GetData()->SetFloat(  FaceHeight );
+    m_FaceSizeHeight->Update(true);
+  }
+
+  m_bReInit = false;
+}
+
+void
+moOpenCV::BlobRecognition() {
 
 }
+
+void
+moOpenCV::ColorRecognition() {
+
+}
+
+
 
 MOswitch moOpenCV::SetStatus(MOdevcode devcode, MOswitch state) {
     return true;
@@ -597,6 +1183,143 @@ MOdevcode moOpenCV::GetCode(moText strcod) {
     return(-1);
 }
 
+GLuint
+moOpenCV::CvMatToTexture( Mat &mat, GLenum minFilter, GLenum magFilter, GLenum wrapFilter, moTexture* p_destTexture )
+{
+	// Generate a number for our textureID's unique handle
+	/*
+	GLuint textureID;
+	glGenTextures(1, &textureID);
+
+  //p_destTexture = NULL;
+
+	// Bind to our texture handle
+
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	// Catch silly-mistake texture interpolation method for magnification
+	if (magFilter == GL_LINEAR_MIPMAP_LINEAR  ||
+	    magFilter == GL_LINEAR_MIPMAP_NEAREST ||
+	    magFilter == GL_NEAREST_MIPMAP_LINEAR ||
+	    magFilter == GL_NEAREST_MIPMAP_NEAREST)
+	{
+		cout << "You can't use MIPMAPs for magnification - setting filter to GL_LINEAR" << endl;
+		magFilter = GL_LINEAR;
+	}
+
+	// Set texture interpolation methods for minification and magnification
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
+
+	// Set texture clamping method
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapFilter);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapFilter);
+
+	// Set incoming texture format to:
+	// GL_BGR       for CV_CAP_OPENNI_BGR_IMAGE,
+	// GL_LUMINANCE for CV_CAP_OPENNI_DISPARITY_MAP,
+	// Work out other mappings as required ( there's a list in comments in main() )
+	GLenum inputColourFormat = GL_BGR;
+	if (mat.channels() == 1)
+	{
+		inputColourFormat = GL_LUMINANCE;
+	}
+
+	// Create the texture
+	glTexImage2D(GL_TEXTURE_2D,     // Type of texture
+	             0,                 // Pyramid level (for mip-mapping) - 0 is the top level
+	             GL_RGB,            // Internal colour format to convert to
+	             mat.cols,          // Image width  i.e. 640 for Kinect in standard mode
+	             mat.rows,          // Image height i.e. 480 for Kinect in standard mode
+	             0,                 // Border width in pixels (can either be 1 or 0)
+	             inputColourFormat, // Input image format (i.e. GL_RGB, GL_RGBA, GL_BGR etc.)
+	             GL_UNSIGNED_BYTE,  // Image data type
+	             mat.ptr());        // The actual image data itself
+
+	// If we're using mipmaps then generate them. Note: This requires OpenGL 3.0 or higher
+	if (minFilter == GL_LINEAR_MIPMAP_LINEAR  ||
+	    minFilter == GL_LINEAR_MIPMAP_NEAREST ||
+	    minFilter == GL_NEAREST_MIPMAP_LINEAR ||
+	    minFilter == GL_NEAREST_MIPMAP_NEAREST)
+	{
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+*/
+  int textureID = 0;
+
+  if (p_destTexture==NULL) {
+    p_destTexture = m_pCVSourceTexture;
+  }
+
+  if (p_destTexture) {
+
+      p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
+      textureID = p_destTexture->GetGLId();
+  }
+
+	return textureID;
+}
+
+IplImage*
+moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
+
+  if (p_pTexture==NULL) {
+    MODebug2->Error("moOpenCV::TextureToCvImage > error NULL texture");
+    return NULL;
+  }
+
+  if (m_pBuffer==NULL)
+    m_pBuffer = new MOubyte [ p_pTexture->GetWidth() * p_pTexture->GetHeight() * 3 ];
+
+  if (m_pBuffer==NULL) {
+    MODebug2->Error("moOpenCV::TextureToCvImage > Buffer can't be assigned for Texture:"
+                    + p_pTexture->GetName()
+                    + IntToStr(p_pTexture->GetWidth())
+                    +moText("x")
+                    + IntToStr(p_pTexture->GetHeight())
+                    );
+    return NULL;
+  }
+  p_pTexture->GetBuffer( m_pBuffer, GL_BGR, GL_UNSIGNED_BYTE );
+
+  //(MOpointer)pTS->GetData();
+
+  if ( m_bReInit) {
+      //if (m_pIplImage) cvReleaseImage( &m_pIplImage );
+      if (m_pIplImage==NULL) m_pIplImage = cvCreateImage( cvSize( p_pTexture->GetWidth(), p_pTexture->GetHeight()),
+                      IPL_DEPTH_8U,
+                      3 );
+      //MODebug2->Message("moOpenCV::TextureToCvImage > created IplImage for: " + p_pTexture->GetName());
+
+  }
+
+  if (m_pIplImage==NULL) {
+    MODebug2->Error("moOpenCV::TextureToCvImage > IplImage is NULL !!");
+    return NULL;
+  }
+
+  //img = cvCreateImageHeader( cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3 );
+  //cvInitImageHeader( img, cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3, IPL_ORIGIN_TL);
+
+  //cvZero( m_pIplImage );
+  cvSetData( m_pIplImage, (void*)m_pBuffer, p_pTexture->GetWidth()*3);
+
+  if (m_pIplImage && p_Resize.X()>0 && p_Resize.Y()>0) {
+
+    //MODebug2->Message("moOpenCV::TextureToCvImage > Resizing ");
+    IplImage* new_img = NULL;
+    new_img = cvCreateImage(cvSize(p_Resize.X(), p_Resize.Y()), m_pIplImage->depth, m_pIplImage->nChannels);
+    cvResize( m_pIplImage,  new_img );
+    return new_img;
+
+  }
+
+
+  return m_pIplImage;
+
+}
+
+
 //esto se ejecuta por cada CICLO PRINCIPAL DE moConsole(frame)
 //por ahora no nos sirve de nada, porque no mandamos events....ni procesamos events...
 //al menos que Ligia...o algun device especial(nada mas el hecho de que se haya
@@ -627,7 +1350,7 @@ void moOpenCV::Update(moEventList *Events) {
     //MODebug2->Push( moText("threshold") + IntToStr(threshold)  );
     //MODebug2->Push( moText("threshold_max") + IntToStr(threshold_max)  );
 
-    int test = threshold + 10;
+    int test = m_threshold + 10;
 
     //MODebug2->Push( moText("test") + IntToStr(test)  );
 
@@ -650,16 +1373,16 @@ void moOpenCV::Update(moEventList *Events) {
 
 			    //(MOpointer)pTS->GetData();
 
-			    if (img) {
-                    cvReleaseImage( &img );
-                }
+			    if (m_pIplImage) {
+              cvReleaseImage( &m_pIplImage );
+          }
 
-			    img = cvCreateImage( cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3 );
+			    m_pIplImage = cvCreateImage( cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3 );
 
 			    //img = cvCreateImageHeader( cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3 );
 			    //cvInitImageHeader( img, cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3, IPL_ORIGIN_TL);
 
-                cvZero( img );
+                cvZero( m_pIplImage );
                 ///cvSet( img, cvScalar( 255, 0, 0 ),0);
                 //img->imageData = (char*)pSample->m_pSampleBuffer;
 /*
@@ -678,36 +1401,36 @@ void moOpenCV::Update(moEventList *Events) {
                     }
                 }
 */
-                cvSetData( img, (void*)m_buffer, pSample->m_VideoFormat.m_Width*3);
+                cvSetData( m_pIplImage, (void*)m_buffer, pSample->m_VideoFormat.m_Width*3);
 //                (bh.biWdith*3 + 3) & -4
 
                 if (idopencvout==-1) {
                     ///create texture in moldeo to see it
                     moTexParam tparam = MODefTex2DParams;
                     tparam.internal_format = GL_RGB;
-                    CvSize size = cvGetSize(img);
+                    CvSize size = cvGetSize(m_pIplImage);
                     idopencvout = m_pResourceManager->GetTextureMan()->AddTexture( moText("opencvout"), size.width, size.height, tparam );
                 } else {
 
-                    IplImage* img_gray = cvCreateImage( cvGetSize(img), 8, 1 );
-                    cvCvtColor( img, img_gray, CV_BGR2GRAY );
+                    IplImage* img_gray = cvCreateImage( cvGetSize(m_pIplImage), 8, 1 );
+                    cvCvtColor( m_pIplImage, img_gray, CV_BGR2GRAY );
                     //cvSobel( img_gray, img_gray, 1, 1, 3);
                     double highthresh;
-                    highthresh = threshold;
+                    highthresh = m_threshold;
                     int aperturesize;
-                    aperturesize = (int)threshold_max;
+                    aperturesize = (int)m_threshold_max;
 
                     //aperturesize = threshold * threshold_max;
                     double t = 150;
 
-                    t = (double) threshold;
+                    t = (double) m_threshold;
 
                     cvCanny( img_gray, img_gray, 0, t, 3 );
                     //cvDilate( img_gray, img_gray, 0, 1 );
                     //cvFindContours( img_gray, storage, &contours, sizeof(CvContour),CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0) );
                     //cvDrawContours( img_gray, contours, CV_RGB(255,0,0), CV_RGB(0,255,0), 0, 3, CV_AA, cvPoint(0,0) );
 
-                    cvCvtColor( img_gray, img, CV_GRAY2BGR );
+                    cvCvtColor( img_gray, m_pIplImage, CV_GRAY2BGR );
 
 
 
@@ -872,7 +1595,7 @@ void moOpenCV::Update(moEventList *Events) {
 
 
                     //cvGetRawData( img_grayrgb, (uchar**)&data, &step, &size );
-                    cvGetRawData( img, (uchar**)&data, &step, &size2 );
+                    cvGetRawData( m_pIplImage, (uchar**)&data, &step, &size2 );
                     //cvGetRawData( img, (uchar**)&data, &step, &size );
 
                     //MODebug2->Push(moText("moOpenCV::Update:: step from img:") + IntToStr(step));
