@@ -73,6 +73,9 @@ moEffectText3D::Init()
 {
     if (!PreInit()) return false;
 
+	moDefineParamIndex( TEXT3D_INLET, moText("inlet") );
+	moDefineParamIndex( TEXT3D_OUTLET, moText("outlet") );
+	moDefineParamIndex( TEXT3D_SCRIPT, moText("script") );
 	moDefineParamIndex( TEXT3D_ALPHA, moText("alpha") );
 	moDefineParamIndex( TEXT3D_COLOR, moText("color") );
 	moDefineParamIndex( TEXT3D_SYNC, moText("syncro") );
@@ -97,8 +100,7 @@ moEffectText3D::Init()
 	moDefineParamIndex( TEXT3D_VIEWX, moText("viewx") );
 	moDefineParamIndex( TEXT3D_VIEWY, moText("viewy") );
 	moDefineParamIndex( TEXT3D_VIEWZ, moText("viewz") );
-	moDefineParamIndex( TEXT3D_INLET, moText("inlet") );
-	moDefineParamIndex( TEXT3D_OUTLET, moText("outlet") );
+
 
 	return true;
 
@@ -111,7 +113,7 @@ void moEffectText3D::Draw( moTempo* tempogral, moEffectState* parentstate)
     int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
-    moFont* pFont = m_Config[moR(TEXT3D_FONT)].GetData()->Font();
+    moFont rFont = m_Config.Font( moR(TEXT3D_FONT));
 
     PreDraw( tempogral, parentstate);
 
@@ -123,13 +125,13 @@ void moEffectText3D::Draw( moTempo* tempogral, moEffectState* parentstate)
     m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
 
     glMatrixMode(GL_PROJECTION);
-	gluLookAt(		m_Config[moR(TEXT3D_EYEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TEXT3D_EYEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TEXT3D_EYEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TEXT3D_VIEWX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TEXT3D_VIEWY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					m_Config[moR(TEXT3D_VIEWZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-					0, 1, 0);
+    gluLookAt(		m_Config.Eval( moR(TEXT3D_EYEX)),
+                    m_Config.Eval( moR(TEXT3D_EYEY)),
+                    m_Config.Eval( moR(TEXT3D_EYEZ)),
+                    m_Config.Eval( moR(TEXT3D_VIEWX)),
+                    m_Config.Eval( moR(TEXT3D_VIEWY)),
+                    m_Config.Eval( moR(TEXT3D_VIEWZ)),
+                    0, 1, 0);
 
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
 	glLoadIdentity();									// Reset The View
@@ -147,49 +149,45 @@ void moEffectText3D::Draw( moTempo* tempogral, moEffectState* parentstate)
 
     glEnable(GL_BLEND);
 
-	glTranslatef(   m_Config[moR(TEXT3D_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                    m_Config[moR(TEXT3D_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                    m_Config[moR(TEXT3D_TRANSLATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glTranslatef(   m_Config.Eval(moR(TEXT3D_TRANSLATEX)),
+                  m_Config.Eval(moR(TEXT3D_TRANSLATEY)),
+                  m_Config.Eval(moR(TEXT3D_TRANSLATEZ))
+              );
 
     //rotation
-    glRotatef(  m_Config[moR(TEXT3D_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config[moR(TEXT3D_ROTATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config[moR(TEXT3D_ROTATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang), 1.0, 0.0, 0.0 );
+    glRotatef(  m_Config.Eval(moR(TEXT3D_ROTATEZ)), 0.0, 0.0, 1.0 );
+    glRotatef(  m_Config.Eval(moR(TEXT3D_ROTATEY)), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval(moR(TEXT3D_ROTATEX)), 1.0, 0.0, 0.0 );
 
 	//scale
-	glScalef(   m_Config[moR(TEXT3D_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                m_Config[moR(TEXT3D_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                m_Config[moR(TEXT3D_SCALEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang));
+	glScalef(   m_Config.Eval(moR(TEXT3D_SCALEX)),
+                m_Config.Eval(moR(TEXT3D_SCALEY)),
+                m_Config.Eval(moR(TEXT3D_SCALEZ))
+          );
 
 
-    //blending
-    SetBlending( (moBlendingModes) m_Config[moR(TEXT3D_BLENDING)][MO_SELECTED][0].Int() );
-/*
-    //set image
-    moTexture* pImage = (moTexture*) m_Config[moR(TEXT3D_TEXTURE)].GetData()->Pointer();
-*/
-    //color
-    SetColor( m_Config[moR(TEXT3D_COLOR)][MO_SELECTED], m_Config[moR(TEXT3D_ALPHA)][MO_SELECTED], m_EffectState );
+  //blending
+  SetColor( m_Config[moR(TEXT3D_COLOR)], m_Config[moR(TEXT3D_ALPHA)], m_EffectState );
 
-	moText Texto = m_Config[moR(TEXT3D_TEXT)][MO_SELECTED][0].Text();
+  SetBlending( (moBlendingModes) m_Config.Int( moR(TEXT3D_BLENDING) ) );
+
+	moText Texto = m_Config.Text( moR(TEXT3D_TEXT));
 
 	float r1;
 	r1 = 2.0 *((double)rand() /(double)(RAND_MAX+1));
 
 
-    if (pFont) {
-        pFont->Draw(    m_Config[moR(TEXT3D_TRANSLATEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                        m_Config[moR(TEXT3D_TRANSLATEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
+  rFont.Draw(    m_Config.Eval(moR(TEXT3D_TRANSLATEX)),
+                        m_Config.Eval(moR(TEXT3D_TRANSLATEY)),
                         Texto,
                         m_Config[moR(TEXT3D_FONT)][MO_SELECTED][2].Int(),
                         0,
-                        m_Config[moR(TEXT3D_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                        m_Config[moR(TEXT3D_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang),
-                        m_Config[moR(TEXT3D_ROTATEZ)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) );
+                        m_Config.Eval(moR(TEXT3D_SCALEX)),
+                        m_Config.Eval(moR(TEXT3D_SCALEY)),
+                        m_Config.Eval(moR(TEXT3D_SCALEZ)) );
 
         //moText infod = moText("screen width:")+IntToStr(w)+moText(" screen height:")+IntToStr(h);
         //pFont->Draw( 0, 0, infod, m_Config[moR(TEXT3D_FONT)][MO_SELECTED][2].Int(), 0, 2.0, 2.0, 0.0);
-    }
 
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
