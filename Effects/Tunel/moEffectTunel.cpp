@@ -234,7 +234,7 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 		else
 			C = 1.0;
 
-    SetColor( m_Config[moR(TUNEL_COLOR)][MO_SELECTED], m_Config[moR(TUNEL_ALPHA)][MO_SELECTED], m_EffectState );
+    SetColor( m_Config[moR(TUNEL_COLOR)], m_Config[moR(TUNEL_ALPHA)], m_EffectState );
 
 		glBegin(GL_QUADS);
 		for( I=0; I<sides; I++)
