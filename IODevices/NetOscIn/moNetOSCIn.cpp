@@ -208,6 +208,19 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
     }
 }
 
+MOint
+moOscPacketListener::GetOutletIndex( moOutlets* pOutlets, moText p_connector_name ) const {
+  if (pOutlets)
+	for( MOuint i=0; i< pOutlets->Count(); i++ ) {
+	    moOutlet* pOutlet = pOutlets->Get(i);
+		if ( pOutlet )
+            if ( pOutlet->GetConnectorLabelName() == p_connector_name )
+                return i;
+	}
+	return (-1);
+
+}
+
 int
 moOscPacketListener::Update( moOutlets* pOutlets,
                             bool p_debug_is_on,
@@ -461,7 +474,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
             if (p_ProcessMoldeoApi!=0) {
               if (pEvents) {
-                  MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
+                  //MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
                   moText ApiMessage = message.Get(1).ToText();
                   moDataMessage* sendMessage = new moDataMessage();
                   sendMessage->Copy( message, 1, message.Count()-1);
@@ -474,6 +487,36 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
               }
             }
+        }
+
+        if (message.Count()>=3) {
+        if (
+             message.Get(1).ToText() == moText("opencv")
+
+            ) {
+          //MOTION_DETECTION
+          if (debug_is_on)
+              MODebug2->Push("NetOscIn > OPENCV Received");
+
+          if (message.Count()>=3) {
+            moData outletName = message.Get(2);
+            moData outletValue = message.Get(3);
+            //check if this outlet exists and update it!!!
+            int idx = GetOutletIndex( pOutlets, outletName.Text());
+            if (idx>-1) {
+              moOutlet* pOutlet = pOutlets->Get(idx);
+              if (pOutlet) {
+                moData &Data( *pOutlet->GetData() );
+                Data = outletValue;
+                //pOutlet->GetData()->SetInt()
+                pOutlet->Update(true);
+                if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, outlet for:" + outletName.Text()+" outletValue:" + outletValue.ToText() );
+              }
+            } else {
+             if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, no outlet for:" + outletName.Text() );
+            }
+          }
+        }
         }
 
         if (
@@ -575,6 +618,9 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
                 message.Add( data0 );
             } else if ( moText( m.AddressPattern() ).SubText(0,6) == moText("/moldeo") ) {
                 data0 = moData( moText( "MOLDEO" ) );
+                message.Add( data0 );
+            } else if ( moText( m.AddressPattern() ) == moText("/opencv") ) {
+                data0 = moData( moText( "OPENCV" ) );
                 message.Add( data0 );
             } else {
                 data0 = moData( moText(  m.AddressPattern() ) );
@@ -886,7 +932,7 @@ moNetOSCIn::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("hosts"), MO_PARAM_TEXT, NETOSCIN_HOSTS, moValue("127.0.0.1","TXT") );
-	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCIN_PORT, moValue("7400","INT") );
+	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCIN_PORT, moValue("3334","INT") );
 	p_configdefinition->Add( moText("receive_events"), MO_PARAM_NUMERIC, NETOSCIN_RECEIVEEVENTS, moValue("0","INT") );
 	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, NETOSCIN_DEBUG, moValue("0","INT") );
 	p_configdefinition->Add( moText("process_moldeo_api"), MO_PARAM_NUMERIC, NETOSCIN_PROCESSMOLDEOAPI, moValue("1","INT") );
@@ -946,7 +992,7 @@ void moNetOSCIn::Update(moEventList *Events) {
                                         Events,
                                         m_ProcessMoldeoApi,
                                         GetMobDefinition().GetMoldeoId()  );
-            if (nnn>0 && debug_is_on) MODebug2->Push( moText("Updating outlets with messages: ") + IntToStr(nnn) );
+            //if (nnn>0 && debug_is_on) MODebug2->Push( moText("Updating outlets with messages: ") + IntToStr(nnn) );
         }
 
 	}

@@ -74,7 +74,7 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
 		void Set( UdpListeningReceiveSocket* pudprcv );
 
         void Init( moOutlets* pOutlets );
-
+        MOint GetOutletIndex( moOutlets* pOutlets, moText p_connector_name ) const;
         int Update( moOutlets* pOutlets,
                    bool p_debug_is_on,
                    moEventList* pEvents,
