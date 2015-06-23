@@ -133,36 +133,7 @@ void moMasterEffectChannel::Draw( moTempo* tempogral,moEffectState* parentstate)
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix();                                     // Store The Modelview Matrix
 	glLoadIdentity();
-/*
-    glTranslatef(   movx(m_Config.GetParam(transx), tempo),
-                    movy(m_Config.GetParam(transy), tempo),
-                    movz(m_Config.GetParam(transz), tempo));
-    glRotatef(  movx(m_Config.GetParam(rotatx), tempo), 1.0, 0.0, 0.0 );
-    glRotatef(  movy(m_Config.GetParam(rotaty), tempo), 0.0, 1.0, 0.0 );
-    glRotatef(  movz(m_Config.GetParam(rotatz), tempo), 0.0, 0.0, 1.0 );
-    glScale(    movx(m_Config.GetParam(scalex), tempo),
-                movy(m_Config.GetParam(scaley), tempo),
-                movz(m_Config.GetParam(scalez), tempo));
-*/
-	/*
-    glColor4f(  m_Config.GetParam(color).GetValueFlt(MO_RED)*state.tint,
-                m_Config.GetParam(color).GetValueFlt(MO_GREEN*state.tint),
-                m_Config.GetParam(color).GetValueFlt(MO_BLUE)*state.tint,
-                m_Config.GetParam(color).GetValueFlt(MO_ALPHA)*state.alpha);
-    */
-    // Aca van los comandos OpenGL del efecto.
-/*
-	MOint m_Selected,ne,i;
-	m_Selected = -1;
-	ne = 0;
 
-	for(i=0;i<consolestate->m_nAllEffects;i++) {
-		if( m_SelectedArray[i] == MO_ACTIVATED ) {
-			ne++;
-			m_Selected = i;
-		}
-	}
- */
 
 	MOint cantparam,paramselected,j,ancho;
 	ancho = 1;
