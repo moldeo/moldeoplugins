@@ -101,7 +101,7 @@ MOboolean moNetOSCOut::Init()
     moDefineParamIndex( NETOSCOUT_SENDEVENTS, moText("send_events") );
     moDefineParamIndex( NETOSCOUT_DELETEEVENTS, moText("delete_events") );
     moDefineParamIndex( NETOSCOUT_SENDMOLDEOAPI, moText("send_moldeo_api") );
-
+    moDefineParamIndex( NETOSCOUT_DEBUG, moText("debug") );
 
 
     // Reading list of devices which will be used as source of events to send over the network.
@@ -156,7 +156,7 @@ MOboolean moNetOSCOut::Init()
 
         moText str = buffer;
 
-	    MODebug2->Message( moText("moNetOscOut:: host: ") + moText(host_name[i]) + moText(" ip int:") + (moText)str );
+	    //MODebug2->Message( moText("moNetOscOut:: host: ") + moText(host_name[i]) + moText(" ip int:") + (moText)str );
 
 
 
@@ -165,7 +165,7 @@ MOboolean moNetOSCOut::Init()
 
 		transmitSockets[i] = new UdpTransmitSocket( ipendpointname );
 		if (transmitSockets[i]) {
-        MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
+       // MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
     }
 
 
@@ -189,7 +189,7 @@ moNetOSCOut::UpdateParameters() {
     m_SendEvents  = m_Config.Int( moR( NETOSCOUT_SENDEVENTS ) );
     delete_events = m_Config.Int( moR( NETOSCOUT_DELETEEVENTS ) );
     m_sendMoldeoApi = m_Config.Int( moR( NETOSCOUT_SENDMOLDEOAPI )  );
-
+    debug_is_on = ( 0 != m_Config.Int( moR(NETOSCOUT_DEBUG) ) );
 }
 
 
@@ -218,8 +218,8 @@ moNetOSCOut::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("hosts"), MO_PARAM_TEXT, NETOSCOUT_HOSTS, moValue( "127.0.0.1", "TXT") );
-	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCOUT_PORT, moValue( "7400", "INT") );
+	p_configdefinition->Add( moText("hosts"), MO_PARAM_TEXT, NETOSCOUT_HOSTS, moValue( "127.0.0.1", "TXT", "3335", "INT") );
+	p_configdefinition->Add( moText("port"), MO_PARAM_NUMERIC, NETOSCOUT_PORT, moValue( "3335", "INT") );
 
     p_configdefinition->Add( moText("devices"), MO_PARAM_TEXT, NETOSCOUT_DEVICES, moValue( "keyboard", "TXT") );
 	p_configdefinition->Add( moText("latency"), MO_PARAM_NUMERIC, NETOSCOUT_LATENCY, moValue( "30", "FLOAT") );
@@ -229,6 +229,7 @@ moNetOSCOut::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("delete_events"), MO_PARAM_NUMERIC, NETOSCOUT_DELETEEVENTS, moValue( "0", "INT") );
 
 	p_configdefinition->Add( moText("send_moldeo_api"), MO_PARAM_NUMERIC, NETOSCOUT_SENDMOLDEOAPI, moValue("1","INT") );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, NETOSCOUT_DEBUG, moValue("0","INT") );
 
 	return p_configdefinition;
 }
@@ -325,7 +326,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     //res = eventPacket[i]->AddEvent(actual);
                     //if (eventPacket[i]->ReadyToSend())
                     {
-                        //MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
+                        MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
                         SendDataMessage( i, *MoldeoAPIMessage );
                         //eventPacket[i]->ClearPacket();
                         //if (!res) eventPacket[i]->AddEvent(actual);
@@ -344,6 +345,64 @@ void moNetOSCOut::Update(moEventList *Eventos)
     //inlets outlets
     moMoldeoObject::Update(Eventos);
 
+
+    int MsgToSend = GetInletIndex("DATAMESSAGE" );
+    if (MsgToSend > -1 && 1==1) {
+      moInlet* pInlet = GetInlets()->Get(MsgToSend);
+      if (pInlet ) {
+          if (pInlet->Updated()) {
+            moDataMessage data_message;
+            moData mData;
+            moData* pData = pInlet->GetData();
+            if (pData) {
+              if (pData->Type()==MO_DATA_MESSAGE) {
+
+              if (debug_is_on) MODebug2->Push( moText(" text: ") + pData->ToText());
+
+                moDataMessage* pMess = pData->Message();
+                if (pMess) {
+                  //MODebug2->Push( moText(" text: ") + pData->ToText());
+                  for(int k=0; k<pMess->Count(); k++ ) {
+                    mData = pMess->Get(k);
+                    data_message.Add(mData);
+                    //MODebug2->Push( moText(" text d: ") + mData.ToText());
+                  }
+                }
+
+                //mData.SetText("test");
+                //data_message.Add(mData);
+                //moDataMessage DM = *pData->Message();
+                for (i = 0; i < host_name.Count(); i++)
+                {
+                    {
+                        //MODebug2->Push( moText("sending DATAMESSAGE: ") + ccc );
+                        SendDataMessage( i, data_message );
+                    }
+                }
+              }
+            }
+            //moDataMessage* pMoldeoDataMessage = (moDataMessage*)pInlet->GetData()->Message();
+              /*
+              moText ccc;
+              for( int c=0; c<DM.Count(); c++) {
+                ccc = ccc + DM.Get(c).ToText();
+              }*/
+/*
+            if (pMoldeoDataMessage) {
+              moDataMessage DM = (*pMoldeoDataMessage);
+              for (i = 0; i < host_name.Count(); i++)
+              {
+                  {
+                      //MODebug2->Push( moText("sending DATAMESSAGE: ") + ccc );
+                      //SendDataMessage( i, DM );
+                  }
+              }
+
+            }
+            */
+          }
+      }
+    }
 
     moTrackerSystemData* m_pTrackerData = NULL;
     //bool m_bTrackerInit = false;
@@ -587,7 +646,7 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
     //cout << "moNetOSCOut::SendDataMessage > sending." << endl;
 
     if (transmitSockets[i]) {
-        MODebug2->Message(moText("moNetOSCOut > sending ") + IntToStr(i) + " size:" + IntToStr(packetStream->Size()) );
+        //MODebug2->Message(moText("moNetOSCOut > sending ") + IntToStr(i) + " size:" + IntToStr(packetStream->Size()) );
         transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
 
     }

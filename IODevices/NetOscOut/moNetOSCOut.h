@@ -59,11 +59,13 @@ enum moNetOSCOutParamIndex {
     NETOSCOUT_MAXEVENTS,
     NETOSCOUT_SENDEVENTS,
     NETOSCOUT_DELETEEVENTS,
-    NETOSCOUT_SENDMOLDEOAPI
+    NETOSCOUT_SENDMOLDEOAPI,
+    NETOSCOUT_DEBUG
 };
 
 
 // moNetOSCOut class **************************************************
+bool debug_is_on = false;
 
 class moNetOSCOut : public moIODevice
 {
