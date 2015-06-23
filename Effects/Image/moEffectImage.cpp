@@ -183,7 +183,8 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
   glEnable(GL_TEXTURE_2D);
 	//glBindTexture( GL_TEXTURE_2D, m_Config[moR(IMAGE_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, &FilterParams ) );
-  glBindTexture( GL_TEXTURE_2D,  m_Config.GetGLId( moR(IMAGE_TEXTURE) ) );
+	//MODebug2->Push( FloatToStr(m_EffectState.tempo.ang) );
+  glBindTexture( GL_TEXTURE_2D,  m_Config.GetGLId( moR(IMAGE_TEXTURE), &m_EffectState.tempo ) );
 
 	PosTextX = m_Config.Eval( moR(IMAGE_POSTEXX), m_EffectState.tempo.ang);
     AncTextX = m_Config.Eval( moR(IMAGE_ANCTEXX), m_EffectState.tempo.ang);
