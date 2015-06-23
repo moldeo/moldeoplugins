@@ -105,6 +105,9 @@ moEffectGrid::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("textureh"), MO_PARAM_TEXTURE, GRID_TEXTUREH, moValue( "default", MO_VALUE_TXT) );
 
 	p_configdefinition->Add( moText("map"), MO_PARAM_TEXT, GRID_MAP, moValue( "mapa/mapax.mp", MO_VALUE_TXT) );
+  p_configdefinition->Add( moText("map_position_x"), MO_PARAM_FUNCTION, GRID_MAP_POSITION_X, moValue( "1.0", "FUNCTION").Ref() );
+  p_configdefinition->Add( moText("map_position_y"), MO_PARAM_FUNCTION, GRID_MAP_POSITION_Y, moValue( "1.0", "FUNCTION").Ref() );
+
 	p_configdefinition->Add( moText("scales"), MO_PARAM_NUMERIC, GRID_SCALES, moValue( "12", MO_VALUE_NUM_INT) );
 	p_configdefinition->Add( moText("size"), MO_PARAM_NUMERIC, GRID_SIZE, moValue( "45", MO_VALUE_NUM_INT) );
 	p_configdefinition->Add( moText("wireframe"), MO_PARAM_NUMERIC, GRID_WIREFRAME, moValue( "0", MO_VALUE_NUM_INT) );
@@ -176,6 +179,8 @@ MOboolean moEffectGrid::Init()
     moDefineParamIndex( GRID_TEXTUREH, moText("textureh") );
 
     moDefineParamIndex( GRID_MAP, moText("map") );
+    moDefineParamIndex( GRID_MAP_POSITION_X, moText("map_position_x") );
+    moDefineParamIndex( GRID_MAP_POSITION_Y, moText("map_position_y") );
     moDefineParamIndex( GRID_SCALES, moText("scales") );
     moDefineParamIndex( GRID_SIZE, moText("size") );
     moDefineParamIndex( GRID_WIREFRAME, moText("wireframe") );
@@ -188,7 +193,6 @@ MOboolean moEffectGrid::Init()
     moDefineParamIndex( GRID_TORUS_FACTOR, moText("torus_factor") );
     moDefineParamIndex( GRID_WAVE_AMPLITUDE, moText("wave_amplitude") );
 
-    moDefineParamIndex( GRID_CONTROL_ALTITUDE, moText("control_altitude") );
     moDefineParamIndex( GRID_CONTROL_ROLL_ANGLE, moText("control_roll_angle") );
     moDefineParamIndex( GRID_CONTROL_ROLL_FORCE, moText("control_roll_force") );
     moDefineParamIndex( GRID_CONTROL_LIFT_ANGLE, moText("control_lift_angle") );
@@ -226,7 +230,6 @@ void moEffectGrid::UpdateParameters() {
   double torus_factor = m_Config.Eval(moR(GRID_TORUS_FACTOR));
   double wave_amplitude = m_Config.Eval(moR(GRID_WAVE_AMPLITUDE));
 
-  double control_altitude = m_Config.Eval(moR(GRID_CONTROL_ALTITUDE));
   double control_roll_angle = m_Config.Eval(moR(GRID_CONTROL_ROLL_ANGLE));
   double control_roll_force = m_Config.Eval(moR(GRID_CONTROL_ROLL_FORCE));
   double control_lift_angle = m_Config.Eval(moR(GRID_CONTROL_LIFT_ANGLE));
@@ -248,6 +251,19 @@ void moEffectGrid::UpdateParameters() {
 
       Grid->Wireframe(wireframe==1);
 
+      if (Grid->m_GridDefinition.map_position_x!=m_Config.Eval(moR(GRID_MAP_POSITION_X))
+          ||
+          Grid->m_GridDefinition.map_position_y!=m_Config.Eval(moR(GRID_MAP_POSITION_Y)) )  {
+
+        Grid->m_GridDefinition.map_position_x = m_Config.Eval(moR(GRID_MAP_POSITION_X));
+        Grid->m_GridDefinition.map_position_y = m_Config.Eval(moR(GRID_MAP_POSITION_Y));
+
+        //Grid->Posicionar(Grid->m_GridDefinition.map_position_x, Grid->m_GridDefinition.map_position_y);
+      }
+
+
+      Grid->m_GridDefinition.map_position_x =  m_Config.Eval(moR(GRID_MAP_POSITION_X));
+      Grid->m_GridDefinition.map_position_y =  m_Config.Eval(moR(GRID_MAP_POSITION_Y));
       Grid->m_GridDefinition.m_height_multiply = height_multiply;
       Grid->m_GridDefinition.m_planet_factor = planet_factor;
       Grid->m_GridDefinition.m_torus_factor = torus_factor;
@@ -258,9 +274,10 @@ void moEffectGrid::UpdateParameters() {
       Grid->m_GridDefinition.m_minimum_surface_altitude = control_minimum_surface_altitude;
       //MODebug2->Message( "height_multiply: "+ FloatToStr(height_multiply) );
 
-      if ( control_speed!=0.0f )
+      if ( control_speed!=0.0f ) {
           Grid->RapidezF =  control_speed;
           Grid->Rapidez = Grid->RapidezF;
+      }
 
       if ( control_speed_acceleration!=0.0f ) {
           Grid->RapidezF+= control_speed_acceleration;

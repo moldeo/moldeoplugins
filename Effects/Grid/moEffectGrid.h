@@ -84,6 +84,8 @@ enum moGridParamIndex {
 	GRID_TEXTUREG,
 	GRID_TEXTUREH,
   GRID_MAP,
+  GRID_MAP_POSITION_X,
+  GRID_MAP_POSITION_Y,
 	GRID_SCALES,
 	GRID_SIZE,
 	GRID_WIREFRAME,
@@ -144,6 +146,9 @@ public:
     void Interaction(moIODeviceManager*);
     float turnAngle;
 private:
+
+    moVector2f  m_MapPosition;
+
 	moTextureManager*	MOTextures;
     MOint color, texture, textureb;
     MOtexture   *textures;
