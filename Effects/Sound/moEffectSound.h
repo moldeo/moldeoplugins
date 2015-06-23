@@ -65,6 +65,9 @@ enum moSoundParamIndex {
 
   SOUND_FADE_IN,
   SOUND_FADE_OUT,
+
+  SOUND_LAUNCH,
+
 	SOUND_INLET,
 	SOUND_OUTLET
 };

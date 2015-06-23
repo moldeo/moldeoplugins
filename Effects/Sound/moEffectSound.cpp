@@ -78,6 +78,7 @@ moEffectSound::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("sound"), MO_PARAM_SOUND, SOUND_SOUND, moValue( "default", MO_VALUE_TXT ) );
 	p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, SOUND_MODE, moValue( "0", MO_VALUE_NUM_INT ) );
 	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, SOUND_LOOP, moValue( "1", MO_VALUE_NUM_INT ) );
+	p_configdefinition->Add( moText("launch"), MO_PARAM_NUMERIC, SOUND_LAUNCH, moValue( "0", MO_VALUE_NUM_INT ) );
 	p_configdefinition->Add( moText("position"), MO_PARAM_FUNCTION, SOUND_POSITION, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("pitch"), MO_PARAM_FUNCTION, SOUND_PITCH, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
 
@@ -111,6 +112,7 @@ MOboolean moEffectSound::Init() {
 	moDefineParamIndex( SOUND_SOUND, moText("sound") );
 	moDefineParamIndex( SOUND_MODE, moText("mode") );
 	moDefineParamIndex( SOUND_LOOP, moText("loop") );
+	moDefineParamIndex( SOUND_LAUNCH, moText("launch") );
 
 	moDefineParamIndex( SOUND_POSITION, moText("position") );
 	moDefineParamIndex( SOUND_PITCH, moText("pitch") );
