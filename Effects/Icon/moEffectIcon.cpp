@@ -79,7 +79,6 @@ moEffectIcon::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, ICON_BLENDING, moValue( "0", MO_VALUE_NUM ).Ref() );
 	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, ICON_WIDTH, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, ICON_HEIGHT, moValue( "1.0", MO_VALUE_FUNCTION ).Ref() );
-	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, ICON_HEIGHT, moValue( "1.0", MO_VALUE_FUNCTION ).Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, ICON_TRANSLATEX, moValue( "0.0", MO_VALUE_FUNCTION ).Ref() );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, ICON_TRANSLATEY, moValue( "0.0", MO_VALUE_FUNCTION ).Ref() );
 	p_configdefinition->Add( moText("rotate"), MO_PARAM_ROTATEZ, ICON_ROTATE );
@@ -157,7 +156,10 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
-    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE)) );
+    moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
+    if (TD && TD->Texture()==NULL) UpdateConnectors();
+
+    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo ) );
 
 
     glBegin(GL_QUADS);
