@@ -90,19 +90,8 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("folders"), MO_PARAM_TEXTUREFOLDER, PARTICLES_FOLDERS, moValue( "", "TXT") );
-	/*moTextArray TOptions( 4,moText("Unit (full texture in each particle)"),
-                      moText("Patch (texture fragment in each particle)"),
-                                     moText("Many (full textures from texturefolder)"),
-                                     moText("Many 2 Patch (texture fragment from texturefolder - composition)") );
-                                     */
-	TextureModeOptions.Add( moText("UNIT<hint>Texture is each particle's image</hint>") );
-    TextureModeOptions.Add( moText("PATCH<hint>Texture is a patch of N particles</hint>") );
-    TextureModeOptions.Add( moText("MANY<hint>Texture is taken from texture folder parameter</hint>") );
-    TextureModeOptions.Add( moText("MANY2PATCH<hint>Texture is a patch of N particles where each image is taken from the texture folder parameter</hint>") );
 
-	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM"), TextureModeOptions );
-
-
+	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM"), moText("UNIT,PATCH,MANY,MANY2PATCH"));
 
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, PARTICLES_WIDTH, moValue( "9", "NUM") );
@@ -115,16 +104,16 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("gravity"), MO_PARAM_FUNCTION, PARTICLES_GRAVITY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viscosity"), MO_PARAM_FUNCTION, PARTICLES_VISCOSITY, moValue( "0.8", "FUNCTION").Ref() );
 
-	p_configdefinition->Add( moText("maxage"), MO_PARAM_NUMERIC, PARTICLES_MAXAGE, moValue( "3000", "NUM").Ref() );
-	p_configdefinition->Add( moText("emitionperiod"), MO_PARAM_NUMERIC, PARTICLES_EMITIONPERIOD, moValue( "10", "NUM").Ref() );
+	p_configdefinition->Add( moText("maxage"), MO_PARAM_FUNCTION, PARTICLES_MAXAGE, moValue( "3000", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("emitionperiod"), MO_PARAM_FUNCTION, PARTICLES_EMITIONPERIOD, moValue( "10", "FUNCTION").Ref() );
 	//p_configdefinition->Add( moText("emitionrate"), MO_PARAM_NUMERIC, PARTICLES_EMITIONRATE, moValue( "1", "NUM").Ref() );
 	p_configdefinition->Add( moText("emitionrate"), MO_PARAM_FUNCTION, PARTICLES_EMITIONRATE, moValue( "1", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("deathperiod"), MO_PARAM_NUMERIC, PARTICLES_DEATHPERIOD, moValue( "1", "NUM").Ref() );
 	p_configdefinition->Add( moText("particlescript"), MO_PARAM_SCRIPT, PARTICLES_SCRIPT2 );
 
-	p_configdefinition->Add( moText("randommethod"), MO_PARAM_NUMERIC, PARTICLES_RANDOMMETHOD, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("creationmethod"), MO_PARAM_NUMERIC, PARTICLES_CREATIONMETHOD, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("orientationmode"), MO_PARAM_NUMERIC, PARTICLES_ORIENTATIONMODE, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("randommethod"), MO_PARAM_NUMERIC, PARTICLES_RANDOMMETHOD, moValue( "0", "NUM").Ref(), moText("NOISY,COLINEAR,PERPENDICULAR") );
+	p_configdefinition->Add( moText("creationmethod"), MO_PARAM_NUMERIC, PARTICLES_CREATIONMETHOD, moValue( "0", "NUM").Ref(), moText("LINEAR,PLANAR,VOLUMETRIC,CENTER") );
+	p_configdefinition->Add( moText("orientationmode"), MO_PARAM_NUMERIC, PARTICLES_ORIENTATIONMODE, moValue( "0", "NUM").Ref(), moText("FIXED,CAMERA,MOTION,ACCELERATION") );
 
 	p_configdefinition->Add( moText("fadein"), MO_PARAM_FUNCTION, PARTICLES_FADEIN, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("fadeout"), MO_PARAM_FUNCTION, PARTICLES_FADEOUT, moValue( "0", "FUNCTION").Ref() );
@@ -133,13 +122,13 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 
 
 
-	p_configdefinition->Add( moText("attractortype"), MO_PARAM_NUMERIC, PARTICLES_ATTRACTORTYPE, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("attractormode"), MO_PARAM_NUMERIC, PARTICLES_ATTRACTORMODE, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("attractortype"), MO_PARAM_NUMERIC, PARTICLES_ATTRACTORTYPE, moValue( "0", "NUM").Ref(), moText("POINT,GRID,SPHERE,TUBE,JET,TRACKER,VERTEX") );
+	p_configdefinition->Add( moText("attractormode"), MO_PARAM_NUMERIC, PARTICLES_ATTRACTORMODE, moValue( "0", "NUM").Ref(), moText("ACCELERATION,STICK,BOUNCE,BREAKS,BRAKE,LINEAR") );
 	p_configdefinition->Add( moText("attractorvectorx"), MO_PARAM_FUNCTION, PARTICLES_ATTRACTORVECTOR_X, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("attractorvectory"), MO_PARAM_FUNCTION, PARTICLES_ATTRACTORVECTOR_Y, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("attractorvectorz"), MO_PARAM_FUNCTION, PARTICLES_ATTRACTORVECTOR_Z, moValue( "0", "FUNCTION").Ref() );
 
-	p_configdefinition->Add( moText("emittertype"), MO_PARAM_NUMERIC, PARTICLES_EMITTERTYPE, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("emittertype"), MO_PARAM_NUMERIC, PARTICLES_EMITTERTYPE, moValue( "0", "NUM").Ref(), moText("GRID,SPHERE,TUBE,JET,POINT,TRACKER,TRACKER2,SPIRAL,CIRCLE") );
 	p_configdefinition->Add( moText("emittervectorx"), MO_PARAM_FUNCTION, PARTICLES_EMITTERVECTOR_X, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("emittervectory"), MO_PARAM_FUNCTION, PARTICLES_EMITTERVECTOR_Y, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("emittervectorz"), MO_PARAM_FUNCTION, PARTICLES_EMITTERVECTOR_Z, moValue( "0", "FUNCTION").Ref() );
@@ -172,7 +161,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("time_of_revelation"), MO_PARAM_NUMERIC, PARTICLES_TIMEOFREVELATION, moValue( "3000", "NUM") );
 	p_configdefinition->Add( moText("time_to_restoration"), MO_PARAM_NUMERIC, PARTICLES_TIMETORESTORATION, moValue( "2000", "NUM") );
 	p_configdefinition->Add( moText("time_of_restoration"), MO_PARAM_NUMERIC, PARTICLES_TIMEOFRESTORATION, moValue( "3000", "NUM") );
-	p_configdefinition->Add( moText("drawing_features"), MO_PARAM_NUMERIC, PARTICLES_DRAWINGFEATURES, moValue( "0", "NUM") );
+	p_configdefinition->Add( moText("drawing_features"), MO_PARAM_NUMERIC, PARTICLES_DRAWINGFEATURES, moValue( "0", "NUM"), moText("NO,YES") );
 
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PARTICLES_TRANSLATEX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PARTICLES_TRANSLATEY, moValue( "0.0", "FUNCTION").Ref() );
@@ -189,7 +178,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("viewx"), MO_PARAM_FUNCTION, PARTICLES_VIEWX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewy"), MO_PARAM_FUNCTION, PARTICLES_VIEWY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewz"), MO_PARAM_FUNCTION, PARTICLES_VIEWZ, moValue( "0.0", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM") );
+	p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM"), moText("NONE,ZDEPTHTEST,ZPOSITION,COMPLETE") );
 	return p_configdefinition;
 }
 
@@ -197,11 +186,19 @@ MOboolean
 moEffectParticlesSimple::Init()
 {
 
+  ///IMPORTANT: add inlets before PreInit so inlets name are availables for function variables!!
   m_pParticleTime = new moInlet();
 
   if (m_pParticleTime) {
     ((moConnector*)m_pParticleTime)->Init( moText("particletime"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
     m_Inlets.Add(m_pParticleTime);
+  }
+
+  m_pParticleIndex = new moInlet();
+
+  if (m_pParticleIndex) {
+    ((moConnector*)m_pParticleIndex)->Init( moText("particleindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pParticleIndex);
   }
 
 
@@ -441,7 +438,7 @@ void moEffectParticlesSimple::Shot( moText source, int shot_type, int shot_file 
             }
 
         } else {
-            glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE) );
+            glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), &m_EffectState.tempo );
             glidori = glid;
             //MODebug2->Error(  moText(" no texture buffer"));
             //version self texture (LIVEIN0 o imagen)
@@ -734,7 +731,8 @@ void moEffectParticlesSimple::UpdateDt() {
 
     last_tick = gral_ticks;
     */
-
+    /// 60 FPS = 16.666 milliseconds
+    /// dtrel is frame relative where if dtrel = 1 = 1 frame (60fps)
     dtrel = (double) ( m_EffectState.tempo.ticks - last_tick ) / (double)16.666666;
 
     //if ( ( (last_tick/100) % 50 ) == 0 ) MODebug2->Push("dtrel:"+FloatToStr(dtrel));
@@ -816,16 +814,17 @@ void moEffectParticlesSimple::UpdateParameters() {
     //emiperi = (long) emiper;
     //MODebug2->Message(moText("Emiper:")+IntToStr(emiperi));
 
-    m_Physics.m_MaxAge = m_Config.Int( moR(PARTICLES_MAXAGE) );
+    //m_Physics.m_MaxAge = m_Config.Int( moR(PARTICLES_MAXAGE) );
+    m_Physics.m_MaxAge = (long) m_Config.Eval( moR(PARTICLES_MAXAGE) );
     //m_Physics.m_EmitionPeriod = emiperi;
     //emiperi = m_Config[moR(PARTICLES_EMITIONPERIOD)][MO_SELECTED][0].Int() * midi_emitionperiod;
     //m_Physics.m_EmitionPeriod = emiperi;
-    m_Physics.m_EmitionPeriod = m_Config.Int( moR(PARTICLES_EMITIONPERIOD) );
+    m_Physics.m_EmitionPeriod = (long) m_Config.Eval( moR(PARTICLES_EMITIONPERIOD) );
     //m_Physics.m_EmitionPeriod = m_Config[moR(PARTICLES_EMITIONPERIOD)][MO_SELECTED][0].Int();
     //MODebug2->Message(moText("Emiperiod:")+IntToStr(m_Physics.m_EmitionPeriod));
 
     //m_Physics.m_EmitionRate = m_Config.Int( moR(PARTICLES_EMITIONRATE) );
-    m_Physics.m_EmitionRate = m_Config.Eval( moR(PARTICLES_EMITIONRATE) );
+    m_Physics.m_EmitionRate = (long) m_Config.Eval( moR(PARTICLES_EMITIONRATE) );
     m_Physics.m_DeathPeriod = m_Config.Int( moR(PARTICLES_DEATHPERIOD) );
 
 
@@ -2274,6 +2273,13 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                   }
                 }
 
+                if (m_pParticleIndex) {
+                  if (m_pParticleIndex->GetData()) {
+                      m_pParticleIndex->GetData()->SetLong( i + j*m_cols );
+                      m_pParticleIndex->Update(true);
+                  }
+                }
+
                 glPushMatrix();
 
                 glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
@@ -2949,7 +2955,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     frame++;
     moFont* pFont = m_Config[ moR(PARTICLES_FONT) ][MO_SELECTED][0].Font();
 
-    UpdateParameters();
+
 
     /*
     MODebug2->Push( "sync: " + IntToStr((int)state.synchronized)
@@ -2960,7 +2966,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
 */
     PreDraw( tempogral, parentstate);
-
+    UpdateParameters();
     // Cambiar la proyeccion para una vista ortogonal //
 /*
 */
@@ -3051,8 +3057,6 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ));
 
 
-    rz = m_Config.Eval( moR(PARTICLES_ROTATEZ));
-
     sx = m_Config.Eval( moR(PARTICLES_SCALEX));
     sy = m_Config.Eval( moR(PARTICLES_SCALEY));
     sz = m_Config.Eval( moR(PARTICLES_SCALEZ));
@@ -3062,6 +3066,7 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
                     tz );
 
     //rotation
+    float rz = m_Config.Eval( moR(PARTICLES_ROTATEZ));
     glRotatef(  rz, 0.0, 0.0, 1.0 );
     glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY)), 0.0, 1.0, 0.0 );
     glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX)), 1.0, 0.0, 0.0 );

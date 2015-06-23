@@ -116,7 +116,7 @@ enum moParticlesSimpleBehaviourMode {
   PARTICLES_BEHAVIOUR_COHESION = 0,
   PARTICLES_BEHAVIOUR_SEPARATION = 1,
   PARTICLES_BEHAVIOUR_AVOIDANCE = 2,
-  PARTICLES_BEHAVIOUR_ALIGNEMENT = 3
+  PARTICLES_BEHAVIOUR_ALIGNMENT = 3
 };
 
 
@@ -686,6 +686,8 @@ class moEffectParticlesSimple : public moEffect
         ///end script functions
 
         moInlet*                  m_pParticleTime;
+        moInlet*                  m_pParticleIndex;
+
         moParticlesSimpleArray    m_ParticlesSimpleArray;
         moParticlesSimpleArray    m_ParticlesSimpleArrayTmp;
         moParticlesSimplePhysics    m_Physics;
