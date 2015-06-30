@@ -305,8 +305,8 @@ moPreEffectMirrorG::Calculate(void) {
 
 
 	//carga valroes generales
-	generalx = m_Config[moR(MIRRORG_GENERALX)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
-	generaly = m_Config[moR(MIRRORG_GENERALY)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	generalx = m_Config.Eval( moR(MIRRORG_GENERALX), m_EffectState.tempo.ang);//m_Config[moR(MIRRORG_GENERALX)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	generaly = m_Config.Eval( moR(MIRRORG_GENERALY), m_EffectState.tempo.ang );;//m_Config[moR(MIRRORG_GENERALY)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
 
 	for(j=0; j<hpoint2; j++) {
 			for(i=0; i<wpoint2; i++) {
