@@ -76,6 +76,7 @@ moEffectTunel::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, TUNEL_TEXTURE, moValue( "default", "TXT")  );
+	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, TUNEL_BLENDING, moValue( "0", MO_VALUE_NUM ).Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, TUNEL_TRANSLATEX );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, TUNEL_TRANSLATEY );
 	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, TUNEL_TRANSLATEZ );
@@ -104,6 +105,7 @@ MOboolean moEffectTunel::Init()
 	moDefineParamIndex( TUNEL_SYNC, moText("syncro") );
 	moDefineParamIndex( TUNEL_PHASE, moText("phase") );
 	moDefineParamIndex( TUNEL_TEXTURE, moText("texture") );
+	moDefineParamIndex( TUNEL_BLENDING, moText("blending") );
 	moDefineParamIndex( TUNEL_TRANSLATEX, moText("translatex") );
 	moDefineParamIndex( TUNEL_TRANSLATEY, moText("translatey") );
 	moDefineParamIndex( TUNEL_TRANSLATEZ, moText("translatez") );
@@ -235,6 +237,7 @@ void moEffectTunel::Draw( moTempo* tempogral,moEffectState* parentstate)
 			C = 1.0;
 
     SetColor( m_Config[moR(TUNEL_COLOR)], m_Config[moR(TUNEL_ALPHA)], m_EffectState );
+    SetBlending( (moBlendingModes) m_Config.Int( moR(TUNEL_BLENDING) ) );
 
 		glBegin(GL_QUADS);
 		for( I=0; I<sides; I++)
