@@ -28,7 +28,7 @@ libmoldeo_grid_la_LIBADD =
 libmoldeo_grid_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = effects
-datadir = ${prefix}/share/moldeo
+datadir = ${prefix}/share/moldeo/data
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
 docdir = ${prefix}/share/doc/moldeo
