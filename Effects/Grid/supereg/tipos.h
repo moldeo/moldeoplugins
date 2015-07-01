@@ -94,6 +94,9 @@ typedef struct GridDefinition {
     float m_wave_amplitude;
     float m_height_multiply;
 
+    float map_position_x;
+    float map_position_y;
+
     float m_minimum_surface_altitude;
 
     /*WIREFRAME*/
