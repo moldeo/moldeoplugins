@@ -6,7 +6,7 @@ libmoldeo_mirrorg_la_LIBADD =
 libmoldeo_mirrorg_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = preeffects
-datadir = ${prefix}/share/moldeo
+datadir = ${prefix}/share/moldeo/data
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
 docdir = ${prefix}/share/doc/moldeo
