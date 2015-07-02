@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\effects\grid_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\effects\grid_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -28,7 +28,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\effects\grid.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\effects\grid.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -53,15 +53,15 @@
 			<Add option="-DGLEW_STATIC" />
 			<Add directory="..\Grid" />
 			<Add directory=".\supereg" />
-			<Add directory="..\..\..\..\binaries\include" />
-			<Add directory="..\..\..\..\externlibs\glew-1.9.0\include" />
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
+			<Add directory="../../..\include" />
+			<Add directory="$(externlibs)\glew-1.9.0\include" />
+			<Add directory="$(externlibs)\opengl\include" />
+			<Add directory="$(externlibs)\lua\include" />
 		</Compiler>
 		<Linker>
-			<Add directory="..\..\..\..\externlibs\glew\lib" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="$(externlibs)\glew\lib" />
+			<Add directory="$(externlibs)\lua\lib" />
+			<Add directory="../../..\lib\win" />
 		</Linker>
 		<Unit filename="moEffectGrid.cpp" />
 		<Unit filename="moEffectGrid.h" />

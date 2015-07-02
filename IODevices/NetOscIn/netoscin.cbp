@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\iodevices\netoscin_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\iodevices\netoscin_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -29,7 +29,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\iodevices\netoscin.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\iodevices\netoscin.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -54,16 +54,16 @@
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
 			<Add directory="..\NetOscIn" />
-			<Add directory="..\..\..\..\binaries\include" />
-			<Add directory="..\..\..\..\externlibs\glew\include" />
+			<Add directory="../../..\include" />
+			<Add directory="$(externlibs)\glew\include" />
 			
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\openal\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\SDL\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\include\glib-2.0" />
-			<Add directory="..\..\..\..\externlibs\gstreamer\lib\glib-2.0\include" />
+			<Add directory="$(externlibs)\opengl\include" />
+			<Add directory="$(externlibs)\openal\include" />
+			<Add directory="$(externlibs)\lua\include" />
+			<Add directory="$(externlibs)\SDL\include" />
+			<Add directory="$(externlibs)\gstreamer\include" />
+			<Add directory="$(externlibs)\gstreamer\include\glib-2.0" />
+			<Add directory="$(externlibs)\gstreamer\lib\glib-2.0\include" />
 			<Add directory="ip" />
 		</Compiler>
 		<Linker>
@@ -71,13 +71,13 @@
 			<Add library="wsock32" />
 			<Add library="ws2_32" />
 			<Add library="winmm" />
-			<Add directory="..\..\..\..\externlibs\SDL\lib" />
-			<Add directory="..\..\..\..\externlibs\glew\lib" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\externlibs\cg\lib" />
-			<Add directory="..\..\..\..\externlibs\openal\libs\win32" />
-			<Add directory="..\..\..\..\externlibs\opengl\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="$(externlibs)\SDL\lib" />
+			<Add directory="$(externlibs)\glew\lib" />
+			<Add directory="$(externlibs)\lua\lib" />
+			<Add directory="$(externlibs)\cg\lib" />
+			<Add directory="$(externlibs)\openal\libs\win32" />
+			<Add directory="$(externlibs)\opengl\lib" />
+			<Add directory="../../..\lib\win" />
 		</Linker>
 		<Unit filename="OscOutboundPacketStream.cpp" />
 		<Unit filename="OscPrintReceivedElements.cpp" />

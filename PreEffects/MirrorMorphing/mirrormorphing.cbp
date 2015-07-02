@@ -9,7 +9,7 @@
 		<Option compiler="0"/>
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\preeffects\mirrormorphing_d.dll"/>
+				<Option output="../../..\plugins\preeffects\mirrormorphing_d.dll"/>
 				<Option working_dir="."/>
 				<Option object_output=".objsd"/>
 				<Option deps_output=".depsd"/>
@@ -35,7 +35,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\preeffects\mirrormorphing.dll"/>
+				<Option output="../../..\plugins\preeffects\mirrormorphing.dll"/>
 				<Option working_dir="."/>
 				<Option object_output=".objs"/>
 				<Option deps_output=".deps"/>
@@ -60,20 +60,20 @@
 		</Build>
 		<Compiler>
 			<Add directory=".\"/>
-			<Add directory="..\..\..\..\binaries\include"/>
+			<Add directory="../../..\include"/>
 			<Add directory="..\..\..\inc\openal"/>
 			<Add directory="..\..\..\inc\3dsd"/>
-			<Add directory="..\..\..\..\externlibs\glew\include"/>
-			<Add directory="..\..\..\..\externlibs\opengl\include"/>
-			<Add directory="..\..\..\..\externlibs\opentnl\include"/>
-			<Add directory="..\..\..\..\externlibs\openal\include"/>
-			<Add directory="..\..\..\..\externlibs\freeimage\include"/>
-			<Add directory="..\..\..\..\externlibs\freetype\include"/>
-			<Add directory="..\..\..\..\externlibs\lua\include"/>
-			<Add directory="..\..\..\..\externlibs\muparser\include"/>
-			<Add directory="..\..\..\..\externlibs\SDL\include"/>
-			<Add directory="..\..\..\..\externlibs\SDL_image\include"/>
-			<Add directory="..\..\..\..\externlibs\SDL_net\include"/>
+			<Add directory="$(externlibs)\glew\include"/>
+			<Add directory="$(externlibs)\opengl\include"/>
+			<Add directory="$(externlibs)\opentnl\include"/>
+			<Add directory="$(externlibs)\openal\include"/>
+			<Add directory="$(externlibs)\freeimage\include"/>
+			<Add directory="$(externlibs)\freetype\include"/>
+			<Add directory="$(externlibs)\lua\include"/>
+			<Add directory="$(externlibs)\muparser\include"/>
+			<Add directory="$(externlibs)\SDL\include"/>
+			<Add directory="$(externlibs)\SDL_image\include"/>
+			<Add directory="$(externlibs)\SDL_net\include"/>
 		</Compiler>
 		<Linker>
 			<Add library="libSDL"/>
@@ -84,17 +84,17 @@
 			<Add library="OpenAL32"/>
 			<Add library="EFX-Util"/>
 			<Add library="FreeImage"/>
-			<Add directory="..\..\..\..\externlibs\tinyxml\lib"/>
-			<Add directory="..\..\..\..\externlibs\SDL\lib"/>
-			<Add directory="..\..\..\..\externlibs\glew\lib"/>
-			<Add directory="..\..\..\..\externlibs\lua\lib"/>
-			<Add directory="..\..\..\..\externlibs\muparser\lib"/>
-			<Add directory="..\..\..\..\externlibs\freetype\lib"/>
-			<Add directory="..\..\..\..\externlibs\cg\lib"/>
-			<Add directory="..\..\..\..\externlibs\openal\libs\win32"/>
-			<Add directory="..\..\..\..\externlibs\opengl\lib"/>
-			<Add directory="..\..\..\..\externlibs\freeimage\lib"/>
-			<Add directory="..\..\..\..\binaries\lib\win"/>
+			<Add directory="$(externlibs)\tinyxml\lib"/>
+			<Add directory="$(externlibs)\SDL\lib"/>
+			<Add directory="$(externlibs)\glew\lib"/>
+			<Add directory="$(externlibs)\lua\lib"/>
+			<Add directory="$(externlibs)\muparser\lib"/>
+			<Add directory="$(externlibs)\freetype\lib"/>
+			<Add directory="$(externlibs)\cg\lib"/>
+			<Add directory="$(externlibs)\openal\libs\win32"/>
+			<Add directory="$(externlibs)\opengl\lib"/>
+			<Add directory="$(externlibs)\freeimage\lib"/>
+			<Add directory="../../..\lib\win"/>
 		</Linker>
 		<Unit filename="moPreEffectMirrorMorphing.h">
 			<Option compilerVar=""/>

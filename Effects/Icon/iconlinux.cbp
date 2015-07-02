@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="../../../../binaries/plugins/effects/libmod_icon_d.so" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../plugins/effects/libmod_icon_d.so" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".objsd_linux" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -22,7 +22,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="../../../../../binaries/plugins/effects/libmod_icon.so" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../plugins/effects/libmod_icon.so" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".objs_linux" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -41,7 +41,7 @@
 			<Add option="`pkg-config libmoldeo --cflags`" />
 		</Compiler>
 		<Linker>
-			<Add directory="../../../../binaries/lib/linux" />
+			<Add directory="../../../lib/linux" />
 		</Linker>
 		<Unit filename="moEffectIcon.cpp" />
 		<Unit filename="moEffectIcon.h" />

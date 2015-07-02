@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\effects\lightpercussion_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\effects\lightpercussion_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -29,7 +29,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\effects\lightpercussion.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\effects\lightpercussion.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -52,25 +52,25 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add directory=".\" />
-			<Add directory="..\..\..\..\binaries\include" />
+			<Add directory="../../..\include" />
 			
 			
-			<Add directory="..\..\..\..\externlibs\glew\include" />
+			<Add directory="$(externlibs)\glew\include" />
 			
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\openal\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\SDL\include" />
+			<Add directory="$(externlibs)\opengl\include" />
+			<Add directory="$(externlibs)\openal\include" />
+			<Add directory="$(externlibs)\lua\include" />
+			<Add directory="$(externlibs)\SDL\include" />
 		</Compiler>
 		<Linker>
 			
-			<Add directory="..\..\..\..\externlibs\SDL\lib" />
-			<Add directory="..\..\..\..\externlibs\glew\lib" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\externlibs\cg\lib" />
-			<Add directory="..\..\..\..\externlibs\openal\libs\win32" />
-			<Add directory="..\..\..\..\externlibs\opengl\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="$(externlibs)\SDL\lib" />
+			<Add directory="$(externlibs)\glew\lib" />
+			<Add directory="$(externlibs)\lua\lib" />
+			<Add directory="$(externlibs)\cg\lib" />
+			<Add directory="$(externlibs)\openal\libs\win32" />
+			<Add directory="$(externlibs)\opengl\lib" />
+			<Add directory="../../..\lib\win" />
 		</Linker>
 		<Unit filename="moEffectLightPercussion.h" />
 		<Unit filename="moEffectLightPercussion.cpp" />

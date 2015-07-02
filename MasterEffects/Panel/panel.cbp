@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="..\..\..\..\binaries\plugins\mastereffects\panel_d.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\mastereffects\panel_d.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -27,7 +27,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="..\..\..\..\binaries\plugins\mastereffects\panel.dll" prefix_auto="0" extension_auto="0" />
+				<Option output="../../..\plugins\mastereffects\panel.dll" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -50,19 +50,19 @@
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
 			<Add directory=".\" />
-			<Add directory="..\..\..\..\binaries\include" />
-			<Add directory="..\..\..\..\externlibs\opengl\include" />
-			<Add directory="..\..\..\..\externlibs\lua\include" />
-			<Add directory="..\..\..\..\externlibs\glew\include" />
+			<Add directory="../../..\include" />
+			<Add directory="$(externlibs)\opengl\include" />
+			<Add directory="$(externlibs)\lua\include" />
+			<Add directory="$(externlibs)\glew\include" />
 			
 		</Compiler>
 		<Linker>
 			<Add library="liblua" />
 			<Add library="cg" />
 			<Add library="cgGL" />
-			<Add directory="..\..\..\..\externlibs\lua\lib" />
-			<Add directory="..\..\..\..\externlibs\cg\lib" />
-			<Add directory="..\..\..\..\binaries\lib\win" />
+			<Add directory="$(externlibs)\lua\lib" />
+			<Add directory="$(externlibs)\cg\lib" />
+			<Add directory="../../..\lib\win" />
 		</Linker>
 		<Unit filename="moMasterEffectPanel.cpp" />
 		<Unit filename="moMasterEffectPanel.h" />
