@@ -27,8 +27,8 @@
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeod" />
-					<Add library="..\..\..\..\libTUIO\trunk\Debug\libTUIO.a" />
-					<Add directory="..\..\..\..\libTUIO\trunk\Debug" />
+					<Add library="$(externlibs)\libTUIO\trunk\Debug\libTUIO.a" />
+					<Add directory="$(externlibs)\libTUIO\trunk\Debug" />
 				</Linker>
 			</Target>
 			<Target title="release">
@@ -48,8 +48,8 @@
 					<Add library="libglu32" />
 					<Add library="libglaux" />
 					<Add library="libmoldeo" />
-					<Add library="..\..\..\..\libTUIO\trunk\Release\libTUIO.a" />
-					<Add directory="..\..\..\..\libTUIO\trunk\Release" />
+					<Add library="$(externlibs)\libTUIO\trunk\Release\libTUIO.a" />
+					<Add directory="$(externlibs)\libTUIO\trunk\Release" />
 				</Linker>
 			</Target>
 		</Build>
@@ -60,10 +60,10 @@
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
 			<Add option="-DWIN32" />
-			<Add directory=".\" />
+			<Add directory="./" />
 			<Add directory="../../..\include" />
 			<Add directory="$(externlibs)\glew\include" />
-			<Add directory="..\..\..\..\libTUIO\trunk\TUIO" />
+			<Add directory="$(externlibs)\libTUIO\trunk\TUIO" />
 			<Add directory="$(externlibs)\opengl\include" />
 			<Add directory="$(externlibs)\openal\include" />
 			<Add directory="$(externlibs)\lua\include" />
