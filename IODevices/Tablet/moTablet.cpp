@@ -35,7 +35,7 @@
 #define MO_TABLET_CFG_TYPE 1
 
 #define TABLET_MOTION 0
-#include "moGUIManager.h";
+#include "moGUIManager.h"
 //========================
 //  Factory
 //========================
