@@ -180,6 +180,9 @@ moEffectMovie::Init() {
 	m_pMovie = NULL;
 	m_pTexture = NULL;
 
+	m_pNextMovie = NULL;
+	m_pNextTexture = NULL;
+
 	showmoviedata = true;/** Start timer to shut down display info*/
 
 /*
@@ -279,9 +282,18 @@ void moEffectMovie::UpdateParameters() {
         ///si se cambió de película
         if (m_pMovie) {
           ///parar o pausar...
-          ///faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
-          m_pMovie->Stop();
-          bReBalance = true;
+          ///TODO: faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
+          m_pMovie->Pause();
+          //m_pMovie->Stop();
+          if (m_pMovie->IsPaused()) {
+            m_pMovie->Seek(0);
+          }
+          //bReBalance = true;
+          bReBalance = false;
+
+          if (m_pMovie->IsEOS()) {
+            //m_pMovie->Stop();
+          }
         }
       }
 
@@ -325,6 +337,10 @@ void moEffectMovie::UpdateParameters() {
           //m_pAnim->GetGLId( (MOuint) m_UserPosition );
         }
         if (m_pMovie) {
+
+          //if (m_pMovie->IsPaused()) {
+          //  m_pMovie->Seek( m_UserPosition );
+          //}
           m_pMovie->Seek( m_UserPosition );
         }
       }
@@ -369,28 +385,45 @@ void moEffectMovie::UpdateParameters() {
         if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
           /// caso por Timer PAUSADO
 
-          if (moIsTimerPaused() || m_EffectState.tempo.Paused() ) {
-            //MODebug2->Message(moText("Timer is paused, pause movie!!"));
+          if ( ( moIsTimerPaused() || m_EffectState.tempo.Paused()) && m_pMovie->IsPlaying() ) {
+            MODebug2->Message(moText("Timer is paused, should pause movie!!"));
             m_pMovie->Pause();
           }
 
           /// caso por Timer PARADO (NOT STARTED)
           if (moIsTimerStopped()  || m_EffectState.tempo.State()==MO_TIMERSTATE_STOPPED ) {
             //MODebug2->Message(moText("Timer is stopped, stop movie!!"));
-            if (m_pMovie->IsPlaying())
-              m_pMovie->Stop();
+
+            if (m_pMovie->IsPaused()) {
+              m_pMovie->Seek(0);
+            }
+
+            if (m_pMovie->IsPlaying() || m_pMovie->IsEOS()) {
+              MODebug2->Message(moText("Timer is stopped, should stop movie!!"));
+              if ( m_pMovie->IsPlaying() ) {
+                  MODebug2->Message(moText("Timer is stopped, pausing and seek to 0"));
+                  m_pMovie->Pause();
+                  m_pMovie->Seek(0);
+              }
+              if (m_pMovie->IsEOS()) {
+                MODebug2->Message(moText("DANGER. Timer is stopped and EOS reached. Do nothing!"));
+                /*m_pMovie->Stop();*/
+              }
+
+              //m_pMovie->Stop();
+            }
           }
         } else {
           if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
 
 
-             if (m_pMovie->IsEOS()) {
+             if (m_pMovie->IsEOS() /*|| (m_FramePosition+5) >= m_FramesLength*/ ) {
                  //MODebug2->Message(moText("Timer is playing, movie ended!!, do nothing...."));
                  //m_pMovie->Play();
-                 this->Disable();
-                 this->TurnOff();
-             } else {
-                 //MODebug2->Message(moText("Timer is playing, movie is not, play movie!!"));
+                 //this->Disable();
+                 //this->TurnOff();
+             } else if ( m_FramePosition>=0 && (m_FramePosition+8)<=m_FramesLength ) {
+                 MODebug2->Message(moText("Timer is playing, movie is not, try to play movie!!"));
                  m_pMovie->Play();
                  //MODebug2->Message(moText("Timer is started, movie not: Play() was called..."));
              }
@@ -466,155 +499,12 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
     glEnable(GL_ALPHA);
     m_pResourceManager->GetGLMan()->SetOrthographicView();
 
-/*
-	if (Sound)
-		Sound->Update();
-*/
-
 	moviemode = m_Config.Int(moR(MOVIE_MODE));
 
-  //SetColor( m_Config[moR(MOVIE_COLOR)][MO_SELECTED], m_Config[moR(MOVIE_ALPHA)][MO_SELECTED], state );
   SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
 
   SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
 
-	//aquí debemos modificar Images.Get(Image,&m_EffectState.tempo) para los distintos modos de reproduccion
-	//0: PLAY NORMAL 1X [25 fps o 29.97]
-	//1: FF 2X []
-	//2: RW -2X []
-	//3: FFF 8X []
-	//4: RRW -8X []
-	//5: STOP []
-	//6: SEEK( position )
-
-  //VCRPlaySpeed();
-  if (m_pAnim) {
-//    if (m_pAnim->IsPlaying())
-  //    MODebug2->Push(" FramePosition: "+IntToStr(m_FramePosition) + " FPS: " + FloatToStr(m_FramesPerSecond) +" TimeCode: " + moVideoManager::FramesToTimecode(m_FramePosition,m_FramesPerSecond) );
-  }
-
-	switch(moviemode) {
-		case MO_MOVIE_MODE_VCR:
-/*
-			if (m_bStartPlayingOn && m_PlayState==MO_MOVIE_PLAYSTATE_STOPPED) {
-			    m_FramePosition = 0;
-                m_FramePositionAux = 0;
-                m_FramePositionF = 0.0;
-                m_FramePositionFAux = 0.0;
-                m_Ticks = m_EffectState.tempo.ticks;
-                m_TicksAux = m_Ticks;
-				VCRCommand( MO_MOVIE_VCR_PLAY );
-				///TODO: ver bien como usar esto del play cuando arranca...
-				///lo ideal seria trabajar con la clase Timer, que lo tome de medida...
-				///m_bStartPlayingOn = false;
-			}
-
-			switch(m_PlayState) {
-				case MO_MOVIE_PLAYSTATE_STOPPED:
-					m_FramePosition = 0;
-					m_FramePositionAux = 0;
-					m_FramePositionF = 0.0;
-					m_FramePositionFAux = 0.0;
-					//FrameGLid = Images.GetGLId(Image, 1);
-
-					m_FramePosition = 1;///para arrancar...
-					FrameGLid = MovieGLId();
-					break;
-
-				case MO_MOVIE_PLAYSTATE_PLAYING:
-                    VCRPlaySpeed();
-                    break;
-				case MO_MOVIE_PLAYSTATE_REVERSE:
-                    VCRPlaySpeed();
-                    break;
-				case MO_MOVIE_PLAYSTATE_SPEED:
-					//play en funcion de play speed:
-					VCRPlaySpeed();
-					break;
-
-				case MO_MOVIE_PLAYSTATE_SEEKING:
-					//a definir
-					break;
-			}
-
-			//Frame in funcion of m_FramePosition
-			//MODebug2->Push(IntToStr(m_FramePosition));
-			if ( m_FramePosition <  m_FramesLength ) {
-				//FrameGLid = Images.GetGLId( (int)Image, (int)m_FramePosition );
-				FrameGLid = MovieGLId();
-			}
-			if ( m_FramePosition >= (m_FramesLength-1) ) {
-				if (m_bLoop) {
-					m_FramePosition = 0;
-					m_FramePositionAux = 0;
-					m_FramePositionF = 0.0;
-					FrameGLid = MovieGLId();
-				} else {
-					VCRCommand(MO_MOVIE_VCR_STOP);
-					FrameGLid = MovieGLId();
-				}
-			}*/
-			break;
-
-		case MO_MOVIE_MODE_SCRIPT:
-
-			/*if ( m_bTrackerInit ) {
-				SelectScriptFunction("Run");
-
-				if (m_pTrackerData) {
-					AddFunctionParam(m_pTrackerData->GetFeaturesCount());
-					AddFunctionParam((int)m_pTrackerData->GetVideoFormat().m_Width);
-					AddFunctionParam((int)m_pTrackerData->GetVideoFormat().m_Height);
-				}
-
-        RunSelectedFunction(1);
-
-				m_DiffFrame = (m_FramePositionFAux - m_FramePositionF);
-				m_FramePosition = m_FramePositionF;
-				m_FramePositionFAux = m_FramePositionF;
-
-			} else { //NO INIT YET
-
-				m_FramePositionF = 0.0;
-				m_FramePosition = m_FramePositionF;
-				m_FramePositionFAux = m_FramePositionF;
-
-			}
-
-			if (m_FramePosition < m_FramesLength)
-			{
-				//FrameGLid = Images.GetGLId((int)Image, (int)m_FramePosition );
-				//MODebug2->Push(IntToStr(m_FramePosition));
-				FrameGLid = MovieGLId();
-			}
-			else
-			{
-				MODebug2->Push("Error: script generating invalid frame positions.");
-			    //FrameGLid = Images.GetGLId(Image, 1);
-			    m_FramePosition = 1;
-			    FrameGLid = MovieGLId();
-			}
-*/
-			break;
-
-		case MO_MOVIE_MODE_CYCLE:
-			 //FrameGLid = Images.GetGLId(Image, &m_EffectState.tempo);
-			 //FrameGLid = m_Config[moR(MOVIE_MOVIE)].GetData()->GetGLId(&m_EffectState.tempo);
-			 //FrameGLid = MovieGLId();
-			break;
-
-		default:
-			break;
-	}
-/*
-	MODebug2->Push(moText("F:")+IntToStr(m_FramePosition));
-	MODebug2->Push(moText("FAux:")+IntToStr(m_FramePositionAux));
-	MODebug2->Push(moText("FF:")+IntToStr(m_FramePositionF));
-	MODebug2->Push(moText("FFAux:")+IntToStr(m_FramePositionFAux));
-
-	MODebug2->Push(moText("E:")+IntToStr(m_PlayState));
-	MODebug2->Push(moText("S:")+IntToStr(m_PlaySpeed));
-*/
 
 	PosTextX = m_Config.Eval(moR(MOVIE_POSTEXX));
     AncTextX = m_Config.Eval(moR(MOVIE_ANCTEXX));
@@ -723,6 +613,7 @@ MOuint moEffectMovie::MovieGLId() {
   switch(moviemode) {
 
 		case MO_MOVIE_MODE_VCR:
+		  {
             if (m_pAnim) {
               ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
               ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
@@ -731,20 +622,32 @@ MOuint moEffectMovie::MovieGLId() {
 
           if (m_pMovie) {
 
-            if ( (m_FramePosition-1) >= m_FramesLength || m_pMovie->IsEOS()) {
+            if ( (m_FramePosition+8) >= m_FramesLength || m_pMovie->IsEOS() ) {
+
             ///stop current
-              if (m_pMovie) {
-                m_pMovie->Stop();
-                m_pMovie->Seek( 0 );
+              if (m_pMovie->IsEOS()) {
+                MODebug2->Push( "Reached End");
+                MODebug2->Push( "Reached EOS!! > STOPPING stream (NULL), must reload...");
+                //m_pMovie->Stop();
+
+              } else if (!m_pMovie->IsPaused()) {
+                MODebug2->Push( "Reached End");
+                MODebug2->Push( "Pausing. Virtual Stop!");
+                m_pMovie->Pause();
+                //m_pMovie->Seek( 0 );
               }
 
               if (m_bLoop) {
-                    MODebug2->Push( "Looping");
-                    m_pMovie->Play();
+                    MODebug2->Push( "Looping video.");
+                    if (m_pMovie->IsPaused()) {
+                      m_pMovie->Seek(0);
+                    }
+
               }
             }
 
           }
+		  }
 		break;
     case MO_MOVIE_MODE_SCRIPT:
       //if (!moTimeManager::MoldeoTimer->Paused() && moTimeManager::MoldeoTimer->Started()) {
@@ -765,49 +668,67 @@ MOuint moEffectMovie::MovieGLId() {
       break;
 
     case MO_MOVIE_MODE_VCR_PLAYLIST:
+      {
         if (m_pAnim) {
           ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
           ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
           glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
         }
-      if (m_pMovie) {
-        if ( (m_FramePosition-1) >= m_FramesLength || m_pMovie->IsEOS()) {
+        if (m_pMovie) {
+          if ( (m_FramePosition+8) >= m_FramesLength || m_pMovie->IsEOS()) {
 
+            int actual_index = m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue();
+            ///stop current
+            if (m_pMovie->IsEOS()) {
+                MODebug2->Push( "Reached EOS!! > STOPPING stream (NULL), must reload...");
+                //m_pMovie->Stop();
 
-          ///stop current
-          if (m_pMovie) {
-            m_pMovie->Stop();
-            m_pMovie->Seek( 0 );
-          }
+            } else {
+              MODebug2->Push( "Pausing. Virtual Stop!");
+              m_pMovie->Pause();
+              //m_pMovie->Seek( 0 );
+            }
 
-          ///next clip...
-          if (m_bLoop) {
-              if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount()<=1) {
-                  if (m_pMovie) {
-                    m_pMovie->Play();
-                  }
-              } else {
-                if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue() == (m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount() -1) ) {
-                    m_Config.GetParam(moR(MOVIE_MOVIES)).FirstValue();
-                     MODebug2->Push( "Looping");
+            ///next clip...
+            if (m_bLoop) {
+                if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount()<=1) {
+                    MODebug2->Push( "Looping video (playlist has one video).");
+                    if (m_pMovie->IsPaused()) {
+                      m_pMovie->Seek(0);
+                    }
                 } else {
-                    m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+                  if ( m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue() == (m_Config.GetParam(moR(MOVIE_MOVIES)).GetValuesCount() -1) ) {
+                      m_Config.GetParam(moR(MOVIE_MOVIES)).FirstValue();
+                       MODebug2->Push( "Looping playlist");
+                  } else {
+                      m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+                  }
+                }
+            } else {
+              m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+            }
+
+            if ( actual_index != m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue() ) {
+              MODebug2->Push( "Next movie");
+              m_pNextTexture = m_Config[moR(MOVIE_MOVIES)][MO_SELECTED][0].Texture();
+              if (m_pNextTexture) {
+                if ( m_pNextTexture->GetType()==MO_TYPE_MOVIE ) {
+                  m_pNextMovie = (moMovie*)m_pNextTexture;
+                  m_pNextMovie->Seek(0);
+                  m_UserPosition = 1;
                 }
               }
-          } else {
-            m_Config.GetParam(moR(MOVIE_MOVIES)).NextValue();
+            }
+
+            MODebug2->Push( "EOS:" + IntToStr((int)m_pMovie->IsEOS()) );
+            MODebug2->Push("glid VCRPLAYLIST:" + IntToStr(m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue()) + " FramePosition:" + IntToStr(m_FramePosition) );
+
           }
-
-
-          MODebug2->Push( "EOS:" + IntToStr((int)m_pMovie->IsEOS()) );
-          MODebug2->Push("glid VCRPLAYLIST:" + IntToStr(m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue()) + " FramePosition:" + IntToStr(m_FramePosition) );
-
         }
       }
-
       break;
 
-  }
+  };
 
   if ( glid<=0 ) {
     //glid = m_pTexture->GetGLId();
@@ -836,8 +757,11 @@ moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {
 	pInfo.Add( moText(" "));
 
 	*/
-	pInfo.Add( moText("Frame:") + IntToStr( m_FramePosition ) + moText(" FPS:") + FloatToStr( m_FramesPerSecond ));
-  pInfo.Add( moVideoManager::FramesToTimecode( (MOulonglong)m_FramePosition, m_FramesPerSecond ) );
+	pInfo.Add( moText("Frame:") + IntToStr( m_FramePosition ) + moText("/") + IntToStr( m_FramesLength )
+           + moText(" FPS:") + FloatToStr( m_FramesPerSecond ));
+  pInfo.Add( moVideoManager::FramesToTimecode( (MOulonglong)m_FramePosition, m_FramesPerSecond )
+                    + moText("/")
+                    + moVideoManager::FramesToTimecode( (MOulonglong)m_FramesLength, m_FramesPerSecond ) );
     /*if (Sound)
 		if (m_FramesLength>0 && Sound->GetBufferSize()>0 )
 			pInfo.Add( moText("FP S:") + IntToStr(Sound->GetActualSample()/ ( Sound->GetBufferSize() / m_FramesLength )) );

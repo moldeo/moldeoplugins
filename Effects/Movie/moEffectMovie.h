@@ -200,6 +200,10 @@ protected:
 	moTextureAnimated* m_pAnim;
 	moSound*	Sound;
 
+  moTexture* m_pNextTexture;
+  moMovie*   m_pNextMovie;
+
+
 	MOint startplaying;
 	MOint loop;
 	MOint moviemode;
