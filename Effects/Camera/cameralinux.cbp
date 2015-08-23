@@ -7,7 +7,7 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="../../../plugins/effects/libmod_camera_d.so" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../binaries/plugins/effects/libmod_camera_d.so" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".objsd_linux" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -22,7 +22,7 @@
 				</Linker>
 			</Target>
 			<Target title="release">
-				<Option output="../../../plugins/effects/libmod_camera.so" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../../../binaries/plugins/effects/libmod_camera.so" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".objs_linux" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -41,7 +41,7 @@
 			<Add option="`pkg-config libmoldeo --cflags`" />
 		</Compiler>
 		<Linker>
-			<Add directory="../../../lib/linux" />
+			<Add directory="../../../../binaries/lib/linux" />
 		</Linker>
 		<Unit filename="moEffectCamera.cpp" />
 		<Unit filename="moEffectCamera.h" />

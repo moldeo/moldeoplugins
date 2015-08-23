@@ -26,14 +26,8 @@
   Authors:
   Fabricio Costa
 
-
-  TODO:
-  1) ColorIn
-  2) ColorOut
-  3) BreakIn
-  4) BreakOut
-
-
+  \brief Particles Effect Plugin, Simple Version
+  \todo 1) ColorIn 2) ColorOut 3) BreakIn 4) BreakOut
 
   5) Script general
   6) Script por particula ( se ejecuta por cada particula ) ( acceso a eventos [tecla presionada...] )
@@ -65,19 +59,50 @@
 
 ///Emitter Type
 /**
-* simple geometry type emitters available
-* (x,y,z) corresponde to parameters (emitter_vectorx,emitter_vectory, emitter_vectorz)
+* \if spanish
+* <b>"emittertype"</b>: <em>Tipo de emisor</em>
+* Parámetro del efecto @ref moParticlesSimple
+*
+* El tipo de emisor es la configuración geométrica del espacio dónde nacen las partículas. Algo así como la incubadora de las partículas.
+*
+* Opciones:
+*
+*     0: Grilla (un rectángulo de "width" x "height"
+*
+*     1: Esfera (una esfera de "width" longitudes y "height" latitudes
+*
+*     2: Tubo ( un tubo de "width" facetas y "height" segmentos
+*
+*     3: Chorro ( colapsados en una línea )
+*
+*     4: Punto ( colapsados en un punto )
+*
+*     5: Trackeador ( reservado para información de sensado )
+*
+*     6: Trackeador2 ( reservado para información de sensado )
+*
+*     7: Espiral ( forma de espiral, "width" ángulos que forman "height" ciclos )
+*
+*     8: Círculo ( una ronda de "width"+"height" partículas  )
+*
+* \else
+* <b>"emittertype"</b>: <em>Emitter Type is a parameter of the ParticlesSimple Effect Plugin @ref moParticlesSimple</em>
+*
+*
+* \endif
+* @see moParticlesSimple
+* @see moEffectParticlesSimple
 */
-enum moParticlesSimpleEmitterType {
-  PARTICLES_EMITTERTYPE_GRID = 0, /// grid shape emitter
-  PARTICLES_EMITTERTYPE_SPHERE = 1, /// sphere shape emitter (3d) ( x=width, y=height, z=depth )
-  PARTICLES_EMITTERTYPE_TUBE = 2, /// tube shape emitter (3d)
-  PARTICLES_EMITTERTYPE_JET = 3, /// line shape emitter (3d) vector line (x,y,z)
-  PARTICLES_EMITTERTYPE_POINT = 4, /// point shape, position (x,y,z)
-  PARTICLES_EMITTERTYPE_TRACKER = 5,
-  PARTICLES_EMITTERTYPE_TRACKER2 = 6,
-  PARTICLES_EMITTERTYPE_SPIRAL = 7,
-  PARTICLES_EMITTERTYPE_CIRCLE = 8
+enum moParticlesSimpleEmitterType { ///Emitter Type
+  PARTICLES_EMITTERTYPE_GRID = 0, /// 0: grid shape emitter
+  PARTICLES_EMITTERTYPE_SPHERE = 1, /// 1: sphere shape emitter (3d) ( x=width, y=height, z=depth )
+  PARTICLES_EMITTERTYPE_TUBE = 2, /// 2: tube shape emitter (3d)
+  PARTICLES_EMITTERTYPE_JET = 3, /// 3: line shape emitter (3d) vector line (x,y,z)
+  PARTICLES_EMITTERTYPE_POINT = 4, /// 4: point shape, position (x,y,z)
+  PARTICLES_EMITTERTYPE_TRACKER = 5, /// 5: emitter is a connected tracker
+  PARTICLES_EMITTERTYPE_TRACKER2 = 6, /// 6: emitter is a secondary connected tracker
+  PARTICLES_EMITTERTYPE_SPIRAL = 7,  /// 7: emitter is a spiral
+  PARTICLES_EMITTERTYPE_CIRCLE = 8 /// 8: emitter is a circle
 };
 
 ///Folder Shot Type
@@ -85,38 +110,38 @@ enum moParticlesSimpleEmitterType {
 *   Folder
 */
 enum moParticlesSimpleFolderShotType {
-  PARTICLES_SHOTTYPE_FOLDER_RANDOM = 0,
-  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILEDATE = 1,
-  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILENAME = 2
+  PARTICLES_SHOTTYPE_FOLDER_RANDOM = 0, /// 0: filename screenshot has a random id
+  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILEDATE = 1, /// 0: filename screenshot is date based
+  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILENAME = 2 /// 0: filename screenshot is name based
 };
 
 ///Attractor Type
 enum moParticlesSimpleAttractorType {
-  PARTICLES_ATTRACTORTYPE_POINT = 0, /// each particle attract diretly to the same point
-  PARTICLES_ATTRACTORTYPE_GRID = 1, /// each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_SPHERE = 2, /// each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_TUBE = 3, ///  each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_JET = 4, /// each particle attract perpendicular to jet vector
-  PARTICLES_ATTRACTORTYPE_TRACKER = 5, /// each particle attract each one to a dot of the tracker
-  PARTICLES_ATTRACTORTYPE_VERTEX = 6 /// each particle attract each one to a dot of the tracker
+  PARTICLES_ATTRACTORTYPE_POINT = 0, /// 0: each particle attract diretly to the same point
+  PARTICLES_ATTRACTORTYPE_GRID = 1, /// 1: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_SPHERE = 2, /// 2: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_TUBE = 3, ///  3: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_JET = 4, /// 4: each particle attract perpendicular to jet vector
+  PARTICLES_ATTRACTORTYPE_TRACKER = 5, /// 5: each particle attract each one to a dot of the tracker
+  PARTICLES_ATTRACTORTYPE_VERTEX = 6 /// 6: each particle attract each one to a dot of the tracker
 };
 
 ///Attractor Mode
 enum moParticlesSimpleAttractorMode {
-  PARTICLES_ATTRACTORMODE_ACCELERATION = 0, ///accelerate with no stop
-  PARTICLES_ATTRACTORMODE_STICK = 1, ///accelerate, reach and stop instantly
-  PARTICLES_ATTRACTORMODE_BOUNCE = 2, ///accelerate and bounce....(inverse direction)
-  PARTICLES_ATTRACTORMODE_BREAKS = 3, ///accelerate and breaks (generate debris on place)
-  PARTICLES_ATTRACTORMODE_BRAKE = 4,  ///accelerate then brake and slowdown slowly
-  PARTICLES_ATTRACTORMODE_LINEAR = 5 ///constant speed to attractortype
+  PARTICLES_ATTRACTORMODE_ACCELERATION = 0, /// 0: accelerate with no stop
+  PARTICLES_ATTRACTORMODE_STICK = 1, /// 1: accelerate, reach and stop instantly
+  PARTICLES_ATTRACTORMODE_BOUNCE = 2, /// 2: accelerate and bounce....(inverse direction)
+  PARTICLES_ATTRACTORMODE_BREAKS = 3, /// 3: accelerate and breaks (generate debris on place)
+  PARTICLES_ATTRACTORMODE_BRAKE = 4,  /// 4: accelerate then brake and slowdown slowly
+  PARTICLES_ATTRACTORMODE_LINEAR = 5 /// 5: constant speed to attractortype
 };
 
 ///Behaviour Mode
 enum moParticlesSimpleBehaviourMode {
-  PARTICLES_BEHAVIOUR_COHESION = 0,
-  PARTICLES_BEHAVIOUR_SEPARATION = 1,
-  PARTICLES_BEHAVIOUR_AVOIDANCE = 2,
-  PARTICLES_BEHAVIOUR_ALIGNMENT = 3
+  PARTICLES_BEHAVIOUR_COHESION = 0, /// 0: las partículas son atraídas entre ellas
+  PARTICLES_BEHAVIOUR_SEPARATION = 1, /// 1: las partículas son libres y mantienen una distancia mínima de separación
+  PARTICLES_BEHAVIOUR_AVOIDANCE = 2, /// 2: las partículas son repelidas entre ellas
+  PARTICLES_BEHAVIOUR_ALIGNMENT = 3 /// 3: las partículas se alinean y acomodan cristalmente
 };
 
 
@@ -154,10 +179,10 @@ enum moParticlesOrientationMode {
 };
 
 enum moParticlesOrderingMode {
-    PARTICLES_ORDERING_MODE_NONE=0, /** no reordering for drawing */
-    PARTICLES_ORDERING_MODE_ZDEPTHTEST=1, /** reordered */
-    PARTICLES_ORDERING_MODE_ZPOSITION=2, /** zposition -> simple order relative to particle Z calculated position */
-    PARTICLES_ORDERING_MODE_COMPLETE=3 /** complete view dependent ordering >  */
+    PARTICLES_ORDERING_MODE_NONE=0, /** 0: no reordering for drawing */
+    PARTICLES_ORDERING_MODE_ZDEPTHTEST=1, /** 1: reordered */
+    PARTICLES_ORDERING_MODE_ZPOSITION=2, /** 2: zposition -> simple order relative to particle Z calculated position */
+    PARTICLES_ORDERING_MODE_COMPLETE=3 /** 3: complete view dependent ordering >  */
 };
 
 
@@ -260,6 +285,7 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VIEWZ,
   PARTICLES_ORDERING_MODE
 };
+
 
 class moParticlesSimple : public moAbstract {
 
@@ -541,11 +567,47 @@ moDeclareDynamicArray( moParticlesSimple*, moParticlesSimpleArray );
 typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
 
 
-/// Clase Particle Simple
+/// moEffectParticlesSimple
 /**
+ * \ingroup Effects
+ * \ingroup Objects
+ * \if spanish
  *
+ * Plugin de efecto de partículas clásicas (método aproximación usado: Euler )
+ *
+ * Este efecto de partículas tiene un motor de física básico que aplica fuerzas y velocidad según la aproximación de Euler.
+ * Se conforma en un arreglo de "width" x "height" = N particulas con parámetros globales de emisión, comportamiento y atracción.
+ *
+ * Los parámetros de emisión definen la configuración geométrica del espacio emisor dónde nacerán las partículas
+ * y el método, condición y velocidad de creación de esas partículas, y son:
+ *
+ * Parámetros de emisión de partículas:
+ * @param emittertype Tipo de de emisor \ref moParticlesSimpleEmitterType
+ * @param emittervectorx Ancho del emisor
+ * @param emittervectory Alto del emisor
+ * @param emittervectorz Profundidad del emisor
+ * @param emitterperiod Intervalo en milisegundos entre nacimientos
+ * @param emitterrate Cantidad de nacimientos en cada intervalo de "emitterperiod"
+ *
+ * \else
+ * Classic particles system.
+ *
+ * This is a simple particles system based on Euler formula to apply basic physic rules.
+ * The particlessimple system build a "width" x "height" = N particles system with emission, behaviour and attraction global parameters.
+ *
+ * The emition parameters define the geometric configuration of the space where the particles will be born
+ * and the creation, condition and speed of creation of these particles, are:
+ *
+ * @param emittertype Emitter type \ref moParticlesSimpleEmitterType
+ * @param emittervectorx "emittervectorx": Emitter size width
+ * @param emittervectory "emittervectory": Emitter size height
+ * @param emittervectorz "emittervectorz": Emitter size depth
+ *
+ * \endif
+ * \author Fabricio Costa
  *
  * @see moEffect
+ * @see moParticlesSimple
  */
 class moEffectParticlesSimple : public moEffect
 {

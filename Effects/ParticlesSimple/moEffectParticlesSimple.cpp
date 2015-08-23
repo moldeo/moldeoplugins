@@ -1142,6 +1142,20 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
             //CIRCLE POSITION
             switch(m_Physics.m_CreationMethod) {
                 case PARTICLES_CREATIONMETHOD_LINEAR:
+                    alpha = 2 * moMathf::PI * ( pParticle->Pos.X() + pParticle->Pos.Y()*m_rows ) / ((double)m_cols*(double)m_rows );
+                    radius1 = m_Physics.m_EmitterSize.X() / 2.0;
+                    radius2 = m_Physics.m_EmitterSize.Y() / 2.0;
+                    z = 0.0;
+                    //z = m_Physics.m_EmitterSize.Z() * ( 0.5f - ( pParticle->Pos.Y() / (double)m_rows ) - (pParticle->Pos.X() / (double)(m_cols*m_rows)) );
+
+                    pParticle->Pos3d = moVector3f(  ( radius1*moMathf::Cos(alpha) + randomposx ) * m_Physics.m_EmitterVector.X(),
+                                                    ( radius1*moMathf::Sin(alpha) + randomposy ) * m_Physics.m_EmitterVector.Y(),
+                                                    ( z + randomposz ) );
+
+                    pParticle->Velocity = moVector3f( randomvelx,
+                                                      randomvely,
+                                                      randomvelz );
+                    break;
                 case  PARTICLES_CREATIONMETHOD_PLANAR:
                 case  PARTICLES_CREATIONMETHOD_VOLUMETRIC:
                     alpha = 2 * moMathf::PI *  ( pParticle->Pos.X()*m_rows + pParticle->Pos.Y()) / ((double)m_cols*(double)m_rows );
@@ -1149,7 +1163,8 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
                     radius2 = m_Physics.m_EmitterSize.Y() / 2.0;
                     z = 0.0;
                     //z = m_Physics.m_EmitterSize.Z() * ( 0.5f - ( pParticle->Pos.Y() / (double)m_rows ) - (pParticle->Pos.X() / (double)(m_cols*m_rows)) );
-
+                    randomposx = randomposx + (radius1-radius2)*moMathf::Cos(alpha);
+                    randomposy = randomposy + (radius1-radius2)*moMathf::Sin(alpha);
                     pParticle->Pos3d = moVector3f(  ( radius1*moMathf::Cos(alpha) + randomposx ) * m_Physics.m_EmitterVector.X(),
                                                     ( radius1*moMathf::Sin(alpha) + randomposy ) * m_Physics.m_EmitterVector.Y(),
                                                     ( z + randomposz ) );

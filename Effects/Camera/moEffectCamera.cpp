@@ -245,20 +245,25 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
   CapDevs = VMan->GetCaptureDevices(true);
   MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > ...GetCaptureDevices(true) OK !!!");
   moCamera* Camera = NULL;
-
+  bool founded = false;
   if (VMan->GetCameraCount()>0) {
     for(  int c=0;c<VMan->GetCameraCount(); c++ ) {
       Camera = VMan->GetCamera(c);
+
       if (Camera) {
         if (Camera->GetCaptureDevice().GetName()==camera
             ||
             Camera->GetCaptureDevice().GetLabelName()==camera ) {
-          return true;
+          founded = true;
+        }
+        else {
+          MODebug2->Message( "Camera Device: " + Camera->GetCaptureDevice().GetName() );
         }
 
       }
     }
   }
+  if (founded) return true;
 
   if (camera=="default" && VMan->GetCameraCount() > 0 ) {
     MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, at least one camera device is loaded.");
