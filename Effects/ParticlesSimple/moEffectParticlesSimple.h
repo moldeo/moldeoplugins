@@ -38,11 +38,75 @@
 *******************************************************************************/
 
 /**
-* \mainpage \if spanish ParticlesSimple de Moldeo. \else ParticlesSimple for Moldeo platform. \endif
+* \mainpage ParticlesSimple
+* \if spanish <h1>Documentación de ParticlesSimple.</h1> \else <h1>ParticlesSimple documentation.</h1> \endif
+* <br>
 *
-* \if Description: A particle system programmed in C++ as a Moldeo Plugin Effect Object. \else OpenGL Particle system written in C++ for Moldeo 1.0 Platform. \endif
+* \if spanish
 *
-* \if spanish Ver lista de parámetros \else List all parameters: \endif @ref ParticlesSimpleParameters
+* Plugin de efecto de partículas clásicas (método aproximación usado: Euler )
+*
+* Este efecto de partículas tiene un motor de física básico que aplica fuerzas y velocidad según la aproximación de Euler.
+* Se conforma en un arreglo de "width" x "height" = N particulas con parámetros globales de emisión, comportamiento y atracción.
+*
+* Los parámetros de emisión definen la configuración geométrica del espacio emisor dónde nacerán las partículas
+* y el método, condición y velocidad de creación de esas partículas, y son:
+*
+* \else
+*
+* Classic particles system.
+*
+* This is a simple particles system based on Euler formula to apply basic physic rules.
+* The particlessimple system build a "width" x "height" = N particles system with emission, behaviour and attraction global parameters.
+*
+* The emition parameters define the geometric configuration of the space where the particles will be born
+* and the creation, condition and speed of creation of these particles, are:
+*
+* \endif
+*
+* \if spanish <h2>Lista de parámetros</h2>  \else <h2>Parameters</h2>  \endif
+*
+* \anchor ParticlesSimpleParameters
+* \if spanish <h2>Emisión / Nacimiento</h2> \else <h2>Emition / Particle birth</h2> \endif
+* \if spanish <h3>Son los parámetros que afectan las condiciones iniciales de nacimiento de las partículas</h3> \else <h3>Parameters affecting the particles birth conditions</h3> \endif
+*
+* @anchor emittertype
+* @param emittertype \if spanish Tipo de de emisor. Opciones:  \else Emitter Type. Options:  \endif \ref moParticlesSimpleEmitterType
+* @anchor emittervectorx
+* @param emittervectorx \if spanish Ancho del emisor \else Emitter size width \endif
+* @anchor emittervectory
+* @param emittervectory \if spanish Alto del emisor \else Emitter size height \endif
+* @anchor emittervectorz
+* @param emittervectorz \if spanish Profundidad del emisor \else Emitter size depth \endif
+* @anchor emitterperiod
+* @param emitterperiod \if spanish Intervalo en milisegundos entre conjunto de nacimientos \else Period between each birth groups. \endif
+* @anchor emitterrate
+* @param emitterrate \if spanish Cantidad de nacimientos en cada intervalo de \ref emitterperiod \else Maximum quantity of particles born after each \ref emitterperiod \endif
+* @anchor maxage
+* @param maxage \if spanish Edad máxima de la partícula. \else Maximum particle age in milliseconds. \endif
+* @anchor randommethod
+* @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif \ref moParticlesRandomMethod
+* @anchor creationmethod
+* @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif \ref moParticlesCreationMethod
+*
+* \if spanish <h2>Fuerzas / Gravedad</h2>  \else <h2>Forces / Gravity</h2> \endif
+* \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula.</h3>  \else These parameters are related to forces applied to all system. \endif
+* @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en attractorvector(x|y|z)  \else Gravity, can be negative too! \endif
+* @param viscosity \if spanish Viscosidad, es la fuerza que resiste al movimiento, sigue la regla de la fricción.  \else Viscosity, friction. \endif
+* @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif \ref moParticlesSimpleAttractorMode
+*
+* \if spanish <h2>Comportamiento</h2> \else Behaviour \endif
+* \if spanish <h3>El comportamiento se define por parámetros de movimiento aleatorio (browniano), cohesión o separación entre partículas </h3>  \else These paramteres affects random movement and other behaviour characteristics. \endif
+* @anchor randommotion
+* @param randommotion \if spanish Amplitud del movimiento aleatorio  \else Random motion amplitude. \endif
+* @anchor randommotionx
+* @param randommotionx \if spanish Ancho del espacio relativo que abarca el movimiento aleatorio  \else Relative motion width. \endif
+* @anchor randommotiony
+* @param randommotiony \if spanish Alto del espacio relativo que abarca el movimiento aleatorio  \else Relative motion height. \endif
+* @anchor randommotionz
+* @param randommotionz \if spanish Profundidad del espacio relativo que abarca el movimiento aleatorio  \else Relative motion depth. \endif
+*
+* \endif
 *
 * @see moEffect
 * @see moMoldeoObject
@@ -610,70 +674,6 @@ typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
 /**
  * \ingroup Effects
  * \ingroup Objects
- * \if spanish
- *
- * Plugin de efecto de partículas clásicas (método aproximación usado: Euler )
- *
- * Este efecto de partículas tiene un motor de física básico que aplica fuerzas y velocidad según la aproximación de Euler.
- * Se conforma en un arreglo de "width" x "height" = N particulas con parámetros globales de emisión, comportamiento y atracción.
- *
- * Los parámetros de emisión definen la configuración geométrica del espacio emisor dónde nacerán las partículas
- * y el método, condición y velocidad de creación de esas partículas, y son:
- *
- * \else
- *
- * Classic particles system.
- *
- * This is a simple particles system based on Euler formula to apply basic physic rules.
- * The particlessimple system build a "width" x "height" = N particles system with emission, behaviour and attraction global parameters.
- *
- * The emition parameters define the geometric configuration of the space where the particles will be born
- * and the creation, condition and speed of creation of these particles, are:
- *
- * \endif
- *
- * \anchor ParticlesSimpleParameters
- * \if spanish <h2>Emisión / Nacimiento</h2> \else <h2>Emition / Particle birth</h2> \endif
- * \if spanish <h3>Son los parámetros que afectan las condiciones iniciales de nacimiento de las partículas</h3> \else <h3>Parameters affecting the particles birth conditions</h3> \endif
- *
- * @anchor emittertype
- * @param emittertype \if spanish Tipo de de emisor ( opciones:  \else Emitter Type ( options:  \endif \ref moParticlesSimpleEmitterType)
- * @anchor emittervectorx
- * @param emittervectorx \if spanish Ancho del emisor \else Emitter size width \endif
- * @anchor emittervectory
- * @param emittervectory \if spanish Alto del emisor \else Emitter size height \endif
- * @anchor emittervectorz
- * @param emittervectorz \if spanish Profundidad del emisor \else Emitter size depth \endif
- * @anchor emitterperiod
- * @param emitterperiod \if spanish Intervalo en milisegundos entre conjunto de nacimientos \else Period between each birth groups. \endif
- * @anchor emitterrate
- * @param emitterrate \if spanish Cantidad de nacimientos en cada intervalo de \ref emitterperiod \else Maximum quantity of particles born after each \ref emitterperiod \endif
- * @anchor maxage
- * @param maxage \if spanish Edad máxima de la partícula. \else Maximum particle age in milliseconds. \endif
- * @anchor randommethod
- * @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif \ref moParticlesRandomMethod
- * @anchor creationmethod
- * @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif \ref moParticlesCreationMethod
- *
- * \if spanish <h2>Fuerzas / Gravedad</h2>  \else <h2>Forces / Gravity</h2> \endif
- * \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula.</h3>  \else These parameters are related to forces applied to all system. \endif
- * @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en attractorvector(x|y|z)  \else Gravity, can be negative too! \endif
- * @param viscosity \if spanish Viscosidad, es la fuerza que resiste al movimiento, sigue la regla de la fricción.  \else Viscosity, friction. \endif
- * @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif \ref moParticlesSimpleAttractorMode
- *
- * \if spanish <h2>Comportamiento</h2> \else Behaviour \endif
- * \if spanish <h3>El comportamiento se define por parámetros de movimiento aleatorio (browniano), cohesión o separación entre partículas </h3>  \else These paramteres affects random movement and other behaviour characteristics. \endif
- * @anchor randommotion
- * @param randommotion \if spanish Amplitud del movimiento aleatorio  \else Random motion amplitude. \endif
- * @anchor randommotionx
- * @param randommotionx \if spanish Ancho del espacio relativo que abarca el movimiento aleatorio  \else Relative motion width. \endif
- * @anchor randommotiony
- * @param randommotiony \if spanish Alto del espacio relativo que abarca el movimiento aleatorio  \else Relative motion height. \endif
- * @anchor randommotionz
- * @param randommotionz \if spanish Profundidad del espacio relativo que abarca el movimiento aleatorio  \else Relative motion depth. \endif
- *
- *
- * \endif
  *
  * @see moEffect
  * @see moParticlesSimple
