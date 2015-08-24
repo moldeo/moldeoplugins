@@ -28,17 +28,25 @@
 
   \brief Particles Effect Plugin, Simple Version
   \todo 1) ColorIn 2) ColorOut 3) BreakIn 4) BreakOut
+  \todo 5) Script general
+  \todo 6) Script por particula ( se ejecuta por cada particula ) ( acceso a eventos [tecla presionada...] )
+  \todo *) movimiento y posicionamieno de particuclas....
+  \todo 7) parametro desfazaje de movimiento??? que sea una opcion...
+  \todo 8) Improve the orientation modes... they dont work correctly
 
-  5) Script general
-  6) Script por particula ( se ejecuta por cada particula ) ( acceso a eventos [tecla presionada...] )
-
-  *) movimiento y posicionamieno de particuclas....
-
-  7) parametro desfazaje de movimiento??? que sea una opcion...
-
-  8) Improve the orientation modes... they dont work correctly
 
 *******************************************************************************/
+
+/**
+* \mainpage \if spanish ParticlesSimple de Moldeo. \else ParticlesSimple for Moldeo platform. \endif
+*
+* \if Description: A particle system programmed in C++ as a Moldeo Plugin Effect Object. \else OpenGL Particle system written in C++ for Moldeo 1.0 Platform. \endif
+*
+* \if spanish Ver lista de parámetros \else List all parameters: \endif @ref ParticlesSimpleParameters
+*
+* @see moEffect
+* @see moMoldeoObject
+*/
 
 #ifndef __MO_EFFECT_PARTICLES_H__
 #define __MO_EFFECT_PARTICLES_H__
@@ -62,47 +70,39 @@
 * \if spanish
 * <b>"emittertype"</b>: <em>Tipo de emisor</em>
 * Parámetro del efecto @ref moParticlesSimple
-*
 * El tipo de emisor es la configuración geométrica del espacio dónde nacen las partículas. Algo así como la incubadora de las partículas.
-*
-* Opciones:
-*
-*     0: Grilla (un rectángulo de "width" x "height"
-*
-*     1: Esfera (una esfera de "width" longitudes y "height" latitudes
-*
-*     2: Tubo ( un tubo de "width" facetas y "height" segmentos
-*
-*     3: Chorro ( colapsados en una línea )
-*
-*     4: Punto ( colapsados en un punto )
-*
-*     5: Trackeador ( reservado para información de sensado )
-*
-*     6: Trackeador2 ( reservado para información de sensado )
-*
-*     7: Espiral ( forma de espiral, "width" ángulos que forman "height" ciclos )
-*
-*     8: Círculo ( una ronda de "width"+"height" partículas  )
 *
 * \else
 * <b>"emittertype"</b>: <em>Emitter Type is a parameter of the ParticlesSimple Effect Plugin @ref moParticlesSimple</em>
-*
-*
+* Parameter of @ref moParticlesSimple
+* The emitter type is the geometric base configuration where the particles can be born.
 * \endif
+*
+* \if spanish <h4>Nombre del parámetro:</h4> \else <h4>Parameter name</h4> \endif @ref emittertype
+* \if spanish <h4>Todos los parámetros:</h4> \else <h4>All parameters:</h4> \endif @ref ParticlesSimpleParameters
+*
 * @see moParticlesSimple
 * @see moEffectParticlesSimple
 */
-enum moParticlesSimpleEmitterType { ///Emitter Type
-  PARTICLES_EMITTERTYPE_GRID = 0, /// 0: grid shape emitter
-  PARTICLES_EMITTERTYPE_SPHERE = 1, /// 1: sphere shape emitter (3d) ( x=width, y=height, z=depth )
-  PARTICLES_EMITTERTYPE_TUBE = 2, /// 2: tube shape emitter (3d)
-  PARTICLES_EMITTERTYPE_JET = 3, /// 3: line shape emitter (3d) vector line (x,y,z)
-  PARTICLES_EMITTERTYPE_POINT = 4, /// 4: point shape, position (x,y,z)
-  PARTICLES_EMITTERTYPE_TRACKER = 5, /// 5: emitter is a connected tracker
-  PARTICLES_EMITTERTYPE_TRACKER2 = 6, /// 6: emitter is a secondary connected tracker
-  PARTICLES_EMITTERTYPE_SPIRAL = 7,  /// 7: emitter is a spiral
-  PARTICLES_EMITTERTYPE_CIRCLE = 8 /// 8: emitter is a circle
+enum moParticlesSimpleEmitterType {
+  /// 0: \if spanish Grilla (un rectángulo de "width" x "height") 2D \else  Grid shape emitter 2D \endif
+  PARTICLES_EMITTERTYPE_GRID = 0,
+  /// 1: \if spanish Esfera (una esfera de "width" longitudes y "height" latitudes) 3D \else Sphere shape emitter ( x=width, y=height, z=depth ) 3D \endif
+  PARTICLES_EMITTERTYPE_SPHERE = 1,
+  /// 2: \if spanish 2: Tubo ( un tubo de "width" facetas y "height" segmentos) 3D \else Tube shape emitter (3C) \endif
+  PARTICLES_EMITTERTYPE_TUBE = 2,
+  /// 3: \if Chorro ( colapsados en una línea ) \else Line shape emitter (3d) vector line (x,y,z) \endif
+  PARTICLES_EMITTERTYPE_JET = 3,
+  /// 4: \if spanish Punto ( colapsados en un punto ) \else point shape, position (x,y,z) \endif
+  PARTICLES_EMITTERTYPE_POINT = 4,
+  /// 5: \if spanish Trackeador ( reservado para información de sensado ) \else emitter is a connected tracker \endif
+  PARTICLES_EMITTERTYPE_TRACKER = 5,
+  /// 6: \if spanish Trackeador2 ( reservado para información de sensado ) \else emitter is a secondary connected tracker \endif
+  PARTICLES_EMITTERTYPE_TRACKER2 = 6,
+  /// 7: \if spanish Espiral ( forma de espiral, "width" ángulos que forman "height" ciclos ) \else Emitter is a spiral \endif
+  PARTICLES_EMITTERTYPE_SPIRAL = 7,
+  /// 8: \if spanish Círculo ( una ronda de "width"X"height" partículas  ) \else emitter is a circle \endif
+  PARTICLES_EMITTERTYPE_CIRCLE = 8
 };
 
 ///Folder Shot Type
@@ -110,79 +110,118 @@ enum moParticlesSimpleEmitterType { ///Emitter Type
 *   Folder
 */
 enum moParticlesSimpleFolderShotType {
-  PARTICLES_SHOTTYPE_FOLDER_RANDOM = 0, /// 0: filename screenshot has a random id
-  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILEDATE = 1, /// 0: filename screenshot is date based
-  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILENAME = 2 /// 0: filename screenshot is name based
+  /// 0: filename screenshot has a random id
+  PARTICLES_SHOTTYPE_FOLDER_RANDOM = 0,
+  /// 0: filename screenshot is date based
+  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILEDATE = 1,
+  /// 0: filename screenshot is name based
+  PARTICLES_SHOTTYPE_FOLDER_SEQUENTIAL_BY_FILENAME = 2
 };
 
 ///Attractor Type
 enum moParticlesSimpleAttractorType {
-  PARTICLES_ATTRACTORTYPE_POINT = 0, /// 0: each particle attract diretly to the same point
-  PARTICLES_ATTRACTORTYPE_GRID = 1, /// 1: each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_SPHERE = 2, /// 2: each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_TUBE = 3, ///  3: each particle attract perp to a face of the grid
-  PARTICLES_ATTRACTORTYPE_JET = 4, /// 4: each particle attract perpendicular to jet vector
-  PARTICLES_ATTRACTORTYPE_TRACKER = 5, /// 5: each particle attract each one to a dot of the tracker
-  PARTICLES_ATTRACTORTYPE_VERTEX = 6 /// 6: each particle attract each one to a dot of the tracker
+  /// 0: each particle attract diretly to the same point
+  PARTICLES_ATTRACTORTYPE_POINT = 0,
+  /// 1: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_GRID = 1,
+  /// 2: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_SPHERE = 2,
+  ///  3: each particle attract perp to a face of the grid
+  PARTICLES_ATTRACTORTYPE_TUBE = 3,
+  /// 4: each particle attract perpendicular to jet vector
+  PARTICLES_ATTRACTORTYPE_JET = 4,
+  /// 5: each particle attract each one to a dot of the tracker
+  PARTICLES_ATTRACTORTYPE_TRACKER = 5,
+  /// 6: each particle attract each one to a dot of the tracker
+  PARTICLES_ATTRACTORTYPE_VERTEX = 6
 };
 
 ///Attractor Mode
 enum moParticlesSimpleAttractorMode {
-  PARTICLES_ATTRACTORMODE_ACCELERATION = 0, /// 0: accelerate with no stop
-  PARTICLES_ATTRACTORMODE_STICK = 1, /// 1: accelerate, reach and stop instantly
-  PARTICLES_ATTRACTORMODE_BOUNCE = 2, /// 2: accelerate and bounce....(inverse direction)
-  PARTICLES_ATTRACTORMODE_BREAKS = 3, /// 3: accelerate and breaks (generate debris on place)
-  PARTICLES_ATTRACTORMODE_BRAKE = 4,  /// 4: accelerate then brake and slowdown slowly
-  PARTICLES_ATTRACTORMODE_LINEAR = 5 /// 5: constant speed to attractortype
+  /// 0: accelerate with no stop
+  PARTICLES_ATTRACTORMODE_ACCELERATION = 0,
+  /// 1: accelerate, reach and stop instantly
+  PARTICLES_ATTRACTORMODE_STICK = 1,
+  /// 2: accelerate and bounce....(inverse direction)
+  PARTICLES_ATTRACTORMODE_BOUNCE = 2,
+  /// 3: accelerate and breaks (generate debris on place)
+  PARTICLES_ATTRACTORMODE_BREAKS = 3,
+  /// 4: accelerate then brake and slowdown slowly
+  PARTICLES_ATTRACTORMODE_BRAKE = 4,
+  /// 5: constant speed to attractortype
+  PARTICLES_ATTRACTORMODE_LINEAR = 5
 };
 
 ///Behaviour Mode
 enum moParticlesSimpleBehaviourMode {
-  PARTICLES_BEHAVIOUR_COHESION = 0, /// 0: las partículas son atraídas entre ellas
-  PARTICLES_BEHAVIOUR_SEPARATION = 1, /// 1: las partículas son libres y mantienen una distancia mínima de separación
-  PARTICLES_BEHAVIOUR_AVOIDANCE = 2, /// 2: las partículas son repelidas entre ellas
-  PARTICLES_BEHAVIOUR_ALIGNMENT = 3 /// 3: las partículas se alinean y acomodan cristalmente
+  /// 0: las partículas son atraídas entre ellas
+  PARTICLES_BEHAVIOUR_COHESION = 0,
+  /// 1: las partículas son libres y mantienen una distancia mínima de separación
+  PARTICLES_BEHAVIOUR_SEPARATION = 1,
+  /// 2: las partículas son repelidas entre ellas
+  PARTICLES_BEHAVIOUR_AVOIDANCE = 2,
+  /// 3: las partículas se alinean y acomodan cristalmente
+  PARTICLES_BEHAVIOUR_ALIGNMENT = 3
 };
 
 
 ///Texture Mode
 enum moParticlesSimpleTextureMode {
-    PARTICLES_TEXTUREMODE_UNIT = 0, /// One Same Texture Image for each Particle (taken from texture)
-    PARTICLES_TEXTUREMODE_PATCH = 1, /// Same Texture Image Divided In Different Fragments for each Particle (taken from texture, divided in width*height)
-    PARTICLES_TEXTUREMODE_MANY = 2, /// Many Different Textures Image for each Particle ( taken from texturefolder )
-    PARTICLES_TEXTUREMODE_MANY2PATCH = 3 /// Many textures/particle to construct a patched texture one ( taken from texturefolder, build the one defined on texture parameter, or from a folder, call to Shot(source) then ReInit to build... )
+    /// 0: One Same Texture Image for each Particle (taken from texture)
+    PARTICLES_TEXTUREMODE_UNIT = 0,
+    /// 1: Same Texture Image Divided In Different Fragments for each Particle (taken from texture, divided in width*height)
+    PARTICLES_TEXTUREMODE_PATCH = 1,
+    /// 2: Many Different Textures Image for each Particle ( taken from texturefolder )
+    PARTICLES_TEXTUREMODE_MANY = 2,
+    /// 3: Many textures/particle to construct a patched texture one ( taken from texturefolder, build the one defined on texture parameter, or from a folder, call to Shot(source) then ReInit to build... )
+    PARTICLES_TEXTUREMODE_MANY2PATCH = 3
 };
 
 static moTextArray TextureModeOptions;
 
 ///Creation Method
 enum moParticlesCreationMethod {
-    PARTICLES_CREATIONMETHOD_LINEAR=0, ///particles are been created along the array order
-    PARTICLES_CREATIONMETHOD_PLANAR=1, ///particles are been created randomly over the surface of the emitter geometry
-    PARTICLES_CREATIONMETHOD_VOLUMETRIC=2, ///particles are been created randomly inside the volume defined by the emitter geometry
-    PARTICLES_CREATIONMETHOD_CENTER=3 /// particles are created on the center of the emitter
+    /// 0: \if spanish Alineado. Los lugares de nacimientos están alineados con el orden de los vertices del emisor.  \else Aligned. Particles birth position follow the emitter vertices order. \endif
+    PARTICLES_CREATIONMETHOD_LINEAR=0,
+    /// 1: \if spanish Superficial. Los lugares de nacimientos están diseminados sobre la superficie del emisor aleatoriamente.  \else Surface. Particles birth position follow randomly the surface of the emitter. \endif
+    PARTICLES_CREATIONMETHOD_PLANAR=1,
+    ///  2: \if spanish Volumétrico. Los lugares de nacimientos están diseminados dentro del volumen del emisor aleatoriamente.  \else Volumetric. Particles birth position are into the volume of the emitter. \endif
+    PARTICLES_CREATIONMETHOD_VOLUMETRIC=2,
+    /// 3: \if spanish Central. Los lugares de nacimiento están colapsados en el centro del emisor. \else Central. Particles birth position are collapsed into the emitter center position. \endif
+    PARTICLES_CREATIONMETHOD_CENTER=3
 };
 
 ///Random Method
 enum moParticlesRandomMethod {
+    ///  0: \if spanish Ruidoso. \else Noisy \endif
     PARTICLES_RANDOMMETHOD_NOISY=0,
+    ///  1: \if spanish Co-Lineal. \else Co-Linear \endif
     PARTICLES_RANDOMMETHOD_COLINEAR=1,
+    ///  2: \if spanish Perpendicular. \else Perpendicular. \endif
     PARTICLES_RANDOMMETHOD_PERPENDICULAR=2
 };
 
 ///Orientation Method
 enum moParticlesOrientationMode {
+    /// 0: \if spanish \else \endif
     PARTICLES_ORIENTATIONMODE_FIXED=0,
+    /// 1: \if spanish \else \endif
     PARTICLES_ORIENTATIONMODE_CAMERA=1,
+    /// 2: \if spanish \else \endif
     PARTICLES_ORIENTATIONMODE_MOTION=2,
+    /// 3: \if spanish \else \endif
     PARTICLES_ORIENTATIONMODE_ACCELERATION=3
 };
 
 enum moParticlesOrderingMode {
-    PARTICLES_ORDERING_MODE_NONE=0, /** 0: no reordering for drawing */
-    PARTICLES_ORDERING_MODE_ZDEPTHTEST=1, /** 1: reordered */
-    PARTICLES_ORDERING_MODE_ZPOSITION=2, /** 2: zposition -> simple order relative to particle Z calculated position */
-    PARTICLES_ORDERING_MODE_COMPLETE=3 /** 3: complete view dependent ordering >  */
+    /// 0: \if spanish \else \endif 0: no reordering for drawing
+    PARTICLES_ORDERING_MODE_NONE=0,
+    /// 1: \if spanish \else \endif 1: reordered
+    PARTICLES_ORDERING_MODE_ZDEPTHTEST=1,
+    /// 2: \if spanish \else \endif zposition -> simple order relative to particle Z calculated position
+    PARTICLES_ORDERING_MODE_ZPOSITION=2,
+    /// 3: \if spanish \else \endif complete view dependent ordering >
+    PARTICLES_ORDERING_MODE_COMPLETE=3
 };
 
 
@@ -581,15 +620,8 @@ typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
  * Los parámetros de emisión definen la configuración geométrica del espacio emisor dónde nacerán las partículas
  * y el método, condición y velocidad de creación de esas partículas, y son:
  *
- * Parámetros de emisión de partículas:
- * @param emittertype Tipo de de emisor \ref moParticlesSimpleEmitterType
- * @param emittervectorx Ancho del emisor
- * @param emittervectory Alto del emisor
- * @param emittervectorz Profundidad del emisor
- * @param emitterperiod Intervalo en milisegundos entre nacimientos
- * @param emitterrate Cantidad de nacimientos en cada intervalo de "emitterperiod"
- *
  * \else
+ *
  * Classic particles system.
  *
  * This is a simple particles system based on Euler formula to apply basic physic rules.
@@ -598,16 +630,65 @@ typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
  * The emition parameters define the geometric configuration of the space where the particles will be born
  * and the creation, condition and speed of creation of these particles, are:
  *
- * @param emittertype Emitter type \ref moParticlesSimpleEmitterType
- * @param emittervectorx "emittervectorx": Emitter size width
- * @param emittervectory "emittervectory": Emitter size height
- * @param emittervectorz "emittervectorz": Emitter size depth
+ * \endif
+ *
+ * \anchor ParticlesSimpleParameters
+ * \if spanish <h2>Emisión / Nacimiento</h2> \else <h2>Emition / Particle birth</h2> \endif
+ * \if spanish <h3>Son los parámetros que afectan las condiciones iniciales de nacimiento de las partículas</h3> \else <h3>Parameters affecting the particles birth conditions</h3> \endif
+ *
+ * @anchor emittertype
+ * @param emittertype \if spanish Tipo de de emisor ( opciones:  \else Emitter Type ( options:  \endif \ref moParticlesSimpleEmitterType)
+ * @anchor emittervectorx
+ * @param emittervectorx \if spanish Ancho del emisor \else Emitter size width \endif
+ * @anchor emittervectory
+ * @param emittervectory \if spanish Alto del emisor \else Emitter size height \endif
+ * @anchor emittervectorz
+ * @param emittervectorz \if spanish Profundidad del emisor \else Emitter size depth \endif
+ * @anchor emitterperiod
+ * @param emitterperiod \if spanish Intervalo en milisegundos entre conjunto de nacimientos \else Period between each birth groups. \endif
+ * @anchor emitterrate
+ * @param emitterrate \if spanish Cantidad de nacimientos en cada intervalo de \ref emitterperiod \else Maximum quantity of particles born after each \ref emitterperiod \endif
+ * @anchor maxage
+ * @param maxage \if spanish Edad máxima de la partícula. \else Maximum particle age in milliseconds. \endif
+ * @anchor randommethod
+ * @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif \ref moParticlesRandomMethod
+ * @anchor creationmethod
+ * @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif \ref moParticlesCreationMethod
+ *
+ * \if spanish <h2>Fuerzas / Gravedad</h2>  \else <h2>Forces / Gravity</h2> \endif
+ * \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula.</h3>  \else These parameters are related to forces applied to all system. \endif
+ * @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en attractorvector(x|y|z)  \else Gravity, can be negative too! \endif
+ * @param viscosity \if spanish Viscosidad, es la fuerza que resiste al movimiento, sigue la regla de la fricción.  \else Viscosity, friction. \endif
+ * @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif \ref moParticlesSimpleAttractorMode
+ *
+ * \if spanish <h2>Comportamiento</h2> \else Behaviour \endif
+ * \if spanish <h3>El comportamiento se define por parámetros de movimiento aleatorio (browniano), cohesión o separación entre partículas </h3>  \else These paramteres affects random movement and other behaviour characteristics. \endif
+ * @anchor randommotion
+ * @param randommotion \if spanish Amplitud del movimiento aleatorio  \else Random motion amplitude. \endif
+ * @anchor randommotionx
+ * @param randommotionx \if spanish Ancho del espacio relativo que abarca el movimiento aleatorio  \else Relative motion width. \endif
+ * @anchor randommotiony
+ * @param randommotiony \if spanish Alto del espacio relativo que abarca el movimiento aleatorio  \else Relative motion height. \endif
+ * @anchor randommotionz
+ * @param randommotionz \if spanish Profundidad del espacio relativo que abarca el movimiento aleatorio  \else Relative motion depth. \endif
+ *
  *
  * \endif
- * \author Fabricio Costa
  *
  * @see moEffect
  * @see moParticlesSimple
+ *
+ * \author Fabricio Costa
+ *
+ * \image html screen_00.png
+ * \image html screen_01.png
+ * \image html screen_02.png
+ * \image html screen_03.png
+ *
+ *  \todo \if spanish Habilitar parámetro de ordenamiento \else Activate order algorithm parameter \endif
+ *  \todo \if spanish Activar dinámicamente el "texture_folder" \else Activate and load texture_folder on the fly \endif
+ *  \todo
+ *
  */
 class moEffectParticlesSimple : public moEffect
 {
