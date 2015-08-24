@@ -85,18 +85,27 @@
 * @anchor maxage
 * @param maxage \if spanish Edad máxima de la partícula. \else Maximum particle age in milliseconds. \endif
 * @anchor randommethod
-* @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif \ref moParticlesRandomMethod
+* @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif @ref moParticlesRandomMethod
 * @anchor creationmethod
-* @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif \ref moParticlesCreationMethod
+* @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif @ref moParticlesCreationMethod
 *
-* \if spanish <h2>Fuerzas / Gravedad</h2>  \else <h2>Forces / Gravity</h2> \endif
-* \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula.</h3>  \else These parameters are related to forces applied to all system. \endif
+* \if spanish <h2>Fuerzas de atracción.</h2>  \else <h2>Attraction forces.</h2> \endif
+* \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula. El attractor cuenta con configuración geométrica y diferentes modos en que se aplican las fuerzas a cada partícula. </h3>
+* \else <h3>These parameters are related to forces applied to all system particles. Attractor is .</h3>
+* \endif
 * @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en attractorvector(x|y|z)  \else Gravity, can be negative too! \endif
 * @param viscosity \if spanish Viscosidad, es la fuerza que resiste al movimiento, sigue la regla de la fricción.  \else Viscosity, friction. \endif
-* @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif \ref moParticlesSimpleAttractorMode
+* @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif @ref moParticlesSimpleAttractorMode
+* @param attractortype \if spanish Tipo de attractor. Opciones: \else Attractor type. Options: \endif @ref moParticlesSimpleAttractorType
+* @param attractorvectorx \if spanish Ancho del atractor. \else Attractor size width. \endif
+* @param attractorvectory \if spanish Alto del atractor. \else Attractor size height. \endif
+* @param attractorvectorz \if spanish Profundidad del atractor \else Attractor size depth. \endif
 *
-* \if spanish <h2>Comportamiento</h2> \else Behaviour \endif
-* \if spanish <h3>El comportamiento se define por parámetros de movimiento aleatorio (browniano), cohesión o separación entre partículas </h3>  \else These paramteres affects random movement and other behaviour characteristics. \endif
+*
+* \if spanish <h2>Comportamiento</h2> \else <h2>Behaviour</h2> \endif
+* \if spanish <h3>El comportamiento se define por parámetros de movimiento aleatorio (browniano), cohesión o separación entre partículas </h3>
+* \else <h3>These paramteres affects random movement and other behaviour characteristics.</h3>
+* \endif
 * @anchor randommotion
 * @param randommotion \if spanish Amplitud del movimiento aleatorio  \else Random motion amplitude. \endif
 * @anchor randommotionx
@@ -105,8 +114,42 @@
 * @param randommotiony \if spanish Alto del espacio relativo que abarca el movimiento aleatorio  \else Relative motion height. \endif
 * @anchor randommotionz
 * @param randommotionz \if spanish Profundidad del espacio relativo que abarca el movimiento aleatorio  \else Relative motion depth. \endif
+* @anchor randomvelocity
+* @param randomvelocity \if spanish Amplitud aleatoria de la velocidad inicial.  \else Initial velocity random amplitude. \endif
+* @anchor randomvelocityx
+* @param randomvelocityx \if spanish Velocidad en el eje x.  \else Velocity x component. \endif
+* @anchor randomvelocityy
+* @param randomvelocityy \if spanish Velocidad en el eje y.  \else Velocity y component. \endif
+* @anchor randomvelocityz
+* @param randomvelocityz \if spanish Velocidad en el eje z. \else Velocity z component. \endif
 *
+*
+*
+* \if spanish <h2>Parámetros de posición.</h2>  \else <h2>Position parameters.</h2> \endif
+* \if spanish <h3>La posición en el espacio tridimensional, tiene 3 componentes: x, y, z.</h3>
+* \else <h3>The position in 3d space, has 3 components: x, y, z.</h3>
 * \endif
+* @param translatex \if spanish Posición en el eje x. \else Position in x coordinate. \endif
+* @param translatey \if spanish Posición en el eje y. \else Position in y coordinate. \endif
+* @param translatez \if spanish Posición en el eje z. \else Position in z coordinate. \endif
+*
+*
+* \if spanish <h2>Parámetros de escala.</h2> \else <h2>Scale parameters.</h2> \endif
+* \if spanish <h3>La escala del espacio tridimensional, tiene 3 componentes: x, y, z.</h3>
+* \else <h3>The 3d space scale, has 3 components: x, y, z.</h3>
+* \endif
+* @param scalex \if spanish Escala en el eje x. \else Scale in x coordinate. \endif
+* @param scaley \if spanish Escala en el eje y. \else Scale in y coordinate. \endif
+* @param scalez \if spanish Escala en el eje z. \else Scale in z coordinate. \endif
+*
+*
+* \if spanish <h2>Parámetros de rotación.</h2>  \else <h2>Rotation parameters.</h2> \endif
+* \if spanish <h3>The system rotation, tiene 3 componentes: x, y, z.</h3>
+* \else <h3>The system rotation, has 3 components: x, y, z.</h3>
+* \endif
+* @param rotatex \if spanish Rotación sobre el eje x. \else Rotation in x axe. \endif
+* @param rotatey \if spanish Rotación sobre el eje y. \else Rotation in y axe. \endif
+* @param rotatez \if spanish Rotación sobre el eje z. \else Rotation in z axe. \endif
 *
 * @see moEffect
 * @see moMoldeoObject
