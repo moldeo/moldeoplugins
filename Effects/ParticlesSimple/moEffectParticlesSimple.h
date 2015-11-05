@@ -70,36 +70,43 @@
 * \if spanish <h2>Emisión / Nacimiento</h2> \else <h2>Emition / Particle birth</h2> \endif
 * \if spanish <h3>Son los parámetros que afectan las condiciones iniciales de nacimiento de las partículas</h3> \else <h3>Parameters affecting the particles birth conditions</h3> \endif
 *
-* @anchor emittertype
 * @param emittertype \if spanish Tipo de de emisor. Opciones:  \else Emitter Type. Options:  \endif \ref moParticlesSimpleEmitterType
-* @anchor emittervectorx
+* @anchor emittertype
 * @param emittervectorx \if spanish Ancho del emisor \else Emitter size width \endif
-* @anchor emittervectory
+* @anchor emittervectorx
 * @param emittervectory \if spanish Alto del emisor \else Emitter size height \endif
-* @anchor emittervectorz
+* @anchor emittervectory
 * @param emittervectorz \if spanish Profundidad del emisor \else Emitter size depth \endif
-* @anchor emitterperiod
+* @anchor emittervectorz
 * @param emitterperiod \if spanish Intervalo en milisegundos entre conjunto de nacimientos \else Period between each birth groups. \endif
-* @anchor emitterrate
+* @anchor emitterperiod
 * @param emitterrate \if spanish Cantidad de nacimientos en cada intervalo de \ref emitterperiod \else Maximum quantity of particles born after each \ref emitterperiod \endif
-* @anchor maxage
+* @anchor emitterrate
 * @param maxage \if spanish Edad máxima de la partícula. \else Maximum particle age in milliseconds. \endif
-* @anchor randommethod
+* @anchor maxage
 * @param randommethod \if spanish Modo de aleatoriedad, noisy, colinear o  Opciones: \else Emitter random method. Options: \endif @ref moParticlesRandomMethod
-* @anchor creationmethod
+* @anchor randommethod
 * @param creationmethod \if spanish Modo de creación, linear , coplanar o volumétrico. Opciones: \else Emitter creation method. Options: \endif @ref moParticlesCreationMethod
 *
 * \if spanish <h2>Fuerzas de atracción.</h2>  \else <h2>Attraction forces.</h2> \endif
 * \if spanish <h3>Los paramétros aquí son fuerzas aplicadas a partir del nacimiento de la partícula. El attractor cuenta con configuración geométrica y diferentes modos en que se aplican las fuerzas a cada partícula. </h3>
 * \else <h3>These parameters are related to forces applied to all system particles. Attractor is .</h3>
 * \endif
-* @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en attractorvector(x|y|z)  \else Gravity, can be negative too! \endif
+* @anchor creationmethod
+* @param gravity \if spanish Gravedad aplicada a cada partícula, el centro de la fuerza gravitatoria se define en \else Gravity applied to each particle, gravity center is defined in  \endif \ref attractorvectorx, \ref attractorvectory, \ref attractorvectorz.
+* @anchor gravity
 * @param viscosity \if spanish Viscosidad, es la fuerza que resiste al movimiento, sigue la regla de la fricción.  \else Viscosity, friction. \endif
+* @anchor viscosity
 * @param attractormode \if spanish Modo de funcionamiento del atractor. Opciones: \else Attractor mode. Options: \endif @ref moParticlesSimpleAttractorMode
-* @param attractortype \if spanish Tipo de attractor. Opciones: \else Attractor type. Options: \endif @ref moParticlesSimpleAttractorType
+* @anchor attractormode
+* @param attractortype \if spanish Tipo de atractor. Opciones: \else Attractor type. Options: \endif @ref moParticlesSimpleAttractorType
+* @anchor attractortype
 * @param attractorvectorx \if spanish Ancho del atractor. \else Attractor size width. \endif
+* @anchor attractorvectorx
 * @param attractorvectory \if spanish Alto del atractor. \else Attractor size height. \endif
+* @anchor attractorvectory
 * @param attractorvectorz \if spanish Profundidad del atractor \else Attractor size depth. \endif
+* @anchor attractorvectorz
 *
 *
 * \if spanish <h2>Comportamiento</h2> \else <h2>Behaviour</h2> \endif
