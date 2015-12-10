@@ -67,6 +67,7 @@ void moEffectMovieFactory::Destroy(moEffect* fx) {
 
 moEffectMovie::moEffectMovie() {
 	SetName("movie");
+	movielaunched = false;
 }
 
 moEffectMovie::~moEffectMovie() {
@@ -83,15 +84,16 @@ moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("sounds"), MO_PARAM_SOUND, MOVIE_SOUNDS );
 	p_configdefinition->Add( moText("position"), MO_PARAM_FUNCTION, MOVIE_POSITION, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("speed"), MO_PARAM_FUNCTION, MOVIE_SPEED, moValue( "1.0","FUNCTION").Ref() );
-    p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, MOVIE_VOLUME, moValue( "1.0","FUNCTION").Ref() );
+  p_configdefinition->Add( moText("volume"), MO_PARAM_FUNCTION, MOVIE_VOLUME, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("balance"), MO_PARAM_FUNCTION, MOVIE_BALANCE, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("brightness"), MO_PARAM_FUNCTION, MOVIE_BRIGHTNESS, moValue( "0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("contrast"), MO_PARAM_FUNCTION, MOVIE_CONTRAST, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("saturation"), MO_PARAM_FUNCTION, MOVIE_SATURATION, moValue( "1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("hue"), MO_PARAM_FUNCTION, MOVIE_HUE, moValue( "0.0","FUNCTION").Ref() );
-	p_configdefinition->Add( moText("moviemode"), MO_PARAM_NUMERIC, MOVIE_MODE, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("moviemode"), MO_PARAM_NUMERIC, MOVIE_MODE, moValue( "0","NUM").Ref(), moText("VCR,SCRIPT,CYCLE,PLAYLIST,LAUNCH") );
+	p_configdefinition->Add( moText("movielaunch"), MO_PARAM_NUMERIC, MOVIE_LAUNCH, moValue( "0","NUM").Ref(), moText("OFF,ON") );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, MOVIE_BLENDING);
-	p_configdefinition->Add( moText("startplaying"), MO_PARAM_NUMERIC, MOVIE_STARTPLAYING, moValue( "0","NUM").Ref() );
+	p_configdefinition->Add( moText("startplaying"), MO_PARAM_NUMERIC, MOVIE_STARTPLAYING, moValue( "0","NUM").Ref(), moText("OFF,ON"));
 	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, MOVIE_LOOP, moValue( "0","NUM").Ref() );
 	p_configdefinition->Add( moText("showtrackdata"), MO_PARAM_NUMERIC, MOVIE_SHOWTRACKDATA, moValue( "0","NUM").Ref() );
 	p_configdefinition->Add( moText("interpolation"), MO_PARAM_NUMERIC, MOVIE_INTERPOLATION, moValue( "0","NUM").Ref() );
@@ -127,6 +129,7 @@ moEffectMovie::Init() {
 	moDefineParamIndex( MOVIE_MOVIES, moText("movies") );
 	moDefineParamIndex( MOVIE_SOUNDS, moText("sounds") );
 	moDefineParamIndex( MOVIE_MODE, moText("moviemode") );
+	moDefineParamIndex( MOVIE_LAUNCH, moText("movielaunch") );
 	moDefineParamIndex( MOVIE_BLENDING, moText("blending") );
 	moDefineParamIndex( MOVIE_STARTPLAYING, moText("startplaying") );
 	moDefineParamIndex( MOVIE_LOOP, moText("loop") );
@@ -184,6 +187,7 @@ moEffectMovie::Init() {
 	m_pNextTexture = NULL;
 
 	showmoviedata = true;/** Start timer to shut down display info*/
+	movielaunchon = MO_MOVIE_LAUNCH_OFF;
 
 /*
 	Sound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
@@ -414,28 +418,45 @@ void moEffectMovie::UpdateParameters() {
             }
           }
         } else {
+          ///TIMER CORRIENDO
           if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
-
+              /// PELI NO CORRE
 
              if (m_pMovie->IsEOS() /*|| (m_FramePosition+5) >= m_FramesLength*/ ) {
                  //MODebug2->Message(moText("Timer is playing, movie ended!!, do nothing...."));
                  //m_pMovie->Play();
                  //this->Disable();
                  //this->TurnOff();
-             } else if ( m_FramePosition>=0 && (m_FramePosition+8)<=m_FramesLength ) {
-                 MODebug2->Message(moText("Timer is playing, movie is not, try to play movie!!"));
-                 m_pMovie->Play();
+             } else if ( m_FramePosition>=0 && (m_FramePosition+MO_MOVIE_EOF_TOLERANCE)<=m_FramesLength ) {
+                 //MODebug2->Message(moText("Timer is playing, movie is not, try to play movie!!"));
+                 if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
+                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+                      MODebug2->Message(moText("Launch ON"));
+                      m_pMovie->Play();
+                    }
+                 } else if (moviemode==MO_MOVIE_MODE_LAUNCH_NEXT_AND_WAIT ) {
+                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+                      MODebug2->Message(moText("Launch ON"));
+                      m_pMovie->Play();
+                    }
+                 } else m_pMovie->Play();
                  //MODebug2->Message(moText("Timer is started, movie not: Play() was called..."));
              }
 
 
           } else if(m_pMovie->IsPlaying() && (moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING  ) ) {
 
+              /// PELI SI CORRE
              //MODebug2->Message(moText("Timer is playing, movie is playing too, if position is 0, then play!!"));
 
               if (m_pMovie->GetPosition()==0) {
                   //MODebug2->Message(moText("position is 0, Play()!!"));
-                  m_pMovie->Play();
+                  if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
+                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+                        MODebug2->Message(moText("Movie Running (but at position 0). Launch ON"));
+                        m_pMovie->Play();
+                    }
+                  }
               }
           }
           //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE end check."));
@@ -499,7 +520,8 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
     glEnable(GL_ALPHA);
     m_pResourceManager->GetGLMan()->SetOrthographicView();
 
-	moviemode = m_Config.Int(moR(MOVIE_MODE));
+	moviemode = (moEffectMovieMode) m_Config.Int(moR(MOVIE_MODE));
+	movielaunchon = (moEffectMovieLaunch) m_Config.Int(moR(MOVIE_LAUNCH));
 
   SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
 
@@ -611,7 +633,7 @@ MOuint moEffectMovie::MovieGLId() {
   //MODebug2->Push("m_FramePosition:"+IntToStr(m_FramePosition));
 
   switch(moviemode) {
-
+    case MO_MOVIE_MODE_LAUNCH_AND_WAIT:
 		case MO_MOVIE_MODE_VCR:
 		  {
             if (m_pAnim) {
@@ -622,7 +644,7 @@ MOuint moEffectMovie::MovieGLId() {
 
           if (m_pMovie) {
 
-            if ( (m_FramePosition+8) >= m_FramesLength || m_pMovie->IsEOS() ) {
+            if ( (m_FramePosition+MO_MOVIE_EOF_TOLERANCE) >= m_FramesLength || m_pMovie->IsEOS() ) {
 
             ///stop current
               if (m_pMovie->IsEOS()) {
@@ -675,7 +697,7 @@ MOuint moEffectMovie::MovieGLId() {
           glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
         }
         if (m_pMovie) {
-          if ( (m_FramePosition+8) >= m_FramesLength || m_pMovie->IsEOS()) {
+          if ( (m_FramePosition+MO_MOVIE_EOF_TOLERANCE) >= m_FramesLength || m_pMovie->IsEOS()) {
 
             int actual_index = m_Config.GetParam(moR(MOVIE_MOVIES)).GetIndexValue();
             ///stop current

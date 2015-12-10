@@ -79,11 +79,21 @@
 #define MO_ALPHA    3
 #endif
 
+#define MO_MOVIE_EOF_TOLERANCE 2
+
+
+enum moEffectMovieLaunch {
+  MO_MOVIE_LAUNCH_OFF = 0, /** by default */
+  MO_MOVIE_LAUNCH_ON = 1 /**  */
+};
+
 enum moEffectMovieMode {
 	MO_MOVIE_MODE_VCR = 0,
 	MO_MOVIE_MODE_SCRIPT = 1,
 	MO_MOVIE_MODE_CYCLE = 2,
-	MO_MOVIE_MODE_VCR_PLAYLIST = 3
+	MO_MOVIE_MODE_VCR_PLAYLIST = 3,
+	MO_MOVIE_MODE_LAUNCH_AND_WAIT = 4,
+	MO_MOVIE_MODE_LAUNCH_NEXT_AND_WAIT = 5
 };
 
 enum moEffectMoviePlayState {
@@ -135,6 +145,7 @@ enum moMovieParamIndex {
 	MOVIE_SATURATION,
 	MOVIE_HUE,
 	MOVIE_MODE,
+	MOVIE_LAUNCH,
 	MOVIE_BLENDING,
 	MOVIE_STARTPLAYING,
 	MOVIE_LOOP,
@@ -206,7 +217,9 @@ protected:
 
 	MOint startplaying;
 	MOint loop;
-	MOint moviemode;
+	moEffectMovieMode moviemode;
+	moEffectMovieLaunch movielaunchon;
+	bool movielaunched;
 
 	MOboolean m_bPlayingSound;
 
