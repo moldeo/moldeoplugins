@@ -171,6 +171,11 @@
 #include "moPlugin.h"
 #include "moTimeManager.h"
 #include "moFilterManager.h"
+#include "moMathMatrix.h"
+
+#define GLUT_DISABLE_ATEXIT_HACK
+#include "GL/glut.h"
+#include <algorithm>    // std::sort
 
 #define MO_PARTICLES_TRANSLATE_X 0
 #define MO_PARTICLES_TRANSLATE_Y 1
@@ -328,16 +333,25 @@ enum moParticlesOrientationMode {
 };
 
 enum moParticlesOrderingMode {
-    /// 0: \if spanish \else \endif 0: no reordering for drawing
+    /// 0: \if spanish Sin reordenamiento espacial, sigue el orden de la matriz WxH. \else no reordering for drawing \endif
     PARTICLES_ORDERING_MODE_NONE=0,
-    /// 1: \if spanish \else \endif 1: reordered
+    /// 1: \if spanish Ordenamiento por profundidad de pixel (ZBuffer) \else Ordering using depth field (ZBuffer) \endif
     PARTICLES_ORDERING_MODE_ZDEPTHTEST=1,
-    /// 2: \if spanish \else \endif zposition -> simple order relative to particle Z calculated position
+    /// 2: \if spanish Ordenamiento por coordenada Z \else Ordering using z coordinate \endif
     PARTICLES_ORDERING_MODE_ZPOSITION=2,
-    /// 3: \if spanish \else \endif complete view dependent ordering >
+    /// 3: \if spanish Ordenamiento por distancia a la cámara \else Ordering using camera distance to particle \endif
     PARTICLES_ORDERING_MODE_COMPLETE=3
 };
 
+
+enum moParticlesSimpleLightMode {
+  /// 0: \if spanish Sin luces. \else No lights \endif
+  PARTICLES_LIGHTMODE_NONE=0,
+  /// 1: point \if spanish Luz omnidireccional \else Omnidirectional light \endif
+  PARTICLES_LIGHTMODE_OMNI=1,
+  /// 1: spot \if spanish Luz direccional \else Directional light \endif
+  PARTICLES_LIGHTMODE_SPOT=2
+};
 
 enum moParticlesSimpleParamIndex {
   PARTICLES_INLET,
@@ -436,7 +450,11 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VIEWX,
 	PARTICLES_VIEWY,
 	PARTICLES_VIEWZ,
-  PARTICLES_ORDERING_MODE
+  PARTICLES_ORDERING_MODE,
+  PARTICLES_LIGHTMODE,
+  PARTICLES_LIGHTX,
+  PARTICLES_LIGHTY,
+  PARTICLES_LIGHTZ
 };
 
 
@@ -587,6 +605,8 @@ class moParticlesSimple : public moAbstract {
     ///Age of the particle
     moTimer     Age;
     long        MaxAge;
+
+    double      ViewDepth;
 };
 
 class moParticlesSimplePhysics : public moAbstract {
@@ -678,6 +698,9 @@ class moParticlesSimplePhysics : public moAbstract {
     moVector3f      m_AttractorVector;
 
     moVector3f      m_EyeVector;
+    moVector3f      m_TargetViewVector;
+    moVector3f      m_SourceLightVector;
+    moParticlesSimpleLightMode m_SourceLighMode;
 
     double          m_RandomVelocity;
     moVector3f      m_VelocityVector;
@@ -716,6 +739,8 @@ enum enumRevelationStatus {
 
 
 moDeclareDynamicArray( moParticlesSimple*, moParticlesSimpleArray );
+
+
 
 typedef std::map< double, moParticlesSimple* > TMapDepthToParticleSimple;
 
@@ -781,6 +806,7 @@ class moEffectParticlesSimple : public moEffect
 
         void OrderParticles();
 
+
     private:
 
         ///Actualizar el dt para iteracion de particulas
@@ -804,6 +830,8 @@ class moEffectParticlesSimple : public moEffect
 
         ///Calcular los incrementos
         void CalculateDerivatives( bool tmparray = false, double dt = 0.0 );
+
+        double CalculateViewDepth( moParticlesSimple* pPar );
 
         ///Actualizar todas las particulas
         /**
@@ -881,6 +909,8 @@ class moEffectParticlesSimple : public moEffect
         moInlet*                  m_pParticleTime;
         moInlet*                  m_pParticleIndex;
 
+        moParticlesSimpleArray    m_ParticlesSimpleArrayOrdered;
+        std::vector < moParticlesSimple* >  m_ParticlesSimpleVector;
         moParticlesSimpleArray    m_ParticlesSimpleArray;
         moParticlesSimpleArray    m_ParticlesSimpleArrayTmp;
         moParticlesSimplePhysics    m_Physics;
@@ -961,13 +991,18 @@ class moEffectParticlesSimple : public moEffect
         float sx,sy,sz;
         float rx,ry,rz;
 
+        moVector4f  m_Rot[4];
+        moVector4f  m_TS[4];
+
         TMapDepthToParticleSimple m_OrderedParticles;
+        moParticlesOrderingMode m_OrderingMode;
 
         double dtrel;
         double dt;
         long gral_ticks;
 
 };
+
 
 class moEffectParticlesSimpleFactory : public moEffectFactory
 {

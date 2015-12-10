@@ -179,6 +179,10 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("viewy"), MO_PARAM_FUNCTION, PARTICLES_VIEWY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewz"), MO_PARAM_FUNCTION, PARTICLES_VIEWZ, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM"), moText("NONE,ZDEPTHTEST,ZPOSITION,COMPLETE") );
+	p_configdefinition->Add( moText("lightmode"), MO_PARAM_NUMERIC, PARTICLES_LIGHTMODE, moValue( "0", "NUM") );
+	p_configdefinition->Add( moText("lightx"), MO_PARAM_FUNCTION, PARTICLES_LIGHTX, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("lighty"), MO_PARAM_FUNCTION, PARTICLES_LIGHTY, moValue( "4.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("lightz"), MO_PARAM_FUNCTION, PARTICLES_LIGHTZ, moValue( "0.0", "FUNCTION").Ref() );
 	return p_configdefinition;
 }
 
@@ -310,6 +314,10 @@ moEffectParticlesSimple::Init()
 	moDefineParamIndex( PARTICLES_VIEWY, moText("viewy") );
 	moDefineParamIndex( PARTICLES_VIEWZ, moText("viewz") );
 	moDefineParamIndex( PARTICLES_ORDERING_MODE, moText("orderingmode") );
+	moDefineParamIndex( PARTICLES_LIGHTMODE, moText("lightmode") );
+	moDefineParamIndex( PARTICLES_LIGHTX, moText("lightx") );
+	moDefineParamIndex( PARTICLES_LIGHTY, moText("lighty") );
+	moDefineParamIndex( PARTICLES_LIGHTZ, moText("lightz") );
 
     m_Physics.m_ParticleScript = moText("");
 
@@ -797,6 +805,18 @@ void moEffectParticlesSimple::UpdateParameters() {
                                         m_Config.Eval( moR(PARTICLES_EYEZ))
                                        );
 
+    m_Physics.m_TargetViewVector = moVector3f(
+                                        m_Config.Eval( moR(PARTICLES_VIEWX)),
+                                        m_Config.Eval( moR(PARTICLES_VIEWY)),
+                                        m_Config.Eval( moR(PARTICLES_VIEWZ))
+                                       );
+
+    m_Physics.m_SourceLighMode = (moParticlesSimpleLightMode) m_Config.Int( moR(PARTICLES_LIGHTMODE));
+    m_Physics.m_SourceLightVector = moVector3f(
+                                        m_Config.Eval( moR(PARTICLES_LIGHTX)),
+                                        m_Config.Eval( moR(PARTICLES_LIGHTY)),
+                                        m_Config.Eval( moR(PARTICLES_LIGHTZ))
+                                       );
 
     m_Physics.gravitational = m_Config.Eval( moR(PARTICLES_GRAVITY));
     m_Physics.viscousdrag = m_Config.Eval( moR(PARTICLES_VISCOSITY));
@@ -890,6 +910,41 @@ void moEffectParticlesSimple::UpdateParameters() {
     }
 
     normalf = m_Physics.m_EmitterSize.X();
+
+    m_OrderingMode = (moParticlesOrderingMode) m_Config.Int( moR(PARTICLES_ORDERING_MODE) );
+
+    float ralpha,rbeta,rgama;
+
+    ralpha = moMathf::DegToRad( m_Config.Eval( moR(PARTICLES_ROTATEX) ) );
+    rbeta = moMathf::DegToRad( m_Config.Eval( moR(PARTICLES_ROTATEY) ) );
+    rgama = moMathf::DegToRad( m_Config.Eval( moR(PARTICLES_ROTATEZ) ) );
+
+    float r01 = cos(rbeta)*cos(rgama);
+    float r02 = cos(rgama)*sin(ralpha)*sin(rbeta) - cos(ralpha)*sin(rgama);
+    float r03 = cos(ralpha)*cos(rgama)*sin(rbeta)+sin(ralpha)*sin(rgama);
+    float r04 = 0;
+
+    float r11 = cos(rbeta)*sin(rgama);
+    float r12 = cos(ralpha)*cos(rgama) + sin(ralpha)*sin(rbeta)*sin(rgama);
+    float r13 = -cos(rgama)*sin(ralpha) + cos(ralpha)*sin(rbeta)*sin(rgama);
+    float r14 = 0;
+
+    float r21 = -sin(rbeta);
+    float r22 = cos(rbeta)*sin(ralpha);
+    float r23 = cos(ralpha)*cos(rbeta);
+    float r24 = 0;
+
+    m_Rot[0] = moVector4f(  r01, r02, r03, r04 );
+    m_Rot[1] = moVector4f(  r11, r12, r13, r14 );
+    m_Rot[2] = moVector4f(  r21, r22, r23, r24 );
+    m_Rot[3] = moVector4f(  0, 0, 0, 1 );
+
+
+    m_TS[0] = moVector4f(  m_Config.Eval( moR(PARTICLES_SCALEX) ), 0, 0, m_Config.Eval( moR(PARTICLES_TRANSLATEX) ) );
+    m_TS[1] = moVector4f(  0, m_Config.Eval( moR(PARTICLES_SCALEY) ), 0, m_Config.Eval( moR(PARTICLES_TRANSLATEY) ) );
+    m_TS[2] = moVector4f(  0, 0, m_Config.Eval( moR(PARTICLES_SCALEZ) ), m_Config.Eval( moR(PARTICLES_TRANSLATEZ) ) );
+    m_TS[3] = moVector4f(  0, 0, 0, 1 );
+
 }
 
 void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle ) {
@@ -1250,11 +1305,12 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
 
     bool m_bNewImage = false;
 
-
+    //Texture Mode MANY2PATCH takes a Shot "texture capture of actual camera"
     if (texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH) {
         Shot();
     }
 
+    //Reset timers related to this object: one for each particle.
     if (m_pResourceManager){
         if (m_pResourceManager->GetTimeMan()) {
           m_pResourceManager->GetTimeMan()->ClearByObjectId(  this->GetId() );
@@ -1284,17 +1340,28 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
             */
             m_ParticlesSimpleArrayTmp.Empty();
         }
+        if (m_ParticlesSimpleArrayOrdered.Count()>0) {
+            m_ParticlesSimpleArrayOrdered.Empty();
+        }
     //}
+        if ( !m_ParticlesSimpleVector.empty() ) {
+          m_ParticlesSimpleVector.clear();
+        }
 
+    m_ParticlesSimpleVector.resize( p_cols*p_rows, NULL );
+    m_ParticlesSimpleArrayOrdered.Init( p_cols*p_rows, NULL );
     m_ParticlesSimpleArray.Init( p_cols*p_rows, NULL );
     m_ParticlesSimpleArrayTmp.Init( p_cols*p_rows, NULL );
 
-
+    int orderindex = 0;
         for( j=0; j<p_rows ; j++) {
                 for( i=0; i<p_cols ; i++) {
 
             moParticlesSimple* pPar = new moParticlesSimple();
+            m_ParticlesSimpleVector[orderindex] = pPar;
+            orderindex++;
 
+            pPar->ViewDepth = 0.0;
             pPar->Pos = moVector2f( (float) i, (float) j);
             pPar->ImageProportion = 1.0;
             //pPar->Color = moVector3f(1.0,1.0,1.0);
@@ -1855,6 +1922,31 @@ void moEffectParticlesSimple::RestoringAll() {
     }
 }
 
+double moEffectParticlesSimple::CalculateViewDepth( moParticlesSimple* pPar ) {
+
+  double viewdepth = 0.0;
+  /// TODO: pPar->Pos3d must be transformed to
+
+  moVector3f pos3d_tr;
+  moVector4f pos3d_rot;
+  moVector4f pos4d;
+
+  //pos3d_trans =
+  pos4d = moVector4f( pPar->Pos3d.X(), pPar->Pos3d.Y(), pPar->Pos3d.Z(), 1 );
+  pos3d_rot.X() = m_Rot[0].Dot( pos4d );
+  pos3d_rot.Y() = m_Rot[1].Dot( pos4d );
+  pos3d_rot.Z() = m_Rot[2].Dot( pos4d );
+  pos3d_rot.W() = 1.0;
+
+  pos3d_tr.X() = m_TS[0].Dot( pos3d_rot );
+  pos3d_tr.Y() = m_TS[1].Dot( pos3d_rot );
+  pos3d_tr.Z() = m_TS[2].Dot( pos3d_rot );
+
+  viewdepth = ( m_Physics.m_EyeVector - m_Physics.m_TargetViewVector ).Dot( pos3d_tr );
+
+  return viewdepth;
+}
+
 
 void moEffectParticlesSimple::CalculateForces(bool tmparray)
 {
@@ -1880,6 +1972,19 @@ void moEffectParticlesSimple::CalculateForces(bool tmparray)
       switch(m_Physics.m_AttractorType) {
         case PARTICLES_ATTRACTORTYPE_POINT:
             pPar->Force = ( m_Physics.m_AttractorVector - pPar->Pos3d )*(m_Physics.gravitational * pPar->Mass);
+            break;
+
+        case PARTICLES_ATTRACTORTYPE_JET:
+            {
+              //pPar->Force = ( m_Physics.m_AttractorVector - pPar->Pos3d )*(m_Physics.gravitational * pPar->Mass);
+              double dot1 = m_Physics.m_AttractorVector.Dot( pPar->Pos3d );
+              double det = m_Physics.m_AttractorVector.Length();
+              double mu = 0.0;
+              if (det>0) {
+                  mu = dot1 / det;
+              }
+              pPar->Force = (m_Physics.m_AttractorVector * mu- pPar->Pos3d )*  (m_Physics.gravitational * pPar->Mass );
+            }
             break;
 
         case PARTICLES_ATTRACTORTYPE_TRACKER:
@@ -2167,10 +2272,55 @@ void moEffectParticlesSimple::TrackParticle( int partid ) {
 
 }
 
+
+bool sortParticlesByComplete( moParticlesSimple* a , moParticlesSimple* b ) {
+  if (a==NULL && b==NULL) {
+      return false;
+  }
+  if (a==NULL) {
+    return false;
+  }
+  if (b==NULL) {
+    return false;
+  }
+  return ( a->ViewDepth < b->ViewDepth );
+}
+
+bool sortParticlesByZCoord( moParticlesSimple* a , moParticlesSimple* b ) {
+  if (a==NULL && b==NULL) {
+      return false;
+  }
+  if (a==NULL) {
+    return false;
+  }
+  if (b==NULL) {
+    return false;
+  }
+  return ( a->Pos3d.Z() < b->Pos3d.Z() );
+}
+
+
 void moEffectParticlesSimple::OrderParticles() {
 
   /// order here or elsewhere
+  switch( m_OrderingMode ) {
 
+      case PARTICLES_ORDERING_MODE_COMPLETE:
+        sort( m_ParticlesSimpleVector.begin(), m_ParticlesSimpleVector.end(), sortParticlesByComplete );
+        break;
+
+      case PARTICLES_ORDERING_MODE_ZDEPTHTEST:
+        break;
+
+      case PARTICLES_ORDERING_MODE_ZPOSITION:
+        sort( m_ParticlesSimpleVector.begin(), m_ParticlesSimpleVector.end(), sortParticlesByZCoord );
+        break;
+
+      case PARTICLES_ORDERING_MODE_NONE:
+        break;
+      default:
+        break;
+  }
 
 }
 
@@ -2178,6 +2328,9 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
     int i,j;
     int cols2,rows2;
+
+
+
 
     //if ((moGetTicks() % 1000) == 0) TrackParticle(1);
 
@@ -2232,11 +2385,15 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
     moFont* pFont = m_Config[moR(PARTICLES_FONT) ][MO_SELECTED][0].Font();
     moText Texto;
 
+    //Update particle position, velocity, aging, death and rebirth.
     UpdateParticles( dt, 0 ); //Euler mode
+    OrderParticles();
     ParticlesSimpleAnimation( tempogral, parentstate );
 
     float idxt = 0.0;
 
+    //Now really draw each particle
+    int orderedindex = 0;
     for( j = 0; j<m_rows ; j++) {
       for( i = 0; i<m_cols ; i++) {
 
@@ -2244,7 +2401,25 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
             idxt = 0.5 + (float)( i + j * m_cols ) / (float)( m_cols * m_rows * 2 );
 
             moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( i + j*m_cols );
+            switch(m_OrderingMode) {
+              case PARTICLES_ORDERING_MODE_NONE:
+                break;
+              case PARTICLES_ORDERING_MODE_COMPLETE:
+                {
+                  pPar = m_ParticlesSimpleVector[ orderedindex ];
+                  pPar->ViewDepth = CalculateViewDepth( pPar );
+                }
+                break;
+              case PARTICLES_ORDERING_MODE_ZPOSITION:
+                pPar = m_ParticlesSimpleVector[ orderedindex ];
+                break;
+              default:
 
+                break;
+            }
+
+            orderedindex+= 1;
+            if (pPar)
             if (pPar->Visible) {
 
 
@@ -2290,32 +2465,12 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
                 if (m_pParticleIndex) {
                   if (m_pParticleIndex->GetData()) {
-                      m_pParticleIndex->GetData()->SetLong( i + j*m_cols );
+                      m_pParticleIndex->GetData()->SetLong( ((long)pPar->Pos.X()) + ((long)pPar->Pos.Y())*m_cols );
                       m_pParticleIndex->Update(true);
                   }
                 }
 
                 glPushMatrix();
-
-                glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
-
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), 0.0, 0.0, 1.0 );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), 0.0, 1.0, 0.0 );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) ) + pPar->Rotation.X(), 1.0, 0.0, 0.0 );
-
-                //scale
-                glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE) )*pPar->Scale);
-
-
-                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval() * pPar->Color.X() * m_EffectState.tintr,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval() * pPar->Color.Y() * m_EffectState.tintg,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval() * pPar->Color.Z() * m_EffectState.tintb,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval()
-                            * m_Config.Eval( moR(PARTICLES_ALPHA))
-                            * m_EffectState.alpha * pPar->Alpha );
-
 
                 moVector3f CO(m_Physics.m_EyeVector - pPar->Pos3d);
                 moVector3f U,V,W;
@@ -2353,7 +2508,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                             break;
 
                         case PARTICLES_ORIENTATIONMODE_MOTION:
-                            U = pPar->Velocity;
+                            if (pPar->Velocity.Length()>0) U = pPar->Velocity;
                             U.Normalize();
                             if (U.Length() < 0.5) {
                                 U = moVector3f( 0.0, 0.0, 1.0 );
@@ -2429,6 +2584,24 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                     glBindTexture( GL_TEXTURE_2D , glid );
                 }
 
+                glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
+
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), U.X(), U.Y(), U.Z() );
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), W.X(), W.Y(), W.Z() );
+                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) ) + pPar->Rotation.X(), V.X(), V.Y(), V.Z() );
+
+                //scale
+                glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) )*pPar->Scale,
+                            m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) )*pPar->Scale,
+                            m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE) )*pPar->Scale);
+
+
+                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval() * pPar->Color.X() * m_EffectState.tintr,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval() * pPar->Color.Y() * m_EffectState.tintg,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval() * pPar->Color.Z() * m_EffectState.tintb,
+                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval()
+                            * m_Config.Eval( moR(PARTICLES_ALPHA))
+                            * m_EffectState.alpha * pPar->Alpha );
 
                 glBegin(GL_QUADS);
                     //glColor4f( 1.0, 0.5, 0.5, idxt );
@@ -2438,7 +2611,8 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                         glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y() );
                         glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y());
                     } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y() );
-                    glVertex3f( A.X(), A.Y(), 0.0);
+                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                    glVertex3f( A.X(), A.Y(), A.Z());
 
                     //glColor4f( 0.5, 1.0, 0.5, idxt );
 
@@ -2446,21 +2620,24 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                         glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
                         glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y());
                     } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
-                    glVertex3f( B.X(), B.Y(), 0.0);
+                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                    glVertex3f( B.X(), B.Y(), B.Z());
 
                     //glColor4f( 0.5, 0.5, 1.0, idxt );
                     if (pPar->GLId2>0) {
                         glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
                         glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
                     } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
-                    glVertex3f( C.X(), C.Y(), 0.0);
+                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                    glVertex3f( C.X(), C.Y(), C.Z());
 
                     //glColor4f( 1.0, 1.0, 1.0, idxt );
                     if (pPar->GLId2>0) {
                         glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y()+pPar->TSize.Y());
                         glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
                     } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y()+tsizey );
-                    glVertex3f( D.X(), D.Y(), 0.0);
+                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                    glVertex3f( D.X(), D.Y(), D.Z());
                 glEnd();
 
                 //draw vectors associated...
@@ -3015,9 +3192,9 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
             gluLookAt(		m_Physics.m_EyeVector.X(),
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX)),
-                            m_Config.Eval( moR(PARTICLES_VIEWY)),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
+                           m_Physics.m_TargetViewVector.X(),
+                            m_Physics.m_TargetViewVector.Y(),
+                            m_Physics.m_TargetViewVector.Z(),
                             0, 1, 0);
 
         } else {
@@ -3025,17 +3202,17 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
                gluLookAt(	m_Physics.m_EyeVector.X()-0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX))-0.1,
-                            m_Config.Eval( moR(PARTICLES_VIEWY)),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
+                            m_Physics.m_TargetViewVector.X()-0.1,
+                            m_Physics.m_TargetViewVector.Y(),
+                            m_Physics.m_TargetViewVector.Z(),
                             0, 1, 0);
             } else if ( m_EffectState.stereoside == MO_STEREO_RIGHT ) {
                 gluLookAt(	m_Physics.m_EyeVector.X()+0.1,
                             m_Physics.m_EyeVector.Y(),
                             m_Physics.m_EyeVector.Z(),
-                            m_Config.Eval( moR(PARTICLES_VIEWX))+0.1,
-                            m_Config.Eval( moR(PARTICLES_VIEWY)),
-                            m_Config.Eval( moR(PARTICLES_VIEWZ)),
+                           m_Physics.m_TargetViewVector.X()+0.1,
+                            m_Physics.m_TargetViewVector.Y(),
+                            m_Physics.m_TargetViewVector.Z(),
                             0, 1, 0);
             }
 
@@ -3063,9 +3240,9 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     //esto deberia ser parametrizable...
 	//glEnable( GL_DEPTH_TEST);
 	//glDisable( GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
 
-    //setUpLighting();
+
+    setUpLighting();
 
     tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX));
     ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY));
@@ -3103,7 +3280,24 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
 	moText Texto = m_Config.Text( moR(PARTICLES_TEXT) );
 
+//glutSolidTorus ( 1, 2, 13, 20);
+/*
+    glutSolidSphere ( 1, 13, 20 );
+    glBegin(GL_QUADS );
 
+      glNormal3f(0,0,-1);
+      glVertex3f( -3, 3, 0);
+
+      glNormal3f(0,0,-1);
+      glVertex3f( 3, 3, 0);
+
+      glNormal3f(0,0,-1);
+      glVertex3f( 3, -3, 0);
+
+      glNormal3f(0,0,-1);
+      glVertex3f( -3, -3, 0);
+    glEnd();
+    */
 
     DrawParticlesSimple( tempogral, parentstate );
 
@@ -3129,6 +3323,8 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 
 void moEffectParticlesSimple::setUpLighting()
 {
+
+  /*
    // Set up lighting.
    float light1_ambient[4]  = { 1.0, 1.0, 1.0, 1.0 };
    float light1_diffuse[4]  = { 1.0, 0.9, 0.9, 1.0 };
@@ -3150,22 +3346,86 @@ void moEffectParticlesSimple::setUpLighting()
    glLightfv(GL_LIGHT2, GL_POSITION, light2_position);
 //   glEnable(GL_LIGHT2);
 
-   float front_emission[4] = { 1, 1, 1, 0.0 };
-   float front_ambient[4]  = { 0.2, 0.2, 0.2, 0.0 };
-   float front_diffuse[4]  = { 0.95, 0.95, 0.8, 0.0 };
-   float front_specular[4] = { 0.6, 0.6, 0.6, 0.0 };
+*/
+  if ( m_Physics.m_SourceLighMode>0 ) {
+
+   //glShadeModel( GL_SMOOTH );
+   glShadeModel( GL_FLAT );
+   glEnable( GL_DEPTH_TEST);
+   //glEnable( GL_DEPTH_BUFFER);
+   glEnable(GL_NORMALIZE);
+   //glEnable(GL_CULL_FACE);
+  //glEnable(GL_AUTO_NORMAL );
+   glEnable(GL_LIGHTING);
+
+   float light0_ambient[4]  = { 0.1, 0.1, 0.1, 1.0 };
+   float light0_diffuse[4]  = { 1, 1.0,1, 1.0 };
+   float light0_specular[4] = { 1.0, 1.0, 1.0, 1.0 };
+   float light0_position[4];
+   light0_position[0] = m_Physics.m_SourceLightVector.X();
+   light0_position[1] = m_Physics.m_SourceLightVector.Y();
+   light0_position[2] = m_Physics.m_SourceLightVector.Z();
+   light0_position[3] = 0.0;
+
+   glLightfv(GL_LIGHT0, GL_AMBIENT,  light0_ambient);
+   glLightfv(GL_LIGHT0, GL_DIFFUSE,  light0_diffuse);
+   glLightfv(GL_LIGHT0, GL_SPECULAR, light0_specular);
+   glLightfv(GL_LIGHT0, GL_POSITION, light0_position);
+
+   float light0_spot_direction[3];
+   light0_spot_direction[0] = 0.0;
+   light0_spot_direction[1] = 0.0;
+   light0_spot_direction[2] = 0.0;
+
+   if (m_Physics.m_SourceLighMode==PARTICLES_LIGHTMODE_SPOT) {
+      glLightfv( GL_LIGHT0, GL_SPOT_DIRECTION, light0_spot_direction );
+
+   }
+   glEnable(GL_LIGHT0);
+
+   float front_emission[4] = { 0.0, 0.0, 0.0, 1.0 };
+   float front_ambient[4]  = { 0.1, 0.1, 0.1, 1.0 };
+   float front_diffuse[4]  = { 1, 1, 1, 1.0 };
+   float front_specular[4] = { 1, 1, 1, 1.0 };
+   /*
+   glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, front_emission);
+   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, front_ambient);
+   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, front_diffuse);
+   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, front_specular);
+   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.0);
+   glColor4fv(front_diffuse);
+   */
+
    glMaterialfv(GL_FRONT, GL_EMISSION, front_emission);
    glMaterialfv(GL_FRONT, GL_AMBIENT, front_ambient);
    glMaterialfv(GL_FRONT, GL_DIFFUSE, front_diffuse);
    glMaterialfv(GL_FRONT, GL_SPECULAR, front_specular);
-   glMaterialf(GL_FRONT, GL_SHININESS, 16.0);
-   glColor4fv(front_diffuse);
+   glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
 
-   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_FALSE);
-   glColorMaterial(GL_FRONT, GL_DIFFUSE);
+  //glFrontFace(GL_CW);
+  //glFrontFace(GL_CCW);
+
+   //glLightModelfv( GL_LIGHT_MODEL_AMBIENT, LightModelAmbient );
+
+   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE );
+   //glColorMaterial(GL_FRONT, GL_DIFFUSE);
+   glColorMaterial( GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE );
    glEnable(GL_COLOR_MATERIAL);
 
-   glEnable(GL_LIGHTING);
+    glPushMatrix();
+    glTranslatef(   m_Physics.m_SourceLightVector.X(),
+                    m_Physics.m_SourceLightVector.Y(),
+                    m_Physics.m_SourceLightVector.Z() );
+    glColor4f( 1, 1, 0, 0.5 );
+    glutSolidSphere( 0.1, 4, 4);
+    glPopMatrix();
+
+
+  } else {
+    glShadeModel(GL_SMOOTH);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_LIGHT0);
+  }
 }
 
 
@@ -3950,3 +4210,5 @@ int moEffectParticlesSimple::luaReInit(moLuaVirtualMachine& vm ) {
 
     return 0;
 }
+
+
