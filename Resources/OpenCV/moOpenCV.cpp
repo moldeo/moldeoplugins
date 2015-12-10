@@ -91,8 +91,35 @@ moOpenCV::moOpenCV() {
 	m_pCVResultTexture = NULL;
 	m_pCVResult2Texture = NULL;
 	m_pCVResult3Texture = NULL;
+	m_pCVBlobs = NULL;
+	m_pCVThresh = NULL;
+
   m_OutletDataMessage = NULL;
   m_pDataMessage = NULL;
+
+  m_Blob1X = NULL;
+  m_Blob1Y = NULL;
+  m_Blob1Size = NULL;
+  m_Blob1Vx = NULL;
+  m_Blob1Vy = NULL;
+
+  m_Blob2X = NULL;
+  m_Blob2Y = NULL;
+  m_Blob2Size = NULL;
+  m_Blob2Vx = NULL;
+  m_Blob2Vy = NULL;
+
+  m_Blob3X = NULL;
+  m_Blob3Y = NULL;
+  m_Blob3Size = NULL;
+  m_Blob3Vx = NULL;
+  m_Blob3Vy = NULL;
+
+  m_Blob4X = NULL;
+  m_Blob4Y = NULL;
+  m_Blob4Size = NULL;
+  m_Blob4Vx = NULL;
+  m_Blob4Vy = NULL;
 }
 
 moOpenCV::~moOpenCV() {
@@ -104,11 +131,31 @@ moConfigDefinition * moOpenCV::GetDefinition( moConfigDefinition *p_configdefini
 	//default: alpha, color, syncro
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, OPENCV_TEXTURE, moValue( "default", "TXT") );
-	p_configdefinition->Add( moText("recognition_mode"), MO_PARAM_NUMERIC, OPENCV_RECOGNITION_MODE, moValue( "0", "NUM"), moText("Face,Gpu Motion,Blobs,Color,Motion Detection") );
+/*
+enum moOpenCVRecognitionMode {
+  OPENCV_RECOGNITION_MODE_UNDEFINED=-1,
+  OPENCV_RECOGNITION_MODE_FACE=0,
+  OPENCV_RECOGNITION_MODE_GPU_MOTION=1,
+  OPENCV_RECOGNITION_MODE_CONTOUR=2,
+  OPENCV_RECOGNITION_MODE_COLOR=3,
+  OPENCV_RECOGNITION_MODE_MOTION=4,
+  OPENCV_RECOGNITION_MODE_BLOBS=5,
+  OPENCV_RECOGNITION_MODE_THRESHOLD=6
+};*/
+	p_configdefinition->Add( moText("recognition_mode"), MO_PARAM_NUMERIC, OPENCV_RECOGNITION_MODE, moValue( "0", "NUM"),
+                         moText("Face,Gpu Motion,Contour,Color,Motion Detection,Blobs,Threshold") );
 	p_configdefinition->Add( moText("reduce_width"), MO_PARAM_NUMERIC, OPENCV_REDUCE_WIDTH, moValue( "64","INT").Ref() );
 	p_configdefinition->Add( moText("reduce_height"), MO_PARAM_NUMERIC, OPENCV_REDUCE_HEIGHT, moValue( "64","INT").Ref() );
-	p_configdefinition->Add( moText("threshold"), MO_PARAM_NUMERIC, OPENCV_THRESHOLD, moValue( "50", "INT").Ref() );
-	p_configdefinition->Add( moText("threshold_max"), MO_PARAM_NUMERIC, OPENCV_THRESHOLD_MAX, moValue( "255", "INT").Ref() );
+	p_configdefinition->Add( moText("threshold"), MO_PARAM_FUNCTION, OPENCV_THRESHOLD, moValue( "50", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("threshold_max"), MO_PARAM_FUNCTION, OPENCV_THRESHOLD_MAX, moValue( "255", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("threshold_type"), MO_PARAM_NUMERIC, OPENCV_THRESHOLD_TYPE, moValue( "0", "NUM"), moText("Binary,Binary Inverted,Threshold Truncated,To Zero,To Zero Inverted") );
+
+	p_configdefinition->Add( moText("line_thickness"), MO_PARAM_FUNCTION, OPENCV_LINE_THICKNESS, moValue( "2", "FUNCTION").Ref() );
+  p_configdefinition->Add( moText("line_color"), MO_PARAM_COLOR, OPENCV_LINE_COLOR );
+	p_configdefinition->Add( moText("line_offset_x"), MO_PARAM_FUNCTION, OPENCV_LINE_OFFSET_X, moValue( "0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("line_offset_y"), MO_PARAM_FUNCTION, OPENCV_LINE_OFFSET_Y, moValue( "0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("line_steps"), MO_PARAM_FUNCTION, OPENCV_LINE_STEPS, moValue( "0", "FUNCTION").Ref() );
+
 
 	p_configdefinition->Add( moText("crop_min_x"), MO_PARAM_FUNCTION, OPENCV_CROP_MIN_X, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("crop_max_x"), MO_PARAM_FUNCTION, OPENCV_CROP_MAX_X, moValue( "1.0", "FUNCTION").Ref() );
@@ -117,6 +164,13 @@ moConfigDefinition * moOpenCV::GetDefinition( moConfigDefinition *p_configdefini
 
 	p_configdefinition->Add( moText("motion_pixels"), MO_PARAM_NUMERIC, OPENCV_MOTION_PIXELS, moValue( "5", "INT").Ref() );
 	p_configdefinition->Add( moText("motion_deviation"), MO_PARAM_NUMERIC, OPENCV_MOTION_DEVIATION, moValue( "20", "INT").Ref() );
+
+	p_configdefinition->Add( moText("blob_min_area"), MO_PARAM_FUNCTION, OPENCV_BLOB_MIN_AREA, moValue( "1000", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("blob_max_area"), MO_PARAM_FUNCTION, OPENCV_BLOB_MAX_AREA, moValue( "50000", "FUNCTION").Ref() );
+
+	p_configdefinition->Add( moText("blob_min_distance"), MO_PARAM_FUNCTION, OPENCV_BLOB_MIN_DISTANCE, moValue( "10", "FUNCTION").Ref() );
+
+	p_configdefinition->Add( moText("debug_on"), MO_PARAM_NUMERIC, OPENCV_DEBUG_ON, moValue( "0", "NUM").Ref(), moText("Off,On,Full") );
 
 
 	return p_configdefinition;
@@ -139,6 +193,14 @@ MOboolean moOpenCV::Init() {
   moDefineParamIndex( OPENCV_REDUCE_HEIGHT, moText("reduce_height") );
   moDefineParamIndex( OPENCV_THRESHOLD, moText("threshold") );
   moDefineParamIndex( OPENCV_THRESHOLD_MAX, moText("threshold_max") );
+  moDefineParamIndex( OPENCV_THRESHOLD_TYPE, moText("threshold_type") );
+
+  moDefineParamIndex( OPENCV_LINE_THICKNESS, moText("line_thickness") );
+  moDefineParamIndex( OPENCV_LINE_COLOR, moText("line_color") );
+  moDefineParamIndex( OPENCV_LINE_OFFSET_X, moText("line_offset_x") );
+  moDefineParamIndex( OPENCV_LINE_OFFSET_Y, moText("line_offset_y") );
+  moDefineParamIndex( OPENCV_LINE_STEPS, moText("line_steps") );
+
 
   moDefineParamIndex( OPENCV_CROP_MIN_X, "crop_min_x" );
   moDefineParamIndex( OPENCV_CROP_MAX_X, "crop_max_x" );
@@ -147,6 +209,13 @@ MOboolean moOpenCV::Init() {
 
   moDefineParamIndex( OPENCV_MOTION_PIXELS, "motion_pixels" );
   moDefineParamIndex( OPENCV_MOTION_DEVIATION, "motion_deviation" );
+
+  moDefineParamIndex( OPENCV_BLOB_MIN_AREA, "blob_min_area" );
+  moDefineParamIndex( OPENCV_BLOB_MAX_AREA, "blob_max_area" );
+
+  moDefineParamIndex( OPENCV_BLOB_MIN_DISTANCE, "blob_min_distance" );
+
+  moDefineParamIndex( OPENCV_DEBUG_ON, "debug_on" );
 
 /*
 	img = cvCreateImage( cvSize(w,w), 8, 1 );
@@ -240,7 +309,7 @@ MOboolean moOpenCV::Init() {
 
         MODebug2->Message("CVRESULT2 texture created!!");
     } else {
-        MODebug2->Error("Couldn't create texture: CVRESULT");
+        MODebug2->Error("Couldn't create texture: CVRESULT2");
     }
 
     Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVRESULT3", 128, 128, tparam );
@@ -250,7 +319,27 @@ MOboolean moOpenCV::Init() {
 
         MODebug2->Message("CVRESULT3 texture created!!");
     } else {
-        MODebug2->Error("Couldn't create texture: CVRESULT");
+        MODebug2->Error("Couldn't create texture: CVRESULT3");
+    }
+
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVBLOBS", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVBlobs = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVBlobs->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVBLOBS texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVBLOBS");
+    }
+
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVTHRESH", 128, 128, tparam );
+    if (Mid>0) {
+        m_pCVThresh = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+        m_pCVThresh->BuildEmpty(128, 128);
+
+        MODebug2->Message("CVTHRESH texture created!!");
+    } else {
+        MODebug2->Error("Couldn't create texture: CVTHRESH");
     }
 
     UpdateParameters();
@@ -268,21 +357,32 @@ void moOpenCV::UpdateParameters() {
     m_RecognitionMode = mode;
   }
 
+  m_debug_on = m_Config.Int(moR(OPENCV_DEBUG_ON ));
+
   int reduce_width = m_Config.Int(moR(OPENCV_REDUCE_WIDTH ));
   int reduce_height = m_Config.Int(moR(OPENCV_REDUCE_HEIGHT ));
   if ( m_reduce_width!=reduce_width || m_reduce_height!=reduce_height ) m_bReInit = true;
 
   m_reduce_width = reduce_width;
   m_reduce_height = reduce_height;
-  m_threshold = m_Config.Int( moR(OPENCV_THRESHOLD));
-  m_threshold_max = m_Config.Int( moR(OPENCV_THRESHOLD_MAX));
+  m_threshold = m_Config.Eval( moR(OPENCV_THRESHOLD));
+  m_threshold_max = m_Config.Eval( moR(OPENCV_THRESHOLD_MAX));
+  m_threshold_type = (moOpenCVThresholdType) m_Config.Int( moR(OPENCV_THRESHOLD_TYPE));
   m_crop_min_x =  m_Config.Eval( moR(OPENCV_CROP_MIN_X));
   m_crop_max_x =  m_Config.Eval( moR(OPENCV_CROP_MAX_X));
   m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
   m_crop_max_y =  m_Config.Eval( moR(OPENCV_CROP_MAX_Y));
 
+  m_line_thickness = m_Config.Eval( moR(OPENCV_LINE_THICKNESS));
+  m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+  m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+
   m_motion_pixels = m_Config.Eval( moR(OPENCV_MOTION_PIXELS));
   m_motion_deviation = m_Config.Eval( moR(OPENCV_MOTION_DEVIATION));
+
+  m_blob_min_area = m_Config.Eval( moR(OPENCV_BLOB_MIN_AREA));
+  m_blob_max_area = m_Config.Eval( moR(OPENCV_BLOB_MAX_AREA));
+  m_blob_min_distance = m_Config.Eval( moR(OPENCV_BLOB_MIN_DISTANCE));
 
   moData* pTexData = m_Config[moR( OPENCV_TEXTURE )].GetData();
   //moTexture rTexture = m_Config.Texture( moR( OPENCV_TEXTURE );
@@ -355,6 +455,9 @@ void moOpenCV::UpdateParameters() {
     case OPENCV_RECOGNITION_MODE_GPU_MOTION:
       GpuMotionRecognition();
       break;
+    case OPENCV_RECOGNITION_MODE_CONTOUR:
+      ContourRecognition();
+      break;
     case OPENCV_RECOGNITION_MODE_BLOBS:
       BlobRecognition();
       break;
@@ -363,6 +466,9 @@ void moOpenCV::UpdateParameters() {
       break;
     case OPENCV_RECOGNITION_MODE_MOTION:
       MotionRecognition();
+      break;
+    case OPENCV_RECOGNITION_MODE_THRESHOLD:
+      ThresholdRecognition();
       break;
     default:
       m_bReInit = false;
@@ -1140,8 +1246,344 @@ moOpenCV::FaceDetection() {
 }
 
 void
+moOpenCV::ThresholdFilter() {
+ /**GET THE IMAGE: resized*/
+  moVector2i resizer( m_reduce_width, m_reduce_height );
+  IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
+  if (srcframe==NULL) {
+    MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
+    return;
+  }
+  //cvFree(srcframe);
+
+  /**CONVERT AND ENHANCE TO GRAYSCALE*/
+  Mat frame( srcframe );
+  Mat frame_gray;
+  cvtColor( frame, frame_gray, COLOR_BGR2GRAY);
+  frame.release();
+
+  threshold( frame_gray, dstthresh, m_threshold, m_threshold_max, (int)m_threshold_type );
+  frame_gray.release();
+
+  Mat frame_color;
+  cvtColor( dstthresh, frame_color, COLOR_GRAY2BGR);
+  CvMatToTexture( frame_color, 0 , 0, 0, m_pCVThresh );
+  frame_color.release();
+  cvReleaseImage(&srcframe);
+}
+
+void
+moOpenCV::ThresholdRecognition() {
+
+  ThresholdFilter();
+  dstthresh.release();
+}
+
+void
+moOpenCV::ContourRecognition(){
+
+  ThresholdFilter();
+
+  findContours( dstthresh, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+  //dstthresh.release();
+
+  Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
+//m_line_color = 2;
+/*
+    int idx = 0;
+    for( ; idx >= 0; idx = hierarchy[idx][0] )
+    {
+        Scalar color( rand()&255, rand()&255, rand()&255 );
+
+        drawContours( dstblobs, contours, idx, color, m_line_thickness, 8, hierarchy );
+    }
+*/
+  Scalar color( rand()&255, rand()&255, rand()&255 );
+  drawContours( dstblobs, contours, -1, color, /*CV_FILLED*/m_line_thickness, 8, hierarchy );
+  CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );
+  //dstblobs.release();
+  dstthresh.release();
+
+}
+
+void
 moOpenCV::BlobRecognition() {
 
+  ThresholdFilter();
+  // Set up the detector with default parameters.
+  // Setup SimpleBlobDetector parameters.
+  SimpleBlobDetector::Params params;
+  params.minDistBetweenBlobs = m_blob_min_distance;
+  params.filterByInertia = false;
+  params.filterByConvexity = false;
+  params.filterByColor = false;
+  params.filterByCircularity = false;
+  params.filterByArea = true;
+  params.minArea = m_blob_min_area;
+  params.maxArea = m_blob_max_area;
+
+  //params.minDistBetweenBlobs
+
+
+  #if CV_MAJOR_VERSION < 3   // If you are using OpenCV 2
+
+    // Set up detector with params
+    SimpleBlobDetector detector(params);
+
+  #else
+
+    // Set up detector with params
+    Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
+
+  #endif
+
+
+  // Detect blobs.
+  Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
+
+  detector.detect( dstthresh, keypoints);
+  drawKeypoints( dstblobs, keypoints, dstblobs, cv::Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
+
+  CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );
+  dstthresh.release();
+
+  // Draw detected blobs as red circles.
+  // DrawMatchesFlags::DRAW_RICH_KEYPOINTS flag ensures the size of the circle corresponds to the size of blob
+  float Blob1X=-1,Blob1Y=-1,Blob1Size=-1,Blob1VX=0,Blob1VY=0;
+  float Blob2X=-1,Blob2Y=-1,Blob2Size=-1,Blob2VX=0,Blob2VY=0;
+  float Blob3X=-1,Blob3Y=-1,Blob3Size=-1,Blob3VX=0,Blob3VY=0;
+  float Blob4X=-1,Blob4Y=-1,Blob4Size=-1,Blob4VX=0,Blob4VY=0;
+
+/*
+  for( ) {
+    KeyPoint Kp = keypoints[i]
+
+  }
+*/
+  if (keypoints.size()>0) {
+    if (m_debug_on) MODebug2->Message( moText("moOpenCV::BlobRecognition() > keypoints: ")+IntToStr(keypoints.size()) );
+    Blob1X = keypoints[0].pt.x;
+    Blob1Y = keypoints[0].pt.y;
+    Blob1Size = keypoints[0].size;
+    if (m_debug_on) MODebug2->Message( moText("moOpenCV::BlobRecognition() > BLOB 1:")
+                      + moText(" X: ")+FloatToStr(Blob1X)
+                      + moText(" Y: ")+FloatToStr(Blob1Y)
+                      + moText(" SIZE: ")+FloatToStr(Blob1Size)
+                       );
+
+    if (keypoints.size()>1) {
+      Blob2X = keypoints[1].pt.x;
+      Blob2Y = keypoints[1].pt.y;
+      Blob2Size = keypoints[1].size;
+      if (m_debug_on) MODebug2->Message( moText("moOpenCV::BlobRecognition() > BLOB 2:")
+                      + moText(" X: ")+FloatToStr(Blob2X)
+                      + moText(" Y: ")+FloatToStr(Blob2Y)
+                      + moText(" SIZE: ")+FloatToStr(Blob2Size)
+                       );
+      if (keypoints.size()>2) {
+        Blob3X = keypoints[2].pt.x;
+        Blob3Y = keypoints[2].pt.y;
+        Blob3Size = keypoints[2].size;
+       if (m_debug_on) MODebug2->Message( moText("moOpenCV::BlobRecognition() > BLOB 3:")
+                      + moText(" X: ")+FloatToStr(Blob3X)
+                      + moText(" Y: ")+FloatToStr(Blob3Y)
+                      + moText(" SIZE: ")+FloatToStr(Blob3Size)
+                       );
+        if (keypoints.size()>3) {
+          Blob4X = keypoints[3].pt.x;
+          Blob4Y = keypoints[3].pt.y;
+          Blob4Size = keypoints[3].size;
+          if (m_debug_on) MODebug2->Message( moText("moOpenCV::BlobRecognition() > BLOB 4:")
+                          + moText(" X: ")+FloatToStr(Blob4X)
+                          + moText(" Y: ")+FloatToStr(Blob4Y)
+                          + moText(" SIZE: ")+FloatToStr(Blob4Size)
+                           );
+
+        }
+
+      }
+
+    }
+  }
+/*
+  for (int i=0; i<keypoints.size(); i++){
+    float X = keypoints[i].pt.x;
+    float Y = keypoints[i].pt.y;
+  }
+*/
+  if (!m_Blob1X) {
+      m_Blob1X = m_Outlets.GetRef( GetOutletIndex( moText("BLOB1X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob1X->GetData()->SetFloat(  Blob1X );
+    if (m_debug_on) MODebug2->Message("moOpenCV::BlobDetection Blob1X: "+FloatToStr(Blob1X) + moText(" m_Blob1X: ") + FloatToStr(m_Blob1X->GetData()->Float()) );
+    m_Blob1X->Update(true);
+  }
+
+  if (!m_Blob1Y) {
+      m_Blob1Y = m_Outlets.GetRef( GetOutletIndex( moText("BLOB1Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob1Y->GetData()->SetFloat(  Blob1Y );
+    m_Blob1Y->Update(true);
+  }
+
+  if (!m_Blob1Size) {
+      m_Blob1Size = m_Outlets.GetRef( GetOutletIndex( moText("BLOB1SIZE") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob1Size->GetData()->SetFloat(  Blob1Size );
+    m_Blob1Size->Update(true);
+  }
+/**
+
+  if (!m_Blob1Vx) {
+      m_Blob1Vx = m_Outlets.GetRef( GetOutletIndex( moText("BLOB1VX") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob1Vx->GetData()->SetFloat(  Blob1VX );
+    m_Blob1Vx->Update(true);
+  }
+
+  if (!m_Blob1Vy) {
+      m_Blob1Vy = m_Outlets.GetRef( GetOutletIndex( moText("BLOB1VY") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob1Vy->GetData()->SetFloat(  Blob1VY );
+    m_Blob1Vy->Update(true);
+  }
+*/
+
+///  BLOB 2
+
+if (!m_Blob2X) {
+      m_Blob2X = m_Outlets.GetRef( GetOutletIndex( moText("BLOB2X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob2X->GetData()->SetFloat(  Blob2X );
+    m_Blob2X->Update(true);
+  }
+
+  if (!m_Blob2Y) {
+      m_Blob2Y = m_Outlets.GetRef( GetOutletIndex( moText("BLOB2Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob2Y->GetData()->SetFloat(  Blob2Y );
+    m_Blob2Y->Update(true);
+  }
+
+  if (!m_Blob2Size) {
+      m_Blob2Size = m_Outlets.GetRef( GetOutletIndex( moText("BLOB2SIZE") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob2Size->GetData()->SetFloat(  Blob2Size );
+    m_Blob2Size->Update(true);
+  }
+
+/*
+  if (!m_Blob2Vx) {
+      m_Blob2Vx = m_Outlets.GetRef( GetOutletIndex( moText("BLOB2VX") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob2Vx->GetData()->SetFloat(  Blob2VX );
+    m_Blob2Vx->Update(true);
+  }
+
+  if (!m_Blob2Vy) {
+      m_Blob2Vy = m_Outlets.GetRef( GetOutletIndex( moText("BLOB2VY") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob2Vy->GetData()->SetFloat(  Blob2VY );
+    m_Blob2Vy->Update(true);
+  }
+*/
+
+/// BLOB 3
+
+if (!m_Blob3X) {
+      m_Blob3X = m_Outlets.GetRef( GetOutletIndex( moText("BLOB3X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob3X->GetData()->SetFloat(  Blob3X );
+    m_Blob3X->Update(true);
+  }
+
+  if (!m_Blob3Y) {
+      m_Blob3Y = m_Outlets.GetRef( GetOutletIndex( moText("BLOB3Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob3Y->GetData()->SetFloat(  Blob3Y );
+    m_Blob3Y->Update(true);
+  }
+
+  if (!m_Blob3Size) {
+      m_Blob3Size = m_Outlets.GetRef( GetOutletIndex( moText("BLOB3SIZE") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob3Size->GetData()->SetFloat(  Blob3Size );
+    m_Blob3Size->Update(true);
+  }
+
+/*
+  if (!m_Blob3Vx) {
+      m_Blob3Vx = m_Outlets.GetRef( GetOutletIndex( moText("BLOB3VX") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob3Vx->GetData()->SetFloat(  Blob3VX );
+    m_Blob3Vx->Update(true);
+  }
+
+  if (!m_Blob3Vy) {
+      m_Blob3Vy = m_Outlets.GetRef( GetOutletIndex( moText("BLOB3VY") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob3Vy->GetData()->SetFloat(  Blob3VY );
+    m_Blob3Vy->Update(true);
+  }
+*/
+  /// BLOB 4
+
+if (!m_Blob4X) {
+      m_Blob4X = m_Outlets.GetRef( GetOutletIndex( moText("BLOB4X") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob4X->GetData()->SetFloat(  Blob4X );
+    m_Blob4X->Update(true);
+  }
+
+  if (!m_Blob4Y) {
+      m_Blob4Y = m_Outlets.GetRef( GetOutletIndex( moText("BLOB4Y") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob4Y->GetData()->SetFloat(  Blob4Y );
+    m_Blob4Y->Update(true);
+  }
+
+  if (!m_Blob4Size) {
+      m_Blob4Size = m_Outlets.GetRef( GetOutletIndex( moText("BLOB4SIZE") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob4Size->GetData()->SetFloat(  Blob4Size );
+    m_Blob4Size->Update(true);
+  }
+/*
+
+  if (!m_Blob4Vx) {
+      m_Blob4Vx = m_Outlets.GetRef( GetOutletIndex( moText("BLOB4VX") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob4Vx->GetData()->SetFloat(  Blob4VX );
+    m_Blob4Vx->Update(true);
+  }
+
+  if (!m_Blob4Vy) {
+      m_Blob4Vy = m_Outlets.GetRef( GetOutletIndex( moText("BLOB4VY") ) );
+      //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_Blob4Vy->GetData()->SetFloat(  Blob4VY );
+    m_Blob4Vy->Update(true);
+  }
+  */
 }
 
 void
@@ -1252,6 +1694,8 @@ moOpenCV::CvMatToTexture( Mat &mat, GLenum minFilter, GLenum magFilter, GLenum w
   }
 
   if (p_destTexture) {
+      if (p_destTexture->GetWidth()!=mat.cols || p_destTexture->GetHeight()!=mat.rows)
+        p_destTexture->BuildEmpty( mat.cols, mat.rows );
 
       p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
       textureID = p_destTexture->GetGLId();
@@ -1265,6 +1709,11 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
 
   if (p_pTexture==NULL) {
     MODebug2->Error("moOpenCV::TextureToCvImage > error NULL texture");
+    return NULL;
+  }
+
+  if (p_pTexture->GetWidth()==0 || p_pTexture->GetHeight()==0 ) {
+    MODebug2->Error("moOpenCV::TextureToCvImage > source Texture Width or Height is NULL");
     return NULL;
   }
 
@@ -1319,6 +1768,13 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
 
 }
 
+/*
+moTexture*
+moOpenCV::CvImageToTexture(  Mat p_srcCvImage ) {
+
+  return false;
+}
+*/
 
 //esto se ejecuta por cada CICLO PRINCIPAL DE moConsole(frame)
 //por ahora no nos sirve de nada, porque no mandamos events....ni procesamos events...

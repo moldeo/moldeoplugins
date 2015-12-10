@@ -85,6 +85,7 @@
 			<Add library="libopencv_objdetect2410.dll.a" />
 			<Add library="libopencv_legacy2410.dll.a" />
 			<Add library="libopencv_imgproc2410.dll.a" />
+			<Add library="libopencv_features2d2410.dll.a" />
 			<Add directory="$(externlibs)/SDL/lib" />
 			<Add directory="$(externlibs)/glew/lib" />
 			<Add directory="$(externlibs)/lua/lib" />
