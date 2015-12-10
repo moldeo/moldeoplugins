@@ -123,7 +123,7 @@ void moNetTUIOListener::updateTuioCursor(TuioCursor *tcur) {
         m_CachedEvents.Add( MO_IODEVICE_TOUCH, MO_TOUCH_MOVE, tcur->getCursorID(), tcur->getSessionID(), tcur->getX()*1280, tcur->getY()*800 );
     //}
     //m_CachedEvents.Add( MO_IODEVICE_MOUSE, SDL_MOUSEMOTION, x-m_MouseX, y-m_MouseY, x, y );
-    /*if (verbose)
+    if (verbose)
       MODebug2->Message(
           moText("Update Cursor: id: ")
           + IntToStr(tcur->getCursorID())
@@ -132,7 +132,7 @@ void moNetTUIOListener::updateTuioCursor(TuioCursor *tcur) {
           + moText(" y: ")
           + FloatToStr(tcur->getY())
       );
-      */
+
 /*
 	if (verbose)
 		std::cout << "set cur " << tcur->getCursorID() << " (" <<  tcur->getSessionID() << ") " << tcur->getX() << " " << tcur->getY()
@@ -565,6 +565,21 @@ moNetTUIOListener::moNetTUIOListener( moOutlets* p_pOutlets, int port ) : tuioCl
   m_pOutletCursor4TouchOff = NULL;
   m_pOutletCursor4TouchMove = NULL;
 
+
+
+  m_pOutletCursor1VX = NULL;
+  m_pOutletCursor1VY = NULL;
+
+  m_pOutletCursor2VX = NULL;
+  m_pOutletCursor2VY = NULL;
+
+  m_pOutletCursor3VX = NULL;
+  m_pOutletCursor3VY = NULL;
+
+  m_pOutletCursor4VX = NULL;
+  m_pOutletCursor4VY = NULL;
+
+
   Init( p_pOutlets, port );
 }
 
@@ -631,6 +646,17 @@ moNetTUIOListener::Init( moOutlets* p_pOutlets, int port ) {
             m_pOutletCursor1Y = pOutlet;
             MODebug2->Push( moText("CURSOR1Y outlet ready.") );
         }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR1VX")) {
+            m_pOutletCursor1VX = pOutlet;
+            MODebug2->Push( moText("CURSOR1VX outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR1VY")) {
+            m_pOutletCursor1VY = pOutlet;
+            MODebug2->Push( moText("CURSOR1VY outlet ready.") );
+        }
+
 //=====================================
         if (pOutlet->GetConnectorLabelName() == moText("CURSOR2")) {
             m_pOutletCursor2 = pOutlet;
@@ -671,6 +697,18 @@ moNetTUIOListener::Init( moOutlets* p_pOutlets, int port ) {
             m_pOutletCursor2Y = pOutlet;
             MODebug2->Push( moText("CURSOR2Y outlet ready.") );
         }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR2VX")) {
+            m_pOutletCursor2VX = pOutlet;
+            MODebug2->Push( moText("CURSOR2VX outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR2VY")) {
+            m_pOutletCursor2VY = pOutlet;
+            MODebug2->Push( moText("CURSOR2VY outlet ready.") );
+        }
+
+
 //=====================================
         if (pOutlet->GetConnectorLabelName() == moText("CURSOR3")) {
             m_pOutletCursor3 = pOutlet;
@@ -712,6 +750,15 @@ moNetTUIOListener::Init( moOutlets* p_pOutlets, int port ) {
             MODebug2->Push( moText("CURSOR3Y outlet ready.") );
         }
 
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR3VX")) {
+            m_pOutletCursor3VX = pOutlet;
+            MODebug2->Push( moText("CURSOR3VX outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR3VY")) {
+            m_pOutletCursor3VY = pOutlet;
+            MODebug2->Push( moText("CURSOR3VY outlet ready.") );
+        }
 
 //=====================================
         if (pOutlet->GetConnectorLabelName() == moText("CURSOR4")) {
@@ -752,6 +799,16 @@ moNetTUIOListener::Init( moOutlets* p_pOutlets, int port ) {
         if (pOutlet->GetConnectorLabelName() == moText("CURSOR4Y")) {
             m_pOutletCursor4Y = pOutlet;
             MODebug2->Push( moText("CURSOR4Y outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR4VX")) {
+            m_pOutletCursor4VX = pOutlet;
+            MODebug2->Push( moText("CURSOR4VX outlet ready.") );
+        }
+
+        if (pOutlet->GetConnectorLabelName() == moText("CURSOR4VY")) {
+            m_pOutletCursor4VY = pOutlet;
+            MODebug2->Push( moText("CURSOR4VY outlet ready.") );
         }
 
     }

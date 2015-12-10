@@ -112,6 +112,8 @@ private:
   moOutlet*   m_pOutletCursor1TouchMove;
   moOutlet*   m_pOutletCursor1X;
   moOutlet*   m_pOutletCursor1Y;
+  moOutlet*   m_pOutletCursor1VX;
+  moOutlet*   m_pOutletCursor1VY;
 
   moOutlet*   m_pOutletCursor2;
   moOutlet*   m_pOutletCursor2TouchStart;
@@ -121,6 +123,8 @@ private:
   moOutlet*   m_pOutletCursor2TouchMove;
   moOutlet*   m_pOutletCursor2X;
   moOutlet*   m_pOutletCursor2Y;
+  moOutlet*   m_pOutletCursor2VX;
+  moOutlet*   m_pOutletCursor2VY;
 
   moOutlet*   m_pOutletCursor3;
   moOutlet*   m_pOutletCursor3TouchStart;
@@ -130,6 +134,8 @@ private:
   moOutlet*   m_pOutletCursor3TouchMove;
   moOutlet*   m_pOutletCursor3X;
   moOutlet*   m_pOutletCursor3Y;
+  moOutlet*   m_pOutletCursor3VX;
+  moOutlet*   m_pOutletCursor3VY;
 
   moOutlet*   m_pOutletCursor4;
   moOutlet*   m_pOutletCursor4TouchStart;
@@ -139,6 +145,8 @@ private:
   moOutlet*   m_pOutletCursor4TouchMove;
   moOutlet*   m_pOutletCursor4X;
   moOutlet*   m_pOutletCursor4Y;
+  moOutlet*   m_pOutletCursor4VX;
+  moOutlet*   m_pOutletCursor4VY;
 
   bool verbose;
 	bool fullscreen, running;
