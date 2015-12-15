@@ -146,7 +146,8 @@ enum moOpenCVThresholdType {
   OPENCV_THRESHOLD_TYPE_BINARY_INVERTED=1,
   OPENCV_THRESHOLD_TYPE_TRUNCATED=2,
   OPENCV_THRESHOLD_TYPE_TO_ZERO=3,
-  OPENCV_THRESHOLD_TYPE_TO_ZERO_INVERTED=4
+  OPENCV_THRESHOLD_TYPE_TO_ZERO_INVERTED=4,
+  OPENCV_THRESHOLD_TYPE_MAX=4
 };
 
 #define w 500
@@ -336,6 +337,7 @@ protected:
 
     IplImage* m_pIplImage;
     MOubyte * m_pBuffer;
+    int       m_BufferSize;
 
     /** MOTION DETECTION */
     Mat current_frame;

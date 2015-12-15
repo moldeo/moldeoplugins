@@ -236,6 +236,7 @@ MOboolean moOpenCV::Init() {
 */
 
     m_pBuffer = NULL;
+    m_BufferSize = 0;
     m_pIplImage = NULL;
 
     m_RecognitionMode = OPENCV_RECOGNITION_MODE_UNDEFINED;
@@ -367,7 +368,7 @@ void moOpenCV::UpdateParameters() {
   m_reduce_height = reduce_height;
   m_threshold = m_Config.Eval( moR(OPENCV_THRESHOLD));
   m_threshold_max = m_Config.Eval( moR(OPENCV_THRESHOLD_MAX));
-  m_threshold_type = (moOpenCVThresholdType) m_Config.Int( moR(OPENCV_THRESHOLD_TYPE));
+  m_threshold_type = (moOpenCVThresholdType) min( (int)OPENCV_THRESHOLD_TYPE_MAX, m_Config.Int( moR(OPENCV_THRESHOLD_TYPE)));
   m_crop_min_x =  m_Config.Eval( moR(OPENCV_CROP_MIN_X));
   m_crop_max_x =  m_Config.Eval( moR(OPENCV_CROP_MAX_X));
   m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
@@ -443,6 +444,7 @@ void moOpenCV::UpdateParameters() {
       MODebug2->Error("moOpenCV::UpdateParameters() > texture is null ");
       return;
 	}
+
 
   switch( m_RecognitionMode ) {
     case OPENCV_RECOGNITION_MODE_FACE:
@@ -1717,8 +1719,17 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
     return NULL;
   }
 
-  if (m_pBuffer==NULL)
-    m_pBuffer = new MOubyte [ p_pTexture->GetWidth() * p_pTexture->GetHeight() * 3 ];
+  int _bufsize = p_pTexture->GetWidth() * p_pTexture->GetHeight() * 3;
+  if (m_BufferSize != _bufsize) {
+    if (m_pBuffer!=NULL) {
+      delete [] m_pBuffer;
+      m_pBuffer = NULL;
+    }
+  }
+  if (m_pBuffer==NULL) {
+    m_BufferSize = _bufsize;
+    m_pBuffer = new MOubyte [ m_BufferSize ];
+  }
 
   if (m_pBuffer==NULL) {
     MODebug2->Error("moOpenCV::TextureToCvImage > Buffer can't be assigned for Texture:"
@@ -1751,7 +1762,11 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
   //cvInitImageHeader( img, cvSize( pSample->m_VideoFormat.m_Width, pSample->m_VideoFormat.m_Height), IPL_DEPTH_8U, 3, IPL_ORIGIN_TL);
 
   //cvZero( m_pIplImage );
-  cvSetData( m_pIplImage, (void*)m_pBuffer, p_pTexture->GetWidth()*3);
+  try {
+    cvSetData( m_pIplImage, (void*)m_pBuffer, p_pTexture->GetWidth()*3);
+  } catch(...) {
+    MODebug2->Error("moOpenCV::TextureToCvImage > ");
+  }
 
   if (m_pIplImage && p_Resize.X()>0 && p_Resize.Y()>0) {
 
