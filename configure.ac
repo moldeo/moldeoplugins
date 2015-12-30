@@ -21,7 +21,7 @@ AC_CONFIG_SUBDIRS(
 	IODevices/NetOscOut
 	IODevices/Serial
 	IODevices/NetTUIOIn
-	IODevices/Kinect
+	#IODevices/Kinect
 )
 #	
 #	 
@@ -58,6 +58,7 @@ AC_CONFIG_SUBDIRS(
 #	
 #	PostEffects/VideoPanel
 AC_CONFIG_SUBDIRS(
+	Effects/Camera
 	Effects/CubeMap
 	Effects/Draw
 	Effects/Icon
