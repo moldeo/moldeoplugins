@@ -81,6 +81,7 @@ MOboolean moPreEffectErase::Init()
 
 void moPreEffectErase::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
+
 	BeginDraw(tempogral, parentstate);
 
 	moVector4d color4D = m_Config.EvalColor( moR(ERASE_COLOR) );
