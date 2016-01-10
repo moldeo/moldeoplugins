@@ -144,15 +144,18 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
-
-	/*if (using_filter)
-		Filters.Apply(&m_EffectState.tempo, FilterParams);
-*/
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-
     moTexture* pImage = (moTexture*) m_Config[moR(IMAGE_TEXTURE)].GetData()->Pointer();
 
+/*if (using_filter)
+		Filters.Apply(&m_EffectState.tempo, FilterParams);
+*/
+#ifndef OPENGLESV2
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
+#endif
+
+    
+/*
 	//DIBUJAR
 	glEnable(GL_BLEND);
 
@@ -164,17 +167,19 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	//source: GL_ZERO, GL_ONE, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, and GL_SRC_ALPHA_SATURATE
 	//destination: GL_ZERO, GL_ONE, GL_SCR_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, and GL_ONE_MINUS_DST_ALPHA.
-
-
+*/
+#ifndef OPENGLESV2
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPushMatrix();										// Store The Projection Matrix
-	glLoadIdentity();									// Reset The Projection Matrix
-	glOrtho(0,1.0,0,1.0,-1,1);  							// Set Up An Ortho Screen
+	glLoadIdentity();
+	glOrtho(0,1.0,0,1.0,-1,1);
+	// Reset The Projection Matrix
+	// Set Up An Ortho Screen
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPushMatrix();										// Store The Modelview Matrix
 	glLoadIdentity();									// Reset The Modelview Matrix
-
-
+#endif
+/*
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -211,7 +216,8 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 	PosCuadX1 = PosCuadX + AncCuadX;
 	PosCuadY1 = PosCuadY;
 	PosCuadY0 = PosCuadY + AltCuadY;
-
+*/
+#ifndef OPENGLESV2
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -225,16 +231,78 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
+#else
+MODebug2->Message("moEffectImage::Draw(...) > clear with color:");
+moVector4d color4D = m_Config.EvalColor( moR(IMAGE_COLOR) );
+	glClearColor(  color4D.X() * m_EffectState.tintr,
+                color4D.Y() * m_EffectState.tintg,
+                color4D.Z() * m_EffectState.tintb,
+                color4D.W() *
+                m_Config.Eval( moR( IMAGE_ALPHA)) * m_EffectState.alpha);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+/*
+MODebug2->Message("moEffectImage::Draw(...) > Applying basic shader!");
+if (!m_BasicShader.Initialized()) {
+    MODebug2->Message("moEffectImage::Draw(...) > Creating basic shader!");
+    
+    m_BasicShader.Init();
+    m_BasicShader.CreateShader(                        
+                         moText("attribute vec4 position;")+moText("\n")
+                        +moText("attribute vec3 color;")+moText("\n")
+                        +moText("varying lowp vec3 colorVarying;")+moText("\n")
+                        +moText("void main() {")+moText("\n")
+                        +moText("colorVarying = color;")+moText("\n")
+                        +moText("gl_Position = position;")+moText("\n")
+                        +moText("}"),
 
+                         moText("varying lowp vec3 colorVarying;")+moText("\n")
+                        +moText("void main() {")+moText("\n")
+                        +moText("gl_FragColor = vec4(colorVarying, 1.0);")+moText("\n")
+                        +moText("}")
+    );
+    
+    m_BasicShader.PrintVertShaderLog();
+    m_BasicShader.PrintFragShaderLog();
+
+    vertices_index = m_BasicShader.GetAttribID(moText("position"));
+    color_index = m_BasicShader.GetAttribID(moText("color"));
+
+    MODebug2->Message( moText("Shader Attrib IDs, position:")+IntToStr(vertices_index)+moText(" color:")+IntToStr(color_index) );
+  } 
+
+  if (m_BasicShader.Initialized())
+     m_BasicShader.StartShader();
+
+  float coords[6] = { -0.9,-0.9,  0.9,-0.9,  0,0.7 }; // two coords per vertex.
+  float colors[9] = { 1,0,0,  0,1,0,  1,0,0 };  // three RGB values per vertex.
+	
+  glEnableVertexAttribArray( vertices_index );
+  glVertexAttribPointer( vertices_index, 2, GL_FLOAT, false, 0, coords );  // Set data type and location.
+
+  glEnableVertexAttribArray( color_index );
+  glVertexAttribPointer( color_index, 3, GL_FLOAT, false, 0, colors );
+
+  //glEnableClientState( GL_VERTEX_ARRAY );  // Enable use of arrays.
+  //glEnableClientState( GL_COLOR_ARRAY );
+
+  glDrawArrays( GL_TRIANGLES, 0, 3 ); // Use 3 vertices, starting with vertex 0.
+
+  glDisableVertexAttribArray( vertices_index );
+  glDisableVertexAttribArray( color_index );
+
+  if (m_BasicShader.Initialized())
+     m_BasicShader.StopShader();
+*/
+#endif
 	//if (m_bTrackerInit)
 	//	DrawTrackerFeatures();
 
-
+#ifndef OPENGLESV2
     glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
-
+#endif
 }
 
 void moEffectImage::Interaction( moIODeviceManager *IODeviceManager ) {
@@ -354,13 +422,14 @@ void moEffectImage::DrawTrackerFeatures()
 			//else if (v == KLT_LARGE_RESIDUE) glColor4f(1.0, 1.0, 0.0, 1.0);
 
 			if (v == KLT_TRACKED)
+#ifndef OPENGLESV2
 			glBegin(GL_QUADS);
 				glVertex2f(x - 5, y - 5);
 				glVertex2f(x - 5, y + 5);
 				glVertex2f(x + 5, y + 5);
 				glVertex2f(x + 5, y - 5);
 			glEnd();
-
+#endif
 			fcount++;
 			if (m_pTrackerData->m_FeatureTable)
 			for(int z=0; z<m_pTrackerData->m_FeatureTable->nFeatures; z++) {
@@ -370,12 +439,14 @@ void moEffectImage::DrawTrackerFeatures()
 					v = m_pTrackerData->m_FeatureTable->feature[z][k]->val;
 					//if (v==KLT_TRACKED) {
 					glColor4f(0.0, 0.0, 1.0, 1.0);
+#ifndef OPENGLESV2
 						glBegin(GL_QUADS);
 							glVertex2f(x - 5, y - 5);
 							glVertex2f(x - 5, y + 5);
 							glVertex2f(x + 5, y + 5);
 							glVertex2f(x + 5, y - 5);
 						glEnd();
+#endif
 					//}
 				}
 			}
@@ -407,13 +478,14 @@ void moEffectImage::DrawTrackerFeatures()
 			if ((bool)v==true) glColor4f(1.0, 1.0, 1.0, 1.0);
 			else glColor4f(0.8, 0.0, 0.0, 1.0);
 			glDisable(GL_TEXTURE_2D);
+#ifndef OPENGLESV2
 			glBegin(GL_QUADS);
 				glVertex2f(x - 5, y - 5);
 				glVertex2f(x - 5, y + 5);
 				glVertex2f(x + 5, y + 5);
 				glVertex2f(x + 5, y - 5);
 			glEnd();
-
+#endif
 			//if ( m_pTrackerGpuData->m_FeatureList->_list[i]->valid) {
 
 			//	std::vector<Point2D*> pTracks = m_pTrackerGpuData->m_FeatureList->_list[i]->track;
@@ -445,10 +517,12 @@ void moEffectImage::DrawTrackerFeatures()
 				if (d<150.0) {
 					glLineWidth(1.0);
 					glColor4f( 1.0, 1.0, 1.0, 1.0);
+#ifndef OPENGLESV2
 					glBegin(GL_LINES);
 						glVertex2f(x, y);
 						glVertex2f(x2, y2);
 					glEnd();
+#endif
 				}
 			}
 
