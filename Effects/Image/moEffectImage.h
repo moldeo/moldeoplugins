@@ -33,7 +33,7 @@
 
 #ifndef __MO_EFFECT_IMAGE_H__
 #define __MO_EFFECT_IMAGE_H__
-
+#include "moldeo.h"
 #include "moPlugin.h"
 
 #define MOParam(__PARAMINDEX)	m_Config[moR(__PARAMINDEX)]
@@ -76,6 +76,10 @@ public:
 	void Interaction( moIODeviceManager *IODeviceManager );
 	moConfigDefinition *GetDefinition( moConfigDefinition *p_configdefinition );
     MOboolean Finish();
+
+    moShaderGLSL m_BasicShader;
+    MOuint vertices_index;
+    MOuint color_index;
 
 	//void Update( moEventList *p_EventList);
 
