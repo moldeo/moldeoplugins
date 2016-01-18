@@ -158,7 +158,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
     if (TD && TD->Texture()==NULL) UpdateConnectors();
-
+    glActiveTexture( GL_TEXTURE0 );
     glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo ) );
 
 
