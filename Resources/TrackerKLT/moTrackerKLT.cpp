@@ -1624,8 +1624,8 @@ void moTrackerKLT::UpdateParameters() {
 	min_dist = m_Config.GetParam(m_Config.GetParamIndex("min_dist")).GetValue().GetSubValue(0).Float();
 
 	//min_eigen = m_Config.GetParam(m_Config.GetParamIndex("min_eigen")).GetValue().GetSubValue(0).Float();
-	//min_eigen = (float) m_Config.Int( moR(TRACKERKLT_MIN_EIGEN) );
-	min_eigen = m_Config.GetParam(m_Config.GetParamIndex("min_eigen")).GetData()->Float();
+	min_eigen = m_Config.Double( moR(TRACKERKLT_MIN_EIGEN) );
+	//min_eigen = m_Config.Float( moR(("min_eigen")).GetValue().GetSubValue(0).Float();
 
 	light_sens = m_Config.GetParam(m_Config.GetParamIndex("light_sens")).GetValue().GetSubValue(0).Int();
 	num_frames = m_Config.GetParam(m_Config.GetParamIndex("num_frames")).GetValue().GetSubValue(0).Int();
