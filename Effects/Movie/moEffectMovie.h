@@ -196,8 +196,12 @@ public:
 	virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 
     // Public script functions.
-	int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
+	virtual int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
 	void HandleReturns(moLuaVirtualMachine& vm, const char *strFunc);
+  virtual void ScriptExeRun();
+  virtual void ScriptExeInit();
+  virtual void ScriptExeDraw();
+  virtual void ScriptExeUpdate();
 
 	void DrawDisplayInfo( MOfloat x, MOfloat y);
 
@@ -271,6 +275,13 @@ protected:
 	moText m_MovieScriptFN;
     //TRACKER
 	MOboolean				m_bTrackerInit;
+	int tracker_width,tw;
+	int tracker_height,th;
+
+	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
+  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
+  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
+  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
 	/*
 	moTrackerKLTSystemData*	m_pTrackerData;
 	moTrackerGpuKLTSystemData*	m_pTrackerGpuData;
@@ -290,8 +301,10 @@ protected:
 	void SpeedRegulation( MOfloat p_fMinSpeed, MOfloat p_fMaxSpeed );
 	void VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValue=0, MOfloat p_fValue = 0.0 );
 	void VCRPlaySpeed();
+
   moEffectMoviePlayState VCRState();
 
+private:
     // Script functions.
 	void RegisterFunctions();
 	int GetFeature(moLuaVirtualMachine& vm);

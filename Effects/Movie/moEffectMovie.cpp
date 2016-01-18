@@ -496,17 +496,24 @@ void moEffectMovie::UpdateParameters() {
       bReBalance = false;
   }
 
+
+
+  for(int i=0; i<m_Inlets.Count(); i++) {
+      moInlet* pInlet = m_Inlets[i];
+
+      if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKERKLT")) {
+
+        m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
+        if (m_pTrackerData && !m_bTrackerInit) {
+          m_bTrackerInit = true;
+        }
+      }
+    }
 }
 
 void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
   MOuint FrameGLid;
-
-	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
-  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
-  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
-
 
   UpdateParameters();
 
@@ -575,37 +582,15 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
 
-	/*
-    glBegin(GL_QUADS);
-      glTexCoord2f( 0.0, 1.0 );
-      glVertex2f( -0.5, -0.5);
 
-      glTexCoord2f( 1.0, 1.0 );
-      glVertex2f(  0.5, -0.5);
+  bool showfeat = m_Config.Int( moR(MOVIE_SHOWTRACKDATA) );
+  if (m_bTrackerInit && m_pTrackerData && showfeat) {
+    moGLViewport vport = m_pResourceManager->GetGLMan()->GetViewport();
+    float aspect = vport.GetProportion();
+    if (aspect==0.0) aspect = 1.0;
+    m_pTrackerData->DrawFeatures( 1.0, 1.0 / aspect, 0.5, 0.5 );
+  }
 
-      glTexCoord2f( 1.0, 0.0 );
-      glVertex2f(  0.5,  0.5);
-
-      glTexCoord2f( 0.0, 0.0 );
-      glVertex2f( -0.5,  0.5);
-    glEnd();
-    */
-/*
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-    glBegin(GL_QUADS);
-	    glVertex2f(0, 0);
-	    glVertex2f(0, 10.0);
-	    glVertex2f(0 + 10.0, 10.0);
-	    glVertex2f(0 + 10.0, 0);
-    glEnd();
-
-    //if ((MovieMode == MO_MOVIE_MODE_SCRIPT) && m_bTrackerInit && config.GetCurrentValue(showtrackdata))
-	bool showfeat = m_Config[moR(MOVIE_SHOWTRACKDATA)][MO_SELECTED][0].Int();
-	//if (m_bTrackerInit && showfeat) DrawTrackerFeatures();
-
-
-*/
   showmoviedata = m_Config.Int( moR(MOVIE_SHOWMOVIEDATA) );
 
   m_DisplayX = m_Config.Eval( moR(MOVIE_DISPLAY_X) );
@@ -1443,54 +1428,107 @@ void moEffectMovie::VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValu
 
 int moEffectMovie::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
 {
+/*
+    for(int i=0; i<m_iMethodBaseAncestors; i++ ) {
+       MODebug2->Message( moText("moEffectMovie::ScriptCalling > baseancestor: ")+IntToStr(i)+moText(" base: ") + IntToStr(m_MethodBases[i]));
+    }
+*/
+/*    MODebug2->Message( moText("Called moEffectMovie::ScriptCalling, iFunctionNumber") + IntToStr(iFunctionNumber)
+                      +moText(" m_iMethodBase: ") + IntToStr(m_iMethodBase) );
+
+   m_iMethodBase = m_MethodBases[m_iMethodBaseAncestors-1];
+   m_iMethodBaseIterator = m_iMethodBaseAncestors-1;
+
+    MODebug2->Message( moText("m_iMethodBaseAncestors: ") + IntToStr( m_iMethodBaseAncestors ) );
+    MODebug2->Message( moText("m_iMethodBaseIterator: ") + IntToStr( m_iMethodBaseIterator ) );
+    MODebug2->Message( moText("m_iMethodBase: ") + IntToStr( m_iMethodBase ) );
+*/
+    m_iMethodBase = 46;
     switch (iFunctionNumber - m_iMethodBase)
     {
+
+        case 0:
+            ResetScriptCalling();
+            return GetFeature(vm); //0
+
         case 1:
-            return SpeedRegulation(vm);
+            ResetScriptCalling();
+            return SpeedRegulation(vm);//1
         case 2:
-            return VCRStop(vm);
+            ResetScriptCalling();
+            return VCRStop(vm);//2
         case 3:
-            return VCRPlay(vm);
+            ResetScriptCalling();
+            return VCRPlay(vm);//3
         case 4:
-            return VCRPause(vm);
+            ResetScriptCalling();
+            return VCRPause(vm);//4
         case 5:
-            return VCRReverse(vm);
+            ResetScriptCalling();
+            return VCRReverse(vm);//5
         case 6:
-            return VCRForward(vm);
+            ResetScriptCalling();
+            return VCRForward(vm);//6
         case 7:
-            return VCRRewind(vm);
+            ResetScriptCalling();
+            return VCRRewind(vm);//7
         case 8:
-            return VCRFForward(vm);
+            ResetScriptCalling();
+            return VCRFForward(vm);//8
         case 9:
-            return VCRFRewind(vm);
+            ResetScriptCalling();
+            return VCRFRewind(vm);//9
         case 10:
-            return VCRSeek(vm);
+            ResetScriptCalling();
+            return VCRSeek(vm);//10
         case 11:
-            return VCRSpeed(vm);
+            ResetScriptCalling();
+            return VCRSpeed(vm);//11
         case 12:
-            return VCRPrevFrame(vm);
+            ResetScriptCalling();
+            return VCRPrevFrame(vm);//12
         case 13:
-            return VCRNextFrame(vm);
+            ResetScriptCalling();
+            return VCRNextFrame(vm);//13
         case 14:
-            return VCRLoop(vm);
+            ResetScriptCalling();
+            return VCRLoop(vm);//14
         case 15:
-            return VCRPlaySpeed(vm);
+            ResetScriptCalling();
+            return VCRPlaySpeed(vm);//15
         case 16:
-            return GetFramePosition(vm);
+            ResetScriptCalling();
+            return GetFramePosition(vm);//16
         case 17:
-            return GetFramePositionF(vm);
+            ResetScriptCalling();
+            return GetFramePositionF(vm);//17
         case 18:
-            return GetPlaySpeed(vm);
+            ResetScriptCalling();
+            return GetPlaySpeed(vm);//18
         case 19:
-            return SetFramePosition(vm);
+            ResetScriptCalling();
+            return SetFramePosition(vm);//19
         case 20:
-            return SetFramePositionF(vm);
+            ResetScriptCalling();
+            return SetFramePositionF(vm);//20
         case 21:
-            return SetPlaySpeed(vm);
-        case 23:
-            return DrawLine(vm);
+            ResetScriptCalling();
+            return SetPlaySpeed(vm);//21
+        case 22:
+            ResetScriptCalling();
+            return DrawLine(vm);//22
+        default:
+            //MODebug2->Message( moText("Called moEffectMovie::ScriptCalling, NextScriptCalling, from m_iMethodBase: ") + IntToStr(m_iMethodBase) );
+            //NextScriptCalling();
+            m_iMethodBase = m_MethodBases[m_iMethodBaseIterator-1];
+            m_iMethodBaseIterator = m_iMethodBaseIterator - 1;
+            //MODebug2->Message( moText("Called moEffectMovie::ScriptCalling, NextScriptCalling, to m_iMethodBase: ") + IntToStr(m_iMethodBase) );
+            return moEffect::ScriptCalling( vm, iFunctionNumber );
+            //return moMoldeoObject::ScriptCalling( vm, iFunctionNumber );
+
 	}
-    return 0;
+	return 0;
+
 }
 
 void moEffectMovie::HandleReturns(moLuaVirtualMachine& vm, const char *strFunc)
@@ -1506,36 +1544,176 @@ void moEffectMovie::HandleReturns(moLuaVirtualMachine& vm, const char *strFunc)
 
 void moEffectMovie::RegisterFunctions()
 {
-    m_iMethodBase = RegisterBaseFunction("GetFeature");
+    moEffect::RegisterFunctions();
+    //moMoldeoObject::RegisterFunctions();
 
-    RegisterFunction("SpeedRegulation");
+    RegisterBaseFunction("GetFeature"); //0
 
-    RegisterFunction("VCRStop");
-    RegisterFunction("VCRPlay");
-    RegisterFunction("VCRPause");
-    RegisterFunction("VCRReverse");
-    RegisterFunction("VCRForward");
-    RegisterFunction("VCRRewind");
-    RegisterFunction("VCRFForward");
-    RegisterFunction("VCRFRewind");
-    RegisterFunction("VCRSeek");
-    RegisterFunction("VCRSpeed");
-    RegisterFunction("VCRPrevFrame");
-    RegisterFunction("VCRNextFrame");
-    RegisterFunction("VCRLoop");
-    RegisterFunction("VCRPlaySpeed");
+    RegisterFunction("SpeedRegulation"); //1
 
-    RegisterFunction("GetFramePosition");
-    RegisterFunction("GetFramePositionF");
-    RegisterFunction("GetPlaySpeed");
+    RegisterFunction("VCRStop"); //2
+    RegisterFunction("VCRPlay"); //3
+    RegisterFunction("VCRPause"); //4
+    RegisterFunction("VCRReverse"); //5
+    RegisterFunction("VCRForward"); //6
+    RegisterFunction("VCRRewind"); //7
+    RegisterFunction("VCRFForward"); //8
+    RegisterFunction("VCRFRewind"); //9
+    RegisterFunction("VCRSeek"); //10
+    RegisterFunction("VCRSpeed"); //11
+    RegisterFunction("VCRPrevFrame"); //12
+    RegisterFunction("VCRNextFrame"); //13
+    RegisterFunction("VCRLoop"); //14
+    RegisterFunction("VCRPlaySpeed"); //15
 
-    RegisterFunction("SetFramePosition");
-    RegisterFunction("SetFramePositionF");
-    RegisterFunction("SetPlaySpeed");
+    RegisterFunction("GetFramePosition"); //16
+    RegisterFunction("GetFramePositionF"); //17
+    RegisterFunction("GetPlaySpeed"); //18
 
-    RegisterFunction("DrawLine");
+    RegisterFunction("SetFramePosition"); //19
+    RegisterFunction("SetFramePositionF"); //20
+    RegisterFunction("SetPlaySpeed"); //21
+
+    RegisterFunction("DrawLine"); //22
+
+    ResetScriptCalling();
 
 }
+
+void moEffectMovie::ScriptExeRun() {
+
+
+  moText cs;
+  cs = m_Config.Text( __iscript );
+
+  ///Reinicializamos el script en caso de haber cambiado
+	if ((moText)m_Script!=cs && IsInitialized()) {
+
+        m_Script = cs;
+        moText fullscript = DataMan()->GetDataPath()+ moSlash + (moText)m_Script;
+
+        if (moFileManager::FileExists(fullscript)) {
+
+          MODebug2->Message( GetLabelName() +  moText(" script loading : ") + (moText)fullscript );
+
+          if ( CompileFile(fullscript) ) {
+
+              MODebug2->Message( GetLabelName() + moText(" script loaded and compiled!! for ") + (moText)fullscript );
+
+              ///Reinicializamos el script
+              ScriptExeInit();
+              //SelectScriptFunction( "Init" );
+              /**TODO: revisar uso de offset, para multipantallas
+              moText toffset=moText("");
+
+              toffset = m_Config[moR(CONSOLE_SCRIPT)][MO_SELECTED][1].Text();
+              if (toffset!=moText("")) {
+                  m_ScriptTimecodeOffset = atoi( toffset );
+              } else {
+                  m_ScriptTimecodeOffset = 0;
+              }
+              AddFunctionParam( (int)m_ScriptTimecodeOffset );
+              */
+              //RunSelectedFunction();
+
+          } else MODebug2->Error( moText("Couldn't compile lua script ") + (moText)fullscript + " config:"+GetConfigName()+" label: "+GetLabelName() );
+        } else MODebug2->Message("Script file not present. " + (moText)fullscript + " config: "+GetConfigName()+" label:"+GetLabelName() );
+	}
+
+
+  ///Si tenemos un script inicializado... corremos la funcion Run()
+
+    if (moScript::IsInitialized()) {
+        if (ScriptHasFunction("Run")) {
+            SelectScriptFunction("Run");
+            int nfeat = 0;
+            int tw = 0;
+            int th = 0;
+            if ( m_pTrackerData ) {
+             if (m_pTrackerData) {
+                nfeat = m_pTrackerData->GetFeaturesCount();
+                tw = m_pTrackerData->GetVideoFormat().m_Width;
+                th = m_pTrackerData->GetVideoFormat().m_Height;
+             }
+            }
+            AddFunctionParam( (int) nfeat );
+            AddFunctionParam( (int) tw );
+            AddFunctionParam( (int) th );
+            RunSelectedFunction();
+            //MODebug2->Message( moText("moEffectMovie::ScriptExeRun called! for ") + m_Script);
+        } else {
+          if (m_Script.Trim().Length()>0) {
+            MODebug2->Error( moText("moEffectMovie::ScriptExeRun > no function RUN! for ") + m_Script);
+          }
+        }
+    }
+}
+
+void moEffectMovie::ScriptExeDraw() {
+    if (moScript::IsInitialized()) {
+        if (ScriptHasFunction("Draw")) {
+            SelectScriptFunction("Draw");
+            int nfeat = 0;
+            int tw = 0;
+            int th = 0;
+            if ( m_pTrackerData ) {
+             if (m_pTrackerData) {
+                nfeat = m_pTrackerData->GetFeaturesCount();
+                tw = m_pTrackerData->GetVideoFormat().m_Width;
+                th = m_pTrackerData->GetVideoFormat().m_Height;
+             }
+            }
+            AddFunctionParam( (int) nfeat );
+            AddFunctionParam( (int) tw );
+            AddFunctionParam( (int) th );
+            RunSelectedFunction();
+        }
+    }
+}
+
+void moEffectMovie::ScriptExeInit() {
+    MODebug2->Message("moEffectMovie::ScriptExeInit !");
+    if (moScript::IsInitialized()) {
+        if (ScriptHasFunction("Init")) {
+            SelectScriptFunction("Init");
+            int rw = 0;
+            int rh = 0;
+            m_FramesPerSecond = 25;
+            m_FramesLength = 1059;
+            AddFunctionParam( (int) m_FramesPerSecond );
+            AddFunctionParam( (int) m_FramesLength );
+            rw = m_pResourceManager->GetRenderMan()->RenderWidth();
+            rh = m_pResourceManager->GetRenderMan()->RenderHeight();
+            AddFunctionParam( (int) rw );
+            AddFunctionParam( (int) rh );
+            //MODebug2->Message("moEffectMovie::ScriptExeInit Running function!.");
+            bool res = RunSelectedFunction();
+            //MODebug2->Message( moText("RunSelectedFunction result(0:bad, 1:ok):")+ IntToStr((int)res));
+        } else {
+          if (m_Script!="")
+            MODebug2->Error("moEffectMovie::ScriptExeInit FAILED! no Init function in script.");
+        }
+    }
+}
+/*
+void moEffectMovie::ScriptExeFinish() {
+    if (moScript::IsInitialized()) {
+        if (ScriptHasFunction("Finish")) {
+            SelectScriptFunction("Finish");
+            RunSelectedFunction();
+        }
+    }
+}*/
+
+void moEffectMovie::ScriptExeUpdate() {
+    if (moScript::IsInitialized()) {
+        if (ScriptHasFunction("Update")) {
+            SelectScriptFunction("Update");
+            RunSelectedFunction();
+        }
+    }
+}
+
 
 int moEffectMovie::GetFeature(moLuaVirtualMachine& vm)
 {
