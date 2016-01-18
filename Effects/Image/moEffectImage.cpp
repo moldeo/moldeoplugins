@@ -154,8 +154,8 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     glLoadIdentity();
 #endif
 
-    
-/*
+
+
 	//DIBUJAR
 	glEnable(GL_BLEND);
 
@@ -167,7 +167,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	//source: GL_ZERO, GL_ONE, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, and GL_SRC_ALPHA_SATURATE
 	//destination: GL_ZERO, GL_ONE, GL_SCR_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, and GL_ONE_MINUS_DST_ALPHA.
-*/
+
 #ifndef OPENGLESV2
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPushMatrix();										// Store The Projection Matrix
@@ -179,7 +179,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glPushMatrix();										// Store The Modelview Matrix
 	glLoadIdentity();									// Reset The Modelview Matrix
 #endif
-/*
+
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -216,7 +216,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 	PosCuadX1 = PosCuadX + AncCuadX;
 	PosCuadY1 = PosCuadY;
 	PosCuadY0 = PosCuadY + AltCuadY;
-*/
+
 #ifndef OPENGLESV2
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
@@ -244,9 +244,9 @@ moVector4d color4D = m_Config.EvalColor( moR(IMAGE_COLOR) );
 MODebug2->Message("moEffectImage::Draw(...) > Applying basic shader!");
 if (!m_BasicShader.Initialized()) {
     MODebug2->Message("moEffectImage::Draw(...) > Creating basic shader!");
-    
+
     m_BasicShader.Init();
-    m_BasicShader.CreateShader(                        
+    m_BasicShader.CreateShader(
                          moText("attribute vec4 position;")+moText("\n")
                         +moText("attribute vec3 color;")+moText("\n")
                         +moText("varying lowp vec3 colorVarying;")+moText("\n")
@@ -260,7 +260,7 @@ if (!m_BasicShader.Initialized()) {
                         +moText("gl_FragColor = vec4(colorVarying, 1.0);")+moText("\n")
                         +moText("}")
     );
-    
+
     m_BasicShader.PrintVertShaderLog();
     m_BasicShader.PrintFragShaderLog();
 
@@ -268,14 +268,14 @@ if (!m_BasicShader.Initialized()) {
     color_index = m_BasicShader.GetAttribID(moText("color"));
 
     MODebug2->Message( moText("Shader Attrib IDs, position:")+IntToStr(vertices_index)+moText(" color:")+IntToStr(color_index) );
-  } 
+  }
 
   if (m_BasicShader.Initialized())
      m_BasicShader.StartShader();
 
   float coords[6] = { -0.9,-0.9,  0.9,-0.9,  0,0.7 }; // two coords per vertex.
   float colors[9] = { 1,0,0,  0,1,0,  1,0,0 };  // three RGB values per vertex.
-	
+
   glEnableVertexAttribArray( vertices_index );
   glVertexAttribPointer( vertices_index, 2, GL_FLOAT, false, 0, coords );  // Set data type and location.
 
