@@ -51,13 +51,7 @@ public:
     MOboolean Init();
     void Draw(moTempo*, moEffectState* = NULL);
     MOboolean Finish();
-#ifdef OPENGLESV2
-    moShaderGLSL m_BasicShader;
-    MOuint vertices_index;
-    MOuint color_index;
-    MOuint model_index;
-    moMatrix4 m_m4Model;
-#endif
+
 };
 
 class moPreEffectEraseFactory : public moPreEffectFactory
