@@ -124,8 +124,14 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
     MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
     MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+
+    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
+    moGLManager* mGL = m_pResourceManager->GetGLMan();
+
+    if (mRender==NULL || mGL==NULL) return;
+
+    int w = mRender->ScreenWidth();
+    int h = mRender->ScreenHeight();
 
     moTexture* pImage = (moTexture*) m_Config[moR(IMAGE_TEXTURE)].GetData()->Pointer();
 
@@ -196,6 +202,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     PosCuadY0 = PosCuadY + AltCuadY;
 
 #ifndef OPENGLESV2
+/*
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -209,17 +216,30 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
+*/
 #else
-MODebug2->Message("moEffectImage::Draw(...) > clear with color:");
-moVector4d color4D = m_Config.EvalColor( moR(IMAGE_COLOR) );
-	glClearColor(  color4D.X() * m_EffectState.tintr,
-                color4D.Y() * m_EffectState.tintg,
-                color4D.Z() * m_EffectState.tintb,
-                color4D.W() *
-                m_Config.Eval( moR( IMAGE_ALPHA)) * m_EffectState.alpha);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 #endif
+
+    moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
+    moMaterial Material;
+    Material.m_Map = pImage;
+    //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
+    moVector4d color = m_Config.EvalColor( moR(IMAGE_COLOR) );
+    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+    moGLMatrixf Model;
+    Model.MakeIdentity();
+    Model.Translate( PosCuadX+AncCuadX/2, PosCuadY+AltCuadY/2, 0.0 );
+
+    moMesh Mesh( ImageQuad, Material );
+    Mesh.SetModel( Model );
+
+
+    moCamera3D Camera3D;
+    //mGL->SetDefaultOrthographicView( w, h );
+    mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
+    Camera3D = mGL->GetProjectionMatrix();
+    mRender->Render( Mesh, Camera3D );
 
 #ifndef OPENGLESV2
     glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix

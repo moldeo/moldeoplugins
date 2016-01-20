@@ -64,18 +64,21 @@ enum moImageParamIndex {
 
 class moEffectImage : public moEffect
 {
-public:
-	moTextFilterParam FilterParams;
-	MOboolean using_filter;
+    public:
+        moTextFilterParam FilterParams;
+        MOboolean using_filter;
 
-    moEffectImage();
-    virtual ~moEffectImage();
+        moEffectImage();
+        virtual ~moEffectImage();
 
-    MOboolean Init();
-    void Draw( moTempo*, moEffectState* parentstate = NULL);
-	void Interaction( moIODeviceManager *IODeviceManager );
-	moConfigDefinition *GetDefinition( moConfigDefinition *p_configdefinition );
-    MOboolean Finish();
+        MOboolean Init();
+        void Draw( moTempo*, moEffectState* parentstate = NULL);
+        void Interaction( moIODeviceManager *IODeviceManager );
+        moConfigDefinition *GetDefinition( moConfigDefinition *p_configdefinition );
+        MOboolean Finish();
+
+    protected:
+
 
 };
 
