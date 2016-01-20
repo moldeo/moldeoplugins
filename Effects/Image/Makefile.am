@@ -6,7 +6,7 @@ else
 DFLAGS = -O2 -fpermissive
 endif
 
-moduletype = preeffects
+moduletype = effects
 datadir = ${prefix}/share/moldeo/data
 modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
@@ -23,4 +23,7 @@ libmoldeo_image_la_LDFLAGS =
 libmoldeo_image_la_LIBADD = 
 libmoldeo_image_la_LIBS = ${LIBMOLDEO_LIBS}
 
+libmoldeo_image_includedir = $(includedir)/moldeo/${moduletype}/image
+libmoldeo_image_include_HEADERS = moEffectImage.h
 
+METASOURCES = AUTO

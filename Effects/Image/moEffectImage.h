@@ -77,28 +77,6 @@ public:
 	moConfigDefinition *GetDefinition( moConfigDefinition *p_configdefinition );
     MOboolean Finish();
 
-    moShaderGLSL m_BasicShader;
-    MOuint vertices_index;
-    MOuint color_index;
-
-	//void Update( moEventList *p_EventList);
-
-/*
-    //TRACKER
-	MOboolean				m_bTrackerInit;
-	moTrackerKLTSystemData*	m_pTrackerData;
-	moTrackerGpuKLTSystemData*	m_pTrackerGpuData;
-	MOint NF, TrackerX, TrackerY, Variance;
-	void DrawTrackerFeatures();
-
-	//Script
-	void RegisterFunctions();
-	int GetFeature(moLuaVirtualMachine& vm);
-	int DrawLine(moLuaVirtualMachine& vm);
-	int PushDebugString(moLuaVirtualMachine& vm);
-	int fcount;
-	int m_iMethodBase;
-*/
 };
 
 class moEffectImageFactory : public moEffectFactory
