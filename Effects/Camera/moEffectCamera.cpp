@@ -247,6 +247,7 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
   moCamera* Camera = NULL;
   bool founded = false;
   if (VMan->GetCameraCount()>0) {
+    MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > At least we found"+IntToStr(VMan->GetCameraCount())+". Great!");
     for(  int c=0;c<VMan->GetCameraCount(); c++ ) {
       Camera = VMan->GetCamera(c);
 
@@ -415,26 +416,35 @@ void moEffectCamera::UpdateParameters() {
 
 void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
-  MOuint FrameGLid;
+    MOuint FrameGLid;
 
-	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
-  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
-  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
+    MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
+    MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
+    MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
+    MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
 
+    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
+    moGLManager* mGL = m_pResourceManager->GetGLMan();
+    moTextureManager* mT = m_pResourceManager->GetTextureMan();
 
-  UpdateParameters();
+    if (mRender==NULL || mGL==NULL) return;
 
-  PreDraw( tempogral, parentstate);
+    int w = mRender->ScreenWidth();
+    int h = mRender->ScreenHeight();
 
+    UpdateParameters();
+
+    PreDraw( tempogral, parentstate);
+
+#ifndef OPENGLESV2
   // Guardar y resetar la matriz de vista del modelo //
   glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
   glLoadIdentity();									// Reset The View
   // Cambiar la proyeccion para una vista ortogonal //
   glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
   glEnable(GL_ALPHA);
-  m_pResourceManager->GetGLMan()->SetOrthographicView();
-
+ //m_pResourceManager->GetGLMan()->SetOrthographicView();
+#endif
 	cameramode = m_Config.Int(moR(CAMERA_MODE));
 
   //SetColor( m_Config[moR(CAMERA_COLOR)][MO_SELECTED], m_Config[moR(CAMERA_ALPHA)][MO_SELECTED], state );
@@ -484,6 +494,33 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
 	PosCuadY1 = PosCuadY - AltCuadY/2;
 	PosCuadY0 = PosCuadY + AltCuadY/2;
 
+    moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
+    moMaterial Material;
+    if (m_pCameraTexture) {
+        Material.m_Map = m_pCameraTexture;
+    } else {
+        Material.m_Map = mT->GetTexture( mT->GetTextureMOId( "default", false ) );
+    }
+    //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
+    moVector4d color = m_Config.EvalColor( moR(CAMERA_COLOR) );
+    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+    moGLMatrixf Model;
+    Model.MakeIdentity();
+    Model.Translate( PosCuadX+AncCuadX/2, PosCuadY+AltCuadY/2, 0.0 );
+
+    moMesh Mesh( ImageQuad, Material );
+    Mesh.SetModel( Model );
+
+
+    moCamera3D Camera3D;
+    //mGL->SetDefaultOrthographicView( w, h );
+    mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
+    Camera3D = mGL->GetProjectionMatrix();
+    mRender->Render( Mesh, Camera3D );
+
+#ifndef OPENGESV2
+/*
   glEnable(GL_TEXTURE_2D);
 
 	//glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(CAMERA_TEXTURE), &m_EffectState.tempo ) );
@@ -491,7 +528,9 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     glBindTexture(GL_TEXTURE_2D, m_pCameraTexture->GetGLId() );
   else
     glBindTexture(GL_TEXTURE_2D, 0 );
+*/
 
+/*
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -505,6 +544,10 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
+*/
+#endif
+
+
 
 	showcameradata = m_Config.Int( moR(CAMERA_SHOWCAMERADATA) );
 
@@ -520,10 +563,12 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
   glEnable(GL_TEXTURE_2D);
   EndDraw();
 
-  glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
+#ifndef OPENGLESV2
+    glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();
+#endif
 }
 
 

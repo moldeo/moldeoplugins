@@ -73,7 +73,7 @@ moEffectImage::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, IMAGE_TEXTURE, moValue( "Default", MO_VALUE_TXT ).Ref() );
+	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, IMAGE_TEXTURE, moValue( "default", MO_VALUE_TXT ).Ref() );
 	/*p_configdefinition->Add( moText("filters"), MO_PARAM_FILTER, IMAGE_FILTER );*/
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, IMAGE_BLENDING, moValue( "0", MO_VALUE_NUM).Ref() );
 	p_configdefinition->Add( moText("pos_text_x"), MO_PARAM_FUNCTION, IMAGE_POSTEXX, moValue( "0.0", MO_VALUE_FUNCTION ).Ref() );
