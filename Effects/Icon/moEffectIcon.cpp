@@ -126,11 +126,15 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     BeginDraw( tempogral, parentstate);
 
-    // Guardar y resetar la matriz de vista del modelo //
-    // Cambiar la proyeccion para una vista ortogonal //
+    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
+    moGLManager* mGL = m_pResourceManager->GetGLMan();
 
+    if (mRender==NULL || mGL==NULL) return;
 
-    m_pResourceManager->GetGLMan()->SetOrthographicView();
+    int w = mRender->ScreenWidth();
+    int h = mRender->ScreenHeight();
+
+    mGL->SetDefaultOrthographicView( w, h);
 
     glEnable(GL_ALPHA);
     glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
@@ -139,6 +143,37 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     ancho = m_Config.Eval( moR(ICON_WIDTH));
     alto = m_Config.Eval( moR(ICON_HEIGHT));
 
+    //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
+    SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], m_EffectState );
+
+    SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
+
+    moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
+    if (TD && TD->Texture()==NULL) UpdateConnectors();
+    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo ) );
+
+    moPlaneGeometry IconQuad( ancho, alto, 1, 1 );
+    moMaterial Material;
+    Material.m_Map = TD->Texture();
+    //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
+    moVector4d color = m_Config.EvalColor( moR(ICON_COLOR) );
+    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+    moGLMatrixf Model;
+    Model.MakeIdentity();
+    Model.Scale( m_Config.Eval( moR(ICON_SCALEX)), m_Config.Eval( moR(ICON_SCALEY)), 1.0 );
+    Model.Rotate( m_Config.Eval( moR(ICON_ROTATE))*moMathf::DEG_TO_RAD, 0.0, 0.0, 1.0 );
+    Model.Translate( m_Config.Eval( moR(ICON_TRANSLATEX)), m_Config.Eval( moR(ICON_TRANSLATEY)), 0.0 );
+
+    moMesh Mesh( IconQuad, Material );
+    Mesh.SetModel( Model );
+
+
+    moCamera3D Camera3D;
+    Camera3D = mGL->GetProjectionMatrix();
+    mRender->Render( Mesh, Camera3D );
+#ifndef OPENGLESV2
+/*
     /// Draw //
     glTranslatef(  m_Config.Eval( moR(ICON_TRANSLATEX)) + Tx,
                    m_Config.Eval( moR(ICON_TRANSLATEY)) + Ty,
@@ -150,16 +185,6 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     glScalef(   m_Config.Eval( moR(ICON_SCALEX))*Sx,
                 m_Config.Eval( moR(ICON_SCALEY))*Sy,
                   1.0);
-
-    //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
-    SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], m_EffectState );
-
-    SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
-
-    moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
-    if (TD && TD->Texture()==NULL) UpdateConnectors();
-    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo ) );
-
 
     glBegin(GL_QUADS);
       glTexCoord2f( 0.0, 1.0 );
@@ -174,6 +199,9 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
       glTexCoord2f( 0.0, 0.0 );
       glVertex2f( -0.5*ancho,  0.5*alto);
     glEnd();
+    */
+#endif
+
 
     int Tracker = GetInletIndex("TRACKERKLT" );
     if (Tracker > -1) {
@@ -194,12 +222,14 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
           }
       }
     }
-
+#ifndef OPENGLESV2
+/*
     glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
     glPopMatrix();										// Restore The Old Projection Matrix
     glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
     glPopMatrix();										// Restore The Old Projection Matrix
-
+    */
+#endif
     EndDraw();
 }
 
