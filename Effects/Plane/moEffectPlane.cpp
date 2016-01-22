@@ -106,9 +106,9 @@ moEffectPlane::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, PLANE_HEIGHT, moValue("1.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, PLANE_TRANSLATEX, moValue("0.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, PLANE_TRANSLATEY, moValue("0.0", MO_VALUE_FUNCTION).Ref() );
-	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, PLANE_TRANSLATEZ, moValue("-2.0", MO_VALUE_FUNCTION).Ref() );
-	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, PLANE_ROTATEX, moValue("-45", MO_VALUE_FUNCTION).Ref() );
-	p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PLANE_ROTATEY, moValue("0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, PLANE_TRANSLATEZ, moValue("-1.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("rotatex"), MO_PARAM_ROTATEX, PLANE_ROTATEX, moValue("0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("rotatey"), MO_PARAM_ROTATEY, PLANE_ROTATEY, moValue("360.0*time", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("rotatez"), MO_PARAM_ROTATEZ, PLANE_ROTATEZ, moValue("0.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("scalex"), MO_PARAM_SCALEX, PLANE_SCALEX, moValue("1.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("scaley"), MO_PARAM_SCALEY, PLANE_SCALEY, moValue("1.0", MO_VALUE_FUNCTION).Ref() );
@@ -124,53 +124,92 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     PreDraw( tempogral, parentstate);
 
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
+    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
+    moGLManager* mGL = m_pResourceManager->GetGLMan();
     double  prop = m_pResourceManager->GetRenderMan()->ScreenProportion();
 
+
+    if (mRender==NULL || mGL==NULL) return;
+
+    int w = mRender->ScreenWidth();
+    int h = mRender->ScreenHeight();
+
+    mGL->SetDefaultPerspectiveView( w, h);
+
+    ancho = (int)m_Config.Eval( moR(PLANE_WIDTH) );
+    alto = (int)m_Config.Eval( moR(PLANE_HEIGHT) );
+
+    moData* TD = m_Config[moR(PLANE_TEXTURE)].GetData();
+
+    //m_Config.Texture(moR(PLANE_TEXTURE));
+
+    moPlaneGeometry PlaneQuad( ancho, alto, 1, 1 );
+    moMaterial Material;
+    if (TD) {
+      glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PLANE_TEXTURE), &m_EffectState.tempo ) );
+      Material.m_Map = TD->Texture();
+    }
+
+    //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
+    moVector4d color = m_Config.EvalColor( moR(PLANE_COLOR) );
+    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+    moGLMatrixf Model;
+    Model.MakeIdentity();
+    Model.Scale( m_Config.Eval( moR(PLANE_SCALEX)), m_Config.Eval( moR(PLANE_SCALEY)), m_Config.Eval( moR(PLANE_SCALEZ)) );
+    Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEZ))*moMathf::DEG_TO_RAD, 0.0, 0.0, 1.0 );
+    Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEY))*moMathf::DEG_TO_RAD, 0.0, 1.0, 0.0 );
+    Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEX))*moMathf::DEG_TO_RAD, 1.0, 0.0, 0.0 );
+    Model.Translate( m_Config.Eval( moR(PLANE_TRANSLATEX)), m_Config.Eval( moR(PLANE_TRANSLATEY)), m_Config.Eval( moR(PLANE_TRANSLATEZ)) );
+
+    moMesh Mesh( PlaneQuad, Material );
+    Mesh.SetModel( Model );
+
+
+    moCamera3D Camera3D;
+    Camera3D = mGL->GetProjectionMatrix();
+    mRender->Render( Mesh, Camera3D );
+
+#ifndef OPENGLESV2
+/*
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glPushMatrix();                                     // Store The Modelview Matrix
-	glLoadIdentity();									// Reset The View
+    glLoadIdentity();									// Reset The View
+    glTranslatef(   m_Config.Eval( moR(PLANE_TRANSLATEX) ),
+                  m_Config.Eval( moR(PLANE_TRANSLATEY)),
+                  m_Config.Eval( moR(PLANE_TRANSLATEZ))
+              );
+
+    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
+    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
+
+    glScalef(   m_Config.Eval( moR(PLANE_SCALEX)),
+              m_Config.Eval( moR(PLANE_SCALEY)),
+              m_Config.Eval( moR(PLANE_SCALEZ))
+            );
+*/
+#endif
 
     // Cambiar la proyeccion para una vista ortogonal //
 	glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPushMatrix();										// Store The Projection Matrix
-	glLoadIdentity();									// Reset The Projection Matrix
-
-	gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
 
     // Funcion de blending y de alpha channel //
     glEnable(GL_BLEND);
 
 	glDisable(GL_ALPHA);
 
-	glTranslatef(   m_Config.Eval( moR(PLANE_TRANSLATEX) ),
-                  m_Config.Eval( moR(PLANE_TRANSLATEY)),
-                  m_Config.Eval( moR(PLANE_TRANSLATEZ))
-              );
-
-	glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
-
-	glScalef(   m_Config.Eval( moR(PLANE_SCALEX)),
-              m_Config.Eval( moR(PLANE_SCALEY)),
-              m_Config.Eval( moR(PLANE_SCALEZ))
-            );
-
   //moVector4d color = m_Config.EvalColor(moR(PLANE_COLOR));
 
   SetColor( m_Config[moR(PLANE_COLOR)], m_Config[moR(PLANE_ALPHA)], m_EffectState );
 
-  glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PLANE_TEXTURE), &m_EffectState.tempo ) );
 
   SetBlending( (moBlendingModes) m_Config.Int( moR(PLANE_BLENDING) ) );
 
-	ancho = (int)m_Config.Eval( moR(PLANE_WIDTH) );
-	alto = (int)m_Config.Eval( moR(PLANE_HEIGHT) );
 
+#ifndef OPENGLESV2
+/*
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
 		glVertex2i( -ancho, -alto);
@@ -190,7 +229,9 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glPopMatrix();										// Restore The Old Projection Matrix
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
-
+	*/
+#endif
+  EndDraw();
 }
 
 MOboolean moEffectPlane::Finish()
