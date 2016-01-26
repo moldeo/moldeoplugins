@@ -3141,63 +3141,38 @@ if (drawing_features > 0  ) {
 void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentstate)
 {
 
+    PreDraw( tempogral, parentstate);
+    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
+    moGLManager* mGL = m_pResourceManager->GetGLMan();
+
+    double  prop = mRender->ScreenProportion();
+    if (mRender==NULL || mGL==NULL) return;
+
+    int w = mRender->ScreenWidth();
+    int h = mRender->ScreenHeight();
+
     int ancho,alto;
-    int w = m_pResourceManager->GetRenderMan()->ScreenWidth();
-    int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
     frame++;
     moFont* pFont = m_Config[ moR(PARTICLES_FONT) ][MO_SELECTED][0].Font();
-
-
-
-    /*
-    MODebug2->Push( "sync: " + IntToStr((int)state.synchronized)
-                    +" tempo.on: " + IntToStr( (int)m_EffectState.tempo.Started() )
-                    +" tempo.pause_on: " + IntToStr( (int)m_EffectState.tempo.Paused())
-                    + " tempo.ticks: " + IntToStr( m_EffectState.tempo.ticks )
-                    + " tempo.ang: " + FloatToStr( m_EffectState.tempo.ang ) );
-
-*/
-    PreDraw( tempogral, parentstate);
     UpdateParameters();
-    // Cambiar la proyeccion para una vista ortogonal //
-/*
-*/
 
+    glDisable(GL_DEPTH_TEST);
 
-    if (ortho) {
-
-        glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
-        //glDepthMask(GL_FALSE);
-        glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-        glLoadIdentity();									// Reset The Projection Matrix
-        glOrtho(-0.5,0.5,-0.5*h/w,0.5*h/w,-1,1);                              // Set Up An Ortho Screen
-
-    } else {
-
-        glDisable(GL_DEPTH_TEST);
-
-        //glClear( GL_DEPTH_BUFFER_BIT );
-        //glDepthMask(GL_FALSE);
-
-        glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-        glLoadIdentity();									// Reset The Projection Matrix
-        m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
-    }
-
-    glMatrixMode(GL_PROJECTION);
+    (ortho) ? mGL->SetDefaultOrthographicView( w, h ) : mGL->SetDefaultPerspectiveView( w, h );
 
     if (!ortho) {
         if ( m_EffectState.stereoside == MO_STEREO_NONE ) {
 
-            gluLookAt(		m_Physics.m_EyeVector.X(),
-                            m_Physics.m_EyeVector.Y(),
-                            m_Physics.m_EyeVector.Z(),
-                           m_Physics.m_TargetViewVector.X(),
-                            m_Physics.m_TargetViewVector.Y(),
-                            m_Physics.m_TargetViewVector.Z(),
-                            0, 1, 0);
+        mGL->LookAt(  m_Physics.m_EyeVector.X(),
+                      m_Physics.m_EyeVector.Y(),
+                      m_Physics.m_EyeVector.Z(),
+                      m_Physics.m_TargetViewVector.X(),
+                      m_Physics.m_TargetViewVector.Y(),
+                      m_Physics.m_TargetViewVector.Z(),
+                      0, 1, 0 );
 
         } else {
+          /*
             if ( m_EffectState.stereoside == MO_STEREO_LEFT ) {
                gluLookAt(	m_Physics.m_EyeVector.X()-0.1,
                             m_Physics.m_EyeVector.Y(),
@@ -3215,16 +3190,22 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
                             m_Physics.m_TargetViewVector.Z(),
                             0, 1, 0);
             }
-
+*/
         }
     }
+
+/*
+  glGetFloatv( GL_PROJECTION_MATRIX, &glM[0] );
+   glGetIntegerv( GL_PROJECTION_STACK_DEPTH, &pdepth );
+   //MODebug2->Message( "pdepth: " + IntToStr(pdepth) );
+   moGLMatrixf PMGL = moMatrix4f( glM );
+   //MODebug2->Message( "GL_PROJECTION_MATRIX:\n" + PMGL.ToJSON() );
+*/
 
     if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
       glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), &m_EffectState.tempo);
     }
 
-    glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
-    glLoadIdentity();									// Reset The View
 
     glEnable(GL_ALPHA);
     //glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
@@ -3240,34 +3221,43 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     //esto deberia ser parametrizable...
 	//glEnable( GL_DEPTH_TEST);
 	//glDisable( GL_DEPTH_TEST);
-
-
     setUpLighting();
 
     tx = m_Config.Eval( moR(PARTICLES_TRANSLATEX));
     ty = m_Config.Eval( moR(PARTICLES_TRANSLATEY));
     tz = m_Config.Eval( moR(PARTICLES_TRANSLATEZ));
 
-
     sx = m_Config.Eval( moR(PARTICLES_SCALEX));
     sy = m_Config.Eval( moR(PARTICLES_SCALEY));
     sz = m_Config.Eval( moR(PARTICLES_SCALEZ));
 
-    glTranslatef(   tx,
-                    ty,
-                    tz );
-
     //rotation
     float rz = m_Config.Eval( moR(PARTICLES_ROTATEZ));
+    float ry = m_Config.Eval( moR(PARTICLES_ROTATEY));
+    float rx = m_Config.Eval( moR(PARTICLES_ROTATEX));
+
+#ifndef OPENGLESV2
+/*
+    glTranslatef( tx, ty, tz);
     glRotatef(  rz, 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY)), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX)), 1.0, 0.0, 0.0 );
+    glRotatef(  ry, 0.0, 1.0, 0.0 );
+    glRotatef(  rx, 1.0, 0.0, 0.0 );
+    glScalef(   sx, sy, sz);
+*/
+#endif
+  glMatrixMode( GL_MODELVIEW );                         // Select The Modelview Matrix
+  moGLMatrixf& MM( mGL->GetModelMatrix() );
+  MM.MakeIdentity();
+  MM.Scale( sx, sy, sz );
+  MM.Rotate( rx, 1.0, 0.0, 0.0 );
+  MM.Rotate( ry, 0.0, 1.0, 0.0 );
+  MM.Rotate( rz, 0.0, 0.0, 1.0 );
+  MM.Translate( tx, ty, tz );
 
-	//scale
-	glScalef(   sx,
-              sy,
-              sz);
-
+#ifndef OPENGLESV2
+  glMatrixMode( GL_MODELVIEW );
+  glLoadMatrixf( MM.GetPointer() );
+#endif
     //blending
     SetBlending( (moBlendingModes) m_Config.Int( moR(PARTICLES_BLENDING) ) );
 /*
@@ -3277,8 +3267,26 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     //color
     //SetColor( m_Config[moR(PARTICLES_COLOR)][MO_SELECTED], m_Config[moR(PARTICLES_ALPHA)][MO_SELECTED], m_EffectState );
     SetColor( m_Config[moR(PARTICLES_COLOR)], m_Config[moR(PARTICLES_ALPHA)], m_EffectState );
+/*
+    moText Texto = m_Config.Text( moR(PARTICLES_TEXT) );
 
-	moText Texto = m_Config.Text( moR(PARTICLES_TEXT) );
+    moVector4d color = m_Config.EvalColor( moR(PARTICLES_COLOR) );
+    moPlaneGeometry PlaneQuad( 1.0, 1.0, 1, 1 );
+    moMaterial Material;
+    moData* TData = m_Config[moR(PARTICLES_TEXTURE)][MO_SELECTED][0].GetData();
+    if (TData) {
+      glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PARTICLES_TEXTURE), &m_EffectState.tempo ) );
+      Material.m_Map = TData->Texture();
+    }
+        Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+    moMesh Mesh( PlaneQuad, Material );
+    Mesh.SetModelMatrix( MM );
+
+    moCamera3D Camera3D;
+    Camera3D = mGL->GetProjectionMatrix();
+    mRender->Render( Mesh, Camera3D );
+*/
 
 //glutSolidTorus ( 1, 2, 13, 20);
 /*
@@ -3311,13 +3319,15 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
         pFont->Draw( 0.0, 0.0, infod );
     }
 
-    EndDraw();
-
+#ifndef OPENGLESV2
   //glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
+#endif
+
+    EndDraw();
 
 }
 

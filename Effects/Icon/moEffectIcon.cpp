@@ -166,7 +166,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     Model.Translate( m_Config.Eval( moR(ICON_TRANSLATEX)), m_Config.Eval( moR(ICON_TRANSLATEY)), 0.0 );
 
     moMesh Mesh( IconQuad, Material );
-    Mesh.SetModel( Model );
+    Mesh.SetModelMatrix( Model );
 
 
     moCamera3D Camera3D;

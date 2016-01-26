@@ -163,7 +163,7 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
     Model.Translate( m_Config.Eval( moR(PLANE_TRANSLATEX)), m_Config.Eval( moR(PLANE_TRANSLATEY)), m_Config.Eval( moR(PLANE_TRANSLATEZ)) );
 
     moMesh Mesh( PlaneQuad, Material );
-    Mesh.SetModel( Model );
+    Mesh.SetModelMatrix( Model );
 
 
     moCamera3D Camera3D;

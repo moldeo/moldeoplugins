@@ -510,7 +510,7 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     Model.Translate( PosCuadX+AncCuadX/2, PosCuadY+AltCuadY/2, 0.0 );
 
     moMesh Mesh( ImageQuad, Material );
-    Mesh.SetModel( Model );
+    Mesh.SetModelMatrix( Model );
 
 
     moCamera3D Camera3D;

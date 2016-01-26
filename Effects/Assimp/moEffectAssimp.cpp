@@ -910,7 +910,6 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 MOboolean moEffectAssimp::Finish()
 {
-    //Models3d.Finish();
 
     return PreFinish();
 }

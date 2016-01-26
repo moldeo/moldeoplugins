@@ -150,7 +150,6 @@ private:
     Matrix3fT   LastRot;                 // Last Rotation
     Matrix3fT   ThisRot;                 // This Rotation
 
-    mo3dModelManagerRef Models3d;
 };
 
 class moEffectAssimpFactory : public moEffectFactory
