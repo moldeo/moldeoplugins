@@ -236,7 +236,7 @@ void moEffectIcon3D::Draw( moTempo* tempogral,moEffectState* parentstate)
 	*/
 
 	//Models3d.Draw( m_Config[ moParamReference(ICON3D_OBJECT) ].GetIndexValue(), &state, GL_TRIANGLES);
-	mo3DModelSceneNode* pSceneNode = (mo3DModelSceneNode*) m_Config[moR(ICON3D_OBJECT)].GetData()->Pointer();
+	moSceneNode* pSceneNode = (moSceneNode*) m_Config[moR(ICON3D_OBJECT)].GetData()->Pointer();
 	if (pSceneNode) {
 	    pSceneNode->Draw(&m_EffectState, GL_TRIANGLES);
     }
@@ -263,7 +263,7 @@ void moEffectIcon3D::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 MOboolean moEffectIcon3D::Finish()
 {
-	Models3d.Finish();
+	//Models3d.Finish();
 
     return PreFinish();
 }

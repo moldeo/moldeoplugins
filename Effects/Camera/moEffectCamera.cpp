@@ -517,7 +517,7 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     //mGL->SetDefaultOrthographicView( w, h );
     mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
     Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( Mesh, Camera3D );
+    mRender->Render( &Mesh, &Camera3D );
 
 #ifndef OPENGESV2
 /*

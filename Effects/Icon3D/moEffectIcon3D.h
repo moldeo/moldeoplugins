@@ -93,7 +93,7 @@ private:
 
 	MOfloat	Tx,Ty,Tz,Sx,Sy,Sz;
 
-    mo3dModelManagerRef Models3d;
+    //mo3dModelManagerRef Models3d;
 };
 
 class moEffectIcon3DFactory : public moEffectFactory

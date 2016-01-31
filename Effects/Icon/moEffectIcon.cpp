@@ -171,7 +171,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     moCamera3D Camera3D;
     Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( Mesh, Camera3D );
+    mRender->Render( &Mesh, &Camera3D );
 #ifndef OPENGLESV2
 /*
     /// Draw //
