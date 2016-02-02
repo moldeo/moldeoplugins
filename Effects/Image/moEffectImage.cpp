@@ -202,7 +202,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     PosCuadY0 = PosCuadY + AltCuadY;
 
 #ifndef OPENGLESV2
-/*
+
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -216,11 +216,9 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
-*/
-#else
-#endif
 
-    moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
+#else
+  moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
     moMaterial Material;
     Material.m_Map = pImage;
     //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
@@ -240,6 +238,9 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
     mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
     Camera3D = mGL->GetProjectionMatrix();
     mRender->Render( &Mesh, &Camera3D );
+#endif
+
+
 
 #ifndef OPENGLESV2
     glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix

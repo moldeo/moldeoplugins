@@ -139,6 +139,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     glEnable(GL_ALPHA);
     glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
     glDepthMask(GL_FALSE);
+    //glDisable(GL_DEPTH);
 
     ancho = m_Config.Eval( moR(ICON_WIDTH));
     alto = m_Config.Eval( moR(ICON_HEIGHT));
@@ -171,9 +172,9 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     moCamera3D Camera3D;
     Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( &Mesh, &Camera3D );
+
 #ifndef OPENGLESV2
-/*
+
     /// Draw //
     glTranslatef(  m_Config.Eval( moR(ICON_TRANSLATEX)) + Tx,
                    m_Config.Eval( moR(ICON_TRANSLATEY)) + Ty,
@@ -199,10 +200,10 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
       glTexCoord2f( 0.0, 0.0 );
       glVertex2f( -0.5*ancho,  0.5*alto);
     glEnd();
-    */
+
+#else
+    mRender->Render( &Mesh, &Camera3D );
 #endif
-
-
     int Tracker = GetInletIndex("TRACKERKLT" );
     if (Tracker > -1) {
       moInlet* pInlet = GetInlets()->Get(Tracker);
@@ -223,12 +224,12 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
       }
     }
 #ifndef OPENGLESV2
-/*
+
     glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
     glPopMatrix();										// Restore The Old Projection Matrix
     glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
     glPopMatrix();										// Restore The Old Projection Matrix
-    */
+
 #endif
     EndDraw();
 }

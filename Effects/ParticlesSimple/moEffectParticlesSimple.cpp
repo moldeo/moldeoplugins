@@ -3232,9 +3232,9 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     sz = m_Config.Eval( moR(PARTICLES_SCALEZ));
 
     //rotation
-    float rz = m_Config.Eval( moR(PARTICLES_ROTATEZ));
-    float ry = m_Config.Eval( moR(PARTICLES_ROTATEY));
-    float rx = m_Config.Eval( moR(PARTICLES_ROTATEX));
+    float rz = m_Config.Eval( moR(PARTICLES_ROTATEZ))*moMathf::DEG_TO_RAD;
+    float ry = m_Config.Eval( moR(PARTICLES_ROTATEY))*moMathf::DEG_TO_RAD;
+    float rx = m_Config.Eval( moR(PARTICLES_ROTATEX))*moMathf::DEG_TO_RAD;
 
 #ifndef OPENGLESV2
 /*

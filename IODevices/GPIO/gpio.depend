@@ -1,0 +1,621 @@
+# depslib dependency file v1.0
+1454442445 source:d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\moldeoplugins\iodevices\gpio\mogpio.cpp
+	"moGPIO.h"
+	"moArray.h"
+
+1454442403 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\moldeoplugins\iodevices\gpio\mogpio.h
+	"moTypes.h"
+	"moActions.h"
+	"moConfig.h"
+	"moDeviceCode.h"
+	"moEventList.h"
+	"moIODeviceManager.h"
+	"moFilterManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motypes.h
+	<math.h>
+	<limits.h>
+	<iostream>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<float.h>
+	<time.h>
+	<string.h>
+	<vector>
+	<fstream>
+	"SDL.h"
+	"SDL_thread.h"
+	"SDL_mutex.h"
+	"SDL_net.h"
+	"SDL_image.h"
+	<GL/glew.h>
+	"OpenGL/gl.h"
+	"OpenGL/glu.h"
+	"OpenGL/glext.h"
+	"GLUT/glut.h"
+	"X11/X.h"
+	<GL/glew.h>
+	<GLES2/gl2.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<GL/glext.h>
+	<GL/glut.h>
+	<windows.h>
+	<SDL.h>
+	<SDL_thread.h>
+	<SDL_mutex.h>
+	<SDL_syswm.h>
+	<GL/glew.h>
+	"GL/gl.h"
+	"GL/glu.h"
+	"GL/glext.h"
+	"moPort.h"
+	"moText.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_getenv.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"SDL_timer.h"
+	"SDL_audio.h"
+	"SDL_cdrom.h"
+	"SDL_joystick.h"
+	"SDL_events.h"
+	"SDL_video.h"
+	"SDL_byteorder.h"
+	"SDL_version.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_main.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_types.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\begin_code.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\close_code.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_getenv.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_error.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_rwops.h
+	<stdio.h>
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_timer.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_audio.h
+	<stdio.h>
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_error.h"
+	"SDL_rwops.h"
+	"SDL_byteorder.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_byteorder.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_cdrom.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_joystick.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_events.h
+	"SDL_types.h"
+	"SDL_active.h"
+	"SDL_keyboard.h"
+	"SDL_mouse.h"
+	"SDL_joystick.h"
+	"SDL_quit.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_active.h
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_keyboard.h
+	"SDL_types.h"
+	"SDL_keysym.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_keysym.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_mouse.h
+	"SDL_types.h"
+	"SDL_video.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_video.h
+	<stdio.h>
+	"SDL_types.h"
+	"SDL_mutex.h"
+	"SDL_rwops.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_mutex.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_quit.h
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_version.h
+	"SDL_types.h"
+	"begin_code.h"
+	"close_code.h"
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_thread.h
+	"SDL_main.h"
+	"SDL_types.h"
+	"SDL_mutex.h"
+	"begin_code.h"
+	"close_code.h"
+
+1344268747 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\glew\include\gl\glew.h
+	<stddef.h>
+	<inttypes.h>
+	<stdint.h>
+	<inttypes.h>
+	<OpenGL/glu.h>
+	<GL/glu.h>
+
+1150218042 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\opengl\include\gl\glu.h
+	<GL/gl.h>
+
+1150218042 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\opengl\include\gl\gl.h
+
+1150218042 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\opengl\include\gl\glext.h
+	<windows.h>
+
+1203564061 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\opengl\include\gl\glut.h
+	<windows.h>
+	<GL/gl.h>
+	<GL/glu.h>
+
+1150218036 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\sdl\include\sdl_syswm.h
+	"SDL_version.h"
+	"begin_code.h"
+	<X11/Xlib.h>
+	<X11/Xatom.h>
+	<microwin/nano-X.h>
+	<windows.h>
+	<sys/neutrino.h>
+	<Ph.h>
+	"close_code.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moport.h
+	<stdio.h>
+	<cstdio>
+	<string>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motext.h
+	"moTypes.h"
+	"moArray.h"
+	<stdio.h>
+	<string.h>
+	<sstream>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moarray.h
+	"moArrayH.h"
+	<stdarg.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moarrayh.h
+	"moTypes.h"
+	"moArray.h"
+	"moArray.cpp"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moactions.h
+	"moTypes.h"
+	"moValue.h"
+	<iostream>
+	<map>
+	<string>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\movalue.h
+	"moTypes.h"
+	"moTempo.h"
+	"moText.h"
+	"moArray.h"
+	"moMathMatrix.h"
+	"moMathFunction.h"
+	"moMathVector.h"
+	"moMathVector3.h"
+	"moMathVector4.h"
+	<iostream>
+	<map>
+	<string>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motempo.h
+	"moTimer.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motimer.h
+	"moTypes.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momathmatrix.h
+	"moMathVector.h"
+	"moMathVector3.h"
+	"moMathVector4.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momathvector.h
+	"moMath.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momath.h
+	"moTypes.h"
+	"moAbstract.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moabstract.h
+	"moTypes.h"
+	"moText.h"
+	"moLock.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\molock.h
+	"moTypes.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momathvector3.h
+	"moMath.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momathvector4.h
+	"moMath.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momathfunction.h
+	"moTypes.h"
+	"moArray.h"
+	"moAbstract.h"
+	"moMath.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moconfig.h
+	"moTypes.h"
+	"moText.h"
+	"moParam.h"
+	"moArray.h"
+	"moPreConfig.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moparam.h
+	"moTypes.h"
+	"moText.h"
+	"moValue.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mopreconfig.h
+	"moTypes.h"
+	"moValue.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\modevicecode.h
+	"moTypes.h"
+	"moAbstract.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moeventlist.h
+	"moValue.h"
+	"moLock.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moiodevicemanager.h
+	"moTypes.h"
+	"moText.h"
+	"moMoldeoObject.h"
+	"moDeviceCode.h"
+	"moEventList.h"
+	"moRenderManager.h"
+	"moIODevicePlugin.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\momoldeoobject.h
+	"moTypes.h"
+	"moText.h"
+	"moAbstract.h"
+	"moScript.h"
+	"moEventList.h"
+	"moConfig.h"
+	"moArray.h"
+	"moConnectors.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moscript.h
+	"moLuaBase.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moluabase.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	<lua.h>
+	<lauxlib.h>
+	<lualib.h>
+
+1174666350 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\lua\include\lua.h
+	<stdarg.h>
+	<stddef.h>
+	"luaconf.h"
+
+1174701714 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\lua\include\luaconf.h
+	<limits.h>
+	<stddef.h>
+	<unistd.h>
+	<io.h>
+	<stdio.h>
+	<stdio.h>
+	<readline/readline.h>
+	<readline/history.h>
+	<assert.h>
+	<math.h>
+	<unistd.h>
+
+1144870274 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\lua\include\lauxlib.h
+	<stddef.h>
+	<stdio.h>
+	"lua.h"
+
+1135707120 d:\0_desarrollo\0_moldeo\0_desarrollo\svnsourceforge\externlibs\lua\include\lualib.h
+	"lua.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moconnectors.h
+	"moTypes.h"
+	"moText.h"
+	"moAbstract.h"
+	"moEventList.h"
+	"moConfig.h"
+	"moArray.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moresourcemanager.h
+	"moTypes.h"
+	"moArray.h"
+	"moMoldeoObject.h"
+	"moResourcePlugin.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moresourceplugin.h
+	"moBasePlugin.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mobaseplugin.h
+	"moText.h"
+	<windows.h>
+	<dlfcn.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\morendermanager.h
+	<moTextureManager.h>
+	<moGUIManager.h>
+	<moBuckets.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motexturemanager.h
+	"moTexture.h"
+	"moResourceManager.h"
+	<moFileManager.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motexture.h
+	"moTypes.h"
+	"moText.h"
+	"moParam.h"
+	"moBuckets.h"
+	"moVideoGraph.h"
+	"moGsGraph.h"
+	"moDsGraph.h"
+	"moMathVector3.h"
+	"moTextureIndex.h"
+	"moFBO.h"
+	"moGLManager.h"
+	"moTextureFilter.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mobuckets.h
+	"moTypes.h"
+	"moLock.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\movideograph.h
+	"moTypes.h"
+	"moText.h"
+	"moBuckets.h"
+	"moArray.h"
+	"moAbstract.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mogsgraph.h
+	"moConfig.h"
+	"moTypes.h"
+	"moThread.h"
+	"moBuckets.h"
+	"moVideoGraph.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mothread.h
+	"moTypes.h"
+	"moLock.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\modsgraph.h
+	"moTypes.h"
+	"streams.h"
+	"qedit.h"
+	"dvdmedia.h"
+	"moVideoGraph.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motextureindex.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moParam.h"
+	"moMoldeoObject.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mofbo.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moGLManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moglmanager.h
+	"moTypes.h"
+	"moText.h"
+	"moMathMatrix.h"
+	"moShaderGLSL.h"
+	"moFBO.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moshaderglsl.h
+	"moShader.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moshader.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moArray.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motexturefilter.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moConfig.h"
+	"moParam.h"
+	"moMoldeoObject.h"
+	"moShader.h"
+	"moShaderGLSL.h"
+	"moTextFilterParam.h"
+	"moVideoManager.h"
+	"moVideoManager.h"
+	"moShaderManager.h"
+	"moTextureManager.h"
+	"moGLManager.h"
+	"moRenderManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motextfilterparam.h
+	"moShader.h"
+	"moShaderCG.h"
+	"moShaderGLSL.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moshadercg.h
+	"moShader.h"
+	<cg.h>
+	<cgGL.h>
+	<Cg/cg.h>
+	<Cg/cgGL.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\movideomanager.h
+	<moGsGraph.h>
+	<moDsGraph.h>
+	<moFBO.h>
+	<moTexture.h>
+	<moVideoGraph.h>
+	<moDebugManager.h>
+	<moDataManager.h>
+	<moTimeManager.h>
+	"moIODeviceManager.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\modebugmanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moParam.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\modatamanager.h
+	"moBasePlugin.h"
+	<moConsoleState.h>
+	<moActions.h>
+	<moValue.h>
+	<moParam.h>
+	<moEventList.h>
+	<moFileManager.h>
+	<moResourceManager.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moconsolestate.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moTempo.h"
+	"moEffectState.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moeffectstate.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moTempo.h"
+	"moMoldeoObject.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mofilemanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moResourceManager.h"
+	"moBuckets.h"
+	"moParam.h"
+	"io.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\motimemanager.h
+	"moTimer.h"
+	"moText.h"
+	"moConfig.h"
+	"moLock.h"
+	"moResourceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moshadermanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moParam.h"
+	"moConfig.h"
+	"moShader.h"
+	"moShaderGLSL.h"
+	"moShaderCG.h"
+	"moResourceManager.h"
+	"moGLManager.h"
+	"moFBManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mofbmanager.h
+	"moTypes.h"
+	"moText.h"
+	"moLock.h"
+	"moFBO.h"
+	"moTexture.h"
+	"moResourceManager.h"
+	"moGLManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moguimanager.h
+	<moMathVector.h>
+	<moMathVector3.h>
+	<moMathVector4.h>
+	<mo3dModelManager.h>
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mo3dmodelmanager.h
+	<moTypes.h>
+	<moEffectState.h>
+	"moGLManager.h"
+	"moMathVector.h"
+	"moMathVector3.h"
+	"moMathMatrix.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\moiodeviceplugin.h
+	"moTypes.h"
+	"moArray.h"
+	"moBasePlugin.h"
+	"moIODeviceManager.h"
+
+1454362639 d:\0_desarrollo\0_moldeo\0_desarrollo\github\moldeo\moldeoinstaller\include\mofiltermanager.h
+	"moTypes.h"
+	"moAbstract.h"
+	"moText.h"
+	"moVideoGraph.h"
+	"moResourceManager.h"
+	"moBuckets.h"
+	"moParam.h"
+	"moMathVector.h"
+	<TUIO/TuioObject.h>
+	<TUIO/TuioCursor.h>
+	"moTimeManager.h"
+

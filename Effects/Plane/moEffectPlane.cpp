@@ -168,7 +168,7 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     moCamera3D Camera3D;
     Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( &Mesh, &Camera3D );
+
 
 #ifndef OPENGLESV2
 /*
@@ -209,7 +209,7 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 #ifndef OPENGLESV2
-/*
+
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
 		glVertex2i( -ancho, -alto);
@@ -229,7 +229,8 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glPopMatrix();										// Restore The Old Projection Matrix
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
-	*/
+#else
+  mRender->Render( &Mesh, &Camera3D );
 #endif
   EndDraw();
 }
