@@ -318,7 +318,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                 && actual->pointer ) {
 
               /// moldeoapi_data_message
-              MODebug2->Message( moText("moNetOSCOut::Update > Sending Moldeo API Message!") );
+              if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update > Sending Moldeo API Message!") );
               moDataMessage* MoldeoAPIMessage = (moDataMessage*)actual->pointer;
 
               for (i = 0; i < host_name.Count(); i++)
@@ -326,7 +326,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     //res = eventPacket[i]->AddEvent(actual);
                     //if (eventPacket[i]->ReadyToSend())
                     {
-                        MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
+                        if (debug_is_on) MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
                         SendDataMessage( i, *MoldeoAPIMessage );
                         //eventPacket[i]->ClearPacket();
                         //if (!res) eventPacket[i]->AddEvent(actual);

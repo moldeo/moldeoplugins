@@ -944,7 +944,22 @@ void moEffectParticlesSimple::UpdateParameters() {
     m_TS[1] = moVector4f(  0, m_Config.Eval( moR(PARTICLES_SCALEY) ), 0, m_Config.Eval( moR(PARTICLES_TRANSLATEY) ) );
     m_TS[2] = moVector4f(  0, 0, m_Config.Eval( moR(PARTICLES_SCALEZ) ), m_Config.Eval( moR(PARTICLES_TRANSLATEZ) ) );
     m_TS[3] = moVector4f(  0, 0, 0, 1 );
+/*
+    MODebug2->Message(
+" maxage: " + IntToStr(m_Physics.m_MaxAge) + "\n"+
+" emitionperiod: " + IntToStr(m_Physics.m_EmitionPeriod) + "\n"+
+" emitionrate: " + IntToStr(m_Physics.m_EmitionRate) + "\n"+
+" emittervector x: " + FloatToStr(m_Physics.m_EmitterVector.X())
+                      + " y: " + FloatToStr(m_Physics.m_EmitterVector.Y(),2,2) +
+                      + " z: " + FloatToStr(m_Physics.m_EmitterVector.Z(),2,2) + "\n"+
+" emittersize x: " + FloatToStr(m_Physics.m_EmitterSize.X(),2,2)
+                      + " y: " + FloatToStr(m_Physics.m_EmitterSize.Y(),2,2) +
+                      + " z: " + FloatToStr(m_Physics.m_EmitterSize.Z(),2,2) + "\n"+
+" randommethod: " + IntToStr(m_Physics.m_RandomMethod) + "\n"+
+" creationmethod: " + IntToStr(m_Physics.m_CreationMethod) + "\n"
 
+                                           );
+                                          */
 }
 
 void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle ) {
@@ -1317,7 +1332,6 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
         }
     }
 
-    //if (p_cols==m_cols && p_rows==m_rows && !forced)  {
 
         if (m_ParticlesSimpleArray.Count()>0) {
             /*for(i=0;i<m_ParticlesSimpleArray.Count();i++) {
@@ -1343,7 +1357,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
         if (m_ParticlesSimpleArrayOrdered.Count()>0) {
             m_ParticlesSimpleArrayOrdered.Empty();
         }
-    //}
+
         if ( !m_ParticlesSimpleVector.empty() ) {
           m_ParticlesSimpleVector.clear();
         }
@@ -1354,8 +1368,8 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
     m_ParticlesSimpleArrayTmp.Init( p_cols*p_rows, NULL );
 
     int orderindex = 0;
-        for( j=0; j<p_rows ; j++) {
-                for( i=0; i<p_cols ; i++) {
+    for( j=0; j<p_rows ; j++) {
+            for( i=0; i<p_cols ; i++) {
 
             moParticlesSimple* pPar = new moParticlesSimple();
             m_ParticlesSimpleVector[orderindex] = pPar;
@@ -1378,17 +1392,20 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
                 pPar->TCoord = moVector2f( 0.0, 0.0 );
                 pPar->TSize = moVector2f( 1.0f, 1.0f );
 
-            } else if (texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
+            }
+            else if (texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
 
                 pPar->TCoord = moVector2f( (float) (i) / (float) p_cols, (float) (j) / (float) p_rows );
                 pPar->TSize = moVector2f( 1.0f / (float) p_cols, 1.0f / (float) p_rows );
 
-            } else if (texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
+            }
+            else if (texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
 
                 pPar->TCoord = moVector2f( 0.0, 0.0 );
                 pPar->TSize = moVector2f( 1.0f, 1.0f );
 
-            } else if (texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH) {
+            }
+            else if (texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH) {
 
                 ///take the texture preselected
                 moTextureBuffer* pTexBuf = m_Config[moR(PARTICLES_FOLDERS)][MO_SELECTED][0].TextureBuffer();
@@ -2397,10 +2414,10 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
     for( j = 0; j<m_rows ; j++) {
       for( i = 0; i<m_cols ; i++) {
 
-
             idxt = 0.5 + (float)( i + j * m_cols ) / (float)( m_cols * m_rows * 2 );
 
             moParticlesSimple* pPar = m_ParticlesSimpleArray.GetRef( i + j*m_cols );
+
             switch(m_OrderingMode) {
               case PARTICLES_ORDERING_MODE_NONE:
                 break;
@@ -2419,267 +2436,282 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
             }
 
             orderedindex+= 1;
-            if (pPar)
-            if (pPar->Visible) {
+            double part_timer;
+            if (pPar) {
+              if (pPar->Visible) {
 
 
-                if (texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH ) {
-                    //pPar->GLId = 22;
-                    if (pPar->GLId>0) {
-                        glActiveTextureARB( GL_TEXTURE0_ARB );
-                        glEnable(GL_TEXTURE_2D);
-                        //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-                        glBindTexture( GL_TEXTURE_2D, pPar->GLId );
-                    }
-                    if (pPar->GLId2>0) {
-                        glActiveTextureARB( GL_TEXTURE1_ARB );
-                        glEnable(GL_TEXTURE_2D);
-                        //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-                        glBindTexture( GL_TEXTURE_2D, pPar->GLId2 );
-                    }
-                }
-
-                if (moScript::IsInitialized()) {
-                    if (ScriptHasFunction("RunParticle")) {
-                        SelectScriptFunction("RunParticle");
-                        AddFunctionParam( (int) ( i + j*m_cols ) );
-                        AddFunctionParam( (float)dt );
-                        if (!RunSelectedFunction(1)) {
-                            MODebug2->Error( moText("RunParticle function not executed") );
-                        }
-                    }
-                }
-
-                sizexd2 = (pPar->Size.X()* pPar->ImageProportion )/2.0;
-                sizeyd2 = pPar->Size.Y()/2.0;
-                tsizex = pPar->TSize.X();
-                tsizey = pPar->TSize.Y();
-                double part_timer = 0.001f * (double)(pPar->Age.Duration()); // particule ang = durationinmilis / 1000 ...
-
-                if (m_pParticleTime) {
-                  if (m_pParticleTime->GetData()) {
-                      m_pParticleTime->GetData()->SetDouble(part_timer);
-                      m_pParticleTime->Update(true);
+                  if (texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH ) {
+                      //pPar->GLId = 22;
+                      if (pPar->GLId>0) {
+                          glActiveTextureARB( GL_TEXTURE0_ARB );
+                          glEnable(GL_TEXTURE_2D);
+                          //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+                          glBindTexture( GL_TEXTURE_2D, pPar->GLId );
+                      }
+                      if (pPar->GLId2>0) {
+                          glActiveTextureARB( GL_TEXTURE1_ARB );
+                          glEnable(GL_TEXTURE_2D);
+                          //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                          glBindTexture( GL_TEXTURE_2D, pPar->GLId2 );
+                      }
                   }
-                }
 
-                if (m_pParticleIndex) {
-                  if (m_pParticleIndex->GetData()) {
-                      m_pParticleIndex->GetData()->SetLong( ((long)pPar->Pos.X()) + ((long)pPar->Pos.Y())*m_cols );
-                      m_pParticleIndex->Update(true);
+                  if (moScript::IsInitialized()) {
+                      if (ScriptHasFunction("RunParticle")) {
+                          SelectScriptFunction("RunParticle");
+                          AddFunctionParam( (int) ( i + j*m_cols ) );
+                          AddFunctionParam( (float)dt );
+                          if (!RunSelectedFunction(1)) {
+                              MODebug2->Error( moText("RunParticle function not executed") );
+                          }
+                      }
                   }
-                }
 
-                glPushMatrix();
+                  sizexd2 = (pPar->Size.X()* pPar->ImageProportion )/2.0;
+                  sizeyd2 = pPar->Size.Y()/2.0;
+                  tsizex = pPar->TSize.X();
+                  tsizey = pPar->TSize.Y();
+                  part_timer = 0.001f * (double)(pPar->Age.Duration()); // particule ang = durationinmilis / 1000 ...
 
-                moVector3f CO(m_Physics.m_EyeVector - pPar->Pos3d);
-                moVector3f U,V,W;
-                moVector3f CPU,CPW;
-                moVector3f A,B,C,D;
-
-                moVector3f CENTRO;
-
-                U = moVector3f( 0.0f, 0.0f, 1.0f );
-                V = moVector3f( 1.0f, 0.0f, 0.0f );
-                W = moVector3f( 0.0f, 1.0f, 0.0f );
-
-                U = CO;
-                U.Normalize();
-
-                //orientation always perpendicular to plane (X,Y)
-                switch(m_Physics.m_OrientationMode) {
-
-                        case PARTICLES_ORIENTATIONMODE_FIXED:
-                            //cuadrado centrado en Pos3d....
-                            U = moVector3f( 0.0f, 0.0f, 1.0f );
-                            V = moVector3f( 1.0f, 0.0f, 0.0f );
-                            W = moVector3f( 0.0f, 1.0f, 0.0f );
-                            break;
-
-                        case PARTICLES_ORIENTATIONMODE_CAMERA:
-                            V = moVector3f( -CO.Y(), CO.X(), 0.0f );
-                            V.Normalize();
-
-                            CPU = moVector3f( U.X(), U.Y(), 0.0f );
-                            W = moVector3f( 0.0f, 0.0f, CPU.Length() );
-                            CPU.Normalize();
-                            CPW = CPU * -U.Z();
-                            W+= CPW;
-                            break;
-
-                        case PARTICLES_ORIENTATIONMODE_MOTION:
-                            if (pPar->Velocity.Length()>0) U = pPar->Velocity;
-                            U.Normalize();
-                            if (U.Length() < 0.5) {
-                                U = moVector3f( 0.0, 0.0, 1.0 );
-                                U.Normalize();
-                            }
-                            V = moVector3f( -U.Y(), U.X(), 0.0f );
-                            V.Normalize();
-                            CPU = moVector3f( U.X(), U.Y(), 0.0f );
-                            W = moVector3f( 0.0f, 0.0f, CPU.Length() );
-                            CPU.Normalize();
-                            CPW = CPU * -U.Z();
-                            W+= CPW;
-                            break;
-                }
-
-                A = V * -sizexd2 + W * sizeyd2;
-                B = V *sizexd2 +  W * sizeyd2;
-                C = V *sizexd2 + W * -sizeyd2;
-                D = V * -sizexd2 + W * -sizeyd2;
-
-
-                //cuadrado centrado en Pos3d....
-
-                //TODO: dirty code here!!!
-                if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
-
-                    MOfloat cycleage = m_EffectState.tempo.ang;
-
-                    //if (m_Physics.m_MaxAge>0) cycleage = (float) ((double)pPar->Age.Duration() /  (double)m_Physics.m_MaxAge );
-                    cycleage = part_timer;
-
-                    int glid = pPar->GLId;
-
-                    if ( pPar->MOId==-1 ) {
-
-                        glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, NULL );
-
-                    } else {
-
-
-                        if ( pPar->MOId>-1 ) {
-
-                            moTexture* pTex = m_pResourceManager->GetTextureMan()->GetTexture(pPar->MOId);
-
-                            if (pTex) {
-
-                                if (
-                                    pTex->GetType()==MO_TYPE_VIDEOBUFFER
-                                    || pTex->GetType()==MO_TYPE_CIRCULARVIDEOBUFFER
-                                    || pTex->GetType()==MO_TYPE_MOVIE
-                                    || pTex->GetType()==MO_TYPE_TEXTURE_MULTIPLE
-                                     ) {
-                                    moTextureAnimated *pTA = (moTextureAnimated*)pTex;
-
-                                    if (pPar->FrameForced) {
-                                        glid = pTA->GetGLId( pPar->ActualFrame );
-                                    } else {
-                                        glid = pTA->GetGLId((MOfloat)cycleage);
-                                        pPar->ActualFrame = pTA->GetActualFrame();
-
-                                        pPar->FramePS = pTA->GetFramesPerSecond();
-                                        pPar->FrameCount = pTA->GetFrameCount();
-                                    }
-
-                                } else {
-                                    glid = pTex->GetGLId();
-                                }
-
-                            }
-                        }
+                  if (m_pParticleTime) {
+                    if (m_pParticleTime->GetData()) {
+                        m_pParticleTime->GetData()->SetDouble(part_timer);
+                        m_pParticleTime->Update(true);
                     }
+                  }
 
-                    glBindTexture( GL_TEXTURE_2D , glid );
-                }
+                  if (m_pParticleIndex) {
+                    if (m_pParticleIndex->GetData()) {
+                        m_pParticleIndex->GetData()->SetLong( ((long)pPar->Pos.X()) + ((long)pPar->Pos.Y())*m_cols );
+                        m_pParticleIndex->Update(true);
+                    }
+                  }
 
-                glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
+                  glPushMatrix();
 
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), U.X(), U.Y(), U.Z() );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), W.X(), W.Y(), W.Z() );
-                glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) ) + pPar->Rotation.X(), V.X(), V.Y(), V.Z() );
+                  moVector3f CO(m_Physics.m_EyeVector - pPar->Pos3d);
+                  moVector3f U,V,W;
+                  moVector3f CPU,CPW;
+                  moVector3f A,B,C,D;
 
-                //scale
-                glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) )*pPar->Scale,
-                            m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE) )*pPar->Scale);
+                  moVector3f CENTRO;
 
+                  U = moVector3f( 0.0f, 0.0f, 1.0f );
+                  V = moVector3f( 1.0f, 0.0f, 0.0f );
+                  W = moVector3f( 0.0f, 1.0f, 0.0f );
 
-                glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval() * pPar->Color.X() * m_EffectState.tintr,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval() * pPar->Color.Y() * m_EffectState.tintg,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval() * pPar->Color.Z() * m_EffectState.tintb,
-                            m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval()
-                            * m_Config.Eval( moR(PARTICLES_ALPHA))
-                            * m_EffectState.alpha * pPar->Alpha );
+                  U = CO;
+                  U.Normalize();
 
-                glBegin(GL_QUADS);
-                    //glColor4f( 1.0, 0.5, 0.5, idxt );
+                  //orientation always perpendicular to plane (X,Y)
+                  switch(m_Physics.m_OrientationMode) {
 
-                    if (pPar->GLId2>0) {
-                        //glColor4f( 1.0, 0.5, 0.5, idxt );
-                        glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y() );
-                        glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y());
-                    } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y() );
-                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
-                    glVertex3f( A.X(), A.Y(), A.Z());
+                          case PARTICLES_ORIENTATIONMODE_FIXED:
+                              //cuadrado centrado en Pos3d....
+                              U = moVector3f( 0.0f, 0.0f, 1.0f );
+                              V = moVector3f( 1.0f, 0.0f, 0.0f );
+                              W = moVector3f( 0.0f, 1.0f, 0.0f );
+                              break;
 
-                    //glColor4f( 0.5, 1.0, 0.5, idxt );
+                          case PARTICLES_ORIENTATIONMODE_CAMERA:
+                              V = moVector3f( -CO.Y(), CO.X(), 0.0f );
+                              V.Normalize();
 
-                    if (pPar->GLId2>0) {
-                        glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
-                        glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y());
-                    } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
-                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
-                    glVertex3f( B.X(), B.Y(), B.Z());
+                              CPU = moVector3f( U.X(), U.Y(), 0.0f );
+                              W = moVector3f( 0.0f, 0.0f, CPU.Length() );
+                              CPU.Normalize();
+                              CPW = CPU * -U.Z();
+                              W+= CPW;
+                              break;
 
-                    //glColor4f( 0.5, 0.5, 1.0, idxt );
-                    if (pPar->GLId2>0) {
-                        glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
-                        glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
-                    } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
-                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
-                    glVertex3f( C.X(), C.Y(), C.Z());
+                          case PARTICLES_ORIENTATIONMODE_MOTION:
+                              if (pPar->Velocity.Length()>0) U = pPar->Velocity;
+                              U.Normalize();
+                              if (U.Length() < 0.5) {
+                                  U = moVector3f( 0.0, 0.0, 1.0 );
+                                  U.Normalize();
+                              }
+                              V = moVector3f( -U.Y(), U.X(), 0.0f );
+                              V.Normalize();
+                              CPU = moVector3f( U.X(), U.Y(), 0.0f );
+                              W = moVector3f( 0.0f, 0.0f, CPU.Length() );
+                              CPU.Normalize();
+                              CPW = CPU * -U.Z();
+                              W+= CPW;
+                              break;
+                  }
 
-                    //glColor4f( 1.0, 1.0, 1.0, idxt );
-                    if (pPar->GLId2>0) {
-                        glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y()+pPar->TSize.Y());
-                        glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
-                    } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y()+tsizey );
-                    glNormal3f( -U.X(), -U.Y(), -U.Z() );
-                    glVertex3f( D.X(), D.Y(), D.Z());
-                glEnd();
-
-                //draw vectors associated...
-                if ( drawing_features>2 ) {
-                    CENTRO = moVector3f( 0.0 , 0.0, 0.0 );
-
-                    glDisable( GL_TEXTURE_2D );
-                    glLineWidth( 8.0 );
-                    glBegin(GL_LINES);
-                        ///draw U
-                        glColor4f( 0.0, 1.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
-
-                        glColor4f( 0.0, 1.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X() + U.X(), CENTRO.Y() + U.Y(), 0.0001);
-
-                    glEnd();
-
-                    glBegin(GL_LINES);
-                        ///draw V
-                        glColor4f( 1.0, 0.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
-
-                        glColor4f( 1.0, 0.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X() + V.X(), CENTRO.Y() + V.Y(), 0.0001);
-
-                    glEnd();
-
-                    glBegin(GL_LINES);
-                        ///draw W
-                        glColor4f( 0.0, 0.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
-
-                        glColor4f( 0.0, 0.0, 1.0, 1.0);
-                        glVertex3f( CENTRO.X() + W.X(), CENTRO.Y() + W.Y(), 0.0001);
-
-                    glEnd();
-                    glEnable( GL_TEXTURE_2D );
-                }
+                  A = V * -sizexd2 + W * sizeyd2;
+                  B = V *sizexd2 +  W * sizeyd2;
+                  C = V *sizexd2 + W * -sizeyd2;
+                  D = V * -sizexd2 + W * -sizeyd2;
 
 
-                glPopMatrix();
+                  //cuadrado centrado en Pos3d....
+
+                  //TODO: dirty code here!!!
+                  if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
+
+                      MOfloat cycleage = m_EffectState.tempo.ang;
+
+                      //if (m_Physics.m_MaxAge>0) cycleage = (float) ((double)pPar->Age.Duration() /  (double)m_Physics.m_MaxAge );
+                      cycleage = part_timer;
+
+                      int glid = pPar->GLId;
+
+                      if ( pPar->MOId==-1 ) {
+
+                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, NULL );
+
+                      } else {
+
+
+                          if ( pPar->MOId>-1 ) {
+
+                              moTexture* pTex = m_pResourceManager->GetTextureMan()->GetTexture(pPar->MOId);
+
+                              if (pTex) {
+
+                                  if (
+                                      pTex->GetType()==MO_TYPE_VIDEOBUFFER
+                                      || pTex->GetType()==MO_TYPE_CIRCULARVIDEOBUFFER
+                                      || pTex->GetType()==MO_TYPE_MOVIE
+                                      || pTex->GetType()==MO_TYPE_TEXTURE_MULTIPLE
+                                       ) {
+                                      moTextureAnimated *pTA = (moTextureAnimated*)pTex;
+
+                                      if (pPar->FrameForced) {
+                                          glid = pTA->GetGLId( pPar->ActualFrame );
+                                      } else {
+                                          glid = pTA->GetGLId((MOfloat)cycleage);
+                                          pPar->ActualFrame = pTA->GetActualFrame();
+
+                                          pPar->FramePS = pTA->GetFramesPerSecond();
+                                          pPar->FrameCount = pTA->GetFrameCount();
+                                      }
+
+                                  } else {
+                                      glid = pTex->GetGLId();
+                                  }
+
+                              }
+                          }
+                      }
+
+                      glBindTexture( GL_TEXTURE_2D , glid );
+                  }
+
+                  glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
+
+                  glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), U.X(), U.Y(), U.Z() );
+                  glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), W.X(), W.Y(), W.Z() );
+                  glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX_PARTICLE) ) + pPar->Rotation.X(), V.X(), V.Y(), V.Z() );
+
+                  //scale
+                  glScalef(   m_Config.Eval( moR(PARTICLES_SCALEX_PARTICLE) )*pPar->Scale,
+                              m_Config.Eval( moR(PARTICLES_SCALEY_PARTICLE) )*pPar->Scale,
+                              m_Config.Eval( moR(PARTICLES_SCALEZ_PARTICLE) )*pPar->Scale);
+
+
+                  glColor4f(  m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_RED].Eval() * pPar->Color.X() * m_EffectState.tintr,
+                              m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_GREEN].Eval() * pPar->Color.Y() * m_EffectState.tintg,
+                              m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_BLUE].Eval() * pPar->Color.Z() * m_EffectState.tintb,
+                              m_Config[moR(PARTICLES_COLOR)][MO_SELECTED][MO_ALPHA].Eval()
+                              * m_Config.Eval( moR(PARTICLES_ALPHA))
+                              * m_EffectState.alpha * pPar->Alpha );
+
+                  glBegin(GL_QUADS);
+                      //glColor4f( 1.0, 0.5, 0.5, idxt );
+
+                      if (pPar->GLId2>0) {
+                          //glColor4f( 1.0, 0.5, 0.5, idxt );
+                          glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y() );
+                          glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y());
+                      } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y() );
+                      glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                      glVertex3f( A.X(), A.Y(), A.Z());
+
+                      //glColor4f( 0.5, 1.0, 0.5, idxt );
+
+                      if (pPar->GLId2>0) {
+                          glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
+                          glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y());
+                      } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y() );
+                      glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                      glVertex3f( B.X(), B.Y(), B.Z());
+
+                      //glColor4f( 0.5, 0.5, 1.0, idxt );
+                      if (pPar->GLId2>0) {
+                          glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
+                          glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X()+pPar->TSize2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
+                      } else glTexCoord2f( pPar->TCoord.X()+tsizex, pPar->TCoord.Y()+tsizey );
+                      glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                      glVertex3f( C.X(), C.Y(), C.Z());
+
+                      //glColor4f( 1.0, 1.0, 1.0, idxt );
+                      if (pPar->GLId2>0) {
+                          glMultiTexCoord2fARB( GL_TEXTURE0_ARB, pPar->TCoord.X(), pPar->TCoord.Y()+pPar->TSize.Y());
+                          glMultiTexCoord2fARB( GL_TEXTURE1_ARB, pPar->TCoord2.X(), pPar->TCoord2.Y()+pPar->TSize2.Y());
+                      } else glTexCoord2f( pPar->TCoord.X(), pPar->TCoord.Y()+tsizey );
+                      glNormal3f( -U.X(), -U.Y(), -U.Z() );
+                      glVertex3f( D.X(), D.Y(), D.Z());
+                  glEnd();
+
+                  //draw vectors associated...
+                  if ( drawing_features>2 ) {
+                      CENTRO = moVector3f( 0.0 , 0.0, 0.0 );
+
+                      glDisable( GL_TEXTURE_2D );
+                      glLineWidth( 8.0 );
+                      glBegin(GL_LINES);
+                          ///draw U
+                          glColor4f( 0.0, 1.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
+
+                          glColor4f( 0.0, 1.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X() + U.X(), CENTRO.Y() + U.Y(), 0.0001);
+
+                      glEnd();
+
+                      glBegin(GL_LINES);
+                          ///draw V
+                          glColor4f( 1.0, 0.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
+
+                          glColor4f( 1.0, 0.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X() + V.X(), CENTRO.Y() + V.Y(), 0.0001);
+
+                      glEnd();
+
+                      glBegin(GL_LINES);
+                          ///draw W
+                          glColor4f( 0.0, 0.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X(), CENTRO.Y(), 0.0001);
+
+                          glColor4f( 0.0, 0.0, 1.0, 1.0);
+                          glVertex3f( CENTRO.X() + W.X(), CENTRO.Y() + W.Y(), 0.0001);
+
+                      glEnd();
+                      glEnable( GL_TEXTURE_2D );
+                  }
+
+
+                  glPopMatrix();
+              }
+
+/*
+              if (i==0 && j==0 ) {
+                MODebug2->Message(
+                                  moText(" pPar 0,0:")+
+                                  moText(" visible:") + IntToStr((int)pPar->Visible)+ moText("\n")+
+                                  " part_timer:" + FloatToStr(part_timer)+"\n"
+                                  +" Pos X:" + FloatToStr(pPar->Pos.X())+ " Y:" + FloatToStr(pPar->Pos.Y())+"\n"
+                                  +" Pos3d X:" + FloatToStr(pPar->Pos3d.X())+ " Y:" + FloatToStr(pPar->Pos3d.Y())+ " Z:" + FloatToStr(pPar->Pos3d.Z())+"\n"
+                                  );
+
+              }
+*/
             }
         }
     }
