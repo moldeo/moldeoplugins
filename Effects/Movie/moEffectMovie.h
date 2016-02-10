@@ -213,7 +213,7 @@ protected:
   moTexture* m_pTexture;
   moMovie*   m_pMovie;
 	moTextureAnimated* m_pAnim;
-	moSound*	Sound;
+	moSound*	m_pSound;
 
   moTexture* m_pNextTexture;
   moMovie*   m_pNextMovie;

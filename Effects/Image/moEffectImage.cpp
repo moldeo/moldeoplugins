@@ -117,27 +117,79 @@ moEffectImage::Init() {
 void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
 
-    PreDraw( tempogral, parentstate);
+  BeginDraw( tempogral, parentstate);
 
-    MOint Blending;
-	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
-    MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-    MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
-    MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
+  MOint Blending;
+  MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
+  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
+  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
+  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
 
-    moRenderManager* mRender = m_pResourceManager->GetRenderMan();
-    moGLManager* mGL = m_pResourceManager->GetGLMan();
+  moRenderManager* RENDER = m_pResourceManager->GetRenderMan();
+  moGLManager* OPENGL = m_pResourceManager->GetGLMan();
 
-    if (mRender==NULL || mGL==NULL) return;
+  if ( RENDER==NULL || OPENGL==NULL) return;
 
-    int w = mRender->ScreenWidth();
-    int h = mRender->ScreenHeight();
+  int w = RENDER->ScreenWidth();
+  int h = RENDER->ScreenHeight();
 
-    moTexture* pImage = (moTexture*) m_Config[moR(IMAGE_TEXTURE)].GetData()->Pointer();
+  moTexture* pImage = (moTexture*) m_Config[moR(IMAGE_TEXTURE)].GetData()->Pointer();
+
+  PosTextX = m_Config.Eval( moR(IMAGE_POSTEXX), m_EffectState.tempo.ang);
+  AncTextX = m_Config.Eval( moR(IMAGE_ANCTEXX), m_EffectState.tempo.ang);
+  PosTextY = m_Config.Eval( moR(IMAGE_POSTEXY), m_EffectState.tempo.ang);
+  AltTextY = m_Config.Eval( moR(IMAGE_ALTTEXY), m_EffectState.tempo.ang);
+
+  PosCuadX = m_Config.Eval( moR(IMAGE_POSCUADX), m_EffectState.tempo.ang);
+  AncCuadX = m_Config.Eval( moR(IMAGE_ANCCUADX), m_EffectState.tempo.ang);
+  PosCuadY = m_Config.Eval( moR(IMAGE_POSCUADY), m_EffectState.tempo.ang);
+  AltCuadY = m_Config.Eval( moR(IMAGE_ALTCUADY), m_EffectState.tempo.ang);
+
+  if (pImage) {
+      PosTextX0 = PosTextX * pImage->GetMaxCoordS();
+      PosTextX1 =(PosTextX + AncTextX)* pImage->GetMaxCoordS();
+      PosTextY0 =(1 - PosTextY)*pImage->GetMaxCoordT();
+      PosTextY1 =(1 - PosTextY - AltTextY)*pImage->GetMaxCoordT();
+  } else {
+      PosTextX0 = PosTextX;
+      PosTextX1 =(PosTextX + AncTextX);
+      PosTextY0 =(1 - PosTextY);
+      PosTextY1 =(1 - PosTextY - AltTextY);
+  }
+  PosCuadX0 = PosCuadX;
+  PosCuadX1 = PosCuadX + AncCuadX;
+  PosCuadY1 = PosCuadY;
+  PosCuadY0 = PosCuadY + AltCuadY;
+
+
+  moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
+  ImageQuad.m_VerticesUvs[ 0 ] = moTCoord( PosTextX0, PosTextY1 );
+  ImageQuad.m_VerticesUvs[ 1 ] = moTCoord( PosTextX0, PosTextY0 );
+  ImageQuad.m_VerticesUvs[ 2 ] = moTCoord( PosTextX1, PosTextY1 );
+  ImageQuad.m_VerticesUvs[ 3 ] = moTCoord( PosTextX1, PosTextY0 );
+
+  moMaterial Material;
+  Material.m_Map = pImage;
+  Material.m_MapGLId = m_Config.GetGLId( moR(IMAGE_TEXTURE), &m_EffectState.tempo );
+  moVector4d color = m_Config.EvalColor( moR(IMAGE_COLOR) );
+  Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+  moGLMatrixf Model;
+  Model.MakeIdentity();
+  Model.Translate( PosCuadX+AncCuadX/2, PosCuadY+AltCuadY/2, 0.0 );
+
+  moMesh Mesh( ImageQuad, Material );
+  Mesh.SetModelMatrix( Model );
+
+
+  moCamera3D Camera3D;
+  //mGL->SetDefaultOrthographicView( w, h );
+  OPENGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
+  Camera3D = OPENGL->GetProjectionMatrix();
 
 #ifndef OPENGLESV2
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
+  glMatrixMode( GL_MODELVIEW );
+  glLoadIdentity();
 #endif
 
 	//DIBUJAR
@@ -146,62 +198,20 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
 
 	SetBlending( (moBlendingModes) m_Config[moR(IMAGE_BLENDING)][MO_SELECTED][0].Int() );
+  SetColor( m_Config[moR(IMAGE_COLOR)], m_Config[moR(IMAGE_ALPHA)], m_EffectState );
 
-    SetColor( m_Config[moR(IMAGE_COLOR)], m_Config[moR(IMAGE_ALPHA)], m_EffectState );
+  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-	//source: GL_ZERO, GL_ONE, GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, GL_ONE_MINUS_DST_ALPHA, and GL_SRC_ALPHA_SATURATE
-	//destination: GL_ZERO, GL_ONE, GL_SCR_COLOR, GL_ONE_MINUS_SRC_COLOR, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_COLOR, GL_DST_ALPHA, and GL_ONE_MINUS_DST_ALPHA.
-
-#ifndef OPENGLESV2
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPushMatrix();										// Store The Projection Matrix
-	glLoadIdentity();
-	glOrtho(0,1.0,0,1.0,-1,1);
-	// Reset The Projection Matrix
-	// Set Up An Ortho Screen
-	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glPushMatrix();										// Store The Modelview Matrix
-	glLoadIdentity();									// Reset The Modelview Matrix
-#endif
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-    glEnable(GL_TEXTURE_2D);
-    //glBindTexture( GL_TEXTURE_2D, m_Config[moR(IMAGE_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, &FilterParams ) );
-    //MODebug2->Push( FloatToStr(m_EffectState.tempo.ang) );
-    glBindTexture( GL_TEXTURE_2D,  m_Config.GetGLId( moR(IMAGE_TEXTURE), &m_EffectState.tempo ) );
-
-    PosTextX = m_Config.Eval( moR(IMAGE_POSTEXX), m_EffectState.tempo.ang);
-    AncTextX = m_Config.Eval( moR(IMAGE_ANCTEXX), m_EffectState.tempo.ang);
-    PosTextY = m_Config.Eval( moR(IMAGE_POSTEXY), m_EffectState.tempo.ang);
-    AltTextY = m_Config.Eval( moR(IMAGE_ALTTEXY), m_EffectState.tempo.ang);
-
-    PosCuadX = m_Config.Eval( moR(IMAGE_POSCUADX), m_EffectState.tempo.ang);
-    AncCuadX = m_Config.Eval( moR(IMAGE_ANCCUADX), m_EffectState.tempo.ang);
-    PosCuadY = m_Config.Eval( moR(IMAGE_POSCUADY), m_EffectState.tempo.ang);
-    AltCuadY = m_Config.Eval( moR(IMAGE_ALTCUADY), m_EffectState.tempo.ang);
-
-    if (pImage) {
-        PosTextX0 = PosTextX * pImage->GetMaxCoordS();
-        PosTextX1 =(PosTextX + AncTextX)* pImage->GetMaxCoordS();
-        PosTextY0 =(1 - PosTextY)*pImage->GetMaxCoordT();
-        PosTextY1 =(1 - PosTextY - AltTextY)*pImage->GetMaxCoordT();
-    } else {
-        PosTextX0 = PosTextX;
-        PosTextX1 =(PosTextX + AncTextX);
-        PosTextY0 =(1 - PosTextY);
-        PosTextY1 =(1 - PosTextY - AltTextY);
-    }
-    PosCuadX0 = PosCuadX;
-    PosCuadX1 = PosCuadX + AncCuadX;
-    PosCuadY1 = PosCuadY;
-    PosCuadY0 = PosCuadY + AltCuadY;
 
 #ifndef OPENGLESV2
+  RENDER->Render( &Mesh, &Camera3D );
+/**
+  glEnable(GL_TEXTURE_2D);
+  glBindTexture( GL_TEXTURE_2D,  Material.m_MapGLId );
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
@@ -210,44 +220,20 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glTexCoord2f( PosTextX1, PosTextY1);
 		glVertex2f ( PosCuadX1, PosCuadY0);
 
-        glTexCoord2f( PosTextX1, PosTextY0);
+    glTexCoord2f( PosTextX1, PosTextY0);
 		glVertex2f ( PosCuadX1, PosCuadY1);
 
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
-
+*/
 #else
-  moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
-    moMaterial Material;
-    Material.m_Map = pImage;
-    //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
-    moVector4d color = m_Config.EvalColor( moR(IMAGE_COLOR) );
-    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
-
-    moGLMatrixf Model;
-    Model.MakeIdentity();
-    Model.Translate( PosCuadX+AncCuadX/2, PosCuadY+AltCuadY/2, 0.0 );
-
-    moMesh Mesh( ImageQuad, Material );
-    Mesh.SetModelMatrix( Model );
-
-
-    moCamera3D Camera3D;
-    //mGL->SetDefaultOrthographicView( w, h );
-    mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
-    Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( &Mesh, &Camera3D );
+    RENDER->Render( &Mesh, &Camera3D );
 #endif
 
 
 
-#ifndef OPENGLESV2
-    glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPopMatrix();										// Restore The Old Projection Matrix
-#endif
+  EndDraw();
 }
 
 void moEffectImage::Interaction( moIODeviceManager *IODeviceManager ) {

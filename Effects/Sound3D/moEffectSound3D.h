@@ -51,50 +51,159 @@ enum moSound3DParamIndex {
 	SOUND3D_SYNC,
 	SOUND3D_PHASE,
 	SOUND3D_SOUND,
+	SOUND3D_SEEKPOSITION,
+	SOUND3D_MODE,
+	SOUND3D_LOOP,
+	SOUND3D_LAUNCH,
+	SOUND3D_SPEEDOFSOUND,
+	SOUND3D_PITCH,
+	SOUND3D_VOLUME,
+	SOUND3D_BALANCE,
+
 	SOUND3D_TEXTURE,
 	SOUND3D_BLENDING,
-	SOUND3D_WIDTH,
-	SOUND3D_HEIGHT,
+
 	SOUND3D_TRANSLATEX,
 	SOUND3D_TRANSLATEY,
 	SOUND3D_TRANSLATEZ,
-	SOUND3D_ROTATEX,
-	SOUND3D_ROTATEY,
-	SOUND3D_ROTATEZ,
-	SOUND3D_SCALEX,
-	SOUND3D_SCALEY,
-	SOUND3D_SCALEZ,
+
+	SOUND3D_DIRECTIONX,
+	SOUND3D_DIRECTIONY,
+	SOUND3D_DIRECTIONZ,
+
+	SOUND3D_SPEEDX,
+	SOUND3D_SPEEDY,
+	SOUND3D_SPEEDZ,
+
 	SOUND3D_INLET,
 	SOUND3D_OUTLET
+};
+
+
+class moSound3DAL : public moSound3D {
+
+  public:
+
+    moSound3DAL();
+    virtual ~moSound3DAL();
+
+    virtual MOboolean  Init();
+    virtual MOboolean  Finish();
+
+  /**
+    OVERRIDE moSound functions
+    OpenAL es diferente a GStreamer
+  */
+    virtual void Play();
+    virtual void Stop();
+    virtual void Pause();
+    virtual void Rewind();
+    virtual moStreamState State();
+    virtual void Update();
+    virtual void SetVolume( float gain );
+    virtual float GetVolume();
+    virtual void SetPitch( float pitch );
+    virtual float GetPitch();
+
+    MOboolean BuildEmpty( MOuint p_size );
+    MOboolean BuildFromBuffer( MOuint p_size, GLvoid* p_buffer );
+    MOboolean BuildFromFile( const moText& p_filename );
+
+    virtual void Final();
+    virtual void Frame(int frame);
+    virtual void Repeat(int repeat);
+
+    void PlaySample( MOint sampleid );
+    void SetPosition( float x, float y, float z );
+    void SetVelocity( float x, float y, float z );
+    void SetDirection( float x, float y, float z );
+
+
+    int m_iAlState;
+
+    MOuint		    m_Buffers[NUMBUFFERS];
+
+
+    ALenum			m_eBufferFormat;
+    ALsizei	m_ulDataSize;
+    ALsizei	m_ulFrequency;
+    ALsizei	m_ulFormat;
+    ALsizei	m_ulBufferSize;
+    ALsizei	m_ulBytesWritten;
+    void *			m_pData;
+    ALboolean	m_ulLoop;
+
+
+
+
+    /**
+
+      int m_iAlState;
+
+      MOint			m_ActualSample;
+      MOint			m_OldSample;
+
+      moFile*			m_pFile;
+      moDataManager*	m_pDataMan;
+      moFileManager*	m_pFileMan;
+
+      MOuint		    m_Buffers[NUMBUFFERS];
+      MOuint		    m_SourceId;
+      MOuint			  m_BufferId;
+
+      MOint			m_eBufferFormat;
+
+
+      unsigned long	m_ulDataSize;
+      unsigned long	m_ulFrequency;
+      unsigned long	m_ulFormat;
+      unsigned long	m_ulBufferSize;
+      unsigned long	m_ulBytesWritten;
+      void *			m_pData;
+
+      bool	m_ulLoop;
+
+      MOint			m_BufferSize;
+    */
+
 };
 
 class moEffectSound3D: public moEffect {
 
 public:
-    moEffectSound3D();
-    virtual ~moEffectSound3D();
+  moEffectSound3D();
+  virtual ~moEffectSound3D();
 
-    MOboolean Init();
-    void Draw( moTempo* tempogral, moEffectState* parentstate = NULL);
-    MOboolean Finish();
-	void Interaction( moIODeviceManager * );
-	moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
-    void Update( moEventList *Events );
+  virtual MOboolean Init();
+  void Draw( moTempo* tempogral, moEffectState* parentstate = NULL);
+  MOboolean Finish();
+  void Interaction( moIODeviceManager * );
+  moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
+
+  virtual MOboolean ResolveValue( moParam& param, int value_index, bool p_refresh=false );
+
+  void UpdateParameters();
+  void UpdateSound( const moText& p_newfilename );
+  void Update( moEventList *Events );
 
 private:
 
-    ALuint helloBuffer, helloSource;
-    long    last_ticks;
+  moSoundManager* m_pSM;
 
-    moGsGraph   m_Audio;
-    moText      m_Sound3DFilename;
-    moText      m_Sound3DFilenameFull;
+  ALuint helloBuffer, helloSource;
+  long    last_ticks;
 
-    bool    m_bAudioStarted;
+  //moGsGraph   m_Audio;
+  moSound3DAL*   m_pAudio;
+  moText      m_Sound3DFilename;
+  moText      m_Sound3DFilenameFull;
 
-	MOint Tx, Ty, Tz;
-	MOfloat Sx, Sy, Sz;
-	MOint Rx, Ry, Rz;
+  bool    m_bAudioStarted;
+  bool    m_bLaunch;
+
+  MOint Tx, Ty, Tz;
+  MOfloat Sx, Sy, Sz;
+  MOint Rx, Ry, Rz;
 
 };
 
