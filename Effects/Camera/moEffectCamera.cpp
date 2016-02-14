@@ -498,9 +498,14 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     moMaterial Material;
     if (m_pCameraTexture) {
         Material.m_Map = m_pCameraTexture;
+        
     } else {
         Material.m_Map = mT->GetTexture( mT->GetTextureMOId( "default", false ) );
     }
+    
+    if (Material.m_Map) {
+      Material.m_MapGLId = Material.m_Map->GetGLId();
+    } else Material.m_MapGLId = 0;
     //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
     moVector4d color = m_Config.EvalColor( moR(CAMERA_COLOR) );
     Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
@@ -517,34 +522,31 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     //mGL->SetDefaultOrthographicView( w, h );
     mGL->SetOrthographicView( w, h, 0.0, 1.0, 0.0, 1.0, -1.0, 1.0 );
     Camera3D = mGL->GetProjectionMatrix();
-    mRender->Render( &Mesh, &Camera3D );
+    //mRender->Render( &Mesh, &Camera3D );
 
-#ifndef OPENGESV2
-/*
+#ifndef OPENGLESV2
+
   glEnable(GL_TEXTURE_2D);
+  //glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(CAMERA_TEXTURE), &m_EffectState.tempo ) );
+glBindTexture(GL_TEXTURE_2D, Material.m_MapGLId );
 
-	//glBindTexture(GL_TEXTURE_2D, m_Config.GetGLId(moR(CAMERA_TEXTURE), &m_EffectState.tempo ) );
-	if (m_pCameraTexture)
-    glBindTexture(GL_TEXTURE_2D, m_pCameraTexture->GetGLId() );
-  else
-    glBindTexture(GL_TEXTURE_2D, 0 );
-*/
 
-/*
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
-		glVertex2f ( PosCuadX0, PosCuadY0);
+		glVertex2f ( PosCuadX0+AncCuadX/2, PosCuadY0+AltCuadY/2);
 
 		glTexCoord2f( PosTextX1, PosTextY1);
-		glVertex2f ( PosCuadX1, PosCuadY0);
+		glVertex2f ( PosCuadX1+AncCuadX/2, PosCuadY0+AltCuadY/2);
 
     glTexCoord2f( PosTextX1, PosTextY0);
-		glVertex2f ( PosCuadX1, PosCuadY1);
+		glVertex2f ( PosCuadX1+AncCuadX/2, PosCuadY1+AltCuadY/2);
 
 		glTexCoord2f( PosTextX0, PosTextY0);
-		glVertex2f ( PosCuadX0, PosCuadY1);
+		glVertex2f ( PosCuadX0+AncCuadX/2, PosCuadY1+AltCuadY/2);
 	glEnd();
-*/
+
+#else
+ mRender->Render( &Mesh, &Camera3D );
 #endif
 
 
