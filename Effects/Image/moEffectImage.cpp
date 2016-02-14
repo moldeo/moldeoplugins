@@ -208,8 +208,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 #ifndef OPENGLESV2
-  RENDER->Render( &Mesh, &Camera3D );
-/**
+
   glEnable(GL_TEXTURE_2D);
   glBindTexture( GL_TEXTURE_2D,  Material.m_MapGLId );
 
@@ -226,7 +225,7 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
-*/
+
 #else
     RENDER->Render( &Mesh, &Camera3D );
 #endif
