@@ -525,7 +525,6 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
   glEnable(GL_TEXTURE_2D);
   FrameGLid = MovieGLId();
 
-
   BeginDraw( tempogral, parentstate);
 
   moRenderManager* RENDER = m_pResourceManager->GetRenderMan();
@@ -568,7 +567,8 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
   moCamera3D Camera3D;
   //mGL->SetDefaultOrthographicView( w, h );
-  OPENGL->SetDefaultOrthographicView( w, h  );
+  //OPENGL->SetDefaultOrthographicView( w, h  );
+  OPENGL->SetDefaultOrthographicView( w, h );
   Camera3D = OPENGL->GetProjectionMatrix();
 
   moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
@@ -598,11 +598,13 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
   SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
   SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
-	glBindTexture(GL_TEXTURE_2D, FrameGLid );
+	
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, FrameGLid );
 
 #ifndef OPENGLESV2
-  RENDER->Render( &Mesh, &Camera3D );
-  /**
+  //RENDER->Render( &Mesh, &Camera3D );
+  
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -616,7 +618,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
-	*/
+	
 #else
   RENDER->Render( &Mesh, &Camera3D );
 #endif
