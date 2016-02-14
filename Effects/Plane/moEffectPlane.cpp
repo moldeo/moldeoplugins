@@ -146,21 +146,31 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
     moPlaneGeometry PlaneQuad( ancho, alto, 1, 1 );
     moMaterial Material;
     if (TD) {
-      glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(PLANE_TEXTURE), &m_EffectState.tempo ) );
       Material.m_Map = TD->Texture();
+      Material.m_MapGLId = m_Config.GetGLId( moR(PLANE_TEXTURE), &m_EffectState.tempo );
+      glEnable( GL_TEXTURE_2D);
+      glBindTexture( GL_TEXTURE_2D, Material.m_MapGLId );
     }
 
     //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
     moVector4d color = m_Config.EvalColor( moR(PLANE_COLOR) );
-    Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+    Material.m_Color = moColor( color.X(),
+                                color.Y(),
+                                color.Z() );
 
     moGLMatrixf Model;
     Model.MakeIdentity();
-    Model.Scale( m_Config.Eval( moR(PLANE_SCALEX)), m_Config.Eval( moR(PLANE_SCALEY)), m_Config.Eval( moR(PLANE_SCALEZ)) );
+    Model.Scale( m_Config.Eval( moR(PLANE_SCALEX)),
+                 m_Config.Eval( moR(PLANE_SCALEY)),
+                 m_Config.Eval( moR(PLANE_SCALEZ)) );
+    
     Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEZ))*moMathf::DEG_TO_RAD, 0.0, 0.0, 1.0 );
     Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEY))*moMathf::DEG_TO_RAD, 0.0, 1.0, 0.0 );
     Model.Rotate( m_Config.Eval( moR(PLANE_ROTATEX))*moMathf::DEG_TO_RAD, 1.0, 0.0, 0.0 );
-    Model.Translate( m_Config.Eval( moR(PLANE_TRANSLATEX)), m_Config.Eval( moR(PLANE_TRANSLATEY)), m_Config.Eval( moR(PLANE_TRANSLATEZ)) );
+    
+    Model.Translate( m_Config.Eval( moR(PLANE_TRANSLATEX)),
+                     m_Config.Eval( moR(PLANE_TRANSLATEY)),
+                     m_Config.Eval( moR(PLANE_TRANSLATEZ)) );
 
     moMesh Mesh( PlaneQuad, Material );
     Mesh.SetModelMatrix( Model );
@@ -171,25 +181,21 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 #ifndef OPENGLESV2
-/*
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glPushMatrix();                                     // Store The Modelview Matrix
     glLoadIdentity();									// Reset The View
-    glTranslatef(   m_Config.Eval( moR(PLANE_TRANSLATEX) ),
+    glTranslatef( m_Config.Eval( moR(PLANE_TRANSLATEX)),
                   m_Config.Eval( moR(PLANE_TRANSLATEY)),
-                  m_Config.Eval( moR(PLANE_TRANSLATEZ))
-              );
+                  m_Config.Eval( moR(PLANE_TRANSLATEZ)));
 
-    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
-    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
+    glRotatef( m_Config.Eval( moR(PLANE_ROTATEZ) ), 0.0, 0.0, 1.0 );
+    glRotatef( m_Config.Eval( moR(PLANE_ROTATEY) ), 0.0, 1.0, 0.0 );
+    glRotatef( m_Config.Eval( moR(PLANE_ROTATEX) ), 1.0, 0.0, 0.0 );
 
-    glScalef(   m_Config.Eval( moR(PLANE_SCALEX)),
+    glScalef( m_Config.Eval( moR(PLANE_SCALEX)),
               m_Config.Eval( moR(PLANE_SCALEY)),
-              m_Config.Eval( moR(PLANE_SCALEZ))
-            );
-*/
+              m_Config.Eval( moR(PLANE_SCALEZ)));
 #endif
 
     // Cambiar la proyeccion para una vista ortogonal //
@@ -203,32 +209,22 @@ void moEffectPlane::Draw( moTempo* tempogral,moEffectState* parentstate)
   //moVector4d color = m_Config.EvalColor(moR(PLANE_COLOR));
 
   SetColor( m_Config[moR(PLANE_COLOR)], m_Config[moR(PLANE_ALPHA)], m_EffectState );
-
-
   SetBlending( (moBlendingModes) m_Config.Int( moR(PLANE_BLENDING) ) );
 
-
 #ifndef OPENGLESV2
-
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
-		glVertex2i( -ancho, -alto);
+		glVertex2f( -ancho/2, -alto/2);
 
 		glTexCoord2f( 1.0, 0.0);
-		glVertex2i(  ancho, -alto);
+		glVertex2f(  ancho/2, -alto/2);
 
 		glTexCoord2f( 1.0, 1.0);
-		glVertex2i(  ancho,  alto);
+		glVertex2f(  ancho/2,  alto/2);
 
 		glTexCoord2f( 0.0, 1.0);
-		glVertex2i( -ancho,  alto);
+		glVertex2f( -ancho/2,  alto/2);
 	glEnd();
-
-    // Dejamos todo como lo encontramos //
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPopMatrix();										// Restore The Old Projection Matrix
-	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glPopMatrix();										// Restore The Old Projection Matrix
 #else
   mRender->Render( &Mesh, &Camera3D );
 #endif
