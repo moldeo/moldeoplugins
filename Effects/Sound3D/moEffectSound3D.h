@@ -38,7 +38,8 @@
 
 #ifdef MO_FREEALUT
 #include <AL/alut.h>
-#endif // FREEALUT
+#endif
+
 
 #define MO_SOUND3D_TRANSLATE_X 0
 #define MO_SOUND3D_TRANSLATE_Y 1
@@ -135,7 +136,6 @@ class moSound3DAL : public moSound3D {
 
 
 
-
     /**
 
       int m_iAlState;
@@ -186,9 +186,18 @@ public:
   void UpdateSound( const moText& p_newfilename );
   void Update( moEventList *Events );
 
+  void MM_render_one_buffer();
+  static int al_check_error(const char * p_message);
+  int alutCheckError(const char * p_message);
+  void ShowBufferInfo( ALint p_BufferId );
+
+    
+    
 private:
 
   moSoundManager* m_pSM;
+  ALCdevice*  m_pALCDevice;
+  ALCcontext* m_pALCContext;
 
   ALuint helloBuffer, helloSource;
   long    last_ticks;
