@@ -42,7 +42,9 @@
 
 #include "cv.h"
 
+#define OPENCV2
 #ifdef OPENCV2
+#include "opencv2/features2d.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
 //#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"

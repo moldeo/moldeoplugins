@@ -145,7 +145,8 @@ TMapa::SalvarMapa(void)
     ContadorDeMapas++;
     NombreMapa[79]=ContadorDeMapas;
 
-    itoa(ContadorDeMapas,cont,10);
+    //itoa(ContadorDeMapas,cont,10);
+    cont = IntToStr(ContadorDeMapas);
     strcat(nombre,cont);
     strcat(nombre,".mp");
     printf("%s",nombre);

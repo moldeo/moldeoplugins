@@ -498,6 +498,13 @@ void moEffectMovie::UpdateParameters() {
       bReBalance = false;
   }
 
+if (m_pSound) {
+    if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pSound->SetVolume(m_Volume); }
+    if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pSound->SetBalance(m_Balance);}
+    
+    m_pSound->SetVolume(m_Volume);
+    m_pSound->SetBalance(m_Balance);
+}
 
 
   for(int i=0; i<m_Inlets.Count(); i++) {

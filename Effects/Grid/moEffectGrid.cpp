@@ -156,8 +156,8 @@ MOboolean moEffectGrid::Init()
     if (glActiveTextureARB) {
     } else {
       glewInit();
-      MODebug2->Message( moText("moEffectGrid::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
-      MODebug2->Message( moText("moEffectGrid::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
+      //MODebug2->Message( moText("moEffectGrid::Init >       glActiveTextureARB: ") + moText(IntToStr((int)glActiveTextureARB)) );
+      //MODebug2->Message( moText("moEffectGrid::Init >       glMultiTexCoord2fARB: ") + moText(IntToStr((int)glMultiTexCoord2fARB)) );
     }
 
     moDefineParamIndex( GRID_INLET, moText("inlet") );

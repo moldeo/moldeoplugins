@@ -102,6 +102,7 @@ class moSound3DAL : public moSound3D {
     virtual moStreamState State();
     virtual void Update();
     virtual void SetVolume( float gain );
+    virtual void SetBalance( float gain );
     virtual float GetVolume();
     virtual void SetPitch( float pitch );
     virtual float GetPitch();

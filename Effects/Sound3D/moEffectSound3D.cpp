@@ -420,7 +420,21 @@ float moSound3DAL::GetPitch()  {
 }
 
 
-
+void moSound3DAL::SetBalance( float balance ) {
+    //DMessage("SetBalance for "+GetName()+" balance:" + FloatToStr(balance) );
+    //alSourcef( m_SourceId, AL_BALANCE, balance );
+    float listenerPos[ 3 ] = { 0.0, 0.0, 0.0 };
+    float listenerOri[ 6 ] = { 0.0, 0.0, -1.0,  0.0, 1.0, 0.0 };
+    float listenerVel[ 3 ] = { 0.0, 0.0, 0.0  };
+    alListenerfv( AL_POSITION, listenerPos );
+    alListenerfv( AL_VELOCITY, listenerVel );
+    alListenerfv( AL_ORIENTATION, listenerOri );
+    
+    float sourcePos[ 3 ] = { balance*10.0, 0.0, 0.0 };
+    alSourcefv(m_SourceId, AL_POSITION, sourcePos);
+    
+    m_Balance = balance;
+}
 
 //========================
 //  Efecto
