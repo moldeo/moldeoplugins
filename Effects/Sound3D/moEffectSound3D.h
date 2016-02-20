@@ -36,6 +36,12 @@
 #include "moTimeManager.h"
 #include "moSoundManager.h"
 
+#ifndef MO_MACOSX
+    #ifndef MO_FREEALUT
+        #define MO_FREEALUT
+    #endif
+#endif
+
 #ifdef MO_FREEALUT
 #include <AL/alut.h>
 #endif
@@ -192,8 +198,8 @@ public:
   int alutCheckError(const char * p_message);
   void ShowBufferInfo( ALint p_BufferId );
 
-    
-    
+
+
 private:
 
   moSoundManager* m_pSM;

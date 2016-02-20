@@ -44,10 +44,14 @@
 
 #define OPENCV2
 #ifdef OPENCV2
+#ifdef WIN32
 #include "opencv2/features2d.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
 //#include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
+#else
+#include "features2d/features2d.hpp"
+#endif
 #endif // OPENCV2
 
 #include "moConfig.h"
