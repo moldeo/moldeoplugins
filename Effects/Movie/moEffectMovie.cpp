@@ -182,6 +182,7 @@ moEffectMovie::Init() {
 	m_pAnim = NULL;
 	m_pMovie = NULL;
 	m_pTexture = NULL;
+  m_pSound = NULL;
 
 	m_pNextMovie = NULL;
 	m_pNextTexture = NULL;
@@ -190,9 +191,9 @@ moEffectMovie::Init() {
 	movielaunchon = MO_MOVIE_LAUNCH_OFF;
 
 /*
-	Sound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
-	if (Sound) {
-		Sound->SetPosition( m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][1].Float(),
+	m_pSound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
+	if (m_pSound) {
+		m_pSound->SetPosition( m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][1].Float(),
 							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][2].Float(),
 							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][3].Float());
 	}
@@ -201,15 +202,15 @@ moEffectMovie::Init() {
       moText wavfilename = m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text();
       wavfilename = (moText)m_pResourceManager->GetDataMan()->GetDataPath() + (moText)moSlash + (moText)wavfilename;
 
-      m_SoundSystem.InitGraph();
+      //m_SoundSystem.InitGraph();
 
 
-      if (m_SoundSystem.BuildLiveSound( wavfilename )) {
+      //if (m_SoundSystem.BuildLiveSound( wavfilename )) {
 
-      }
+      //}
 
     }
-	 */
+*/
 /*
 	m_MovieScriptFN = m_Config[moParamReference(MOVIE_SCRIPT)][MO_SELECTED][0].Text();
 	if ((moText)m_MovieScriptFN!=moText("")) {
@@ -273,6 +274,7 @@ void moEffectMovie::UpdateParameters() {
 	m_Ticks = m_EffectState.tempo.ticks;
 
 	pTexture = m_Config[moR(MOVIE_MOVIES)][MO_SELECTED][0].Texture();
+	m_pSound = m_Config[moR(MOVIE_SOUNDS)][MO_SELECTED][0].Sound();
 
   /**
   *    ASIGNACION DE OBJETOS
@@ -496,6 +498,13 @@ void moEffectMovie::UpdateParameters() {
       bReBalance = false;
   }
 
+if (m_pSound) {
+    if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pSound->SetVolume(m_Volume); }
+    if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pSound->SetBalance(m_Balance);}
+    
+    m_pSound->SetVolume(m_Volume);
+    m_pSound->SetBalance(m_Balance);
+}
 
 
   for(int i=0; i<m_Inlets.Count(); i++) {
@@ -513,61 +522,96 @@ void moEffectMovie::UpdateParameters() {
 
 void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 {
-  MOuint FrameGLid;
+
+ 	moviemode = (moEffectMovieMode) m_Config.Int(moR(MOVIE_MODE));
+	movielaunchon = (moEffectMovieLaunch) m_Config.Int(moR(MOVIE_LAUNCH));
 
   UpdateParameters();
 
-    PreDraw( tempogral, parentstate);
-
-    // Guardar y resetar la matriz de vista del modelo //
-    glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
-    glLoadIdentity();									// Reset The View
-    // Cambiar la proyeccion para una vista ortogonal //
-    glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
-    glEnable(GL_ALPHA);
-    m_pResourceManager->GetGLMan()->SetOrthographicView();
-
-	moviemode = (moEffectMovieMode) m_Config.Int(moR(MOVIE_MODE));
-	movielaunchon = (moEffectMovieLaunch) m_Config.Int(moR(MOVIE_LAUNCH));
-
-  SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
-
-  SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
-
-
-	PosTextX = m_Config.Eval(moR(MOVIE_POSTEXX));
-    AncTextX = m_Config.Eval(moR(MOVIE_ANCTEXX));
-	PosTextY = m_Config.Eval(moR(MOVIE_POSTEXY));
-    AltTextY = m_Config.Eval(moR(MOVIE_ALTTEXY));
-
-	PosCuadX = m_Config.Eval(moR(MOVIE_POSCUADX));
-    AncCuadX = m_Config.Eval(moR(MOVIE_ANCCUADX));
-	PosCuadY = m_Config.Eval(moR(MOVIE_POSCUADY));
-    AltCuadY = m_Config.Eval(moR(MOVIE_ALTCUADY));
-
-	if (m_pTexture) {
-		PosTextX0 = PosTextX * m_pTexture->GetMaxCoordS();
-		PosTextX1 =(PosTextX + AncTextX)* m_pTexture->GetMaxCoordS();
-		PosTextY0 =(1 - PosTextY)*m_pTexture->GetMaxCoordT();
-		PosTextY1 =(1 - PosTextY - AltTextY)*m_pTexture->GetMaxCoordT();
-	} else {
-		PosTextX0 = PosTextX;
-		PosTextX1 =(PosTextX + AncTextX);
-		PosTextY0 =(1 - PosTextY);
-		PosTextY1 =(1 - PosTextY - AltTextY);
-	}
-
-	PosCuadX0 = PosCuadX-AncCuadX/2;
-	PosCuadX1 = PosCuadX + AncCuadX/2;
-	PosCuadY1 = PosCuadY - AltCuadY/2;
-	PosCuadY0 = PosCuadY + AltCuadY/2;
-
+  MOuint FrameGLid;
   glEnable(GL_TEXTURE_2D);
-
   FrameGLid = MovieGLId();
 
-	glBindTexture(GL_TEXTURE_2D, FrameGLid );
+  BeginDraw( tempogral, parentstate);
 
+  moRenderManager* RENDER = m_pResourceManager->GetRenderMan();
+  moGLManager* OPENGL = m_pResourceManager->GetGLMan();
+
+  if ( RENDER==NULL || OPENGL==NULL) return;
+
+  int w = RENDER->ScreenWidth();
+  int h = RENDER->ScreenHeight();
+
+  PosTextX = m_Config.Eval(moR(MOVIE_POSTEXX));
+  AncTextX = m_Config.Eval(moR(MOVIE_ANCTEXX));
+  PosTextY = m_Config.Eval(moR(MOVIE_POSTEXY));
+  AltTextY = m_Config.Eval(moR(MOVIE_ALTTEXY));
+
+  PosCuadX = m_Config.Eval(moR(MOVIE_POSCUADX));
+  AncCuadX = m_Config.Eval(moR(MOVIE_ANCCUADX));
+  PosCuadY = m_Config.Eval(moR(MOVIE_POSCUADY));
+  AltCuadY = m_Config.Eval(moR(MOVIE_ALTCUADY));
+
+  if (m_pTexture) {
+      PosTextX0 = PosTextX * m_pTexture->GetMaxCoordS();
+      PosTextX1 =(PosTextX + AncTextX)* m_pTexture->GetMaxCoordS();
+      PosTextY0 =(1 - PosTextY)*m_pTexture->GetMaxCoordT();
+      PosTextY1 =(1 - PosTextY - AltTextY)*m_pTexture->GetMaxCoordT();
+  } else {
+      PosTextX0 = PosTextX;
+      PosTextX1 =(PosTextX + AncTextX);
+      PosTextY0 =(1 - PosTextY);
+      PosTextY1 =(1 - PosTextY - AltTextY);
+  }
+  PosCuadX0 = PosCuadX - AncCuadX/2;
+  PosCuadX1 = PosCuadX + AncCuadX/2;
+  PosCuadY1 = PosCuadY -  AltCuadY/2;
+  PosCuadY0 = PosCuadY + AltCuadY/2;
+
+
+  glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
+  glEnable(GL_ALPHA);
+
+  moCamera3D Camera3D;
+  //mGL->SetDefaultOrthographicView( w, h );
+  //OPENGL->SetDefaultOrthographicView( w, h  );
+  OPENGL->SetDefaultOrthographicView( w, h );
+  Camera3D = OPENGL->GetProjectionMatrix();
+
+  moPlaneGeometry ImageQuad( AncCuadX, AltCuadY, 1, 1 );
+  /*
+      m_VerticesUvs.Add( moVector2f( 0.0, 1.0) );
+    m_VerticesUvs.Add( moVector2f( 0.0, 0.0) );
+    m_VerticesUvs.Add( moVector2f( 1.0, 1.0) );
+    m_VerticesUvs.Add( moVector2f( 1.0, 0.0) );
+  */
+  ImageQuad.m_VerticesUvs[ 0 ] = moTCoord( PosTextX0, PosTextY0 );
+  ImageQuad.m_VerticesUvs[ 1 ] = moTCoord( PosTextX0, PosTextY1 );
+  ImageQuad.m_VerticesUvs[ 2 ] = moTCoord( PosTextX1, PosTextY0 );
+  ImageQuad.m_VerticesUvs[ 3 ] = moTCoord( PosTextX1, PosTextY1 );
+
+  moMaterial Material;
+  Material.m_Map = m_pTexture;
+  Material.m_MapGLId = FrameGLid;
+  moVector4d color = m_Config.EvalColor( moR(MOVIE_COLOR) );
+  Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+
+  moGLMatrixf Model;
+  Model.MakeIdentity();
+  Model.Translate( PosCuadX, PosCuadY, 0.0 );
+
+  moMesh Mesh( ImageQuad, Material );
+  Mesh.SetModelMatrix( Model );
+
+  SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
+  SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
+	
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, FrameGLid );
+
+#ifndef OPENGLESV2
+  //RENDER->Render( &Mesh, &Camera3D );
+  
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -581,6 +625,10 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
+	
+#else
+  RENDER->Render( &Mesh, &Camera3D );
+#endif
 
 
   bool showfeat = m_Config.Int( moR(MOVIE_SHOWTRACKDATA) );
@@ -603,12 +651,8 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 	}
 
   glEnable(GL_TEXTURE_2D);
-  EndDraw();
 
-  glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
-	glPopMatrix();
-	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-	glPopMatrix();
+  EndDraw();
 }
 
 MOuint moEffectMovie::MovieGLId() {
@@ -906,15 +950,15 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 					else MODebug2->Push(moText("Unlooped"));
 					break;
 				case MO_MOVIE_GAIN_UP:
-					if (Sound) {
-						Sound->SetVolume(+0.1);
-						MODebug2->Push(moText("GainUp: ")+FloatToStr(Sound->GetVolume()));
+					if (m_pSound) {
+						m_pSound->SetVolume(+0.1);
+						MODebug2->Push(moText("GainUp: ")+FloatToStr(m_pSound->GetVolume()));
 					}
 					break;
 				case MO_MOVIE_GAIN_DOWN:
-					if (Sound) {
-						Sound->SetVolume(-0.1);
-						MODebug2->Push(moText("GainDown: ")+FloatToStr(Sound->GetVolume()));
+					if (m_pSound) {
+						m_pSound->SetVolume(-0.1);
+						MODebug2->Push(moText("GainDown: ")+FloatToStr(m_pSound->GetVolume()));
 					}
 					break;
 //1.0 AL_EQUALIZER_LOW_GAIN [0.126, 7.943] 1.0
@@ -1288,18 +1332,32 @@ void moEffectMovie::VCRPlaySpeed() {
 		m_FramePosition = (long) m_FramePositionF;
 		if ( m_FramePosition >= m_FramesLength ) m_FramePosition = (m_FramesLength-1);
 	//}
-	/*
-	if (Sound) {
 
-		MOlong bytesperframe = Sound->GetBufferSize() / m_FramesLength;
+	if ( m_pSound && m_FramesLength>0 ) {
+		MOlong bytesperframe = m_pSound->GetBufferSize() / m_FramesLength;
+		/*
+   MODebug2->Message( "moEffectMovie::VCRPlaySpeed > "
+                      + moText("playsound sample > m_bPlayingSound:") + IntToStr((int)m_bPlayingSound)
+                      + " m_PlaySpeed: " + FloatToStr(m_PlaySpeed)
+                      + " Name: " + m_pSound->GetName()
+                      + " bytesperframe:" + IntToStr(bytesperframe)
+                      + " m_FramePosition:" + IntToStr(m_FramePosition)
+                      + " buffersize:" + IntToStr(m_pSound->GetBufferSize()));*/
 
 		if ( m_PlaySpeed == 1.0 && !m_bPlayingSound ) {
-			if ((m_FramePosition * bytesperframe) < Sound->GetBufferSize() ) {
-				Sound->PlaySample( m_FramePosition * bytesperframe );
+        /*MODebug2->Message(
+                          "moEffectMovie::VCRPlaySpeed > m_PlaySpeed: " + FloatToStr(m_PlaySpeed)+
+                          " bufferposition:" + IntToStr(m_FramePosition * bytesperframe)+
+                          " GetBufferSize:" + IntToStr( m_pSound->GetBufferSize() )
+                          );*/
+			if ((m_FramePosition * bytesperframe) < m_pSound->GetBufferSize() ) {
+			  //MODebug2->Message( "moEffectMovie::VCRPlaySpeed > m_pSound->PlaySample");
+				m_pSound->PlaySample( (MOuint) m_FramePosition * bytesperframe );
 				m_bPlayingSound = true;
 			}
 		} else if (m_PlaySpeed==0.0 || m_FramePosition==0) {
-			Sound->Stop();
+      //MODebug2->Message( "moEffectMovie::VCRPlaySpeed > m_pSound->Stop");
+			//m_pSound->Stop();
 			m_bPlayingSound = false;
 		}
 
@@ -1307,17 +1365,17 @@ void moEffectMovie::VCRPlaySpeed() {
 		if (m_bPlayingSound) {
 
 			if (bytesperframe>0 && m_FramesLength>0) {
-				MOint async = (Sound->GetActualSample() / bytesperframe )  - m_FramePosition;
+				MOint async = (m_pSound->GetActualSample() / bytesperframe )  - m_FramePosition;
 
 				if ( fabs((double)async) > 10.0 ) {
 
-					Sound->PlaySample( m_FramePosition * bytesperframe );
+					//m_pSound->PlaySample( m_FramePosition * bytesperframe );
 
 				}
 			}
 		}
 
-	}*/
+	}
 
 }
 
@@ -1352,8 +1410,8 @@ void moEffectMovie::VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValu
 		case MO_MOVIE_VCR_STOP:
 			m_PlayState = MO_MOVIE_PLAYSTATE_STOPPED;
 			m_PlaySpeed = 0.0;
-			/*if (Sound) Sound->Stop();*/
-			/*if (Sound) Sound->Stop();*/
+			if (m_pSound) m_pSound->Stop();
+			if (m_pSound) m_pSound->Stop();
 			//m_SoundSystem.Stop();
 			m_bPlayingSound = false;
 			break;
@@ -1367,7 +1425,7 @@ void moEffectMovie::VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValu
 		case MO_MOVIE_VCR_PAUSE:
 			m_PlaySpeed = 0.0;
 			m_PlayState = MO_MOVIE_PLAYSTATE_PAUSED;
-			/*if (Sound) Sound->Pause();*/
+			if (m_pSound) m_pSound->Pause();
 			//m_SoundSystem.Pause();
 			m_bPlayingSound = false;
 			break;

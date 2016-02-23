@@ -134,6 +134,12 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     int w = mRender->ScreenWidth();
     int h = mRender->ScreenHeight();
 
+    int TGLId = m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo );
+
+    moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
+    if (TD && TD->Texture()==NULL) UpdateConnectors();
+    glBindTexture( GL_TEXTURE_2D, TGLId );
+
     mGL->SetDefaultOrthographicView( w, h);
 
     glEnable(GL_ALPHA);
@@ -146,16 +152,13 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     //SetColor( m_Config[moR(ICON_COLOR)][MO_SELECTED], m_Config[moR(ICON_ALPHA)][MO_SELECTED], state );
     SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], m_EffectState );
-
     SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
-    moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();
-    if (TD && TD->Texture()==NULL) UpdateConnectors();
-    glBindTexture( GL_TEXTURE_2D, m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo ) );
 
     moPlaneGeometry IconQuad( ancho, alto, 1, 1 );
     moMaterial Material;
     Material.m_Map = TD->Texture();
+    Material.m_MapGLId = TGLId;
     //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
     moVector4d color = m_Config.EvalColor( moR(ICON_COLOR) );
     Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
@@ -174,7 +177,10 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     Camera3D = mGL->GetProjectionMatrix();
 
 #ifndef OPENGLESV2
+    //mRender->Render( &Mesh, &Camera3D );
 
+    glMatrixMode( GL_MODELVIEW );
+    glLoadIdentity();
     /// Draw //
     glTranslatef(  m_Config.Eval( moR(ICON_TRANSLATEX)) + Tx,
                    m_Config.Eval( moR(ICON_TRANSLATEY)) + Ty,
@@ -200,7 +206,6 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
       glTexCoord2f( 0.0, 0.0 );
       glVertex2f( -0.5*ancho,  0.5*alto);
     glEnd();
-
 #else
     mRender->Render( &Mesh, &Camera3D );
 #endif

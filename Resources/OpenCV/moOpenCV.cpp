@@ -588,7 +588,8 @@ moOpenCV::MotionRecognition() {
     return;
   }
 
-  Mat frame( srcframe );
+  //Mat frame( srcframe );
+  Mat frame = cv::cvarrToMat(srcframe);
   Mat framecol;
 
   CvMatToTexture( frame, 0 , 0, 0, m_pCVSourceTexture );
@@ -1157,7 +1158,8 @@ moOpenCV::FaceDetection() {
   }
 
   /**CONVERT AND ENHANCE TO GRAYSCALE*/
-  Mat frame( srcframe );
+  //Mat frame( srcframe );
+  Mat frame = cv::cvarrToMat(srcframe);
   Mat frame_gray;
   cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
   //equalizeHist(frame_gray, frame_gray);
@@ -1259,7 +1261,8 @@ moOpenCV::ThresholdFilter() {
   //cvFree(srcframe);
 
   /**CONVERT AND ENHANCE TO GRAYSCALE*/
-  Mat frame( srcframe );
+  //Mat frame( srcframe );
+  Mat frame = cv::cvarrToMat(srcframe);
   Mat frame_gray;
   cvtColor( frame, frame_gray, COLOR_BGR2GRAY);
   frame.release();
@@ -1331,19 +1334,19 @@ moOpenCV::BlobRecognition() {
 
     // Set up detector with params
     SimpleBlobDetector detector(params);
-
+    detector.detect( dstthresh, keypoints);
   #else
 
     // Set up detector with params
     Ptr<SimpleBlobDetector> detector = SimpleBlobDetector::create(params);
-
+    detector->detect( dstthresh, keypoints);
   #endif
 
 
   // Detect blobs.
   Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
 
-  detector.detect( dstthresh, keypoints);
+  
   drawKeypoints( dstblobs, keypoints, dstblobs, cv::Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
   CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );

@@ -20,10 +20,10 @@ lib_LTLIBRARIES = libmoldeo_icon.la
 libmoldeo_icon_la_SOURCES = moEffectIcon.cpp moEffectIcon.h
 libmoldeo_icon_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmoldeo_icon_la_LDFLAGS =
-libmoldeo_icon_la_LIBADD = 
+libmoldeo_icon_la_LIBADD =
 libmoldeo_icon_la_LIBS = ${LIBMOLDEO_LIBS}
 
-libmoldeo_image_includedir = $(includedir)/moldeo/${moduletype}/image
-libmoldeo_image_include_HEADERS = moEffectIcon.h
+libmoldeo_icon_includedir = $(includedir)/moldeo/${moduletype}/image
+libmoldeo_icon_include_HEADERS = moEffectIcon.h
 
 METASOURCES = AUTO

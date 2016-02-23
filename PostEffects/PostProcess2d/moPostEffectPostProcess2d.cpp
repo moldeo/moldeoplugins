@@ -114,7 +114,7 @@ void moPostEffectPostProcess2d::Draw( moTempo* tempogral, moEffectState* parents
 	glPushMatrix();										// Store The Projection Matrix
 	glLoadIdentity();									// Reset The Projection Matrix
 
-    m_pResourceManager->GetGLMan()->SetOrthographicView();
+    m_pResourceManager->GetGLMan()->SetDefaultOrthographicView();
     alto = 0.5 * m_pResourceManager->GetRenderMan()->ScreenProportion();
 	//gluPerspective(45.0f, 1/prop, 0.1f ,4000.0f);
 

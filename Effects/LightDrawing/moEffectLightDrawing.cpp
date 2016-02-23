@@ -230,7 +230,7 @@ void moEffectLightDrawing::Draw( moTempo* tempogral, moEffectState* parentstate 
     glDisable(GL_DEPTH_TEST);       // Disables Depth Testing
     //glDepthMask(GL_FALSE);
 
-    m_pResourceManager->GetGLMan()->SetOrthographicView();
+    m_pResourceManager->GetGLMan()->SetDefaultOrthographicView();
 
     glEnable(GL_ALPHA);
 

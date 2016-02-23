@@ -73,4 +73,6 @@ esac],
 [debug=false])
 AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
 
+echo "DEBUG: $debug"
+
 AC_OUTPUT(Makefile)

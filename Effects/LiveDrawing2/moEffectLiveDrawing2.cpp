@@ -204,7 +204,7 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	if (perspective!=0) m_pResourceManager->GetGLMan()->SetPerspectiveView(canvasWidth, canvasHeight);
 
 	//version para Cuentos Animados
-	if (perspective==0) m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight);
+	if (perspective==0) m_pResourceManager->GetGLMan()->SetOrthographicView(canvasWidth, canvasHeight, 0, canvasWidth, 0, canvasHeight);
 
     // Draw //
     //float rectif_tx = -1024*(1.15-1.0)*0.5;
