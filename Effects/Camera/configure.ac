@@ -29,39 +29,6 @@ AC_PROG_CXX_C_O
 
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
 
-AC_ARG_WITH( [gles],
-AS_HELP_STRING([--with-gles],
-[use open gl es 2, default: no]),
-[with_gles=yes])
-
-
-AS_IF([test "x$with_gles" = "xyes"],
-[PKG_CHECK_MODULES([GL], [glesv2, egl] ,has_glesv2=yes)],
-[PKG_CHECK_MODULES([GL], [gl, glew] ,has_gl=yes)])
-
-AC_ARG_ENABLE(host,
-[--enable-host[=host name] Specify the host os name:
-			64: 64 bit linux os [default]
-			86: 32 bits linux os
-                        raspbian: RASPBIAN/debian 8 32 bits],
-[ if test "x$enableval" = "x86" ; then
-	host_name=86
-  elif test "x$enableval" = "x64" ; then
-	host_name=64
-  elif test "x$enableval" = "xraspbian" ; then
-	host_name="raspbian"
-	host_cflags="-I/opt/vc/include -DOPENGLESV2"
-	host_ldflags="-L/opt/vc/lib"
-  else
-	echo
-	echo "Error!"
-	echo "Unknown host name"
-	exit -1
-  fi
-])
-AC_SUBST([HOSTCFLAGS],$host_cflags)
-AC_SUBST([HOSTLDFLAGS],$host_ldflags)
-
 dnl autoscan results
 AC_CHECK_FUNCS([floor])
 AC_CHECK_FUNCS([getcwd])
