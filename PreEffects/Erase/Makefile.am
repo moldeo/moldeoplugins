@@ -19,9 +19,9 @@ AM_LDFLAGS = -ldl ${HOSTLDFLAGS}
 lib_LTLIBRARIES = libmoldeo_erase.la
 libmoldeo_erase_la_SOURCES = moPreEffectErase.cpp moPreEffectErase.h
 libmoldeo_erase_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
-libmoldeo_erase_la_LDFLAGS =
-libmoldeo_erase_la_LIBADD = 
-libmoldeo_erase_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_erase_la_LDFLAGS = 
+libmoldeo_erase_la_LIBADD =
+libmoldeo_erase_la_LIBS =
 
 libmoldeo_erase_includedir = $(includedir)/moldeo/${moduletype}/erase
 libmoldeo_erase_include_HEADERS = moPreEffectErase.h

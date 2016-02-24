@@ -23,7 +23,7 @@ libmoldeo_icon_la_LDFLAGS =
 libmoldeo_icon_la_LIBADD =
 libmoldeo_icon_la_LIBS = ${LIBMOLDEO_LIBS}
 
-libmoldeo_icon_includedir = $(includedir)/moldeo/${moduletype}/image
+libmoldeo_icon_includedir = $(includedir)/moldeo/${moduletype}/icon
 libmoldeo_icon_include_HEADERS = moEffectIcon.h
 
 METASOURCES = AUTO

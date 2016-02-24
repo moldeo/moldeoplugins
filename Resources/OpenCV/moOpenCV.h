@@ -37,21 +37,26 @@
 
 
 
-#define OPENCV2 1
 #define HAVE_OPENGL 0
 
 #include "cv.h"
 
 #define OPENCV2
+
 #ifdef OPENCV2
-#ifdef WIN32
-#include "opencv2/features2d.hpp"
-#include "opencv2/objdetect/objdetect.hpp"
-//#include "opencv2/highgui/highgui.hpp"
-#include "opencv2/imgproc/imgproc.hpp"
-#else
-#include "features2d/features2d.hpp"
-#endif
+    #ifdef WIN32
+        #include "opencv2/features2d.hpp"
+        #include "opencv2/objdetect/objdetect.hpp"
+        //#include "opencv2/highgui/highgui.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+    #else
+        #include "opencv2/features2d.hpp"
+        #include "opencv2/objdetect/objdetect.hpp"
+        #include "opencv2/imgproc/imgproc.hpp"
+
+    #endif
+
+
 #endif // OPENCV2
 
 #include "moConfig.h"

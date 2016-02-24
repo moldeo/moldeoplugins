@@ -36,11 +36,7 @@
 #include "moTimeManager.h"
 #include "moSoundManager.h"
 
-#ifndef MO_MACOSX
-    #ifndef MO_FREEALUT
-        #define MO_FREEALUT
-    #endif
-#endif
+#define MO_FREEALUT
 
 #ifdef MO_FREEALUT
 #include <AL/alut.h>
