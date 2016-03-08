@@ -41,6 +41,11 @@
 #include "moIODeviceManager.h"
 #include "moFilterManager.h"
 
+#ifndef MO_WIN32
+  #include <wiringPi.h>
+  #include <wpiExtensions.h>
+#endif // MO_WIN32
+
 enum moGPIOParamIndex {
     GPIO_INLET,
     GPIO_OUTLET,
