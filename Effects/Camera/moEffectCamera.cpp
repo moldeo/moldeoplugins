@@ -121,7 +121,7 @@ moEffectCamera::GetDefinition( moConfigDefinition *p_configdefinition ) {
 */
 	p_configdefinition->Add( moText("camera"), MO_PARAM_TEXT, (int)CAMERA_CAMERA, moValue("default","TXT").Ref(), camOptions );
 
-	p_configdefinition->Add( moText("color_format"), MO_PARAM_NUMERIC, (MOint)CAMERA_COLOR_FORMAT /* 0 : RGB , 1:YUV */, moValue("0","NUM").Ref(), moText("rgb,yuv") );
+	p_configdefinition->Add( moText("color_format"), MO_PARAM_NUMERIC, (MOint)CAMERA_COLOR_FORMAT /* 0 : DEFAULT, 1: YUV , 2:RGB */, moValue("0","NUM").Ref(), moText("default,yuv,rgb") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, CAMERA_HEIGHT, moValue("0","NUM").Ref() );
 	p_configdefinition->Add( moText("height"), MO_PARAM_NUMERIC, CAMERA_WIDTH, moValue("0","NUM").Ref() );
 
@@ -498,11 +498,11 @@ void moEffectCamera::Draw( moTempo* tempogral, moEffectState* parentstate )
     moMaterial Material;
     if (m_pCameraTexture) {
         Material.m_Map = m_pCameraTexture;
-        
+
     } else {
         Material.m_Map = mT->GetTexture( mT->GetTextureMOId( "default", false ) );
     }
-    
+
     if (Material.m_Map) {
       Material.m_MapGLId = Material.m_Map->GetGLId();
     } else Material.m_MapGLId = 0;
