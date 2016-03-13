@@ -107,7 +107,7 @@ moSound3DAL::BuildEmpty( MOuint p_size ) {
 
 	alGenBuffers( 1, &m_BufferId );
     moEffectSound3D::al_check_error( moText("BuildEmpty Buffer for  "+GetName()) );
-	
+
 
   p_size = 0;
 	return true;
@@ -196,7 +196,7 @@ moSound3DAL::BuildFromFile( const moText& p_filename ) {
 #else
   m_BufferId = 0;
 #endif
-    
+
 
   MODebug2->Message("moSound3DAL::BuildFromFile > Loaded Buffer from file: " + p_filename );
 
@@ -227,47 +227,47 @@ moSound3DAL::BuildFromFile( const moText& p_filename ) {
     alSourcePlay( m_SourceId );
     //alSourceStop( m_SourceId );
     moEffectSound3D::al_check_error("Playing source");
-    
+
     ALenum current_playing_state;
-    
+
     alGetSourcei( m_SourceId, AL_SOURCE_STATE, & current_playing_state);
     moEffectSound3D::al_check_error("alGetSourcei AL_SOURCE_STATE");
-    
+
     if (AL_PLAYING == current_playing_state) {
         DMessage("Playing!!!!");
-        
+
     }
     float spos;
     float fr = m_AudioFormat.m_SampleRate*m_AudioFormat.m_Channels*2;
-    
+
     Update();
     if (m_ActualSample<3000000) {
         alSourcei(m_SourceId, AL_BYTE_OFFSET, 3000000+1);
         DMessage("Goto:" + IntToStr(3000000) );
     }
-    
+
     while (AL_PLAYING == current_playing_state) {
-        
+
         //printf("still playing ... so sleep\n");
-        
+
         //alutSleep(1);   // should use a thread sleep NOT sleep() for a more responsive finish
 
         //alutSleep(1);
         alGetSourcei( m_SourceId , AL_BYTE_OFFSET , &m_ActualSample);
-        
+
         spos = m_ActualSample;
-        
+
         if (m_ActualSample!=m_OldSample)
             DMessage( "Playing at: " + IntToStr( m_ActualSample ) + " pos (s):" + FloatToStr(spos/fr,2,2) );
-        
+
         m_OldSample = m_ActualSample;
-        
+
         if (m_ActualSample>6000000) {
             DMessage("Goto:" + IntToStr(3000000 + 1) );
             //PlaySample( 3000000 + 1 );
             alSourcei(m_SourceId, AL_BYTE_OFFSET, 3000000+1);
         }
-        
+
         alGetSourcei( m_SourceId, AL_SOURCE_STATE, & current_playing_state);
         //alGetSourcei( m_SourceId, AL_SOURCE_, & current_playing_state);
         moEffectSound3D::al_check_error("alGetSourcei AL_SOURCE_STATE");
@@ -305,11 +305,11 @@ void moSound3DAL::PlaySample( MOint sampleid ) {
 }
 
 void moSound3DAL::Update() {
-    
+
     State();
     m_OldSample = m_ActualSample;
     alGetSourcei( m_SourceId , AL_BYTE_OFFSET , &m_ActualSample);
-    
+
 }
 
 void moSound3DAL::Pause() {
@@ -429,10 +429,10 @@ void moSound3DAL::SetBalance( float balance ) {
     alListenerfv( AL_POSITION, listenerPos );
     alListenerfv( AL_VELOCITY, listenerVel );
     alListenerfv( AL_ORIENTATION, listenerOri );
-    
+
     float sourcePos[ 3 ] = { balance*10.0, 0.0, 0.0 };
     alSourcefv(m_SourceId, AL_POSITION, sourcePos);
-    
+
     m_Balance = balance;
 }
 
@@ -454,12 +454,12 @@ moEffectSound3D::~moEffectSound3D() {
 }
 
 int moEffectSound3D::al_check_error(const char * p_message) { // generic OpenAL error checker
-    
+
     ALenum al_error;
     al_error = alGetError();
-    
+
     if(AL_NO_ERROR != al_error) {
-        
+
         printf("OPENAL ERROR - %s  (%s)\n", alGetString(al_error), p_message);
         return al_error;
     }
@@ -467,12 +467,12 @@ int moEffectSound3D::al_check_error(const char * p_message) { // generic OpenAL 
 }
 
 int moEffectSound3D::alutCheckError(const char * p_message) { // generic OpenAL error checker
-    
+
     ALenum alut_error;
     alut_error = alutGetError();
-    
+
     if( ALUT_ERROR_NO_ERROR != alut_error) {
-        
+
         printf("ALUT ERROR - %s  (%s)\n", alutGetErrorString(alut_error), p_message);
         return alut_error;
     }
@@ -490,7 +490,7 @@ void moEffectSound3D::ShowBufferInfo( ALint p_BufferId ) {
     al_check_error("failed call to alGetBufferi AL_CHANNELS");
     alGetBufferi(p_BufferId, AL_FREQUENCY, &frequency);
     al_check_error("failed call to alGetBufferi AL_FREQUENCY");
-    
+
     DMessage("ShowBufferInfo > size: " + IntToStr(bsize)
             + " bitcount:" + IntToStr(bcount)
             + " channels:" + IntToStr(channels)
@@ -500,7 +500,7 @@ void moEffectSound3D::ShowBufferInfo( ALint p_BufferId ) {
 
 MOboolean moEffectSound3D::Init() {
 
-    
+
     m_pALCDevice = alcOpenDevice( alcGetString(NULL, ALC_DEVICE_SPECIFIER) );
     if (!m_pALCDevice) {
         DError("Init > alcOpenDevice no device created!");
@@ -510,7 +510,7 @@ MOboolean moEffectSound3D::Init() {
     }
     /*
     ALboolean enumeration;
-    
+
     enumeration = alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT");
     if (enumeration == AL_FALSE) {
         // enumeration not supported
@@ -528,10 +528,10 @@ MOboolean moEffectSound3D::Init() {
             ldevice += (len + 1);
             next += (len + 2);
         }
-        
+
     }
     */
-    
+
     m_pALCContext = alcCreateContext(m_pALCDevice, NULL);
     if (!alcMakeContextCurrent(m_pALCContext)) {
         DError("Init > alcMakeContextCurrent Error!");
@@ -539,41 +539,42 @@ MOboolean moEffectSound3D::Init() {
     } else {
         DMessage( moText("Init > context:") + IntToStr((long)m_pALCContext) );
     }
-    
+
 #ifdef MO_FREEALUT
 
    //if ( alutInitWithoutContext( NULL, NULL )) {
     if ( alutInit( NULL, NULL )) {
-        
+
       DMessage("Init > ALUT Initialized!");
-        
+
       //MM_render_one_buffer();
-        
       //generate al id
-      
       //generate al buffer
-      /*
+      MM_render_one_buffer();
+  #ifndef MAC_OSX
+  /*
       helloBuffer = alutCreateBufferHelloWorld ();
       alutCheckError( "alutCreateBufferHelloWorld" );
       DMessage( "helloBuffer:"+ IntToStr(helloBuffer) );
-       
+
       //al_check_error("failed call to alutCreateBufferHelloWorld");
       //associate buffer to al id source
-       if (helloBuffer) {
+      if (helloBuffer) {
         ShowBufferInfo(helloBuffer);
         alGenSources (1, &helloSource);
         al_check_error("failed call to alGenSources");
         alSourcei (helloSource, AL_BUFFER, helloBuffer);
-         alSourcePlay(helloSource);
-       }
-       */
-       
+        alSourcePlay(helloSource);
+      }
+      */
+  #endif
+
   } else {
       DError("Init > ALUT not initialized. Check if ALUT is installed correctly.");
       return false;
   }
 #endif
-    
+
 
   m_Sound3DFilename = moText("");
 
@@ -631,12 +632,12 @@ MOboolean moEffectSound3D::Finish()
         alcDestroyContext(m_pALCContext);
         m_pALCContext = NULL;
     }
-    
+
     if (m_pALCDevice) {
         alcCloseDevice(m_pALCDevice);
         m_pALCDevice = NULL;
     }
-    
+
 #ifdef MO_FREEALUT
     alutExit ();
 #endif
@@ -645,8 +646,8 @@ MOboolean moEffectSound3D::Finish()
 
 
 void moEffectSound3D::MM_render_one_buffer() {
-    
-    
+
+
     alGenBuffers( 1, &helloBuffer );
     al_check_error("failed call to alGenBuffers");
 
@@ -654,70 +655,70 @@ void moEffectSound3D::MM_render_one_buffer() {
     // float freq = 440.f;
     float freq = 100.f;
     float incr_freq = 0.1f;
-    
+
     int seconds = 4;	// this determines buffer size based on seconds of playback audio independent of sample rate
     // unsigned sample_rate = 22050;
     unsigned sample_rate = 44100;
     unsigned int channels = 2;
     double my_pi = 3.14159;
     size_t buf_size = seconds * sample_rate * channels;
-    
+
     //short * samples = (short *)malloc(sizeof(short) * buf_size); // allocates audio buffer memory
     short * samples = new short[buf_size];
-    
+
     printf("\nhere is freq %f\n", freq);
-    
+
     int i=0;
     for(; i<buf_size; ++i) {
-        
-        
-        
+
+
+
         samples[i] = 32760 * sin( (2.f * my_pi * freq)/sample_rate * i ); // populate audio curve data point
-        
+
         //if (i%2==0) samples[i] = samples[i];
-        
+
         freq += incr_freq; // jack around frequency ... just comment out this for sin curve
-        
+
         if (10.0 > freq || freq > 5000.0) { // toggle frequency increment if we reach min or max freq
-            
+
             incr_freq *= -1.0f;
         }
     }
-    
+
     // upload buffer to OpenAL
     if (channels==1) alBufferData( helloBuffer, AL_FORMAT_MONO16, samples, buf_size, sample_rate);
     if (channels==2) alBufferData( helloBuffer, AL_FORMAT_STEREO16, samples, buf_size, sample_rate);
     al_check_error("populating alBufferData");
-    
+
     free(samples); // release audio buffer memory after above upload into OpenAL internal buffer
-    
+
     /// Set-up sound source and play buffer
-    
+
     //alGenSources(1, & streaming_source[0]);
     //alSourcei(streaming_source[0], AL_BUFFER, helloBuffer);
     alGenSources (1, &helloSource);
     al_check_error("failed call to alGenSources");
     alSourcei (helloSource, AL_BUFFER, helloBuffer);
     alSourcePlay(helloSource);
-    
+
     // ---------------------
-    
+
     ALenum current_playing_state;
     alGetSourcei( helloSource, AL_SOURCE_STATE, & current_playing_state);
     al_check_error("alGetSourcei AL_SOURCE_STATE");
-    
+
     while (AL_PLAYING == current_playing_state) {
-        
+
         //printf("still playing ... so sleep\n");
-        
+
         //alutSleep(1);   // should use a thread sleep NOT sleep() for a more responsive finish
         alGetSourcei( helloSource, AL_SOURCE_STATE, & current_playing_state);
         al_check_error("alGetSourcei AL_SOURCE_STATE");
     }
-    
+
     printf("end of playing\n");
-    
-    
+
+
 }
 
 
@@ -765,7 +766,7 @@ moEffectSound3D::UpdateParameters() {
 
 void
 moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
-    
+
     moDataManager* pDataMan = m_pResourceManager->GetDataMan();
     moFile SoundFile;
     if (m_Sound3DFilename!=p_newfilename ) {
@@ -791,7 +792,7 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
                   DMessage("Adding sound to SoundManager!");
                     m_pSM->AddSound( (moSound*) m_pAudio );
               }
-            
+
           }
 
         }
