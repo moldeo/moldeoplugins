@@ -24,7 +24,7 @@ libmoldeo_gpio_la_LDFLAGS =
 libmoldeo_gpio_la_LIBADD = 
 libmoldeo_gpio_la_LIBS = ${LIBMOLDEO_LIBS}
 
-libmoldeo_image_includedir = $(includedir)/moldeo/${moduletype}/image
-libmoldeo_image_include_HEADERS = moEffectIcon.h
+libmoldeo_gpio_includedir = $(includedir)/moldeo/${moduletype}/gpio
+libmoldeo_gpio_include_HEADERS = moGPIO.h
 
 METASOURCES = AUTO
