@@ -71,6 +71,8 @@ void moEffectSound3DFactory::Destroy(moEffect* fx) {
 // SOUND 3D
 //========================
 
+bool moEffectSound3D::m_bAlutInit = false;
+
 moSound3DAL::moSound3DAL() {
 	m_pData = NULL;
     m_BufferId = -1;
@@ -145,7 +147,34 @@ moSound3DAL::BuildFromFile( const moText& p_filename ) {
   ALenum error;
 #ifdef MO_FREEALUT
     #ifndef MO_MACOSX
-    m_BufferId = alutCreateBufferFromFile( p_filename  );
+    //m_BufferId = alutCreateBufferFromFile( p_filename  );
+
+    m_pData = (void*)alutLoadMemoryFromFile( p_filename, &m_eBufferFormat, &m_ulDataSize, &m_fFrequency );
+    if (m_pData) {
+      alBufferData( m_BufferId, m_eBufferFormat, m_pData, m_ulDataSize, (int)m_fFrequency );
+        DMessage( " frames (m_ulDataSize): " + IntToStr(m_ulDataSize) );
+        DMessage( " samplerate (m_fFrequency): " + IntToStr( (int)m_fFrequency) );
+        //DMessage( " channels: " + IntToStr(wsndinfo.channels) );
+        DMessage( " format: " + IntToStr( m_eBufferFormat ) );
+        switch(m_eBufferFormat) {
+          case AL_FORMAT_MONO8:
+            DMessage( " AL_FORMAT_MONO8" );
+            break;
+          case AL_FORMAT_MONO16:
+            DMessage( " AL_FORMAT_MONO16" );
+            break;
+          case AL_FORMAT_STEREO8:
+            DMessage( " AL_FORMAT_STEREO8" );
+            break;
+          case AL_FORMAT_STEREO16:
+            DMessage( " AL_FORMAT_STEREO16" );
+            break;
+          default:
+            break;
+        }
+        //DMessage( " sections: " + IntToStr(wsndinfo.sections) );
+        //DMessage( " seekable: " + IntToStr(wsndinfo.seekable) );
+    }
     if ((error = alutGetError()) != ALUT_ERROR_NO_ERROR)
     {
         MODebug2->Error( "moSound3DAL::BuildFromFile > alutCreateBufferFromFile failed: " + IntToStr( error ) );
@@ -371,11 +400,24 @@ moStreamState moSound3DAL::State() {
 }
 
 
+bool
+moSound3DAL::IsPlaying() {
+  return (State()== MO_STREAMSTATE_PLAYING);
+}
+
 
 void moSound3DAL::SetPosition( float x, float y, float z ) {
 
 	alSource3f( m_SourceId, AL_POSITION, x, y, z );
-
+  float listenerPos[ 3 ] = { 0.0, 0.0, 0.0 };
+  float listenerOri[ 6 ] = { 0.0, 0.0, -1.0,  0.0, 1.0, 0.0 };
+  float listenerVel[ 3 ] = { 0.0, 0.0, 0.0  };
+  alListenerfv( AL_POSITION, listenerPos );
+  alListenerfv( AL_VELOCITY, listenerVel );
+  alListenerfv( AL_ORIENTATION, listenerOri );
+  //alSourcei( m_SourceId, AL_SOURCE_RELATIVE, true );
+  //alSourcef( m_SourceId, AL_DOPPLER_FACTOR, 2.0 );
+  //alSourcef( m_SourceId, AL_DOPPLER_VELOCITY, 1.0 );
 }
 
 void moSound3DAL::SetVelocity( float x, float y, float z ) {
@@ -404,6 +446,20 @@ float moSound3DAL::GetVolume() {
 
 }
 
+float moSound3DAL::GetActualSampleVolume() {
+  float avolume = 0;
+  if (m_pData) {
+    MODebug2->Message("actualsample:"+IntToStr( m_ActualSample )+"/"+IntToStr(m_ulDataSize) );
+    if (m_ActualSample < m_ulDataSize  ) {
+      int indexp = m_ActualSample / (2/m_AudioFormat.m_Channels);
+      avolume = (float) ((WORD*)m_pData)[ indexp ];
+      avolume = (1.0f*fabs(avolume)) / (65535.0/2.0);
+    }
+
+  }
+  return avolume;
+}
+
 void moSound3DAL::SetPitch( float pitch )  {
     m_Pitch = pitch;
 
@@ -418,6 +474,20 @@ float moSound3DAL::GetPitch()  {
 
   return m_Pitch;
 }
+
+void moSound3DAL::SetLoop( bool loop ) {
+
+  //alSource3f();
+  alSourcei( m_SourceId, AL_LOOPING, loop);
+}
+
+
+void
+moSound3DAL::SetSpeedOfSound( float speedofsound ) {
+  //alSourcei( m_SourceId, AL_SPEED_OF_SOUND, speedofsound );
+  alSpeedOfSound( speedofsound );
+}
+
 
 
 void moSound3DAL::SetBalance( float balance ) {
@@ -435,6 +505,7 @@ void moSound3DAL::SetBalance( float balance ) {
 
     m_Balance = balance;
 }
+
 
 //========================
 //  Efecto
@@ -500,7 +571,7 @@ void moEffectSound3D::ShowBufferInfo( ALint p_BufferId ) {
 
 MOboolean moEffectSound3D::Init() {
 
-
+#ifdef MAC_OSX
     m_pALCDevice = alcOpenDevice( alcGetString(NULL, ALC_DEVICE_SPECIFIER) );
     if (!m_pALCDevice) {
         DError("Init > alcOpenDevice no device created!");
@@ -508,6 +579,7 @@ MOboolean moEffectSound3D::Init() {
     } else {
         DMessage( moText("Init > alcOpenDevice device:") + IntToStr((long)m_pALCDevice) );
     }
+#endif
     /*
     ALboolean enumeration;
 
@@ -532,6 +604,7 @@ MOboolean moEffectSound3D::Init() {
     }
     */
 
+#ifdef MAC_OSX
     m_pALCContext = alcCreateContext(m_pALCDevice, NULL);
     if (!alcMakeContextCurrent(m_pALCContext)) {
         DError("Init > alcMakeContextCurrent Error!");
@@ -539,18 +612,26 @@ MOboolean moEffectSound3D::Init() {
     } else {
         DMessage( moText("Init > context:") + IntToStr((long)m_pALCContext) );
     }
+#endif
 
 #ifdef MO_FREEALUT
 
    //if ( alutInitWithoutContext( NULL, NULL )) {
-    if ( alutInit( NULL, NULL )) {
+
+   if (m_bAlutInit==false) {
+      m_bAlutInit = alutInit( NULL, NULL );
+   }
+
+    if ( m_bAlutInit ) {
 
       DMessage("Init > ALUT Initialized!");
 
+      //alDistanceModel( AL_INVERSE_DISTANCE );
+      //alDistanceModel( AL_INVERSE_DISTANCE );
       //MM_render_one_buffer();
       //generate al id
       //generate al buffer
-      MM_render_one_buffer();
+      //MM_render_one_buffer();
   #ifndef MAC_OSX
   /*
       helloBuffer = alutCreateBufferHelloWorld ();
@@ -566,12 +647,12 @@ MOboolean moEffectSound3D::Init() {
         alSourcei (helloSource, AL_BUFFER, helloBuffer);
         alSourcePlay(helloSource);
       }
-      */
+    */
   #endif
 
   } else {
       DError("Init > ALUT not initialized. Check if ALUT is installed correctly.");
-      return false;
+      //return false;
   }
 #endif
 
@@ -608,13 +689,13 @@ MOboolean moEffectSound3D::Init() {
   moDefineParamIndex( SOUND3D_TRANSLATEY, moText("translatey") );
   moDefineParamIndex( SOUND3D_TRANSLATEZ, moText("translatez") );
 
-  moDefineParamIndex( SOUND3D_TRANSLATEX, moText("translatex") );
-  moDefineParamIndex( SOUND3D_TRANSLATEY, moText("translatey") );
-  moDefineParamIndex( SOUND3D_TRANSLATEZ, moText("translatez") );
+  moDefineParamIndex( SOUND3D_SPEEDX, moText("speedx") );
+  moDefineParamIndex( SOUND3D_SPEEDY, moText("speedy") );
+  moDefineParamIndex( SOUND3D_SPEEDZ, moText("speedz") );
 
-  moDefineParamIndex( SOUND3D_TRANSLATEX, moText("translatex") );
-  moDefineParamIndex( SOUND3D_TRANSLATEY, moText("translatey") );
-  moDefineParamIndex( SOUND3D_TRANSLATEZ, moText("translatez") );
+  moDefineParamIndex( SOUND3D_DIRECTIONX, moText("directionx") );
+  moDefineParamIndex( SOUND3D_DIRECTIONY, moText("directiony") );
+  moDefineParamIndex( SOUND3D_DIRECTIONZ, moText("directionz") );
 
   moDefineParamIndex( SOUND3D_INLET, moText("inlet") );
   moDefineParamIndex( SOUND3D_OUTLET, moText("outlet") );
@@ -628,6 +709,8 @@ MOboolean moEffectSound3D::Init() {
 
 MOboolean moEffectSound3D::Finish()
 {
+  #ifdef MAC_OSX
+
     if (m_pALCContext) {
         alcDestroyContext(m_pALCContext);
         m_pALCContext = NULL;
@@ -637,6 +720,7 @@ MOboolean moEffectSound3D::Finish()
         alcCloseDevice(m_pALCDevice);
         m_pALCDevice = NULL;
     }
+  #endif
 
 #ifdef MO_FREEALUT
     alutExit ();
@@ -762,20 +846,63 @@ moEffectSound3D::ResolveValue( moParam& param, int value_index, bool p_refresh )
 void
 moEffectSound3D::UpdateParameters() {
   UpdateSound( m_Config.Text( moR(SOUND3D_SOUND)) );
+
+  m_bLoop = m_Config.Int( moR( SOUND3D_LOOP ) );
+  m_fPitch = m_Config.Eval( moR( SOUND3D_PITCH ) );
+  m_fVolume = m_Config.Eval( moR( SOUND3D_VOLUME ) );
+  m_fSpeedOfSound = m_Config.Eval( moR( SOUND3D_SPEEDOFSOUND ) );
+  //MODebug2->Message("Pitch:" + FloatToStr(m_fPitch) );
+  m_vPosition = moVector3f( m_Config.Eval(moR(SOUND3D_TRANSLATEX)),
+                            m_Config.Eval(moR(SOUND3D_TRANSLATEY)),
+                            m_Config.Eval(moR(SOUND3D_TRANSLATEZ)) );
+
+  m_vSpeed = moVector3f( m_Config.Eval(moR(SOUND3D_SPEEDX)),
+                            m_Config.Eval(moR(SOUND3D_SPEEDY)),
+                            m_Config.Eval(moR(SOUND3D_SPEEDZ)) );
+
+  m_vDirection = moVector3f( m_Config.Eval(moR(SOUND3D_DIRECTIONX)),
+                            m_Config.Eval(moR(SOUND3D_DIRECTIONY)),
+                            m_Config.Eval(moR(SOUND3D_DIRECTIONZ)) );
+
+  if (m_pAudio) {
+    m_pAudio->SetLoop( m_bLoop );
+    m_pAudio->SetPitch( m_fPitch );
+    m_pAudio->SetVolume( m_fVolume );
+    m_pAudio->SetSpeedOfSound( m_fSpeedOfSound );
+    m_pAudio->SetDirection( m_vDirection );
+    m_pAudio->SetVelocity( m_vSpeed );
+    m_pAudio->SetPosition( m_vPosition );
+
+    m_pAudio->Update();
+    m_fSampleVolume = m_pAudio->GetActualSampleVolume();
+    MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
+  }
+
+
+
+
+
 }
+
 
 void
 moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
 
     moDataManager* pDataMan = m_pResourceManager->GetDataMan();
     moFile SoundFile;
+    moSound3DAL* prev_Audio  = NULL;
     if (m_Sound3DFilename!=p_newfilename ) {
 
         m_Sound3DFilename = p_newfilename;
-
+        if (m_pAudio) {
+          prev_Audio = m_pAudio;
+        }
         m_pAudio = (moSound3DAL*)m_pSM->GetSound( m_Sound3DFilename, false );
 
         if (m_pAudio) {
+            if (prev_Audio) {
+              prev_Audio->Stop();
+            }
         } else {
 
           SoundFile = pDataMan->GetDataFile( m_Sound3DFilename );
@@ -803,11 +930,21 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
 
       DMessage("Launching sound!" + m_pAudio->GetName());
       m_bLaunch = m_Config.Int(moR(SOUND3D_LAUNCH));
-        if (m_bLaunch) {
+        if (m_bLaunch && moIsTimerPlaying()) {
           m_pAudio->Play();
         }
     }
 
+
+    if ( moIsTimerStopped() && m_pAudio ) {
+      if (m_pAudio->IsPlaying())
+        m_pAudio->Stop();
+    }
+    if (m_bLaunch && m_pAudio) {
+      if (!m_pAudio->IsPlaying() && moIsTimerPlaying() ) {
+        m_pAudio->Play();
+      }
+    }
 }
 
 void moEffectSound3D::Draw( moTempo* tempogral, moEffectState* parentstate )
@@ -951,6 +1088,62 @@ void moEffectSound3D::Draw( moTempo* tempogral, moEffectState* parentstate )
                         textstate );
     }
     */
+    moShaderManager* pSMan;
+    moGLManager* pGLMan;
+    moRenderManager* pRMan;
+    moTextureManager* pTMan;
+
+    if (m_pResourceManager) {
+      pSMan = m_pResourceManager->GetShaderMan();
+      if (!pSMan) return;
+
+      pGLMan = m_pResourceManager->GetGLMan();
+      if (!pGLMan) return;
+
+      pRMan = m_pResourceManager->GetRenderMan();
+      if (!pRMan) return;
+
+      pTMan = m_pResourceManager->GetTextureMan();
+      if (!pTMan) return;
+
+    } else return ;
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
+    ///MATERIAL
+    moMaterial Mat;
+      Mat.m_Map = pTMan->GetTexture(pTMan->GetTextureMOId( "default", false ));
+      Mat.m_MapGLId = Mat.m_Map->GetGLId();
+      //Mat.m_MapGLId = 1;
+      //Mat.m_Color = moColor( 1.0, 1.0, 1.0 );
+      //Mat.m_fTextWSegments = 13.0f;
+      //Mat.m_fTextHSegments = 13.0f;
+      //Mat.m_vLight = moVector3f( -1.0, -1.0, -1.0 );
+      //Mat.m_vLight.Normalize();
+      //Mat.m_PolygonMode = MO_POLYGONMODE_LINE;
+      //Mat.m_PolygonMode = MO_POLYGONMODE_FILL;
+      //Mat.m_fWireframeWidth = 0.0005f;
+
+    ///GEOMETRY
+    moSphereGeometry Sphere( 0.1+0.01*m_fSampleVolume, 4, 4 );
+
+    ///MESH MODEL (aka SCENE NODE)
+    float progress = 0.0;
+    moGLMatrixf Model;
+    Model.MakeIdentity()
+         .Rotate(   360.0*progress*moMathf::DEG_TO_RAD, 0.0, 1.0, 0.0 )
+         .Translate(    m_vPosition.X(), m_vPosition.Y(), m_vPosition.Z() );
+    moMesh Mesh( Sphere, Mat );
+    Mesh.SetModelMatrix(Model);
+
+    ///CAMERA PERSPECTIVE
+    moCamera3D Camera3D;
+    pGLMan->SetDefaultPerspectiveView( pRMan->ScreenWidth(), pRMan->ScreenHeight() );
+    //  Camera3D.MakePerspective(60.0f, p_display_info.Proportion(), 0.01f, 1000.0f );
+    Camera3D = pGLMan->GetProjectionMatrix();
+
+    ///RENDERING
+    pRMan->Render( &Mesh, &Camera3D );
 }
 
 

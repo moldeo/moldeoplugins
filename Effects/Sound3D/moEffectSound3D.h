@@ -106,8 +106,12 @@ class moSound3DAL : public moSound3D {
     virtual void SetVolume( float gain );
     virtual void SetBalance( float gain );
     virtual float GetVolume();
+    virtual float GetActualSampleVolume();
     virtual void SetPitch( float pitch );
     virtual float GetPitch();
+    virtual void SetLoop( bool loop );
+    virtual void SetSpeedOfSound( float speedofsound );
+    virtual bool IsPlaying();
 
     MOboolean BuildEmpty( MOuint p_size );
     MOboolean BuildFromBuffer( MOuint p_size, GLvoid* p_buffer );
@@ -118,9 +122,15 @@ class moSound3DAL : public moSound3D {
     virtual void Repeat(int repeat);
 
     void PlaySample( MOint sampleid );
+
     void SetPosition( float x, float y, float z );
+    void SetPosition( const moVector3f& v_pos ) { SetPosition(v_pos.X(), v_pos.Y(), v_pos.Z() );  }
+
     void SetVelocity( float x, float y, float z );
+    void SetVelocity( const moVector3f& v_vel ) { SetVelocity(v_vel.X(), v_vel.Y(), v_vel.Z() );  }
+
     void SetDirection( float x, float y, float z );
+    void SetDirection( const moVector3f& v_dir ) { SetDirection(v_dir.X(), v_dir.Y(), v_dir.Z() );  }
 
 
     int m_iAlState;
@@ -138,6 +148,7 @@ class moSound3DAL : public moSound3D {
     ALboolean	m_ulLoop;
 
 
+    ALfloat	m_fFrequency;
 
     /**
 
@@ -210,12 +221,24 @@ private:
   moText      m_Sound3DFilename;
   moText      m_Sound3DFilenameFull;
 
+  float m_fSampleVolume;
+
   bool    m_bAudioStarted;
   bool    m_bLaunch;
+  bool    m_bLoop;
+  float   m_fPitch;
+  float   m_fVolume;
+  float   m_fSpeedOfSound;
 
   MOint Tx, Ty, Tz;
   MOfloat Sx, Sy, Sz;
   MOint Rx, Ry, Rz;
+
+  moVector3f m_vPosition;
+  moVector3f m_vDirection;
+  moVector3f m_vSpeed;
+
+  static bool m_bAlutInit;
 
 };
 
