@@ -135,15 +135,15 @@ void moEffectImage::Draw( moTempo* tempogral,moEffectState* parentstate)
 
   moTexture* pImage = (moTexture*) m_Config[moR(IMAGE_TEXTURE)].GetData()->Pointer();
 
-  PosTextX = m_Config.Eval( moR(IMAGE_POSTEXX), m_EffectState.tempo.ang);
-  AncTextX = m_Config.Eval( moR(IMAGE_ANCTEXX), m_EffectState.tempo.ang);
-  PosTextY = m_Config.Eval( moR(IMAGE_POSTEXY), m_EffectState.tempo.ang);
-  AltTextY = m_Config.Eval( moR(IMAGE_ALTTEXY), m_EffectState.tempo.ang);
+  PosTextX = m_Config.Eval( moR(IMAGE_POSTEXX));
+  AncTextX = m_Config.Eval( moR(IMAGE_ANCTEXX));
+  PosTextY = m_Config.Eval( moR(IMAGE_POSTEXY));
+  AltTextY = m_Config.Eval( moR(IMAGE_ALTTEXY));
 
-  PosCuadX = m_Config.Eval( moR(IMAGE_POSCUADX), m_EffectState.tempo.ang);
-  AncCuadX = m_Config.Eval( moR(IMAGE_ANCCUADX), m_EffectState.tempo.ang);
-  PosCuadY = m_Config.Eval( moR(IMAGE_POSCUADY), m_EffectState.tempo.ang);
-  AltCuadY = m_Config.Eval( moR(IMAGE_ALTCUADY), m_EffectState.tempo.ang);
+  PosCuadX = m_Config.Eval( moR(IMAGE_POSCUADX));
+  AncCuadX = m_Config.Eval( moR(IMAGE_ANCCUADX));
+  PosCuadY = m_Config.Eval( moR(IMAGE_POSCUADY));
+  AltCuadY = m_Config.Eval( moR(IMAGE_ALTCUADY));
 
   if (pImage) {
       PosTextX0 = PosTextX * pImage->GetMaxCoordS();
