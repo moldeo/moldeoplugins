@@ -39,8 +39,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moEffectSound3D.h" />
-		<Unit filename="src/moEffectSound3D.cpp" />
+		<Unit filename="moEffectSound3D.h" />
+		<Unit filename="moEffectSound3D.cpp" />
 		<Extensions>
 			<envvars />
 			<code_completion />

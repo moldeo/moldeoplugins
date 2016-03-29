@@ -251,7 +251,7 @@ MOboolean
 moMidiDevice::Init( moText devicetext ) {
 
 	SetName(devicetext);
-
+    m_bInit = false;
 
 #ifdef WIN32
 /*
@@ -449,9 +449,45 @@ moMidiDevice::Init( moText devicetext ) {
 	}
 
 #else
+    stream = NULL;
+    PmDeviceID pid = (int)Pm_GetDefaultInputDeviceID();
+    const PmDeviceInfo *pinfo;
+    pinfo = Pm_GetDeviceInfo(pid);
+
+    while( pinfo!=NULL ) {
+
+        moDebugManager::Message(
+                            "PmDeviceInfo: id:" + IntToStr(pid)
+                            );
+        moDebugManager::Message( " name:" + moText( (char*)pinfo->name ) );
+        //moDebugManager::Message( " devicetext:" + devicetext );
+        moDebugManager::Message( " interf:" + moText( (char*)pinfo->interf ) );
+        moDebugManager::Message( " input:" + IntToStr( pinfo->input ) );
+        moDebugManager::Message( " output:" + IntToStr( pinfo->output ) );
+
+        if (pinfo->name) {
+            if ( moText(pinfo->name)==devicetext && pinfo->input==1) {
+                m_DeviceId = (int) pid;
+                Pm_OpenInput(&stream, pid, NULL, 128, NULL, NULL);
+                m_bInit =  true;
+                return m_bInit;
+            }
+        }
+
+        pid++;
+        try {
+            pinfo = Pm_GetDeviceInfo(pid);
+        } catch(...) {
+
+        }
+
+        //pid++;
+        //pinfo = *Pm_GetDeviceInfo(pid);
+    }
+
 
 #endif
-		return false;
+		return m_bInit;
 }
 
 
@@ -483,6 +519,23 @@ moMidiDevice::Update(moEventList *Events) {
 	moMidiData	mididata;
 
 	//m_lock.Lock();
+
+    int c = Pm_Read( this->stream, &buffer[0], 10 );
+    if (c>0) {
+
+        for(int cc=0; cc<c;cc++) {
+            PmMessage msg = buffer[cc].message;
+            moDebugManager::Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
+
+            mididata.m_Channel = 0;
+            mididata.m_Type = MOMIDI_FADER;
+            mididata.m_CC = Pm_MessageData1(msg);
+            mididata.m_Val = Pm_MessageData2(msg);
+            m_MidiDatas.Add( mididata );
+        }
+
+    }
+
 
 
 	for( i=0; i < m_MidiDatas.Count(); i++ ) {
@@ -556,6 +609,9 @@ moMidi::Init() {
 			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
 			if ( pDevice->Init( MidiDeviceCode ) ) {
 				pDevice->SetActive( m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int() );
+				if (pDevice->IsActive()) {
+                    MODebug2->Message( moText("Midi Device is ACTIVE!"));
+				}
 			} else {
 				MODebug2->Error( moText("Midi Device not found: ") + (moText)MidiDeviceCode );
 			}
@@ -657,6 +713,8 @@ moMidi::Update(moEventList *Events) {
 	MOuint i;
 	moEvent *actual,*tmp;
 
+
+
 	actual = Events->First;
 	//recorremos todos los events y parseamos el resultado
 	//borrando aquellos que ya usamos
@@ -673,7 +731,7 @@ moMidi::Update(moEventList *Events) {
 
     ///ACTUALIZAMOS CADA DISPOSITIVO
 	for( i = 0; i < m_MidiDevices.Count(); i++ ) {
-
+        //MODebug2->Message("Update devices");
 		moMidiDevicePtr MidiDevPtr;
 		MidiDevPtr = m_MidiDevices.Get(i);
 
