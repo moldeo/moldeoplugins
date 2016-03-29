@@ -37,8 +37,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moMidi.h" />
-		<Unit filename="src/moMidi.cpp" />
+		<Unit filename="moMidi.cpp" />
+		<Unit filename="moMidi.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />
