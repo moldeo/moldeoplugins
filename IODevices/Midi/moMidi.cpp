@@ -513,12 +513,13 @@ moMidiDevice::NewData( moMidiData p_mididata ) {
 }
 
 void
-moMidiDevice::Update(moEventList *Events) {
+moMidiDevice::Update(moEventList *Events ) {
 
 	MOint i;
 	moMidiData	mididata;
 
 	//m_lock.Lock();
+	m_MidiDatas.Empty();
 
     int c = Pm_Read( this->stream, &buffer[0], 10 );
     if (c>0) {
@@ -547,7 +548,7 @@ moMidiDevice::Update(moEventList *Events) {
 		Events->Add( MO_IODEVICE_MIDI, (MOint)(mididata.m_Type), mididata.m_Channel, mididata.m_CC, mididata.m_Val );
 
 	}
-	m_MidiDatas.Empty();
+	//m_MidiDatas.Empty();
 
 
 	//mididata = m_MidiDatas.Get( m_MidiDatas.Count()-1 );
@@ -738,7 +739,28 @@ moMidi::Update(moEventList *Events) {
 		if (MidiDevPtr!=NULL) {
 			if (MidiDevPtr->IsInit()) {
 				MidiDevPtr->Update( Events );
-			}
+
+				const moMidiDatas& mdatas( MidiDevPtr->GetMidiDatas() );
+				for(int md=0; md<mdatas.Count(); md++ ) {
+                    const moMidiData& mdata( mdatas.Get(md) );
+                    int ccode = mdata.m_CC;
+                    moText ccodetxt = moText("C") + IntToStr( ccode, 2);
+                    int idx = GetOutletIndex( ccodetxt );
+                    moOutlet* pOutCCode = NULL;
+                    if( idx>-1) {
+                        MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                        pOutCCode = m_Outlets[idx];
+                        if (pOutCCode) {
+                            MODebug2->Message( "Updating code" );
+                            pOutCCode->GetData()->SetDouble( (double)mdata.m_Val );
+                            pOutCCode->Update();
+                        }
+                    } else {
+                        // TODO: autocreate outlets!!
+                        //pOutCCode =r new moOutlet();
+                    }
+                }
+            }
 		}
 
 
@@ -774,6 +796,8 @@ moMidi::Update(moEventList *Events) {
 	}
 
 
+    moMoldeoObject::Update(Events);
+
 
 }
 
@@ -782,7 +806,7 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("mididevice"), MO_PARAM_TEXT, MIDI_DEVICE, moValue( "BCR2000[2]", "TXT") );
+	p_configdefinition->Add( moText("mididevice"), MO_PARAM_TEXT, MIDI_DEVICE, moValue( "nanoKONTROL MIDI 1", "TXT") );
 	return p_configdefinition;
 }
 

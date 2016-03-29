@@ -147,8 +147,11 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 		}
 
 		void				NewData( moMidiData p_mididata );
-		moMidiData*			GetData();
-		void Update(moEventList *Events);
+		const moMidiDatas&			GetMidiDatas() {
+            return m_MidiDatas;
+		}
+		void Update(moEventList *Events );
+
 	//
 	#ifdef WIN32
 	static void CALLBACK midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
