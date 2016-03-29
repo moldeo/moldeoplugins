@@ -875,6 +875,7 @@ moEffectSound3D::UpdateParameters() {
     m_pAudio->SetPosition( m_vPosition );
 
     m_pAudio->Update();
+    m_fSampleVolume = 0.0;
     //m_fSampleVolume = m_pAudio->GetActualSampleVolume();
     //MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
   }
@@ -1126,7 +1127,7 @@ void moEffectSound3D::Draw( moTempo* tempogral, moEffectState* parentstate )
       //Mat.m_fWireframeWidth = 0.0005f;
 
     ///GEOMETRY
-    moSphereGeometry Sphere( 0.1+0.01*m_fSampleVolume, 4, 4 );
+    moSphereGeometry Sphere( 0.1+0.01*m_fSampleVolume, 8, 8 );
 
     ///MESH MODEL (aka SCENE NODE)
     float progress = 0.0;
