@@ -29,6 +29,7 @@
 *******************************************************************************/
 
 #include "moMidi.h"
+#include "moDebugManager.h"
 #include <errno.h>
 
 #ifdef WIN32
@@ -104,138 +105,8 @@ moMidiDevice::~moMidiDevice() {
 
 void moMidiDevice::PrintMidiInErrorMsg(unsigned long err)
 {
-#ifdef WIN32
-#define BUFFERSIZE 200
-	TCHAR	buffer[BUFFERSIZE];
 
-	if (!(err = midiInGetErrorText(err, &buffer[0], BUFFERSIZE)))
-	{
-		printf("%s\r\n", &buffer[0]);
-	}
-	else if (err == MMSYSERR_BADERRNUM)
-	{
-		printf("Strange error number returned!\r\n");
-	}
-	else if (err == MMSYSERR_INVALPARAM)
-	{
-		printf("Specified pointer is invalid!\r\n");
-	}
-	else
-	{
-		printf("Unable to allocate/lock memory!\r\n");
-	}
-#endif
 }
-
-#ifdef WIN32
-void moMidiDevice::midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2)
-{
-	LPMIDIHDR		lpMIDIHeader;
-	unsigned char *	ptr;
-	char			buffer[80];
-	unsigned char 	bytes;
-	moMidiDevice*	pMidiDevice = NULL;
-	pMidiDevice = (moMidiDevice*)dwInstance;
-
-	/* Determine why Windows called me */
-	switch (uMsg)
-	{
-		/* Received some regular MIDI message */
-		case MIM_DATA:
-		{
-			/* Display the time stamp, and the bytes. (Note: I always display 3 bytes even for
-			Midi messages that have less) */
-			 sprintf(&buffer[0], "0x%08X 0x%02X 0x%02X 0x%02X\0", dwParam2, dwParam1 & 0x000000FF, (dwParam1>>8) & 0x000000FF, (dwParam1>>16) & 0x000000FF);
-
-			_cputs(&buffer[0]);
-
-
-			moMidiData		mididata;
-
-			mididata.m_Type = MOMIDI_ROTARY;//????
-			mididata.m_Channel = (dwParam1 & 0x000000FF) - 175;//channel 1 = 0xB0
-			mididata.m_CC = (dwParam1>>8) & 0x000000FF;
-			mididata.m_Val = (dwParam1>>16) & 0x000000FF;
-
-			if (pMidiDevice) pMidiDevice->NewData( mididata );
-
-			break;
-		}
-
-		/* Received all or part of some System Exclusive message */
-		case MIM_LONGDATA:
-		{
-			/* If this application is ready to close down, then don't midiInAddBuffer() again */
-			if (!(pMidiDevice->SysXFlag & 0x80))
-			{
-				/*	Assign address of MIDIHDR to a LPMIDIHDR variable. Makes it easier to access the
-					field that contains the pointer to our block of MIDI events */
-				lpMIDIHeader = (LPMIDIHDR)dwParam1;
-
-				/* Get address of the MIDI event that caused this call */
-				ptr = (unsigned char *)(lpMIDIHeader->lpData);
-
-				/* Is this the first block of System Exclusive bytes? */
-				if (!pMidiDevice->SysXFlag)
-				{
-					/* Print out a noticeable heading as well as the timestamp of the first block.
-						(But note that other, subsequent blocks will have their own time stamps). */
-					printf("*************** System Exclusive **************\r\n0x%08X ", dwParam2);
-
-					/* Indicate we've begun handling a particular System Exclusive message */
-					pMidiDevice->SysXFlag |= 0x01;
-				}
-
-				/* Is this the last block (ie, the end of System Exclusive byte is here in the buffer)? */
-				if (*(ptr + (lpMIDIHeader->dwBytesRecorded - 1)) == 0xF7)
-				{
-					/* Indicate we're done handling this particular System Exclusive message */
-					pMidiDevice->SysXFlag &= (~0x01);
-				}
-
-				/* Display the bytes -- 16 per line */
-				bytes = 16;
-
-				while((lpMIDIHeader->dwBytesRecorded--))
-				{
-					if (!(--bytes))
-					{
-						sprintf(&buffer[0], "0x%02X\r\n", *(ptr)++);
-						bytes = 16;
-					}
-					else
-						sprintf(&buffer[0], "0x%02X ", *(ptr)++);
-
-					_cputs(&buffer[0]);
-				}
-
-				/* Was this the last block of System Exclusive bytes? */
-				if (!pMidiDevice->SysXFlag)
-				{
-					/* Print out a noticeable ending */
-					_cputs("\r\n******************************************\r\n");
-				}
-
-				/* Queue the MIDIHDR for more input */
-				midiInAddBuffer(handle, lpMIDIHeader, sizeof(MIDIHDR));
-			}
-
-			break;
-		}
-
-		/* Process these messages if you desire */
-/*
-		case MIM_OPEN:
-        case MIM_CLOSE:
-        case MIM_ERROR:
-        case MIM_LONGERROR:
-        case MIM_MOREDATA:
-
-			break;
-*/
-  }
-}
-#endif
 
 MOboolean
 moMidiDevice::Init() {
@@ -254,76 +125,27 @@ moMidiDevice::Init( moText devicetext ) {
     m_bInit = false;
 
 #ifdef WIN32
-/*
-	BOOL		result;
-	GUID		hidGUID;
-	HDEVINFO	hardwareDeviceInfoSet;
-	SP_DEVICE_INTERFACE_DATA	deviceInterfaceData;
-	DWORD Index = 0;
-	DWORD requiredSize;
 
-	//Get the HID GUID value - used as mask to get list of devices
-	HidD_GetHidGuid ( &hidGUID );
-
-	//Get a list of devices matching the criteria (hid interface, present)
-	hardwareDeviceInfoSet = SetupDiGetClassDevs (&hidGUID,
-					NULL, // Define no enumerator (global)
-					NULL, // Define no
-					(DIGCF_PRESENT | DIGCF_ALLCLASSES |DIGCF_DEVICEINTERFACE));
-
-
-	deviceInterfaceData.cbSize = sizeof(SP_DEVICE_INTERFACE_DATA);
-
-	//Go through the list and get the interface data
-	for(int i = 0; i < 10; i++)
-	{
-		result = SetupDiEnumDeviceInterfaces (hardwareDeviceInfoSet,
-					NULL, //infoData,
-					&hidGUID, //interfaceClassGuid,
-					Index,
-					&deviceInterfaceData);
-		if (result == FALSE) {
-			Index++;
-		}
-	}
-
-	// Failed to get a device - possibly the index is larger than the number of devices
-	if (result == FALSE) {
-		SetupDiDestroyDeviceInfoList (hardwareDeviceInfoSet);
-		return;// INVALID_HANDLE_VALUE;
-	}
-
-	//Get the details with null values to get the required size of the buffer
-	SetupDiGetDeviceInterfaceDetail (hardwareDeviceInfoSet,
-				&deviceInterfaceData,
-				NULL, //interfaceDetail,
-				0, //interfaceDetailSize,
-				&requiredSize,
-				0); //infoData))
-*/
-
+/**
 	MIDIINCAPS     moc;
 	unsigned long   iNumDevs, i;
 
-
-
-	/* Get the number of MIDI Out devices in this computer */
 	iNumDevs = midiInGetNumDevs();
 
 	if (iNumDevs==0) {
 	    MODebug2->Message( moText("ERROR! NO MIDI DEVICES FOUND"));
     }
 
-	/* Go through all of those devices, displaying their names */
+	// Go through all of those devices, displaying their names
 	for (i = 0; i < iNumDevs; i++)
 	{
-		/* Get info about the next device */
+		// Get info about the next device
 		if (!midiInGetDevCaps(i, &moc, sizeof(MIDIINCAPS)))
 		{
 
             //CString mycstring(moc.szPname);
             //char* nam = mycstringa.GetBuffer( mycstring.GetLength());
-			/* Display its Device ID and name */
+			// Display its Device ID and name
 
 			char* nam = "xxsss";
 			MODebug2->Message( moText("Device ID #")
@@ -346,43 +168,11 @@ moMidiDevice::Init( moText devicetext ) {
 	}
 
 
-	/*
-	unsigned long result;
-	HMIDIOUT      outHandle;
-
-	// Open the MIDI Mapper
-	result = midiOutOpen(&outHandle, i, 0, 0, CALLBACK_WINDOW);
-	if (!result)
-	{
-		// Output the C note (ie, sound the note)
-		midiOutShortMsg(outHandle, 0x00403C90);
-
-		// Output the E note
-		midiOutShortMsg(outHandle, 0x00404090);
-
-		// Output the G note
-		midiOutShortMsg(outHandle, 0x00404390);
-
-		// Here you should insert a delay so that you can hear the notes sounding
-		Sleep(1000);
-
-		// Now let's turn off those 3 notes
-		midiOutShortMsg(outHandle, 0x00003C90);
-		midiOutShortMsg(outHandle, 0x00004090);
-		midiOutShortMsg(outHandle, 0x00004390);
-
-		 // Close the MIDI device
-		 midiOutClose(outHandle);
-	} else {
-		printf("There was an error opening MIDI Mapper!\r\n");
-	}
-	*/
 	HMIDIIN			handle;
 	MIDIHDR			midiHdr;
 	unsigned long	err;
 
 	if (m_DeviceId!=-1) {
-		/* Open default MIDI In device */
 		if (!(err = midiInOpen(&handle, m_DeviceId, (DWORD)midiCallback, (DWORD)this, CALLBACK_FUNCTION)))
 		{
 			// Store pointer to our input buffer for System Exclusive messages in MIDIHDR
@@ -406,39 +196,10 @@ moMidiDevice::Init( moText devicetext ) {
 					err = midiInStart(handle);
 					m_bInit = true;
 					return true;
-					/*
-					if (!err)
-					{
-						// Wait for user to abort recording
-						printf("Press any key to stop recording...\r\n\n");
-						_getch();
 
-						// We need to set a flag to tell our callback midiCallback()
-						// not to do any more midiInAddBuffer(), because when we
-						// call midiInReset() below, Windows will send a final
-						// MIM_LONGDATA message to that callback. If we were to
-						// allow midiCallback() to midiInAddBuffer() again, we'd
-						// never get the driver to finish with our midiHdr
-
-						SysXFlag |= 0x80;
-						printf("\r\nRecording stopped!\n");
-					}*/
-
-					/* Stop recording */
-					//midiInReset(handle);
 				}
 			}
-	/*
-			// If there was an error above, then print a message
-			if (err) PrintMidiInErrorMsg(err);
 
-			// Close the MIDI In device
-			while ((err = midiInClose(handle)) == MIDIERR_STILLPLAYING) Sleep(0);
-			if (err) PrintMidiInErrorMsg(err);
-
-			// Unprepare the buffer and MIDIHDR. Unpreparing a buffer that has not been prepared is ok
-			midiInUnprepareHeader(handle, &midiHdr, sizeof(MIDIHDR));
-			*/
 		}
 		else
 		{
@@ -447,8 +208,10 @@ moMidiDevice::Init( moText devicetext ) {
 			return false;
 		}
 	}
-
+*/
 #else
+
+#endif
     stream = NULL;
     PmDeviceID pid = (int)Pm_GetDefaultInputDeviceID();
     const PmDeviceInfo *pinfo;
@@ -456,16 +219,16 @@ moMidiDevice::Init( moText devicetext ) {
 
     while( pinfo!=NULL ) {
 
-        moDebugManager::Message(
-                            "PmDeviceInfo: id:" + IntToStr(pid)
+        MODebug2->Message(
+                            moText("PmDeviceInfo: id:") + IntToStr(pid)
                             );
-        moDebugManager::Message( " name:" + moText( (char*)pinfo->name ) );
+        MODebug2->Message( " name:" + moText( (char*)pinfo->name ) );
         //moDebugManager::Message( " devicetext:" + devicetext );
-        moDebugManager::Message( " interf:" + moText( (char*)pinfo->interf ) );
-        moDebugManager::Message( " input:" + IntToStr( pinfo->input ) );
-        moDebugManager::Message( " output:" + IntToStr( pinfo->output ) );
+        MODebug2->Message( " interf:" + moText( (char*)pinfo->interf ) );
+        MODebug2->Message( " input:" + IntToStr( pinfo->input ) );
+        MODebug2->Message( " output:" + IntToStr( pinfo->output ) );
 
-        if (pinfo->name) {
+      if (pinfo->name) {
             if ( moText(pinfo->name)==devicetext && pinfo->input==1) {
                 m_DeviceId = (int) pid;
                 Pm_OpenInput(&stream, pid, NULL, 128, NULL, NULL);
@@ -486,7 +249,7 @@ moMidiDevice::Init( moText devicetext ) {
     }
 
 
-#endif
+
 		return m_bInit;
 }
 
@@ -526,7 +289,7 @@ moMidiDevice::Update(moEventList *Events ) {
 
         for(int cc=0; cc<c;cc++) {
             PmMessage msg = buffer[cc].message;
-            moDebugManager::Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
+            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
 
             mididata.m_Channel = 0;
             mididata.m_Type = MOMIDI_FADER;

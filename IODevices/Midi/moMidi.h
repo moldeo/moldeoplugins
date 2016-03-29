@@ -59,8 +59,10 @@
         #define m_stricmp stricmp
     #endif
 #else
-    #include "portmidi.h"
+
 #endif
+
+#include "portmidi.h"
 
 #ifndef __MO_MIDIDEVICES_H
 #define __MO_MIDIDEVICES_H
@@ -153,12 +155,16 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 		void Update(moEventList *Events );
 
 	//
+	/*
 	#ifdef WIN32
 	static void CALLBACK midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
 	#else
+	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
 	PmEvent buffer[4000];
+	/*
 	#endif
+	*/
 	void PrintMidiInErrorMsg(unsigned long err);
 
 	//=============================================================================
