@@ -449,11 +449,12 @@ float moSound3DAL::GetVolume() {
 float moSound3DAL::GetActualSampleVolume() {
   float avolume = 0;
   if (m_pData) {
-    MODebug2->Message("actualsample:"+IntToStr( m_ActualSample )+"/"+IntToStr(m_ulDataSize) );
+    //MODebug2->Message("actualsample:"+IntToStr( m_ActualSample )+"/"+IntToStr(m_ulDataSize) );
     if (m_ActualSample < m_ulDataSize  ) {
-      int indexp = m_ActualSample / (2/m_AudioFormat.m_Channels);
+      /*int indexp = m_ActualSample / (2/m_AudioFormat.m_Channels);
       avolume = (float) ((WORD*)m_pData)[ indexp ];
       avolume = (1.0f*fabs(avolume)) / (65535.0/2.0);
+      */
     }
 
   }
@@ -874,8 +875,8 @@ moEffectSound3D::UpdateParameters() {
     m_pAudio->SetPosition( m_vPosition );
 
     m_pAudio->Update();
-    m_fSampleVolume = m_pAudio->GetActualSampleVolume();
-    MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
+    //m_fSampleVolume = m_pAudio->GetActualSampleVolume();
+    //MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
   }
 
 
