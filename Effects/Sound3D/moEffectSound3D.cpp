@@ -452,7 +452,8 @@ float moSound3DAL::GetActualSampleVolume() {
     //MODebug2->Message("actualsample:"+IntToStr( m_ActualSample )+"/"+IntToStr(m_ulDataSize) );
     if (m_ActualSample < m_ulDataSize  ) {
       /*int indexp = m_ActualSample / (2/m_AudioFormat.m_Channels);
-      avolume = (float) ((WORD*)m_pData)[ indexp ];
+      //avolume = (float) ((WORD*)m_pData)[ indexp ];
+      avolume = 32000;
       avolume = (1.0f*fabs(avolume)) / (65535.0/2.0);
       */
     }
@@ -938,11 +939,11 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
     }
 
 
-    if ( moIsTimerStopped() && m_pAudio ) {
+    if ( ( moIsTimerStopped() || !Activated() ) && m_pAudio ) {
       if (m_pAudio->IsPlaying())
         m_pAudio->Stop();
     }
-    if (m_bLaunch && m_pAudio) {
+    if (m_bLaunch && m_pAudio && Activated() ) {
       if (!m_pAudio->IsPlaying() && moIsTimerPlaying() ) {
         m_pAudio->Play();
       }
@@ -959,7 +960,8 @@ void moEffectSound3D::Draw( moTempo* tempogral, moEffectState* parentstate )
 
     PreDraw( tempogral, parentstate);
 
-    UpdateParameters();
+    /** Callling UpdateParameters() in ::Update(), no need here*/
+    // UpdateParameters();
 
     /*
 
@@ -1229,6 +1231,8 @@ moEffectSound3D::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 void
 moEffectSound3D::Update( moEventList *Events ) {
+
+    UpdateParameters();
 
 	//get the pointer from the Moldeo Object sending it...
 	moMoldeoObject::Update(Events);
