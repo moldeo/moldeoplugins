@@ -25,7 +25,6 @@
 
   Authors:
   Fabricio Costa
-  Andres Colubri
 
 *******************************************************************************/
 
@@ -243,7 +242,7 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
 
   MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > ...GetCaptureDevices(true) ");
   CapDevs = VMan->GetCaptureDevices(true);
-  MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > ...GetCaptureDevices(true) OK !!!");
+  MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > CapDevs:"+IntToStr(CapDevs.Count()));
   moCamera* Camera = NULL;
   bool founded = false;
   if (VMan->GetCameraCount()>0) {
@@ -275,8 +274,8 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
   if (camera=="default" && CapDevs.Count()>0 ) {
     moCaptureDevice Cap = CapDevs.Get(0);
     if (Cap.IsPresent()) {
-      MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, at least one camera device is available. Cap.: "
-                    +Cap.GetLabelName());
+      MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, at least one camera device is available. Cap. Label Name: "
+                    +Cap.GetLabelName()+" WxH:" + IntToStr(Cap.GetSourceWidth())+"x"+ IntToStr(Cap.GetSourceHeight()) );
     } else {
       MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, available but not present?");
     }
@@ -303,6 +302,8 @@ moEffectCamera::InitDevice( moText camera ) {
       m_pCameraGraph = m_pCamera->GetVideoGraph();
       MODebug2->Message("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
 
+    } else {
+	MODebug2->Error("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
     }
 
   } else {
@@ -334,6 +335,7 @@ void moEffectCamera::UpdateCamera() {
   VF.m_ColorMode = (moColorMode) m_Config.Int( moR( CAMERA_COLOR_FORMAT ) );
 
   CD.SetVideoFormat( VF );
+m_CaptureDevice = CD;
 
   if ( m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
       ||
@@ -346,6 +348,7 @@ void moEffectCamera::UpdateCamera() {
       m_CaptureDevice.GetSourceHeight()!=CD.GetSourceHeight()
       ) {
     //RELOAD CAMERA
+    MODebug2->Message("moEffectCamera::UpdateCamera > Reload Camera with with custom settings" );
     m_CaptureDevice = CD;
     m_DeviceName = "";
   }
