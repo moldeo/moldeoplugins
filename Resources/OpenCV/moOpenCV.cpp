@@ -1150,7 +1150,8 @@ moOpenCV::FaceDetection() {
   }
 
   /**GET THE IMAGE: resized*/
-  moVector2i resizer( 200, 150 );
+  //moVector2i resizer( 200, 150 );
+  moVector2i resizer( m_reduce_width, m_reduce_height );
   IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
   if (srcframe==NULL) {
     MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
@@ -1252,7 +1253,8 @@ moOpenCV::FaceDetection() {
 void
 moOpenCV::ThresholdFilter() {
  /**GET THE IMAGE: resized*/
-  moVector2i resizer( m_reduce_width, m_reduce_height );
+  //moVector2i resizer( m_reduce_width, m_reduce_height );
+  moVector2i resizer( 128, 128 );
   IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
   if (srcframe==NULL) {
     MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
@@ -1346,7 +1348,7 @@ moOpenCV::BlobRecognition() {
   // Detect blobs.
   Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
 
-  
+
   drawKeypoints( dstblobs, keypoints, dstblobs, cv::Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
   CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );
@@ -1702,7 +1704,8 @@ moOpenCV::CvMatToTexture( Mat &mat, GLenum minFilter, GLenum magFilter, GLenum w
       if (p_destTexture->GetWidth()!=mat.cols || p_destTexture->GetHeight()!=mat.rows)
         p_destTexture->BuildEmpty( mat.cols, mat.rows );
 
-      p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
+      //p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
+      p_destTexture->SetBuffer( mat.ptr(), GL_RGB );
       textureID = p_destTexture->GetGLId();
   }
 
@@ -1743,7 +1746,8 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
                     );
     return NULL;
   }
-  p_pTexture->GetBuffer( m_pBuffer, GL_BGR, GL_UNSIGNED_BYTE );
+  //p_pTexture->GetBuffer( m_pBuffer, GL_BGR, GL_UNSIGNED_BYTE );
+  p_pTexture->GetBuffer( m_pBuffer, GL_RGB, GL_UNSIGNED_BYTE );
 
   //(MOpointer)pTS->GetData();
 
@@ -1752,7 +1756,7 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
       if (m_pIplImage==NULL) m_pIplImage = cvCreateImage( cvSize( p_pTexture->GetWidth(), p_pTexture->GetHeight()),
                       IPL_DEPTH_8U,
                       3 );
-      //MODebug2->Message("moOpenCV::TextureToCvImage > created IplImage for: " + p_pTexture->GetName());
+      MODebug2->Message("moOpenCV::TextureToCvImage > created IplImage for: " + p_pTexture->GetName());
 
   }
 
@@ -1767,6 +1771,7 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
   //cvZero( m_pIplImage );
   try {
     cvSetData( m_pIplImage, (void*)m_pBuffer, p_pTexture->GetWidth()*3);
+    MODebug2->Message("moOpenCV::TextureToCvImage > cvSetData called.");
   } catch(...) {
     MODebug2->Error("moOpenCV::TextureToCvImage > ");
   }
@@ -2079,7 +2084,8 @@ void moOpenCV::Update(moEventList *Events) {
                     moTexture* pTex;
                     pTex = m_pResourceManager->GetTextureMan()->GetTexture(idopencvout);
 
-                    pTex->SetBuffer( data, GL_BGR, GL_UNSIGNED_BYTE );
+                    //pTex->SetBuffer( data, GL_BGR, GL_UNSIGNED_BYTE );
+                    pTex->SetBuffer( data, GL_RGB, GL_UNSIGNED_BYTE );
                 }
 
 			    //
