@@ -1,6 +1,6 @@
 /*******************************************************************************
 
-                                moMidi.h
+                                moOla.h
 
   ****************************************************************************
   *                                                                          *
@@ -25,10 +25,9 @@
 
   Authors:
   Fabricio Costa
-  Andr� Colubri
 
   Class:
-  moMidi
+  moOla
 
   Description:
   Motion Analyzer
@@ -44,14 +43,10 @@
 #include "moVideoGraph.h"
 #include "moArray.h"
 //#include "moLive.h"
-#include "moShaderGLSL.h"
+#include <stdlib.h>
+#include <unistd.h>
 
 #ifdef WIN32
-	//#include "setupapi.h"
-	//#include "hidsdi.h"
-	#include "mmsystem.h"
-	#include "tchar.h"
-    #include "wchar.h"
 
     #ifdef UNICODE
         #define m_stricmp wcsicmp
@@ -59,42 +54,58 @@
         #define m_stricmp stricmp
     #endif
 #else
-
 #endif
-
-#include "portmidi.h"
 
 #ifndef __MO_MIDIDEVICES_H
 #define __MO_MIDIDEVICES_H
 
-#define	MOMIDI_CFG_STRCOD			0
-#define	MOMIDI_CFG_ROTARYBUTTON		1
-#define	MOMIDI_CFG_MIDICHANNEL		2
-#define	MOMIDI_CFG_MIDICC			3
+#include <stdint.h>
+#include <ola/DmxBuffer.h>
+//#include <ola/io/SelectServer.h>
+#include <ola/Logging.h>
+//#include <ola/client/ClientWrapper.h>
+#include <ola/Callback.h>
+#include <ola/client/StreamingClient.h>
+using std::cout;
+using std::endl;
 
-#define	MO_MIDI_SYTEM_LABELNAME		0
-#define	MO_MIDI_SYSTEM_ON			1
+#define	MOOLA_CFG_STRCOD			0
+#define	MOOLA_CFG_ROTARYBUTTON		1
+#define	MOOLA_CFG_MIDICHANNEL		2
+#define	MOOLA_CFG_MIDICC			3
 
-enum moMidiParamIndex {
+#define	MO_OLA_SYTEM_LABELNAME		0
+#define	MO_OLA_SYSTEM_ON			1
 
-  MIDI_DEVICE,
-  MIDI_CODES
+#define MO_IODEVICE_OLA 0x7001
+
+enum moOlaParamIndex {
+
+  OLA_DEVICE,
+  OLA_STARTUNIVERSE,
+  OLA_LEDS,
+  OLA_RGBTYPE, /** Rgb Type */
+  OLA_TESTMODE,
+  OLA_TESTOFFSET,
+  OLA_MDEBUG,
+  OLA_CHECKSERVER,
+  OLA_CODES
 
 };
 
 enum moEncoderType {
-	MOMIDI_ROTARY=0,
-	MOMIDI_PUSHBUTTON=1,
-	MOMIDI_FADER=2
+	MOOLA_ROTARY=0,
+	MOOLA_PUSHBUTTON=1,
+	MOOLA_FADER=2
 };
 
-class moMidiData {
+class moOlaData {
 	public:
-		moMidiData();
-		virtual ~moMidiData();
+		moOlaData();
+		virtual ~moOlaData();
 
-		moMidiData& operator = ( const moMidiData& mididata);
-		void Copy( const moMidiData& mididata );
+		moOlaData& operator = ( const moOlaData& mididata);
+		void Copy( const moOlaData& mididata );
 
 
 		moEncoderType	m_Type;
@@ -104,27 +115,27 @@ class moMidiData {
 
 };
 
-template class moDynamicArray<moMidiData>;
-typedef  moDynamicArray<moMidiData> moMidiDatas;
+template class moDynamicArray<moOlaData>;
+typedef  moDynamicArray<moOlaData> moOlaDatas;
 
-class moMidiDataCode {
+class moOlaDataCode {
 	public:
 		moText		strcode;
 		MOint		devcode;
 		MOint		state;
-		moMidiData	mididata;
+		moOlaData	oladata;
 
 };
-template class moDynamicArray<moMidiDataCode>;
-typedef  moDynamicArray<moMidiDataCode> moMidiDataCodes;
+template class moDynamicArray<moOlaDataCode>;
+typedef  moDynamicArray<moOlaDataCode> moOlaDataCodes;
 
 
-class moMidiDevice : /*public moThread,*/ public moAbstract {
+class moOlaDevice : /*public moThread,*/ public moAbstract {
 
 	public:
 
-		moMidiDevice();
-		virtual ~moMidiDevice();
+		moOlaDevice();
+		virtual ~moOlaDevice();
 
 		void SetName( moText p_name) {
 			m_Name = p_name;
@@ -148,41 +159,20 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 			return m_bActive;
 		}
 
-		void				NewData( moMidiData p_mididata );
-		const moMidiDatas&			GetMidiDatas() {
-            return m_MidiDatas;
-		}
-		void Update(moEventList *Events );
+		void				NewData( moOlaData p_oladata );
+		moOlaData*			GetData();
+		void Update(moEventList *Events);
 
-	//
-	/*
-	#ifdef WIN32
-	static void CALLBACK midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
-	#else
-	*/
-	PortMidiStream *stream; /* A PortMidiStream pointer */
-	PmEvent buffer[4000];
-	/*
-	#endif
-	*/
-	void PrintMidiInErrorMsg(unsigned long err);
-
-	//=============================================================================
-	/*	A buffer to hold incoming System Exclusive bytes. I arbitrarily make this 256 bytes. Note:
-		For Win 3.1 16-bit apps, this buffer should be allocated using GlobalAlloc with the
-		GMEM_MOVEABLE flag to get a handle of the memory object. Then pass this handle to the
-		GlobalLock function to get a pointer to the memory object. To free a data block, use
-		GlobalUnlock and GlobalFree. But Win32 doesn't appear to have this limitation.
-	*/
-	unsigned char SysXBuffer[256];
-
-	/* A flag to indicate whether I'm currently receiving a SysX message */
-	unsigned char SysXFlag;
 
 	protected:
 
+        moText          m_Ip;
+        moText          m_Port;
+        moText          m_Universe;
+        int             m_iUniverse;
+
 		moLock			m_lock;
-		moMidiDatas		m_MidiDatas;
+		moOlaDatas		m_OlaDatas;
 		MOint			m_DeviceId;
 		moText			m_Name;
 		MOboolean		m_bActive;
@@ -193,16 +183,16 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 };
 
 
-typedef moMidiDevice* moMidiDevicePtr;
+typedef moOlaDevice* moOlaDevicePtr;
 
-template class moDynamicArray<moMidiDevicePtr>;
-typedef  moDynamicArray<moMidiDevicePtr> moMidiDevicePtrs;
+template class moDynamicArray<moOlaDevicePtr>;
+typedef  moDynamicArray<moOlaDevicePtr> moOlaDevicePtrs;
 
-class moMidi : public moIODevice
+class moOla : public moIODevice
 {
 public:
-    moMidi();
-    ~moMidi();
+    moOla();
+    virtual ~moOla();
 
     void Update(moEventList*);
     MOboolean Init();
@@ -218,25 +208,31 @@ public:
     MOdevcode GetCode( moText);
     MOboolean Finish();
 
+    void TestLeds( int ciclos=1, int steps=20, bool debug_on=false );
+
 private:
     moConfig config;
+
+
+    ola::client::StreamingClient ola_client;
+    ola::DmxBuffer buffer; // A DmxBuffer to hold the data.
 
     moEventList *events;
 
 protected:
 
-	MOint	mididevices;
-   	moMidiDevicePtrs		m_MidiDevices;
-	moMidiDataCodes			m_Codes;
+	MOint	oladevices;
+   	moOlaDevicePtrs		m_OlaDevices;
+	moOlaDataCodes			m_Codes;
 
 };
 
 
-class moMidiFactory : public moIODeviceFactory {
+class moOlaFactory : public moIODeviceFactory {
 
     public:
-        moMidiFactory() {}
-        virtual ~moMidiFactory() {}
+        moOlaFactory() {}
+        virtual ~moOlaFactory() {}
         moIODevice* Create();
         void Destroy(moIODevice* fx);
 
