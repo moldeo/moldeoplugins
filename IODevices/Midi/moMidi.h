@@ -25,7 +25,6 @@
 
   Authors:
   Fabricio Costa
-  Andr� Colubri
 
   Class:
   moMidi
@@ -75,10 +74,13 @@
 #define	MO_MIDI_SYTEM_LABELNAME		0
 #define	MO_MIDI_SYSTEM_ON			1
 
+static int mob_debug_on = false;
+
 enum moMidiParamIndex {
 
   MIDI_DEVICE,
-  MIDI_CODES
+  MIDI_CODES,
+  MIDI_MDEBUG
 
 };
 
@@ -161,7 +163,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	#else
 	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
-	PmEvent buffer[4000];
+	PmEvent buffer[10000];
 	/*
 	#endif
 	*/

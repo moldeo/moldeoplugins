@@ -124,94 +124,6 @@ moMidiDevice::Init( moText devicetext ) {
 	SetName(devicetext);
     m_bInit = false;
 
-#ifdef WIN32
-
-/**
-	MIDIINCAPS     moc;
-	unsigned long   iNumDevs, i;
-
-	iNumDevs = midiInGetNumDevs();
-
-	if (iNumDevs==0) {
-	    MODebug2->Message( moText("ERROR! NO MIDI DEVICES FOUND"));
-    }
-
-	// Go through all of those devices, displaying their names
-	for (i = 0; i < iNumDevs; i++)
-	{
-		// Get info about the next device
-		if (!midiInGetDevCaps(i, &moc, sizeof(MIDIINCAPS)))
-		{
-
-            //CString mycstring(moc.szPname);
-            //char* nam = mycstringa.GetBuffer( mycstring.GetLength());
-			// Display its Device ID and name
-
-			char* nam = "xxsss";
-			MODebug2->Message( moText("Device ID #")
-                     + IntToStr(i) + moText(":")
-                     + moText(nam) );
-            #ifdef UNICODE
-                std::wstring wc( 1024, L'#' );
-                mbstowcs( &wc[0], devicetext, 1024 );
-                if ( !m_stricmp( moc.szPname, (wchar_t*)wc.c_str() ) ) {
-                    m_DeviceId = i;
-                    break;
-                }
-            #else
-                if ( !m_stricmp( moc.szPname, devicetext) ) {
-                    m_DeviceId = i;
-                    break;
-                }
-            #endif
-		}
-	}
-
-
-	HMIDIIN			handle;
-	MIDIHDR			midiHdr;
-	unsigned long	err;
-
-	if (m_DeviceId!=-1) {
-		if (!(err = midiInOpen(&handle, m_DeviceId, (DWORD)midiCallback, (DWORD)this, CALLBACK_FUNCTION)))
-		{
-			// Store pointer to our input buffer for System Exclusive messages in MIDIHDR
-			midiHdr.lpData = (LPSTR)&SysXBuffer[0];
-
-			// Store its size in the MIDIHDR
-			midiHdr.dwBufferLength = sizeof(SysXBuffer);
-
-			// Flags must be set to 0
-			midiHdr.dwFlags = 0;
-
-			// Prepare the buffer and MIDIHDR
-			err = midiInPrepareHeader(handle, &midiHdr, sizeof(MIDIHDR));
-			if (!err)
-			{
-				// Queue MIDI input buffer
-				err = midiInAddBuffer(handle, &midiHdr, sizeof(MIDIHDR));
-				if (!err)
-				{
-					// Start recording Midi
-					err = midiInStart(handle);
-					m_bInit = true;
-					return true;
-
-				}
-			}
-
-		}
-		else
-		{
-			printf("Error opening the default MIDI In Device!\r\n");
-			PrintMidiInErrorMsg(err);
-			return false;
-		}
-	}
-*/
-#else
-
-#endif
     stream = NULL;
     PmDeviceID pid = (int)Pm_GetDefaultInputDeviceID();
     const PmDeviceInfo *pinfo;
@@ -219,6 +131,7 @@ moMidiDevice::Init( moText devicetext ) {
 
     while( pinfo!=NULL ) {
 
+      if (mob_debug_on) {
         MODebug2->Message(
                             moText("PmDeviceInfo: id:") + IntToStr(pid)
                             );
@@ -227,6 +140,8 @@ moMidiDevice::Init( moText devicetext ) {
         MODebug2->Message( " interf:" + moText( (char*)pinfo->interf ) );
         MODebug2->Message( " input:" + IntToStr( pinfo->input ) );
         MODebug2->Message( " output:" + IntToStr( pinfo->output ) );
+      }
+
 
       if (pinfo->name) {
             if ( moText(pinfo->name)==devicetext && pinfo->input==1) {
@@ -284,14 +199,16 @@ moMidiDevice::Update(moEventList *Events ) {
 	//m_lock.Lock();
 	m_MidiDatas.Empty();
 
-    int c = Pm_Read( this->stream, &buffer[0], 10 );
+    int c = Pm_Read( this->stream, &buffer[0], 1000 );
     if (c>0) {
 
         for(int cc=0; cc<c;cc++) {
             PmMessage msg = buffer[cc].message;
-            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
+           if (mob_debug_on)  MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
 
-            mididata.m_Channel = 0;
+            mididata.m_Channel = Pm_Channel(msg);
+            int status = Pm_MessageStatus(msg);
+            //if (status = ) moEncoderType::MOMIDI_FADER)
             mididata.m_Type = MOMIDI_FADER;
             mididata.m_CC = Pm_MessageData1(msg);
             mididata.m_Val = Pm_MessageData2(msg);
@@ -306,7 +223,7 @@ moMidiDevice::Update(moEventList *Events ) {
 
 		mididata = m_MidiDatas.Get( i );
 
-		MODebug2->Push(moText("MIDI Data CC:") + IntToStr(mididata.m_CC) + moText(" val:") + IntToStr(mididata.m_Val) );
+		if (mob_debug_on) MODebug2->Push(moText("MIDI Data CC:") + IntToStr(mididata.m_CC) + moText(" val:") + IntToStr(mididata.m_Val) );
 
 		Events->Add( MO_IODEVICE_MIDI, (MOint)(mididata.m_Type), mididata.m_Channel, mididata.m_CC, mididata.m_Val );
 
@@ -351,7 +268,6 @@ moMidi::Init() {
 
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
 
-
 	mididevices = m_Config.GetParamIndex("mididevice");
 
 	MOint nvalues = m_Config.GetValuesCount( mididevices );
@@ -394,7 +310,7 @@ moMidi::Init() {
 
 	m_Config.FirstValue();
 
-	printf("\nMIDI: ncodes:%i\n",ncodes);
+	if (mob_debug_on) printf("\nMIDI: ncodes:%i\n",ncodes);
 
 	for( i = 0; i < ncodes; i++) {
 		moMidiDataCode mididatacode;
@@ -477,7 +393,7 @@ moMidi::Update(moEventList *Events) {
 	MOuint i;
 	moEvent *actual,*tmp;
 
-
+	mob_debug_on = m_Config.Int(moR(MIDI_MDEBUG));
 
 	actual = Events->First;
 	//recorremos todos los events y parseamos el resultado
@@ -511,10 +427,10 @@ moMidi::Update(moEventList *Events) {
                     int idx = GetOutletIndex( ccodetxt );
                     moOutlet* pOutCCode = NULL;
                     if( idx>-1) {
-                        MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                        if (mob_debug_on) MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
                         pOutCCode = m_Outlets[idx];
                         if (pOutCCode) {
-                            MODebug2->Message( "Updating code" );
+                            if (mob_debug_on) MODebug2->Message( "Updating code" );
                             pOutCCode->GetData()->SetDouble( (double)mdata.m_Val );
                             pOutCCode->Update();
                         }
@@ -570,6 +486,7 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("mididevice"), MO_PARAM_TEXT, MIDI_DEVICE, moValue( "nanoKONTROL MIDI 1", "TXT") );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, MIDI_MDEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
 	return p_configdefinition;
 }
 
