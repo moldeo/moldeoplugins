@@ -829,6 +829,8 @@ moEffectSound3D::ResolveValue( moParam& param, int value_index, bool p_refresh )
             if (valuebase0.Text()!="") {
               UpdateSound( valuebase0.Text() );
               if (m_pAudio) {
+                  moSound* m_pPrevAudio = valuebase0.Sound();
+                  if (m_pPrevAudio) m_pPrevAudio->Stop();
                   valuebase0.SetSound( m_pAudio );
                   return true;
               }
