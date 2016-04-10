@@ -386,7 +386,8 @@ void moPreEffectMirrorG::Draw( moTempo* tempogral,moEffectState* parentstate)
 	int i,j,bl;
 	float ab;
 
-	ab = m_Config[moR(MIRRORG_ABERRATION)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	//ab = m_Config[moR(MIRRORG_ABERRATION)][MO_SELECTED][0].Fun()->Eval(m_EffectState.tempo.ang);
+	ab = m_Config.Eval( moR(MIRRORG_ABERRATION));
 	bl = m_Config.GetParam(moR(MIRRORG_BLENDING)).GetValue().GetSubValue(0).Int();
 
     // Aca van los comandos OpenGL del efecto.
