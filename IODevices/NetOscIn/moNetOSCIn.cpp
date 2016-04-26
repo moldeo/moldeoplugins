@@ -499,7 +499,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
               MODebug2->Push("NetOscIn > OPENCV Received");
 
           if (message.Count()>=3) {
-              for(int m=2;m<message.Count()-1;m++) {'
+              for(int m=2;m<message.Count()-1;m++) {
                 moData outletName = message.Get(m);
                 moData outletValue = message.Get(m+1);
                 //check if this outlet exists and update it!!!
