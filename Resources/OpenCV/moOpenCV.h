@@ -40,6 +40,7 @@
 #define HAVE_OPENGL 0
 
 #include "cv.h"
+#include "highgui/highgui.hpp"
 
 #define OPENCV2
 

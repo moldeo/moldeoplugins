@@ -449,7 +449,7 @@ void moOpenCV::UpdateParameters() {
   switch( m_RecognitionMode ) {
     case OPENCV_RECOGNITION_MODE_FACE:
       {
-      int stepN = 10;
+      int stepN = 5;
       ( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
       if (m_steps==stepN) { FaceDetection(); }
       }
@@ -694,6 +694,18 @@ moOpenCV::MotionRecognition() {
     m_pDataMessage->Add(pData);
 
     pData.SetText( moText("MOTION_DETECTION") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetInt( (int)(number_of_sequence>0) );
+    m_pDataMessage->Add(pData);
+
+    pData.SetText( moText("MOTION_DETECTION_X") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetInt( (int)(number_of_sequence>0) );
+    m_pDataMessage->Add(pData);
+
+    pData.SetText( moText("MOTION_DETECTION_Y") );
     m_pDataMessage->Add(pData);
 
     pData.SetInt( (int)(number_of_sequence>0) );
@@ -1157,6 +1169,10 @@ moOpenCV::FaceDetection() {
     MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
     return;
   }
+  //Mat dstblobs = Mat::zeros(m_reduce_width, m_reduce_height, CV_8UC3);
+  //Scalar color( 255, 255, 255 );
+
+
 
   /**CONVERT AND ENHANCE TO GRAYSCALE*/
   //Mat frame( srcframe );
@@ -1177,6 +1193,9 @@ moOpenCV::FaceDetection() {
   float EyeRightWidth = 0,EyeRightHeight = 0;
 
   if (resizer.X()==0 ) resizer = moVector2i( m_pSrcTexture->GetWidth(),m_pSrcTexture->GetHeight() );
+
+
+
   for (int ic = 0; ic < faces.size(); ic++) // Iterate through all current elements (detected faces)
   {
 
@@ -1206,16 +1225,29 @@ moOpenCV::FaceDetection() {
         EyeLeftWidth*=1.3;
         EyeLeftHeight*=1.3;
       }
+
+
+      rectangle( frame,
+           Point( faces[ic].x, faces[ic].y ),
+           Point( faces[ic].x+faces[ic].width, faces[ic].y+faces[ic].height),
+           Scalar( 128, 255, 128 ), 2);
   }
 
   if (faces.size()) {
     MODebug2->Message("moOpenCV::FaceDetection on '"+m_pSrcTexture->GetName()+"' > "
     + moText(" FaceLeft:") + FloatToStr( FaceLeft )
     + moText(" FaceTop:")+ FloatToStr( FaceTop )
-    + moText(" FaceLeft:") + FloatToStr( FaceWidth )
-    + moText(" FaceTop:")+ FloatToStr( FaceHeight )
+    + moText(" FaceWidth:") + FloatToStr( FaceWidth )
+    + moText(" FaceHeight:")+ FloatToStr( FaceHeight )
     );
+
+
   }
+/**
+  rectangle( frame,
+           Point( 1,1 ),
+           Point( 127,127),
+           Scalar( 255, 255, 255 ));*/
 
   if (!m_FacePositionX) {
       m_FacePositionX = m_Outlets.GetRef( GetOutletIndex( moText("FACE_POSITION_X") ) );
@@ -1246,6 +1278,54 @@ moOpenCV::FaceDetection() {
     m_FaceSizeHeight->GetData()->SetFloat(  FaceHeight );
     m_FaceSizeHeight->Update(true);
   }
+
+  cv::imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
+
+    if (m_pDataMessage) {
+        m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
+        moData pData;
+
+        pData.SetText( moText("opencv") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_DETECTION") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(faces.size()) );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_POSITION_X") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(m_FacePositionX) );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_POSITION_Y") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(m_FacePositionY) );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_SIZE_WIDTH") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(m_FaceSizeWidth));
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_SIZE_HEIGHT") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(m_FaceSizeHeight) );
+        m_pDataMessage->Add(pData);
+        /*
+        moText ccc = "";
+        for( int c=0; c<m_pDataMessage->Count(); c++) {
+          ccc = ccc + m_pDataMessage->Get(c).ToText();
+        }
+        //MODebug2->Push(ccc);
+        */
+    }
 
   m_bReInit = false;
 }
@@ -2049,6 +2129,7 @@ void moOpenCV::Update(moEventList *Events) {
                     IplImage* img_gray = cvCreateImage( cvGetSize(img), 8, 1 );
                     cvCvtColor( img, img_gray, CV_BGR2GRAY );
 
+                    //IplImage* img_gray_dst = cvCreateImage( cvGetSize(img_gray), 8, 1 );
                     //IplImage* img_gray_dst = cvCreateImage( cvGetSize(img_gray), 8, 1 );
                     IplImage* img_gray_dst = cvCloneImage( img_gray );
                     //cvEqualizeHist( img_gray, img_gray_dst );
