@@ -141,7 +141,10 @@ enum moOpenCVRecognitionMode {
   OPENCV_RECOGNITION_MODE_COLOR=3,
   OPENCV_RECOGNITION_MODE_MOTION=4,
   OPENCV_RECOGNITION_MODE_BLOBS=5,
-  OPENCV_RECOGNITION_MODE_THRESHOLD=6
+  OPENCV_RECOGNITION_MODE_THRESHOLD=6,
+  OPENCV_RECOGNITION_MODE_BODY=7,
+  OPENCV_RECOGNITION_MODE_FACERECOGNITION_MEM=8,
+  OPENCV_RECOGNITION_MODE_FACERECOGNITION_REM=9,
 };
 
 /**
@@ -208,7 +211,10 @@ public:
 
     void MotionRecognition();
     void GpuMotionRecognition();
+
+    void BodyDetection();
     void FaceDetection();
+
     void BlobRecognition();
     void ColorRecognition();
     void ContourRecognition();
@@ -225,6 +231,7 @@ public:
 
     moTrackerSystemData*    m_pTrackerSystemData;
     moDataMessage*          m_pDataMessage;
+    moDataMessages          m_DataMessages;
 
 private:
 
@@ -270,8 +277,10 @@ private:
     IplImage* TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize = moVector2i( 0, 0  ) );
     GLuint CvMatToTexture( Mat &mat, GLenum minFilter, GLenum magFilter, GLenum wrapFilter, moTexture* p_destTexture=NULL );
 
+    CascadeClassifier body_cascade;
     CascadeClassifier face_cascade;
     CascadeClassifier eye_cascade;
+    HOGDescriptor hog_cascade;
 
     moOutlet* m_MotionDetection; //0 o 1
     moOutlet* m_MotionDetectionX; //0 o 1
