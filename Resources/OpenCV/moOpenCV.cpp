@@ -1284,6 +1284,7 @@ moOpenCV::BodyDetection() {
 
 
   if (m_pDataMessage && bodies.size()) {
+      JSBodies+= "]";
       pData.SetText( JSBodies );
       m_pDataMessage->Add(pData);
   }
