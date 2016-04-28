@@ -1474,25 +1474,25 @@ moOpenCV::FaceDetection() {
         pData.SetText( moText("FACE_POSITION_X") );
         m_pDataMessage->Add(pData);
 
-        pData.SetInt( (int)(m_FacePositionX) );
+        pData.SetFloat( FaceLeft );
         m_pDataMessage->Add(pData);
 
         pData.SetText( moText("FACE_POSITION_Y") );
         m_pDataMessage->Add(pData);
 
-        pData.SetInt( (int)(m_FacePositionY) );
+        pData.SetFloat( FaceTop );
         m_pDataMessage->Add(pData);
 
         pData.SetText( moText("FACE_SIZE_WIDTH") );
         m_pDataMessage->Add(pData);
 
-        pData.SetInt( (int)(m_FaceSizeWidth));
+        pData.SetFloat( FaceWidth );
         m_pDataMessage->Add(pData);
 
         pData.SetText( moText("FACE_SIZE_HEIGHT") );
         m_pDataMessage->Add(pData);
 
-        pData.SetInt( (int)(m_FaceSizeHeight) );
+        pData.SetFloat( FaceHeight );
         m_pDataMessage->Add(pData);
         /*
         moText ccc = "";
