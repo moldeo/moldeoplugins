@@ -1,1 +1,3 @@
 SUBDIRS = ${subdirs}
+
+EXTRA_DIST = AUTHORS
