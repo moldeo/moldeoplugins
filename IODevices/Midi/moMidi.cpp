@@ -283,18 +283,23 @@ moMidiDevice::Update(moEventList *Events ) {
 
 	//m_lock.Lock();
 	m_MidiDatas.Empty();
-
+    if (this->channel>0) Pm_SetChannelMask( this->stream, Pm_Channel(this->channel-1) );
     int c = Pm_Read( this->stream, &buffer[0], 10 );
     if (c>0) {
 
         for(int cc=0; cc<c;cc++) {
             PmMessage msg = buffer[cc].message;
-            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: status: " + IntToStr(Pm_MessageStatus(msg)) + " data1: "+ IntToStr(Pm_MessageData1(msg))+ " data2: " + IntToStr(Pm_MessageData2(msg)) );
+            mididata.m_Channel = this->channel;
 
-            mididata.m_Channel = 0;
-            mididata.m_Type = MOMIDI_FADER;
+            mididata.m_Status = Pm_MessageStatus(msg);
+            int st = mididata.m_Status;
+            st = st >> 4;
+            mididata.m_Type = (moEncoderType)st;
             mididata.m_CC = Pm_MessageData1(msg);
             mididata.m_Val = Pm_MessageData2(msg);
+
+            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " status: " + IntToStr(mididata.m_Status) + " type: " + IntToStr(mididata.m_Type) + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
+
             m_MidiDatas.Add( mididata );
         }
 
@@ -350,9 +355,10 @@ moMidi::Init() {
   } else return false;
 
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
-
+  moDefineParamIndex( MIDI_CHANNEL, moText("midichannel") );
 
 	mididevices = m_Config.GetParamIndex("mididevice");
+	midichannels = m_Config.GetParamIndex("midichannel");
 
 	MOint nvalues = m_Config.GetValuesCount( mididevices );
 	m_Config.SetCurrentParamIndex( mididevices );
@@ -373,6 +379,8 @@ moMidi::Init() {
 			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
 			if ( pDevice->Init( MidiDeviceCode ) ) {
 				pDevice->SetActive( m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int() );
+				int MidiDeviceChannel = m_Config.Int( moR(MIDI_CHANNEL) );
+				pDevice->channel = MidiDeviceChannel;
 				if (pDevice->IsActive()) {
                     MODebug2->Message( moText("Midi Device is ACTIVE!"));
 				}
@@ -507,9 +515,61 @@ moMidi::Update(moEventList *Events) {
 				for(int md=0; md<mdatas.Count(); md++ ) {
                     const moMidiData& mdata( mdatas.Get(md) );
                     int ccode = mdata.m_CC;
-                    moText ccodetxt = moText("C") + IntToStr( ccode, 2);
-                    int idx = GetOutletIndex( ccodetxt );
                     moOutlet* pOutCCode = NULL;
+                    moText ccodetxt = "none";
+                    int idx = -1;
+
+                    switch( mdata.m_Type ) {
+
+                      case MOMIDI_CC:
+                      {
+                      ccodetxt = moText("C") + IntToStr( ccode, 2);
+                      }
+                      break;
+
+                      case MOMIDI_NOTEON:
+                      {
+                        ccodetxt = moText("NOTEONFREQ");/* + IntToStr( ccode, 2);*/
+                        idx = GetOutletIndex( ccodetxt );
+
+                        if( idx>-1) {
+                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                            pOutCCode = m_Outlets[idx];
+                            if (pOutCCode) {
+                                MODebug2->Message( "Updating code" );
+                                pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
+                                pOutCCode->Update();
+                            }
+                        }
+                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);*/
+                      }
+                      break;
+
+                      case MOMIDI_NOTEOFF:
+                      {
+                        ccodetxt = moText("NOTEONFREQ");/* + IntToStr( ccode, 2);*/
+                        idx = GetOutletIndex( ccodetxt );
+
+                        if( idx>-1) {
+                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                            pOutCCode = m_Outlets[idx];
+                            if (pOutCCode) {
+                                MODebug2->Message( "Updating code" );
+                                pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
+                                pOutCCode->Update();
+                            }
+                        }
+                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);*/
+                      }
+                      break;
+
+                      default:
+
+                        break;
+                    }
+
+                    idx = GetOutletIndex( ccodetxt );
+
                     if( idx>-1) {
                         MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
                         pOutCCode = m_Outlets[idx];
@@ -518,9 +578,6 @@ moMidi::Update(moEventList *Events) {
                             pOutCCode->GetData()->SetDouble( (double)mdata.m_Val );
                             pOutCCode->Update();
                         }
-                    } else {
-                        // TODO: autocreate outlets!!
-                        //pOutCCode =r new moOutlet();
                     }
                 }
             }
@@ -570,6 +627,7 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	//default: alpha, color, syncro
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("mididevice"), MO_PARAM_TEXT, MIDI_DEVICE, moValue( "nanoKONTROL MIDI 1", "TXT") );
+	p_configdefinition->Add( moText("midichannel"), MO_PARAM_NUMERIC, MIDI_CHANNEL, moValue( "0", "NUM"), moText("No channel,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16") );
 	return p_configdefinition;
 }
 

@@ -78,6 +78,7 @@
 enum moMidiParamIndex {
 
   MIDI_DEVICE,
+  MIDI_CHANNEL,
   MIDI_CODES
 
 };
@@ -85,7 +86,10 @@ enum moMidiParamIndex {
 enum moEncoderType {
 	MOMIDI_ROTARY=0,
 	MOMIDI_PUSHBUTTON=1,
-	MOMIDI_FADER=2
+	MOMIDI_FADER=2,
+	MOMIDI_NOTEON=8,
+	MOMIDI_NOTEOFF=9,
+	MOMIDI_CC=11, /**continuous controller*/
 };
 
 class moMidiData {
@@ -98,6 +102,7 @@ class moMidiData {
 
 
 		moEncoderType	m_Type;
+    MOint m_Status;
 		MOint	m_Channel;
 		MOint	m_CC;
 		MOint	m_Val;
@@ -161,6 +166,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	#else
 	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
+	char channel;
 	PmEvent buffer[4000];
 	/*
 	#endif
@@ -226,6 +232,7 @@ private:
 protected:
 
 	MOint	mididevices;
+	MOint midichannels;
    	moMidiDevicePtrs		m_MidiDevices;
 	moMidiDataCodes			m_Codes;
 
