@@ -301,6 +301,8 @@ moMidiDevice::Update(moEventList *Events ) {
             MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " status: " + IntToStr(mididata.m_Status) + " type: " + IntToStr(mididata.m_Type) + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
 
             m_MidiDatas.Add( mididata );
+
+            TBN.Start();
         }
 
     }
@@ -511,6 +513,19 @@ moMidi::Update(moEventList *Events) {
 			if (MidiDevPtr->IsInit()) {
 				MidiDevPtr->Update( Events );
 
+				moText codetbn = "TIMEBN";
+				//moText tn = "TIMEN";
+				int tbnidx = GetOutletIndex( codetbn );
+        if( tbnidx>-1) {
+            int dura = MidiDevPtr->TBN.Duration();
+            //MODebug2->Message( codetbn+ " founded! Udpating value:" + IntToStr(dura)  );
+            moOutlet* pOutTBN = m_Outlets[tbnidx];
+            if (pOutTBN) {
+                pOutTBN->GetData()->SetDouble( (double)dura );
+                pOutTBN->Update();
+            }
+        }
+
 				const moMidiDatas& mdatas( MidiDevPtr->GetMidiDatas() );
 				for(int md=0; md<mdatas.Count(); md++ ) {
                     const moMidiData& mdata( mdatas.Get(md) );
@@ -547,7 +562,8 @@ moMidi::Update(moEventList *Events) {
 
                       case MOMIDI_NOTEOFF:
                       {
-                        ccodetxt = moText("NOTEONFREQ");/* + IntToStr( ccode, 2);*/
+                      /*
+                        ccodetxt = moText("NOTEONFREQ");
                         idx = GetOutletIndex( ccodetxt );
 
                         if( idx>-1) {
@@ -559,7 +575,8 @@ moMidi::Update(moEventList *Events) {
                                 pOutCCode->Update();
                             }
                         }
-                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);*/
+                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);
+                        */
                       }
                       break;
 

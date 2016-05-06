@@ -227,6 +227,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 
 	/* A flag to indicate whether I'm currently receiving a SysX message */
 	unsigned char SysXFlag;
+  moTimer TBN;/**Time Between Notes*/
 
 	protected:
 
@@ -266,6 +267,8 @@ public:
 	MOpointer GetPointer(MOdevcode devcode );
     MOdevcode GetCode( moText);
     MOboolean Finish();
+
+
 
 private:
     moConfig config;

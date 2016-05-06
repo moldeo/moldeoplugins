@@ -24,7 +24,8 @@ ip/posix/NetworkingUtils.cpp\
 ip/posix/UdpSocket.cpp\
 tuio/TuioClient.cpp\
 tuio/TuioServer.cpp\
-tuio/TuioTime.cpp
+tuio/TuioTime.cpp\
+tuio/*.h
 
 libmoldeo_nettuioin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -I ./osc -I ./tuio -Ituio -DOSC_HOST_LITTLE_ENDIAN=1
 

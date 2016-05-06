@@ -59,11 +59,12 @@ echo "extracting..."
   exit 1
 }
 
+cd deb/moldeoplugins-*
+dh_make -l -e info@moldeointeractive.com.ar -p moldeoplugins
+gedit ../../control.amd64.11.10 debian/control ../../moldeoplugins1.dirs.amd64 debian/moldeoplugins.dirs ../../moldeoplugins1.install.amd64 debian/moldeoplugins.install ../../moldeoplugins-dev.dirs.amd64 debian/moldeoplugins-dev.dirs ../../moldeoplugins-dev.install.amd64 debian/moldeoplugins-dev.install debian/changelog
 
 echo " 
 Now execute in deb folder:
- cd deb/moldeoplugins-*
- dh_make -l -e info@moldeointeractive.com.ar -p moldeoplugins
 
 in ubuntu 10.10:
  cp ../../control.amd64 debian/control
@@ -74,8 +75,7 @@ in ubuntu 9.10:
 in ubuntu 11.10:
  cp ../../control.amd64.11.10 debian/control
 
-for all:
- gedit ../../control.amd64.11.10 debian/control ../../moldeoplugins1.dirs.amd64 debian/moldeoplugins.dirs ../../moldeoplugins1.install.amd64 debian/moldeoplugins.install ../../moldeoplugins-dev.dirs.amd64 debian/moldeoplugins-dev.dirs ../../moldeoplugins-dev.install.amd64 debian/moldeoplugins-dev.install debian/changelog
+for all: 
  dpkg-buildpackage -us -uc -rfakeroot 2>&1 | tee ../../buildpkg_logs.txt
 "
 

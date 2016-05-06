@@ -62,7 +62,7 @@ public:
     moLightPercussionPoint *neighbors[3][3];
 
     moLightPercussionPoint();
-    ~moLightPercussionPoint();
+    virtual ~moLightPercussionPoint();
 
     void EnergyPulse();//cuando se pulsa, adquiere gran cantidad de energia
     void Increase(MOfloat);//incrementa su energia de un valor arbitrario
@@ -102,7 +102,7 @@ public:
     void Interaction(moIODeviceManager *);
 };
 
-class MO_PLG_API moEffectLightPercussionFactory : public moEffectFactory 
+class MO_PLG_API moEffectLightPercussionFactory : public moEffectFactory
 {
 public:
     moEffectLightPercussionFactory() {}
