@@ -280,9 +280,11 @@ moOla::Init() {
     // Setup the client, this connects to the server
     if (!ola_client.Setup()) {
         std::cerr << "Setup failed" << endl;
+        MODebug2->Error("moOla::Init >> Setup failed!");
         return false;
     } else {
-        cout << "Send DMX failed" << endl;
+        //cout << "Send DMX failed" << endl;
+        MODebug2->Message("moOla::Init >> Ola Client Setup.");
     }
     // Send 100 frames to the server. Increment slot (channel) 0 each time a
     // frame is sent.
@@ -448,12 +450,20 @@ moOla::Update(moEventList *Events) {
     int colorv1 = 0;
     int colorv2 = 25;
 
+
+
     double red = m_Config.Eval(moR(OLA_RED));
     double green = m_Config.Eval(moR(OLA_GREEN));
     double blue = m_Config.Eval(moR(OLA_BLUE));
     double alpha = m_Config.Eval(moR(OLA_ALPHA));
+    /**
+    red = 0;
+    green = 0;
+    blue = 0;
+    alpha = 0;
+    */
 
-    for (unsigned int uni = 1; uni < 3; uni++) {
+    for (unsigned int uni = 1; uni < 5; uni++) {
         for (unsigned int cha = 1; cha < 170; cha++) {
 
           buffer.SetChannel( cha*3, (int)255*red*alpha  );
@@ -499,6 +509,7 @@ moOla::Update(moEventList *Events) {
 */
         }
       if (!ola_client.SendDmx( uni, buffer ) ) {
+        MODebug2->Error("Couldnt send buffer");
       }
     }
 

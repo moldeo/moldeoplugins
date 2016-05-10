@@ -75,6 +75,13 @@
 #define	MO_MIDI_SYTEM_LABELNAME		0
 #define	MO_MIDI_SYSTEM_ON			1
 
+enum moMidiBpmIndex {
+  MIDIBPM_92=1,
+  MIDIBPM_96=2,
+  MIDIBPM_104=3,
+  MIDIBPM_113=4,
+};
+
 enum moMidiParamIndex {
 
   MIDI_DEVICE,
@@ -112,7 +119,7 @@ Command   Meaning 	  # parameters 	param 1 	  param 2
 0x90      Note-on 	  2             key         velocity
 0xA0      Aftertouch  2             key         touch
 0xB0      CC          2             code#       value
-0xC0      P. Change 	2             instrument#
+0xC0      P. Change 	2             instrument  bank
 0xD0      C. Pressure 1             pressure
 0xE0      Pitch bend 	2             lsb(7bits)  msb(7bits)
 0xF0      (non-musical commands)

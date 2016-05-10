@@ -536,6 +536,42 @@ moMidi::Update(moEventList *Events) {
 
                     switch( mdata.m_Type ) {
 
+                      case MOMIDI_PATCHCHANGE:
+                        {
+                        ccodetxt = moText("PC");/* + IntToStr( ccode, 2);*/
+                        idx = GetOutletIndex( ccodetxt );
+
+                        if( idx>-1) {
+                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                            pOutCCode = m_Outlets[idx];
+                            int CC = mdata.m_CC;
+                            if (pOutCCode) {
+                                MODebug2->Message( "Updating code" );
+                                switch( mdata.m_CC ) {
+                                  case MIDIBPM_92:
+                                    CC = 92;
+                                    break;
+                                  case MIDIBPM_96:
+                                    CC = 96;
+                                    break;
+                                  case MIDIBPM_104:
+                                    CC = 104;
+                                    break;
+                                  case MIDIBPM_113:
+                                    CC = 113;
+                                    break;
+                                  default:
+                                    CC = 0;
+                                    break;
+                                }
+                                pOutCCode->GetData()->SetDouble( (double)CC );
+                                pOutCCode->Update();
+                            }
+                        }
+                        ccodetxt = moText("PC") + IntToStr( ccode, 2);
+                        }
+                        break;
+
                       case MOMIDI_CC:
                       {
                       ccodetxt = moText("C") + IntToStr( ccode, 2);
