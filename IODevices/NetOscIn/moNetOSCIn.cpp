@@ -499,22 +499,24 @@ moOscPacketListener::Update( moOutlets* pOutlets,
               MODebug2->Push("NetOscIn > OPENCV Received");
 
           if (message.Count()>=3) {
-            moData outletName = message.Get(2);
-            moData outletValue = message.Get(3);
-            //check if this outlet exists and update it!!!
-            int idx = GetOutletIndex( pOutlets, outletName.Text());
-            if (idx>-1) {
-              moOutlet* pOutlet = pOutlets->Get(idx);
-              if (pOutlet) {
-                moData &Data( *pOutlet->GetData() );
-                Data = outletValue;
-                //pOutlet->GetData()->SetInt()
-                pOutlet->Update(true);
-                if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, outlet for:" + outletName.Text()+" outletValue:" + outletValue.ToText() );
+              for(int m=2;m<message.Count()-1;m++) {
+                moData outletName = message.Get(m);
+                moData outletValue = message.Get(m+1);
+                //check if this outlet exists and update it!!!
+                int idx = GetOutletIndex( pOutlets, outletName.Text());
+                if (idx>-1) {
+                  moOutlet* pOutlet = pOutlets->Get(idx);
+                  if (pOutlet) {
+                    moData &Data( *pOutlet->GetData() );
+                    Data = outletValue;
+                    //pOutlet->GetData()->SetInt()
+                    pOutlet->Update(true);
+                    if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, outlet for:" + outletName.Text()+" outletValue:" + outletValue.ToText() );
+                  }
+                } else {
+                 if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, no outlet for:" + outletName.Text() );
+                }
               }
-            } else {
-             if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, no outlet for:" + outletName.Text() );
-            }
           }
         }
         }

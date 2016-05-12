@@ -162,6 +162,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     //Material.m_Color = moColor( 1.0, 1.0, 1.0 );
     moVector4d color = m_Config.EvalColor( moR(ICON_COLOR) );
     Material.m_Color = moColor( color.X(), color.Y(), color.Z() );
+    Material.m_fOpacity = m_Config.Eval( moR(ICON_ALPHA));
 
     moGLMatrixf Model;
     Model.MakeIdentity();

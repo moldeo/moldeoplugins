@@ -259,7 +259,10 @@ moOla::Init() {
   } else return false;
 
 	moDefineParamIndex( OLA_DEVICE, moText("oladevice") );
-
+	moDefineParamIndex( OLA_RED, moText("red") );
+	moDefineParamIndex( OLA_GREEN, moText("green") );
+	moDefineParamIndex( OLA_BLUE, moText("blue") );
+	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -277,9 +280,11 @@ moOla::Init() {
     // Setup the client, this connects to the server
     if (!ola_client.Setup()) {
         std::cerr << "Setup failed" << endl;
+        MODebug2->Error("moOla::Init >> Setup failed!");
         return false;
     } else {
-        cout << "Send DMX failed" << endl;
+        //cout << "Send DMX failed" << endl;
+        MODebug2->Message("moOla::Init >> Ola Client Setup.");
     }
     // Send 100 frames to the server. Increment slot (channel) 0 each time a
     // frame is sent.
@@ -440,7 +445,76 @@ moOla::Update(moEventList *Events) {
 
 	}
 
-	TestLeds( 1, 100 );
+	//TestLeds( 1, 100 );
+
+    int colorv1 = 0;
+    int colorv2 = 25;
+
+
+
+    double red = m_Config.Eval(moR(OLA_RED));
+    double green = m_Config.Eval(moR(OLA_GREEN));
+    double blue = m_Config.Eval(moR(OLA_BLUE));
+    double alpha = m_Config.Eval(moR(OLA_ALPHA));
+    /**
+    red = 0;
+    green = 0;
+    blue = 0;
+    alpha = 0;
+    */
+
+    for (unsigned int uni = 1; uni < 5; uni++) {
+        for (unsigned int cha = 1; cha < 170; cha++) {
+
+          buffer.SetChannel( cha*3, (int)255*red*alpha  );
+          buffer.SetChannel( cha*3+1, (int)255*green*alpha  );
+          buffer.SetChannel( cha*3+2, (int)255*blue*alpha );
+/**
+            for ( colorv1 = 0; colorv1 < steps; colorv1++) {
+                int red = 255*colorv1/steps;
+                int green = red;
+                int blue = red;
+                buffer.SetChannel( cha*3, red  );
+                buffer.SetChannel( cha*3+1, green  );
+                buffer.SetChannel( cha*3+2, blue );
+                if (!ola_client.SendDmx( uni, buffer ) ) {
+                    //cout << "Send DMX failed" << endl;
+                    return false;
+                }// else cout << "Send DMX ok" << i << endl;
+                if (debug_on) {
+                    cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
+                }
+                usleep(3); // sleep for 25ms between frames.
+            }
+            for ( colorv2 = steps-1; colorv2 > 0 ; colorv2--) {
+                int red = 255*colorv2/steps;
+                int green = red;
+                int blue = red;
+                buffer.SetChannel( cha*3, red  );
+                buffer.SetChannel( cha*3+1, green  );
+                buffer.SetChannel( cha*3+2, blue  );
+                if (!ola_client.SendDmx( uni, buffer ) ) {
+                    //cout << "Send DMX failed" << endl;
+                    return false;
+                }// else cout << "Send DMX ok" << i << endl;
+                if (debug_on) {
+                    cout << "Send DMX ok. Cha: " << cha << " val2:" << colorv2 << endl;
+                }
+                usleep(3); // sleep for 25ms between frames.
+            }
+            buffer.SetChannel( cha*3, 0  );
+            buffer.SetChannel( cha*3+1, 0  );
+            buffer.SetChannel( cha*3+2, 0  );
+            usleep(2);
+*/
+        }
+      if (!ola_client.SendDmx( uni, buffer ) ) {
+        MODebug2->Error("Couldnt send buffer");
+      }
+    }
+
+
+
 
 	//m_Codes
 /*
@@ -472,7 +546,7 @@ moOla::Update(moEventList *Events) {
 	}
 
 */
-
+    moMoldeoObject::Update(Events);
 }
 
 moConfigDefinition *
@@ -482,6 +556,10 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
 
 	p_configdefinition->Add( moText("oladevice"), MO_PARAM_TEXT, OLA_DEVICE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("red"), MO_PARAM_FUNCTION, OLA_RED, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("green"), MO_PARAM_FUNCTION, OLA_GREEN, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("blue"), MO_PARAM_FUNCTION, OLA_BLUE, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("alpha"), MO_PARAM_FUNCTION, OLA_ALPHA, moValue("1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("startuniverse"), MO_PARAM_NUMERIC, OLA_STARTUNIVERSE, moValue( "1", "NUM").Ref() );
 	p_configdefinition->Add( moText("leds"), MO_PARAM_NUMERIC, OLA_LEDS, moValue( "50", "NUM").Ref() );
 	p_configdefinition->Add( moText("rgbtype"), MO_PARAM_NUMERIC, OLA_RGBTYPE, moValue( "0", "NUM").Ref() );

@@ -82,6 +82,10 @@ using std::endl;
 enum moOlaParamIndex {
 
   OLA_DEVICE,
+  OLA_RED,
+  OLA_GREEN,
+  OLA_BLUE,
+  OLA_ALPHA,
   OLA_STARTUNIVERSE,
   OLA_LEDS,
   OLA_RGBTYPE, /** Rgb Type */

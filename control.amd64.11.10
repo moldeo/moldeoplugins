@@ -1,8 +1,8 @@
 Source: moldeoplugins
-Priority: extra
+Priority: optional
 Maintainer: Moldeo Interactive <info@moldeointeractive.com.ar>
-Build-Depends: debhelper (>= 8.0.0), autotools-dev
-Standards-Version: 3.9.2
+Build-Depends: debhelper (>= 8.0.0), autotools-dev, libmoldeo-dev, libopencv-dev, libsndfile1-dev
+Standards-Version: 3.9.4
 Section: libs
 Homepage: http:\\www.moldeo.org
 #Vcs-Git: git://git.debian.org/collab-maint/moldeoplugins.git
@@ -11,14 +11,13 @@ Homepage: http:\\www.moldeo.org
 Package: moldeoplugins-dev
 Section: libdevel
 Architecture: amd64
-Depends: moldeoplugins (= ${binary:Version})
+Depends: moldeoplugins (= ${binary:Version}), libmoldeo-dev
 Description: Moldeo Plugins Headers
  Moldeo Plugins Headers
 
 Package: moldeoplugins
 Section: libs
 Architecture: amd64
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, libmoldeo, libsndfile1, libopencv-dev
 Description: Moldeo Plugins
  Moldeo Plugins
-

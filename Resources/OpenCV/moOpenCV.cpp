@@ -143,7 +143,7 @@ enum moOpenCVRecognitionMode {
   OPENCV_RECOGNITION_MODE_THRESHOLD=6
 };*/
 	p_configdefinition->Add( moText("recognition_mode"), MO_PARAM_NUMERIC, OPENCV_RECOGNITION_MODE, moValue( "0", "NUM"),
-                         moText("Face,Gpu Motion,Contour,Color,Motion Detection,Blobs,Threshold") );
+                         moText("Face,Gpu Motion,Contour,Color,Motion Detection,Blobs,Threshold,Body,Face Recognition Memorize,Face Recognition Remember") );
 	p_configdefinition->Add( moText("reduce_width"), MO_PARAM_NUMERIC, OPENCV_REDUCE_WIDTH, moValue( "64","INT").Ref() );
 	p_configdefinition->Add( moText("reduce_height"), MO_PARAM_NUMERIC, OPENCV_REDUCE_HEIGHT, moValue( "64","INT").Ref() );
 	p_configdefinition->Add( moText("threshold"), MO_PARAM_FUNCTION, OPENCV_THRESHOLD, moValue( "50", "FUNCTION").Ref() );
@@ -449,9 +449,16 @@ void moOpenCV::UpdateParameters() {
   switch( m_RecognitionMode ) {
     case OPENCV_RECOGNITION_MODE_FACE:
       {
-      int stepN = 10;
+      int stepN = 5;
       ( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
       if (m_steps==stepN) { FaceDetection(); }
+      }
+      break;
+    case OPENCV_RECOGNITION_MODE_BODY:
+      {
+      int stepN = 5;
+      ( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
+      if (m_steps==stepN) { BodyDetection(); }
       }
       break;
     case OPENCV_RECOGNITION_MODE_GPU_MOTION:
@@ -563,8 +570,8 @@ moOpenCV::MotionRecognition() {
   //MODebug2->Message("MotionRecognition");
 
   // Detect motion in window
-  int x_start = (int)((float)128.0*m_crop_min_x), x_stop = (int)((float)128.0*m_crop_max_x);
-  int y_start = (int)((float)128.0*m_crop_min_y), y_stop = (int)((float)128.0*m_crop_max_y);
+  int x_start = (int)((float)m_reduce_width*m_crop_min_x), x_stop = (int)((float)m_reduce_width*m_crop_max_x);
+  int y_start = (int)((float)m_reduce_height*m_crop_min_y), y_stop = (int)((float)m_reduce_height*m_crop_max_y);
 
   // If more than 'there_is_motion' pixels are changed, we say there is motion
   // and store an image on disk
@@ -580,7 +587,7 @@ moOpenCV::MotionRecognition() {
       return;
   }
 
-  moVector2i resizer( 128, 128 );
+  moVector2i resizer( m_reduce_width, m_reduce_height );
   IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
 
   if (srcframe==NULL) {
@@ -694,6 +701,18 @@ moOpenCV::MotionRecognition() {
     m_pDataMessage->Add(pData);
 
     pData.SetText( moText("MOTION_DETECTION") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetInt( (int)(number_of_sequence>0) );
+    m_pDataMessage->Add(pData);
+
+    pData.SetText( moText("MOTION_DETECTION_X") );
+    m_pDataMessage->Add(pData);
+
+    pData.SetInt( (int)(number_of_sequence>0) );
+    m_pDataMessage->Add(pData);
+
+    pData.SetText( moText("MOTION_DETECTION_Y") );
     m_pDataMessage->Add(pData);
 
     pData.SetInt( (int)(number_of_sequence>0) );
@@ -1112,7 +1131,171 @@ moOpenCV::GpuMotionRecognition() {
   m_bReInit = false;
 }
 
+void
+moOpenCV::BodyDetection() {
 
+  std::vector<Rect> bodies;
+
+
+  if (m_pSrcTexture==NULL) {
+    MODebug2->Error("moOpenCV::BodyDetection() > Source Texture not selected " );
+    return;
+  }
+
+  /**INIT CASCADE CLASIFFIER with hog or haarcascades standard training XML files*/
+  if (m_bReInit) {
+    moText cascade_file;
+    string cfile;
+/*
+    cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_body.xml";
+    cfile = (char*)cascade_file;
+    if (!body_cascade.load(cfile))
+    {
+        MODebug2->Error("Error loading : " + cascade_file );
+        return;
+    }
+    MODebug2->Message("Loaded! : " + cascade_file );
+*/
+/*
+    cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/hogcascades/" + "hogcascade_pedestrians.xml";
+    cfile = (char*)cascade_file ;
+    if (!hog_cascade.load(cfile))
+    {
+        MODebug2->Error("Error loading : " + cascade_file );
+        return;
+    }
+    MODebug2->Message("Loaded! : " + cascade_file );
+*/
+    hog_cascade.setSVMDetector(HOGDescriptor::getDefaultPeopleDetector());
+
+    cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_frontalface_alt.xml";
+    cfile = (char*)cascade_file;
+    if (!face_cascade.load(cfile))
+    {
+        MODebug2->Error("Error loading : " + cascade_file );
+        return;
+    }
+    MODebug2->Message("Loaded! : " + cascade_file );
+
+  }
+
+
+  /**GET THE IMAGE: resized*/
+  //moVector2i resizer( 200, 150 );
+  moVector2i resizer( m_reduce_width, m_reduce_height );
+  IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
+  if (srcframe==NULL) {
+    MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
+    return;
+  }
+
+ /**CONVERT AND ENHANCE TO GRAYSCALE*/
+  //Mat frame( srcframe );
+  IplImage* dstframe;
+  //cvCvtColor ( srcframe, dstframe, CV_BGR2RGB );
+  Mat framebgr = cv::cvarrToMat(srcframe);
+  Mat frame = framebgr;
+  cvtColor ( framebgr, frame, COLOR_BGR2RGB );
+
+  //Mat frame = cv::cvarrToMat(srcframe);
+
+  Mat frame_gray;
+  cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
+  //equalizeHist(frame_gray, frame_gray);
+
+// Detect faces
+  //body_cascade.detectMultiScale( frame_gray, bodies, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+  hog_cascade.detectMultiScale( frame_gray, bodies, 0, Size(8,8), Size(32,32), 1.05, 2 );
+
+  if (resizer.X()==0 ) resizer = moVector2i( m_pSrcTexture->GetWidth(),m_pSrcTexture->GetHeight() );
+
+  moData pData;
+  /**
+    JSBodies contains all bodies:
+    [
+//body 1
+      { x: 0.0, y: 0.0, w: 1.0, h: 1.0, fx: 0.0, fy: 0.0 , fw: 1.0, fh: 1.0 },
+//body 2
+      { x: 0.0, y: 0.0, w: 1.0, h: 1.0, fx: 0.0, fy: 0.0 , fw: 1.0, fh: 1.0 },
+//body 3
+      { x: 0.0, y: 0.0, w: 1.0, h: 1.0, fx: 0.0, fy: 0.0 , fw: 1.0, fh: 1.0 },
+    ]
+  */
+  moText JSBodies;
+  if (m_pDataMessage) {
+    m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
+  }
+
+  if (m_pDataMessage && bodies.size()) {
+      JSBodies = "[";
+      pData.SetText( moText("opencv") );
+      m_pDataMessage->Add(pData);
+
+      pData.SetText( moText("BODY_DETECTIONS") );
+      m_pDataMessage->Add(pData);
+  }
+
+  for (int ic = 0; ic < bodies.size(); ic++) // Iterate through all current elements (detected faces)
+  {
+    MODebug2->Message("Body Detected: x:"+ IntToStr(bodies[ic].x) + " y:"+ IntToStr(bodies[ic].y) + " w:"+ IntToStr(bodies[ic].width)+ " h:"+ IntToStr(bodies[ic].height) );
+
+    float BodyWidth = ((float)bodies[ic].width)/(float)resizer.X();
+    float BodyHeight = ((float)bodies[ic].height)/(float)resizer.Y();
+
+    float BodyLeft = (float)bodies[ic].x/(float)resizer.X() - 0.5f  + BodyWidth*0.5f;
+    float BodyTop = -(float)bodies[ic].y/(float)resizer.Y() + 0.5f - BodyHeight*0.5f;
+
+    if (m_pDataMessage) {
+        JSBodies+= "{";
+        JSBodies+= "\"x\": \""+ FloatToStr(BodyLeft,4) + "\",";
+        JSBodies+= "\"y\": \"" + FloatToStr(BodyTop,4) + "\",";
+        JSBodies+= "\"w\": \"" + FloatToStr(BodyWidth,4) + "\",";
+        JSBodies+= "\"h\": \"" + FloatToStr(BodyHeight,4) + "\",";
+    }
+
+    rectangle( frame,
+           Point( bodies[ic].x, bodies[ic].y ),
+           Point( bodies[ic].x+bodies[ic].width, bodies[ic].y+bodies[ic].height),
+           Scalar( 128, 255, 128 ), 2);
+
+    std::vector<Rect> faces;
+
+    int left = max(0,bodies[ic].x);
+    int top = max( 0, bodies[ic].y);
+    int right = bodies[ic].x+bodies[ic].width;
+    int bottom = bodies[ic].y+bodies[ic].height;
+
+    Mat roi_gray( frame_gray, cvRect( left, top, min( frame_gray.cols-left, right-left ), min( frame_gray.rows-top, bottom - top ) ) );
+    face_cascade.detectMultiScale( roi_gray, faces, 1.1, 2, 0 | CASCADE_SCALE_IMAGE, Size(8, 8) );
+      for (int ice = 0; ice < faces.size(); ice++) // Iterate through all current elements (detected faces)
+      {
+        rectangle( frame,
+           Point( bodies[ic].x+faces[ice].x, bodies[ic].y+faces[ice].y ),
+           Point( bodies[ic].x+faces[ice].x+faces[ice].width, bodies[ic].y+faces[ice].y+faces[ice].height),
+           Scalar( 0, 255, 255 ), 2);
+      }
+
+
+    if (m_pDataMessage) {
+      JSBodies+= "},";
+    }
+
+  }
+
+
+  if (m_pDataMessage && bodies.size()) {
+      JSBodies+= "]";
+      pData.SetText( JSBodies );
+      m_pDataMessage->Add(pData);
+  }
+
+
+  cv::imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
+
+  m_bReInit = false;
+
+}
 
 
 void
@@ -1150,16 +1333,23 @@ moOpenCV::FaceDetection() {
   }
 
   /**GET THE IMAGE: resized*/
-  moVector2i resizer( 200, 150 );
+  //moVector2i resizer( 200, 150 );
+  moVector2i resizer( m_reduce_width, m_reduce_height );
   IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
   if (srcframe==NULL) {
     MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
     return;
   }
+  //Mat dstblobs = Mat::zeros(m_reduce_width, m_reduce_height, CV_8UC3);
+  //Scalar color( 255, 255, 255 );
+
+
 
   /**CONVERT AND ENHANCE TO GRAYSCALE*/
   //Mat frame( srcframe );
-  Mat frame = cv::cvarrToMat(srcframe);
+  Mat framebgr = cv::cvarrToMat(srcframe);
+  Mat frame = framebgr;
+  cvtColor ( framebgr, frame, COLOR_BGR2RGB );
   Mat frame_gray;
   cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
   //equalizeHist(frame_gray, frame_gray);
@@ -1176,6 +1366,9 @@ moOpenCV::FaceDetection() {
   float EyeRightWidth = 0,EyeRightHeight = 0;
 
   if (resizer.X()==0 ) resizer = moVector2i( m_pSrcTexture->GetWidth(),m_pSrcTexture->GetHeight() );
+
+
+
   for (int ic = 0; ic < faces.size(); ic++) // Iterate through all current elements (detected faces)
   {
 
@@ -1204,17 +1397,34 @@ moOpenCV::FaceDetection() {
 
         EyeLeftWidth*=1.3;
         EyeLeftHeight*=1.3;
+        rectangle( frame,
+           Point( faces[ic].x+eyes[ice].x, faces[ic].y+eyes[ice].y ),
+           Point( faces[ic].x+eyes[ice].x+eyes[ice].width, faces[ic].y+eyes[ice].y+eyes[ice].height),
+           Scalar( 0, 255, 255 ), 2);
       }
+
+
+      rectangle( frame,
+           Point( faces[ic].x, faces[ic].y ),
+           Point( faces[ic].x+faces[ic].width, faces[ic].y+faces[ic].height),
+           Scalar( 128, 255, 128 ), 2);
   }
 
   if (faces.size()) {
     MODebug2->Message("moOpenCV::FaceDetection on '"+m_pSrcTexture->GetName()+"' > "
     + moText(" FaceLeft:") + FloatToStr( FaceLeft )
     + moText(" FaceTop:")+ FloatToStr( FaceTop )
-    + moText(" FaceLeft:") + FloatToStr( FaceWidth )
-    + moText(" FaceTop:")+ FloatToStr( FaceHeight )
+    + moText(" FaceWidth:") + FloatToStr( FaceWidth )
+    + moText(" FaceHeight:")+ FloatToStr( FaceHeight )
     );
+
+
   }
+/**
+  rectangle( frame,
+           Point( 1,1 ),
+           Point( 127,127),
+           Scalar( 255, 255, 255 ));*/
 
   if (!m_FacePositionX) {
       m_FacePositionX = m_Outlets.GetRef( GetOutletIndex( moText("FACE_POSITION_X") ) );
@@ -1246,13 +1456,65 @@ moOpenCV::FaceDetection() {
     m_FaceSizeHeight->Update(true);
   }
 
+  cv::imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
+
+    if (m_pDataMessage) {
+        m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
+        moData pData;
+
+        pData.SetText( moText("opencv") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_DETECTION") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( (int)(faces.size()) );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_POSITION_X") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetFloat( FaceLeft );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_POSITION_Y") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetFloat( FaceTop );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_SIZE_WIDTH") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetFloat( FaceWidth );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_SIZE_HEIGHT") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetFloat( FaceHeight );
+        m_pDataMessage->Add(pData);
+        /*
+        moText ccc = "";
+        for( int c=0; c<m_pDataMessage->Count(); c++) {
+          ccc = ccc + m_pDataMessage->Get(c).ToText();
+        }
+        //MODebug2->Push(ccc);
+        */
+    }
+
   m_bReInit = false;
 }
+
+
+
 
 void
 moOpenCV::ThresholdFilter() {
  /**GET THE IMAGE: resized*/
-  moVector2i resizer( m_reduce_width, m_reduce_height );
+  //moVector2i resizer( m_reduce_width, m_reduce_height );
+  moVector2i resizer( 128, 128 );
   IplImage* srcframe = TextureToCvImage( m_pSrcTexture,  resizer  );
   if (srcframe==NULL) {
     MODebug2->Error("Error TextureToCvImage() : " + m_pSrcTexture->GetName() );
@@ -1346,7 +1608,7 @@ moOpenCV::BlobRecognition() {
   // Detect blobs.
   Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
 
-  
+
   drawKeypoints( dstblobs, keypoints, dstblobs, cv::Scalar(0,0,255), DrawMatchesFlags::DRAW_RICH_KEYPOINTS );
 
   CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );
@@ -1702,7 +1964,8 @@ moOpenCV::CvMatToTexture( Mat &mat, GLenum minFilter, GLenum magFilter, GLenum w
       if (p_destTexture->GetWidth()!=mat.cols || p_destTexture->GetHeight()!=mat.rows)
         p_destTexture->BuildEmpty( mat.cols, mat.rows );
 
-      p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
+      //p_destTexture->SetBuffer( mat.ptr(), GL_BGR );
+      p_destTexture->SetBuffer( mat.ptr(), GL_RGB );
       textureID = p_destTexture->GetGLId();
   }
 
@@ -1743,7 +2006,8 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
                     );
     return NULL;
   }
-  p_pTexture->GetBuffer( m_pBuffer, GL_BGR, GL_UNSIGNED_BYTE );
+  //p_pTexture->GetBuffer( m_pBuffer, GL_BGR, GL_UNSIGNED_BYTE );
+  p_pTexture->GetBuffer( m_pBuffer, GL_RGB, GL_UNSIGNED_BYTE );
 
   //(MOpointer)pTS->GetData();
 
@@ -1752,7 +2016,7 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
       if (m_pIplImage==NULL) m_pIplImage = cvCreateImage( cvSize( p_pTexture->GetWidth(), p_pTexture->GetHeight()),
                       IPL_DEPTH_8U,
                       3 );
-      //MODebug2->Message("moOpenCV::TextureToCvImage > created IplImage for: " + p_pTexture->GetName());
+      MODebug2->Message("moOpenCV::TextureToCvImage > created IplImage for: " + p_pTexture->GetName());
 
   }
 
@@ -1767,6 +2031,7 @@ moOpenCV::TextureToCvImage( moTexture* p_pTexture, moVector2i p_Resize ) {
   //cvZero( m_pIplImage );
   try {
     cvSetData( m_pIplImage, (void*)m_pBuffer, p_pTexture->GetWidth()*3);
+    MODebug2->Message("moOpenCV::TextureToCvImage > cvSetData called.");
   } catch(...) {
     MODebug2->Error("moOpenCV::TextureToCvImage > ");
   }
@@ -2045,6 +2310,7 @@ void moOpenCV::Update(moEventList *Events) {
                     cvCvtColor( img, img_gray, CV_BGR2GRAY );
 
                     //IplImage* img_gray_dst = cvCreateImage( cvGetSize(img_gray), 8, 1 );
+                    //IplImage* img_gray_dst = cvCreateImage( cvGetSize(img_gray), 8, 1 );
                     IplImage* img_gray_dst = cvCloneImage( img_gray );
                     //cvEqualizeHist( img_gray, img_gray_dst );
                     //cvThreshold( img_gray, img_gray_dst, 128, 255, CV_THRESH_BINARY );
@@ -2079,7 +2345,8 @@ void moOpenCV::Update(moEventList *Events) {
                     moTexture* pTex;
                     pTex = m_pResourceManager->GetTextureMan()->GetTexture(idopencvout);
 
-                    pTex->SetBuffer( data, GL_BGR, GL_UNSIGNED_BYTE );
+                    //pTex->SetBuffer( data, GL_BGR, GL_UNSIGNED_BYTE );
+                    pTex->SetBuffer( data, GL_RGB, GL_UNSIGNED_BYTE );
                 }
 
 			    //

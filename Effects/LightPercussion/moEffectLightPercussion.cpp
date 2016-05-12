@@ -85,7 +85,7 @@ void
 moLightPercussionPoint::EnergyPulse() {
 	Increase(64.0);
         moText energia_str("Energia: ");
-	MODebug->Push(energia_str+IntToStr(Energy));
+	MODebug->Push(energia_str+FloatToStr(Energy));
 }
 
 void
@@ -244,10 +244,8 @@ void moEffectLightPercussion::Draw( moTempo* tempogral,moEffectState* parentstat
 
 	glLoadIdentity();
 
-    glColor4f(  m_Config.GetParam(color).GetValue().GetSubValue(MO_RED).Float()*state.tintr,
-				m_Config.GetParam(color).GetValue().GetSubValue(MO_GREEN).Float()*state.tintg,
-                m_Config.GetParam(color).GetValue().GetSubValue(MO_BLUE).Float()*state.tintb,
-                m_Config.GetParam(color).GetValue().GetSubValue(MO_ALPHA).Float()*state.alpha);
+  SetColor( m_Config[moR(ICON_COLOR)], m_Config[moR(ICON_ALPHA)], m_EffectState );
+  SetBlending( (moBlendingModes) m_Config.Int( moR(ICON_BLENDING) ) );
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_ALPHA);

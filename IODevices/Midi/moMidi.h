@@ -74,21 +74,72 @@
 #define	MO_MIDI_SYTEM_LABELNAME		0
 #define	MO_MIDI_SYSTEM_ON			1
 
-static int mob_debug_on = false;
+enum moMidiBpmIndex {
+  MIDIBPM_92=1,
+  MIDIBPM_96=2,
+  MIDIBPM_104=3,
+  MIDIBPM_113=4,
+};
 
 enum moMidiParamIndex {
 
   MIDI_DEVICE,
-  MIDI_CODES,
-  MIDI_MDEBUG
+  MIDI_CHANNEL,
+  MIDI_CODES
 
 };
 
+/** MIDI commands
+  0x80     Note Off
+  0x90     Note On
+  0xA0     Aftertouch
+  0xB0     Continuous controller
+  0xC0     Patch change
+  0xD0     Channel Pressure
+  0xE0     Pitch bend
+  0xF0     (non-musical commands)
+*/
 enum moEncoderType {
-	MOMIDI_ROTARY=0,
-	MOMIDI_PUSHBUTTON=1,
-	MOMIDI_FADER=2
+	MOMIDI_ROTARY=0, /** custom: */
+	MOMIDI_PUSHBUTTON=1, /** custom: */
+	MOMIDI_FADER=2, /** custom: */
+	MOMIDI_NOTEON=8, /** 0x80     Note Off */
+	MOMIDI_NOTEOFF=9, /** 0x90     Note On */
+	MOMIDI_AFTERTOUCH=10, /** 0xA0     Aftertouch */
+	MOMIDI_CC=11, /** 0xB0     Continuous controller */
+	MOMIDI_PATCHCHANGE=12, /** 0xC0     Patch change */
+	MOMIDI_CHANNELPRESSURE=13, /** 0xD0     Channel Pressure */
+	MOMIDI_PITCHBEND=14, /** 0xE0     Pitch bend */
+	MOMIDI_SYSEX=15, /** 0xF0     (non-musical commands) */
 };
+/** FULL TABLES
+Command   Meaning 	  # parameters 	param 1 	  param 2
+0x80      Note-off 	  2             key         velocity
+0x90      Note-on 	  2             key         velocity
+0xA0      Aftertouch  2             key         touch
+0xB0      CC          2             code#       value
+0xC0      P. Change 	2             instrument  bank
+0xD0      C. Pressure 1             pressure
+0xE0      Pitch bend 	2             lsb(7bits)  msb(7bits)
+0xF0      (non-musical commands)
+
+command 	meaning 	# param
+0xF0 	start of system exclusive message 	variable
+0xF1 	MIDI Time Code Quarter Frame (Sys Common)
+0xF2 	Song Position Pointer (Sys Common)
+0xF3 	Song Select (Sys Common)
+0xF4 	???
+0xF5 	???
+0xF6 	Tune Request (Sys Common)
+0xF7 	end of system exclusive message 	0
+0xF8 	Timing Clock (Sys Realtime)
+0xFA 	Start (Sys Realtime)
+0xFB 	Continue (Sys Realtime)
+0xFC 	Stop (Sys Realtime)
+0xFD 	???
+0xFE 	Active Sensing (Sys Realtime)
+0xFF 	System Reset (Sys Realtime)
+*/
 
 class moMidiData {
 	public:
@@ -100,6 +151,7 @@ class moMidiData {
 
 
 		moEncoderType	m_Type;
+    MOint m_Status;
 		MOint	m_Channel;
 		MOint	m_CC;
 		MOint	m_Val;
@@ -163,7 +215,8 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	#else
 	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
-	PmEvent buffer[10000];
+	char channel;
+	PmEvent buffer[4000];
 	/*
 	#endif
 	*/
@@ -180,6 +233,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 
 	/* A flag to indicate whether I'm currently receiving a SysX message */
 	unsigned char SysXFlag;
+  moTimer TBN;/**Time Between Notes*/
 
 	protected:
 
@@ -220,6 +274,8 @@ public:
     MOdevcode GetCode( moText);
     MOboolean Finish();
 
+
+
 private:
     moConfig config;
 
@@ -228,6 +284,7 @@ private:
 protected:
 
 	MOint	mididevices;
+	MOint midichannels;
    	moMidiDevicePtrs		m_MidiDevices;
 	moMidiDataCodes			m_Codes;
 
