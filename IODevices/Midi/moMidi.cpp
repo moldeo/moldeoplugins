@@ -96,6 +96,7 @@ moMidiDevice::moMidiDevice() {
 	m_DeviceId = -1;
 	m_bInit = false;
 	m_bActive = false;
+	mob_debug_on = false;
 }
 
 
@@ -423,6 +424,7 @@ moMidi::Update(moEventList *Events) {
         //MODebug2->Message("Update devices");
 		moMidiDevicePtr MidiDevPtr;
 		MidiDevPtr = m_MidiDevices.Get(i);
+		MidiDevPtr->mob_debug_on = mob_debug_on;
 
 		if (MidiDevPtr!=NULL) {
 			if (MidiDevPtr->IsInit()) {

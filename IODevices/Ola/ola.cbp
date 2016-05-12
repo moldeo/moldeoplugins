@@ -50,6 +50,9 @@
 			<Add directory="$(externlibs)/opengl/include" />
 			<Add directory="$(externlibs)/lua/include" />
 			<Add directory="$(externlibs)/glew/include" />
+			<Add directory="../Ola" />
+			<Add directory="libartnet/artnet" />
+			<Add directory="libartnet" />
 		</Compiler>
 		<Linker>
 			<Add library="liblua" />
@@ -62,6 +65,31 @@
 			<Add directory="../../../lib/win" />
 			<Add directory="$(externlibs)/glew/lib" />
 		</Linker>
+		<Unit filename="libartnet/artnet/Makefile.am" />
+		<Unit filename="libartnet/artnet/artnet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libartnet/artnet/artnet.h" />
+		<Unit filename="libartnet/artnet/common.h" />
+		<Unit filename="libartnet/artnet/misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libartnet/artnet/misc.h" />
+		<Unit filename="libartnet/artnet/network.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libartnet/artnet/packets.h" />
+		<Unit filename="libartnet/artnet/private.h" />
+		<Unit filename="libartnet/artnet/receive.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libartnet/artnet/tod.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="libartnet/artnet/tod.h" />
+		<Unit filename="libartnet/artnet/transmit.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="moOla.cpp" />
 		<Unit filename="moOla.h" />
 		<Extensions>

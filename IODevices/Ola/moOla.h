@@ -53,19 +53,31 @@
     #else
         #define m_stricmp stricmp
     #endif
+    #define USE_LIBARTNET
 #else
+  #define USE_LIBARTNET 0
 #endif
 
 #ifndef __MO_MIDIDEVICES_H
 #define __MO_MIDIDEVICES_H
 
 #include <stdint.h>
-#include <ola/DmxBuffer.h>
-//#include <ola/io/SelectServer.h>
-#include <ola/Logging.h>
-//#include <ola/client/ClientWrapper.h>
-#include <ola/Callback.h>
-#include <ola/client/StreamingClient.h>
+
+
+#ifndef WIN32
+  #include <ola/DmxBuffer.h>
+  //#include <ola/io/SelectServer.h>
+  #include <ola/Logging.h>
+  //#include <ola/client/ClientWrapper.h>
+  #include <ola/Callback.h>
+  #include <ola/client/StreamingClient.h>
+#endif
+
+#ifdef USE_LIBARTNET
+#include <artnet/artnet.h>
+#include <artnet/packets.h>
+#endif
+
 using std::cout;
 using std::endl;
 
@@ -217,9 +229,17 @@ public:
 private:
     moConfig config;
 
-
+#ifndef WIN32
     ola::client::StreamingClient ola_client;
     ola::DmxBuffer buffer; // A DmxBuffer to hold the data.
+#endif
+
+#ifdef USE_LIBARTNET
+
+     artnet_node node;
+
+
+#endif
 
     moEventList *events;
 

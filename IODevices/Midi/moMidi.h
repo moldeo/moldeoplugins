@@ -85,6 +85,7 @@ enum moMidiParamIndex {
 
   MIDI_DEVICE,
   MIDI_CHANNEL,
+  MIDI_MDEBUG,
   MIDI_CODES
 
 };
@@ -234,6 +235,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	/* A flag to indicate whether I'm currently receiving a SysX message */
 	unsigned char SysXFlag;
   moTimer TBN;/**Time Between Notes*/
+  bool  mob_debug_on;
 
 	protected:
 
@@ -287,6 +289,7 @@ protected:
 	MOint midichannels;
    	moMidiDevicePtrs		m_MidiDevices;
 	moMidiDataCodes			m_Codes;
+bool  mob_debug_on;
 
 };
 

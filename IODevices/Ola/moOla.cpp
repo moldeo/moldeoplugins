@@ -182,7 +182,11 @@ moOlaDevice::Update(moEventList *Events) {
 
 //=============================================================================
 
-moOla::moOla() : ola_client((ola::client::StreamingClient::Options())) {
+moOla::moOla()
+#ifndef WIN32
+: ola_client((ola::client::StreamingClient::Options()))
+#endif
+{
 	SetName("ola");
 }
 
@@ -207,6 +211,7 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                     int red = 255*colorv1/steps;
                     int green = red;
                     int blue = red;
+                    #ifndef WIN32
                     buffer.SetChannel( cha*3, red  );
                     buffer.SetChannel( cha*3+1, green  );
                     buffer.SetChannel( cha*3+2, blue );
@@ -214,6 +219,8 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                         //cout << "Send DMX failed" << endl;
                         return false;
                     }// else cout << "Send DMX ok" << i << endl;
+                    #endif
+
                     if (debug_on) {
                         cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
                     }
@@ -223,6 +230,7 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                     int red = 255*colorv2/steps;
                     int green = red;
                     int blue = red;
+#ifndef WIN32
                     buffer.SetChannel( cha*3, red  );
                     buffer.SetChannel( cha*3+1, green  );
                     buffer.SetChannel( cha*3+2, blue  );
@@ -230,14 +238,17 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                         //cout << "Send DMX failed" << endl;
                         return false;
                     }// else cout << "Send DMX ok" << i << endl;
+#endif
                     if (debug_on) {
                         cout << "Send DMX ok. Cha: " << cha << " val2:" << colorv2 << endl;
                     }
                     usleep(3); // sleep for 25ms between frames.
                 }
+#ifndef WIN32
                 buffer.SetChannel( cha*3, 0  );
                 buffer.SetChannel( cha*3+1, 0  );
                 buffer.SetChannel( cha*3+2, 0  );
+#endif
                 usleep(2);
             }
         }
@@ -263,6 +274,7 @@ moOla::Init() {
 	moDefineParamIndex( OLA_GREEN, moText("green") );
 	moDefineParamIndex( OLA_BLUE, moText("blue") );
 	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
+	moDefineParamIndex( OLA_MDEBUG, moText("debug") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -272,8 +284,8 @@ moOla::Init() {
 
     unsigned int universe = 1; // universe to use for sending data
     // turn on OLA logging
+#ifndef WIN32
     ola::InitLogging(ola::OLA_LOG_WARN, ola::OLA_LOG_STDERR);
-
     buffer.Blackout(); // Set all channels to 0
     // Create a new client.
 
@@ -286,6 +298,21 @@ moOla::Init() {
         //cout << "Send DMX failed" << endl;
         MODebug2->Message("moOla::Init >> Ola Client Setup.");
     }
+#endif
+#ifdef USE_LIBARTNET
+    char *ip_addr = m_Config.Text( moR(OLA_DEVICE) );
+    bool verbose = m_Config.Int( moR(OLA_MDEBUG));
+    node = artnet_new( ip_addr, verbose );
+
+    artnet_set_short_name(node, "Artnet -> DMX (1)");
+    artnet_set_long_name(node, "ArtNet to DMX convertor");
+    artnet_set_node_type(node, ARTNET_NODE);
+    artnet_set_dmx_handler(node, dmx_callback, NULL);
+
+    artnet_set_port_addr(node, i%4, ARTNET_OUTPUT_PORT, i);
+
+#endif // USE_LIBARTNET
+
     // Send 100 frames to the server. Increment slot (channel) 0 each time a
     // frame is sent.
 
@@ -465,7 +492,7 @@ moOla::Update(moEventList *Events) {
 
     for (unsigned int uni = 1; uni < 5; uni++) {
         for (unsigned int cha = 1; cha < 170; cha++) {
-
+#ifndef WIN32
           buffer.SetChannel( cha*3, (int)255*red*alpha  );
           buffer.SetChannel( cha*3+1, (int)255*green*alpha  );
           buffer.SetChannel( cha*3+2, (int)255*blue*alpha );
@@ -511,8 +538,9 @@ moOla::Update(moEventList *Events) {
       if (!ola_client.SendDmx( uni, buffer ) ) {
         MODebug2->Error("Couldnt send buffer");
       }
+#endif
     }
-
+}
 
 
 

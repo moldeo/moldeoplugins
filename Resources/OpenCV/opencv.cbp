@@ -78,6 +78,7 @@
 			<Add directory="opencv/modules/objdetect/include" />
 			<Add directory="opencv/modules/legacy/include" />
 			<Add directory="C:/opencv/build/x86/mingw" />
+			<Add directory="C:/opencv/build/include" />
 		</Compiler>
 		<Linker>
 			<Add library="libopencv_core2410.dll.a" />
