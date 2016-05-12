@@ -307,7 +307,7 @@ moOla::Init() {
     artnet_set_short_name(node, "Artnet -> DMX (1)");
     artnet_set_long_name(node, "ArtNet to DMX convertor");
     artnet_set_node_type(node, ARTNET_NODE);
-    artnet_set_dmx_handler(node, dmx_callback, NULL);
+    //artnet_set_dmx_handler(node, dmx_callback, NULL);
 
     artnet_set_port_addr(node, i%4, ARTNET_OUTPUT_PORT, i);
 

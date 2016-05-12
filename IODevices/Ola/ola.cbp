@@ -60,6 +60,8 @@
 			<Add library="cgGL" />
 			<Add library="setupapi" />
 			<Add library="libwinmm" />
+			<Add library="iphlpapi" />
+			<Add library="ws2_32" />
 			<Add directory="$(externlibs)/lua/lib" />
 			<Add directory="$(externlibs)/cg/lib" />
 			<Add directory="../../../lib/win" />
