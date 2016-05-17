@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([NetOscIn], [0.7], [info@moldeointeractive.com.ar], [netoscin])
+AC_INIT([NetOscIn], [1.0.0.160], [info@moldeointeractive.com.ar], [netoscin])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -28,5 +28,6 @@ AC_PROG_CXXCPP
 AC_PROG_CXX_C_O
 
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
+PKG_CHECK_MODULES([LIBLO], [liblo] ,has_liblo=yes)
 
 AC_OUTPUT(Makefile)

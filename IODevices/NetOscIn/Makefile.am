@@ -1,30 +1,10 @@
 lib_LTLIBRARIES = libmoldeo_netoscin.la
-libmoldeo_netoscin_la_SOURCES = ip/IpEndpointName.h\
-ip/NetworkingUtils.h\
-ip/PacketListener.h\
-ip/TimerListener.h\
-ip/UdpSocket.h\
-MessageMappingOscPacketListener.h\
-moNetOSCIn.cpp\
-moNetOSCIn.h\
-OscException.h\
-OscHostEndianness.h\
-OscOutboundPacketStream.cpp\
-OscOutboundPacketStream.h\
-OscPacketListener.h\
-OscPrintReceivedElements.cpp\
-OscPrintReceivedElements.h\
-OscReceivedElements.cpp\
-OscReceivedElements.h\
-OscTypes.cpp\
-OscTypes.h\
-ip/posix/NetworkingUtils.cpp\
-ip/posix/UdpSocket.cpp
+libmoldeo_netoscin_la_SOURCES = moNetOSCIn.cpp\
+moNetOSCIn.h
 
-libmoldeo_netoscin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1
-
+libmoldeo_netoscin_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} ${LIBLO_CFLAGS} -DOSC_HOST_LITTLE_ENDIAN=1
 libmoldeo_netoscin_la_LDFLAGS =
-libmoldeo_netoscin_la_LIBADD = 
+libmoldeo_netoscin_la_LIBADD = ${LIBLO_LIBS}
 libmoldeo_netoscin_la_LIBS = ${LIBMOLDEO_LIBS}
 
 moduletype = iodevices

@@ -37,7 +37,6 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="libmoldeo_netoscin.la" />
 		<Unit filename="moNetOSCIn.cpp" />
 		<Unit filename="moNetOSCIn.h" />
 		<Extensions>

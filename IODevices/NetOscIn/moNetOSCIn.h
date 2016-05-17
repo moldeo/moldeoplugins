@@ -29,8 +29,6 @@
 
 *******************************************************************************/
 
-#include "moTypes.h"
-
 #ifndef __MO_NET_OSC_OUT_H__
 #define __MO_NET_OSC_OUT_H__
 
@@ -41,10 +39,14 @@
 #include "moIODeviceManager.h"
 #include "moTypes.h"
 
-#include "OscReceivedElements.h"
-#include "OscPacketListener.h"
-#include "OscOutboundPacketStream.h"
-#include "UdpSocket.h"
+#ifdef OSCPACK
+  #include "OscReceivedElements.h"
+  #include "OscPacketListener.h"
+  #include "OscOutboundPacketStream.h"
+  #include "UdpSocket.h"
+#else
+  #include "lo/lo.h"
+#endif
 
 #include "moConnectors.h"
 
@@ -63,16 +65,26 @@ enum moNetOSCInParamIndex {
 //el listener tenga que funcionar dentro de un Thread...para que el run sea asincronico
 //y ponerle un flag para que pueda ser bloqueado por la funcion de Update...
 
+#ifdef OSCPACK
 class moOscPacketListener : public osc::OscPacketListener, public moThread, public moAbstract {
+#else
+class moOscPacketListener : public moAbstract {
+#endif
 
 	public:
 
         moOscPacketListener();
+        virtual ~moOscPacketListener() {
+        }
 
+#ifdef OSCPACK
         virtual int ThreadUserFunction();
-
-		void Set( UdpListeningReceiveSocket* pudprcv );
-
+      void Set( UdpListeningReceiveSocket* pudprcv );
+      UdpListeningReceiveSocket* m_pUdpRcv;
+#else
+      void Set( lo_server_thread pudprcv );
+      lo_server_thread m_pUdpRcv;
+#endif
         void Init( moOutlets* pOutlets );
         MOint GetOutletIndex( moOutlets* pOutlets, moText p_connector_name ) const;
         int Update( moOutlets* pOutlets,
@@ -82,8 +94,15 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
                    int p_MoldeoId = -1 );
 
         moDataMessages        Messages;
-        UdpListeningReceiveSocket* m_pUdpRcv;
 
+#ifdef OSCPACK
+        virtual void ProcessMessage( const osc::ReceivedMessage& m,
+				const IpEndpointName& remoteEndpoint );
+#else
+        static int ProcessMessage(const char *path, const char *types, lo_arg ** argv,
+                    int argc, void *data, void *user_data);
+#endif
+        bool debug_is_on;
     protected:
         moLock  m_Semaphore;
 
@@ -123,16 +142,17 @@ class moOscPacketListener : public osc::OscPacketListener, public moThread, publ
         moOutlet*   pOutOrientationY; //roll
         moOutlet*   pOutOrientationZ; //azimuth
 
-        bool debug_is_on;
 
-    virtual void ProcessMessage( const osc::ReceivedMessage& m,
-				const IpEndpointName& remoteEndpoint );
+
 };
 
 moDeclareDynamicArray( moOscPacketListener*, moOscPacketListeners )
 
-// moNetOSCIn class **************************************************
+#ifndef OSCPACK
+void error(int num, const char *m, const char *path);
+#endif
 
+// moNetOSCIn class **************************************************
 class moNetOSCIn : public moIODevice
 {
 public:
@@ -153,7 +173,6 @@ public:
 private:
 
     moOscPacketListeners    m_OscPacketListeners;
-
     moOutlet*   m_pEvents;
 
     // Parameters.

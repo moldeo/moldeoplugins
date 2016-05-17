@@ -31,7 +31,6 @@
 #include "moNetOSCIn.h"
 
 #include "moArray.h"
-
 moDefineDynamicArray( moOscPacketListeners )
 
 //========================
@@ -98,7 +97,7 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
 
     debug_is_on = false;
 }
-
+#ifdef OSCPACK
 int moOscPacketListener::ThreadUserFunction() {
     if (m_pUdpRcv) {
         moAbstract::MODebug2->Message(moText("Running listener..."));
@@ -110,6 +109,12 @@ void moOscPacketListener::Set( UdpListeningReceiveSocket* pudprcv ) {
     moAbstract::MODebug2->Message(moText("Set listener"));
     m_pUdpRcv = pudprcv;
 }
+#else
+void moOscPacketListener::Set( lo_server_thread pudprcv ) {
+    moAbstract::MODebug2->Message(moText("Set listener"));
+    m_pUdpRcv = pudprcv;
+}
+#endif
 
 void
 moOscPacketListener::Init( moOutlets* pOutlets ) {
@@ -572,19 +577,36 @@ moOscPacketListener::Update( moOutlets* pOutlets,
     return nmess;
 }
 
-
+#ifdef OSCPACK
 void
 moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
 				const IpEndpointName& remoteEndpoint ) {
+#else
+int
+moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg ** argv,
+                    int argc, void *data, void *user_data) {
+#endif
 
+cout << "receiving" << endl;
 
+moOscPacketListener* self = NULL;
+#ifdef OSCPACK
+  self = this;
+#else
+  if (user_data==NULL) { cout << "no user data" << endl; return -1; }
+  self = (moOscPacketListener*) user_data;
+#endif
 
-        m_Semaphore.Lock();
+        cout << "blocking" << endl;
+        self->m_Semaphore.Lock();
         moDataMessage message;
 
         moData  data0;
-
-
+        moText addresspath = path;
+        cout << "addresspath:" << addresspath << endl;
+#ifdef OSCPACK
+         addresspath = moText( m.AddressPattern() );
+#endif
         try {
             //moAbstract::MODebug2->Push(moText("N: ")+IntToStr(m.ArgumentCount()));
 
@@ -592,141 +614,215 @@ moOscPacketListener::ProcessMessage( const osc::ReceivedMessage& m,
             /// El primer dato corresponderá a una palabra que represente la secuencia de datos.
 
             if (
-                    moText( m.AddressPattern() ) == moText("/1/xy") //andOSC
-                || moText( m.AddressPattern() ) == moText("/touch") //OSCTouch i = finger_id, f: x f: y f:size
+                    addresspath == moText("/1/xy") //andOSC
+                || addresspath == moText("/touch") //OSCTouch i = finger_id, f: x f: y f:size
 
                 ) {
 
                 data0 = moData( moText( "POSITION" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/ori") ) {
+            } else if ( addresspath == moText("/ori") ) {
                 data0 = moData( moText( "ORIENTATION" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/acc") ) {
+            } else if ( addresspath == moText("/acc") ) {
                 data0 = moData( moText( "ACCELERATION" ) );
                 message.Add( data0 );
             } else/*AnalyseSOundMonar*/
-            if ( moText( m.AddressPattern() ) == moText("/beat") ) {
+            if ( addresspath == moText("/beat") ) {
                 data0 = moData( moText( "BEAT" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/beathigh") ) {
+            } else if ( addresspath == moText("/beathigh") ) {
                 data0 = moData( moText( "BEATHIGH" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/beatmedium") ) {
+            } else if ( addresspath == moText("/beatmedium") ) {
                 data0 = moData( moText( "BEATMEDIUM" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/beatlow") ) {
+            } else if ( addresspath == moText("/beatlow") ) {
                 data0 = moData( moText( "BEATLOW" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ).SubText(0,6) == moText("/moldeo") ) {
+            } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
+                cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
-            } else if ( moText( m.AddressPattern() ) == moText("/opencv") ) {
+            } else if ( addresspath == moText("/opencv") ) {
                 data0 = moData( moText( "OPENCV" ) );
                 message.Add( data0 );
             } else {
-                data0 = moData( moText(  m.AddressPattern() ) );
+                data0 = moData( addresspath );
                 message.Add( data0 );
             }
-
-
+#ifdef OSCPACK
             osc::ReceivedMessage::const_iterator arg = m.ArgumentsBegin();
 
             for(int i = 0; i<m.ArgumentCount(); i++) {
 
                 const osc::ReceivedMessageArgument& rec((*arg));
+                char tt = rec.TypeTag();
+#else
+            int i = 0;
+            //cout << "check argc:" << argc << endl;
+            for (i = 0; i < argc; i++) {
+            //cout << "arg i:" << i << " type: " << types[i] << endl;
+            //lo_arg_pp((lo_type)types[i], argv[i]);
+            //cout << endl;
+              lo_type tt = (lo_type)types[i];
+              //cout << "check lo_type tt:" << tt << endl;
 
+            //cout << endl;
+
+#endif
                 moData  data;
-
+                switch(tt) {
+                #ifdef OSCPACK
                 //base.Copy( moData( (int)rec.AsBool() ) );
-                if (rec.TypeTag()==osc::TRUE_TYPE_TAG) {
-                    data = moData( (int)rec.AsBool() );
-                    message.Add( data );
+                    case osc::TRUE_TYPE_TAG:
+                    case osc::FALSE_TYPE_TAG:
+                      data = moData( (int)rec.AsBool() );
+                      break;
 
-                } else if (rec.TypeTag()==osc::FALSE_TYPE_TAG) {
-                    data = moData( (int)rec.AsBool() );
-                    message.Add( data );
+                    case osc::NIL_TYPE_TAG:
+                    case osc::INFINITUM_TYPE_TAG:
+                    case osc::INT32_TYPE_TAG:
+                      data.Copy( moData( (int)rec.AsInt32() ) );
+                      break;
 
-                } else if (rec.TypeTag()==osc::NIL_TYPE_TAG) {
-                    data.Copy( moData( (int)rec.AsInt32() ) );
-                    message.Add( data );
+                    case osc::CHAR_TYPE_TAG:
+                      data.Copy( moData( rec.AsChar() ) );
+                      break;
 
-                } else if (rec.TypeTag()==osc::INFINITUM_TYPE_TAG) {
-                    data.Copy( moData( (int)rec.AsInt32() ) );
-                    message.Add( data );
+                    case osc::RGBA_COLOR_TYPE_TAG:
+                      {
+                      int rgba = rec.AsRgbaColor();
+                      int r = rgba >> 24;
+                      int g = (rgba & 0x00FFFFFF) >> 16;
+                      int b = (rgba & 0x0000FFFF) >> 8;
+                      int a = (rgba & 0x000000FF);
+                      data = moData(rgba);
+                      }
+                      break;
 
-                } else if (rec.TypeTag()==osc::INT32_TYPE_TAG) {
-                    data.Copy( moData( (int)rec.AsInt32() ) );
-                    message.Add( data );
+                    case osc::MIDI_MESSAGE_TYPE_TAG):
+                      data = moData( (int)rec.AsMidiMessage() );
+                      break;
 
-                } else if (rec.TypeTag()==osc::CHAR_TYPE_TAG) {
-                    data.Copy( moData( rec.AsChar() ) );
-                    message.Add( data );
+                    case osc::INT64_TYPE_TAG:
+                      data = moData( rec.AsInt64());
+                      break;
 
-                } else if (rec.TypeTag()==osc::RGBA_COLOR_TYPE_TAG) {
-                    int rgba = rec.AsRgbaColor();
-                    int r = rgba >> 24;
-                    int g = (rgba & 0x00FFFFFF) >> 16;
-                    int b = (rgba & 0x0000FFFF) >> 8;
-                    int a = (rgba & 0x000000FF);
-                    data = moData(rgba);
-                    message.Add(data);
+                    case osc::TIME_TAG_TYPE_TAG:
+                      data = moData( (MOlonglong)rec.AsTimeTag());
+                      break;
 
-                } else if (rec.TypeTag()==osc::MIDI_MESSAGE_TYPE_TAG) {//uint32
-                    data = moData( (int)rec.AsMidiMessage() );
-                    message.Add( data );
+                    case osc::FLOAT_TYPE_TAG:
+                      data = moData( rec.AsFloat() );
+                      break;
+                    case osc::DOUBLE_TYPE_TAG:
+                      data = moData( rec.AsDouble() );
+                      break;
+                    case osc::STRING_TYPE_TAG:
+                      data = moData( moText( rec.AsString()) );
+                      break;
 
-                } else if (rec.TypeTag()==osc::INT64_TYPE_TAG) {//uint64
-                    data = moData( rec.AsInt64());
-                    message.Add( data );
+                    case osc::SYMBOL_TYPE_TAG:
+                      data = moData( moText(rec.AsSymbol()) );
+                      break;
 
-                } else if (rec.TypeTag()==osc::TIME_TAG_TYPE_TAG) {//uint64
-                    data = moData( (MOlonglong)rec.AsTimeTag());
-                    message.Add( data );
+                    case osc::BLOB_TYPE_TAG:
+                    {
+                      //el BLOB deberá ser pasado como buffer...
+                      // habria que ver como reconocer si es Imagen o si es simplemente data
+                      // eso hay que tratarlo, ya sea con el FreeImage: que tratará de reconocer en memoria el tag
+                      // si falla podríamos ir pensando en una variante para esto...
+                      MOpointer   pointer;
+                      MOulong size;
+                      moDataType dtype = MO_DATA_POINTER;
+                      //dtype = MO_DATA_IMAGESAMPLE;
+                      //dtype = MO_DATA_SOUNDSAMPLE;
+                      rec.AsBlob( (const void*&)pointer, size );
+                      data = moData( pointer, size, dtype );
+                    }
+                      break;
+                  #else
+                   case LO_FALSE:
+                   case LO_TRUE:
+                      data = moData( (int)argv[i]->i );
+                      break;
+                   case LO_INT32:
+                      data = moData( (int)argv[i]->i32 );
+                      break;
 
-                } else if (rec.TypeTag()==osc::FLOAT_TYPE_TAG) {
-                    data = moData( rec.AsFloat() );
-                    message.Add( data );
-                } else if (rec.TypeTag()==osc::DOUBLE_TYPE_TAG) {
-                    data = moData( rec.AsDouble() );
-                    message.Add( data );
-                } else if (rec.TypeTag()==osc::STRING_TYPE_TAG) {
-                    data = moData( moText( rec.AsString()) );
-                    message.Add( data );
+                   case LO_INT64:
+                      data = moData( (int)argv[i]->i64 );
+                      break;
 
-                } else if (rec.TypeTag()==osc::SYMBOL_TYPE_TAG) {
-                    data = moData( moText(rec.AsSymbol()) );
-                    message.Add( data );
+                   case LO_DOUBLE:
+                      data = moData( (double)argv[i]->d );
+                      break;
+                   case LO_FLOAT:
+                      data = moData( (float)argv[i]->f );
+                      break;
+                    case LO_STRING:
+                      data = moData( moText((char*)&argv[i]->s) );
+                      break;
 
-                } else if (rec.TypeTag()==osc::BLOB_TYPE_TAG) {
-                    //el BLOB deberá ser pasado como buffer...
-                    // habria que ver como reconocer si es Imagen o si es simplemente data
-                    // eso hay que tratarlo, ya sea con el FreeImage: que tratará de reconocer en memoria el tag
-                    // si falla podríamos ir pensando en una variante para esto...
-                    MOpointer   pointer;
-                    MOulong size;
-                    moDataType dtype = MO_DATA_POINTER;
-                    //dtype = MO_DATA_IMAGESAMPLE;
-                    //dtype = MO_DATA_SOUNDSAMPLE;
-                    rec.AsBlob( (const void*&)pointer, size );
-                    data = moData( pointer, size, dtype );
-                    message.Add( data );
+                  #endif
                 }
-                //if (debug_is_on) MODebug2->Push( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
+                if (self->debug_is_on)
+                  self->MODebug2->Message( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
+                #ifdef OSCPACK
                 (arg++);
+                #endif
+
+                message.Add( data );
+
             }
         }
+        #ifdef OSCPACK
         catch( osc::Exception& e ){
+        std::cout << "error while parsing message: "
+                << addresspath << ": " << e.what() << "\n";
+        #else
+        catch(...) {
+        #endif
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
 
-            std::cout << "error while parsing message: "
-                << m.AddressPattern() << ": " << e.what() << "\n";
 
         }
-        Messages.Add(message);
-        m_Semaphore.Unlock();
+
+
+        self->Messages.Add(message);
+        self->m_Semaphore.Unlock();
+}
+
+#ifndef OSCPACK
+void error(int num, const char *msg, const char *path)
+{
+    cout << "liblo server error " << num << " in path " << path << ": " << msg << endl;
+    //fflush(stdout);
+}
+
+/* catch any incoming messages and display them. returning 1 means that the
+ * message has not been fully handled and the server should try other methods */
+ /**
+int generic_handler(const char *path, const char *types, lo_arg ** argv,
+                    int argc, void *data, void *user_data)
+{
+    int i;
+
+    cout << "path: " << path << endl;
+    for (i = 0; i < argc; i++) {
+        cout << "arg i:" << i << " type: " << types[i] << endl;
+        lo_arg_pp((lo_type)types[i], argv[i]);
+        cout << endl;
     }
+    cout << endl;
+    //fflush(stdout);
+
+    return 1;
+}
+*/
+#endif
 
 // moNetOSCIn class **************************************************
 
@@ -802,13 +898,15 @@ MOboolean moNetOSCIn::Init() {
 	n_hosts = m_Config.GetValuesCount(n);
 	host_name.Init(n_hosts, moText(""));
     host_port.Init(n_hosts, 0);
+    int nport=0;
+
     for(i = 0; i < n_hosts; i++)
     {
 		host_name.Set(i, m_Config.GetParam(n).GetValue(i).GetSubValue(0).Text());
-		int nport;
+
 		nport = m_Config.GetParam(n).GetValue(i).GetSubValue(1).Int();
 
-		MODebug2->Push(moText(" NETOSCIN hosts: HOST NAME:")
+		MODebug2->Message(moText(" NETOSCIN hosts: HOST NAME:")
                                             + (moText)host_name[i]
                                             + moText(" PORT:")
                                             + IntToStr(nport)
@@ -817,7 +915,7 @@ MOboolean moNetOSCIn::Init() {
 		if (nport==0) {
 		    //nport = m_Config.Int( moText("port") );
 		    nport = m_Config.Int( moR(NETOSCIN_PORT) );
-            MODebug2->Push(moText(" NETOSCIN port 0: trying default port parameter")
+            MODebug2->Message(moText(" NETOSCIN port 0: trying default port parameter")
                                             + moText(" PORT:")
                                             + IntToStr(nport)
                  );
@@ -825,6 +923,28 @@ MOboolean moNetOSCIn::Init() {
 		}
 		host_port.Set(i, nport);
 	}
+	moText tport = IntToStr(nport);
+/**
+
+    try {
+      MODebug2->Message("moNetOscIn::Init > creating srver at port: " + IntToStr(nport));
+      //lo_server st = lo_server_new( tport, error);
+      lo_server_thread st = lo_server_thread_new( tport, error);
+
+      if (!st)
+        MODebug2->Error("moNetOscIn::Init > error starting linux (liblo).");
+      else
+        MODebug2->Message("moNetOscIn::Init > server created at port: " +  IntToStr(nport));
+      //lo_server_thread_add_method(st, NULL, NULL, generic_handler, NULL);
+      lo_server_thread_add_method(st, NULL, NULL, generic_handler, NULL);
+
+      lo_server_thread_start(st);
+      //lo_server_wait();
+
+    } catch(...) {
+      MODebug2->Error("moNetOscIn::Init > error starting server (liblo).");
+    }
+*/
 
 	for(i = 0; i < n_hosts; i++)
 	{
@@ -832,56 +952,29 @@ MOboolean moNetOSCIn::Init() {
 
 		pListener = new moOscPacketListener();
         if (pListener) {
-            /*
-            if ( host_name[i] == moText("all") ) {
-                if (host_port[i]>0)
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                host_port[i] ),
-                                                               pListener ) );
-                else
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            } else if ( host_name[i] != moText("") ) {
-                moTextArray ipNumbers;
-                unsigned long ipaddress = 0;
-                unsigned long i1=0, i2=0, i3=0, i4=0;
-                ipNumbers = host_name[i].Explode(".");
-                if (ipNumbers.Count()==4) {
-                    i1 = atoi(ipNumbers[0]);
-                    i2 = atoi(ipNumbers[1]);
-                    i3 = atoi(ipNumbers[2]);
-                    i4 = atoi(ipNumbers[3]);
-                    ipaddress = (i1 << 24) & (i2<<16) & (i3<<8) & i4;
-                } else {
-                    ipaddress = IpEndpointName::ANY_ADDRESS;
-                }
-                if (host_port[i]>0)
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( ipaddress,
-                                                                host_port[i] ),
-                                                               pListener ) );
-                else
-                    pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( ipaddress,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            } else {
-                pListener->Set( new UdpListeningReceiveSocket( IpEndpointName( IpEndpointName::ANY_ADDRESS,
-                                                                IpEndpointName::ANY_PORT ),
-                                                               pListener ) );
-            }
-*/
-            UdpListeningReceiveSocket   *socket = NULL;
+
+            #ifdef OSCPACK
+            UdpListeningReceiveSocket*  socket = NULL;
+            #else
+            lo_server_thread socket = NULL;
+            #endif
+
 
             try {
+            #ifdef OSCPACK
                 socket = new UdpListeningReceiveSocket(
                 IpEndpointName( IpEndpointName::ANY_ADDRESS, host_port[i] ),
                 pListener );
+            #else
+                socket = lo_server_thread_new( tport, error);
+            #endif
             } catch (std::exception &e) {
                 MODebug2->Error(moText("could not bind to UDP port "));
                 socket = NULL;
             }
 
             if (socket!=NULL) {
+                #ifdef OSCPACK
                 if (!socket->IsBound()) {
                     delete socket;
                     socket = NULL;
@@ -894,9 +987,16 @@ MOboolean moNetOSCIn::Init() {
                    MODebug2->Message( moText("NetOSCIn listening to OSC messages on UDP port "));
                    pListener->Set(socket);
                 }
+                #else
+                pListener->Set(socket);
+                lo_server_thread_add_method( socket, NULL, NULL, moOscPacketListener::ProcessMessage, pListener);
+                lo_server_thread_start(socket);
+                MODebug2->Message( moText("NetOSCIn listening to OSC messages on UDP port "));
+                #endif
             }
             if (socket) {
                 m_OscPacketListeners.Add( pListener );
+                #ifdef OSCPACK
                 if (pListener->CreateThread()) {
                     MODebug2->Message( moText(" NETOSCIN OK: HOST NAME:")
                                             + (moText)host_name[i]
@@ -911,6 +1011,7 @@ MOboolean moNetOSCIn::Init() {
                                     + IntToStr(host_port[i])
                                     );
                 }
+                #endif
             }
        }
 	}
