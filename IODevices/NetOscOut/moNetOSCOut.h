@@ -54,7 +54,6 @@
 moDeclareDynamicArray( UdpTransmitSocket*, moUdpTransmitSocketArray )
 #else
 #include "lo/lo.h"
-#include <lo/lo_cpp.h>
 //moDeclareDynamicArray( lo::Address*, moUdpTransmitSocketArray )
 moDeclareDynamicArray( lo_address, moUdpTransmitSocketArray )
 #endif

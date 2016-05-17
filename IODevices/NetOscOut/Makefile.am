@@ -1,7 +1,7 @@
 lib_LTLIBRARIES = libmoldeo_netoscout.la
 libmoldeo_netoscout_la_SOURCES = moNetOSCOut.cpp\
 moNetOSCOut.h
-libmoldeo_netoscout_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}  ${LIBLO_CFLAGS} -I ./ip -DOSC_HOST_LITTLE_ENDIAN=1 -std=c++11
+libmoldeo_netoscout_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}  ${LIBLO_CFLAGS}
 libmoldeo_netoscout_la_LDFLAGS = ${LIBLO_LIBS}
 libmoldeo_netoscout_la_LIBADD =
 libmoldeo_netoscout_la_LIBS = ${LIBMOLDEO_LIBS}

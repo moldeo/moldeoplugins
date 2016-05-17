@@ -164,7 +164,7 @@ MOboolean moNetOSCOut::Init()
 #endif
 
 		if (transmitSockets[i]) {
-       // MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
+        MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created at")+host_name[i]+":"+ IntToStr(host_port[i]) );
     }
 
 
@@ -609,10 +609,11 @@ moText oscpath = "";
 #endif
     moData data;
     int nfields = 0;
+    int error = 0;
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
-          //cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText() << endl;
+          cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText() << endl;
           switch(data.Type()) {
           #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:
@@ -632,28 +633,30 @@ moText oscpath = "";
                   break;
           #else
               case MO_DATA_NUMBER_FLOAT:
-                  lo_message_add_float( ms , data.Float());
+                  error = lo_message_add_float( ms , data.Float());
                   nfields++;
                   break;
               case MO_DATA_NUMBER_INT:
-                  lo_message_add_int32( ms , data.Int());
+                  error = lo_message_add_int32( ms , data.Int());
                   nfields++;
                   break;
               case MO_DATA_NUMBER_LONG:
-                  lo_message_add_int64( ms , data.Long());
+                  error = lo_message_add_int64( ms , data.Long());
                   nfields++;
                   break;
               case MO_DATA_NUMBER_DOUBLE:
-                  lo_message_add_double( ms , data.Double());
+                  error = lo_message_add_double( ms , data.Double());
                   nfields++;
                   break;
               case MO_DATA_TEXT:
                   if (oscpath=="") {
                     oscpath = data.Text();
-                    lo_message_add_string( ms , (char*)data.Text());
+                    moText mot = data.Text().Left(50000);
+                    error = lo_message_add_string( ms , (char*)mot);
                     nfields++;
                   } else {
-                    lo_message_add_string( ms , (char*)data.Text());
+                    moText mot = data.Text().Left(50000);
+                    error = lo_message_add_string( ms , (char*)mot);
                     nfields++;
                   }
                   break;
@@ -662,8 +665,8 @@ moText oscpath = "";
 
 
           }
-
-          //MODebug2->Message(moText("moNetOSCOut > data size: ") +  );
+        if (error<0)
+          MODebug2->Error(moText("moNetOSCOut > data error adding value: ") + data.ToText() );
       }
 #ifdef OSCPACK
     } catch(osc::Exception E) {
@@ -693,10 +696,17 @@ moText oscpath = "";
     }
 #else
     } catch(...) {
+        MODebug2->Error( moText("moNetOSCOut > Exception:"));
     }
 
     //char* bundlen = IntToStr(nfields);
-    lo_bundle_add_message( bundle, "moldeo", ms);
+/*
+    char * fullt = data.Text();
+    lo_blob bb = lo_blob_new(data.Text().Length(), (void*)fullt);
+    lo_message_add_blob(ms, bb);*/
+
+    lo_bundle_add_message( bundle, "/moldeo", ms);
+
     if (transmitSockets[i]) {
         //MODebug2->Message(moText("moNetOSCOut > sending ") + IntToStr(i) + " size:" + IntToStr(packetStream->Size()) );
         //transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
@@ -704,10 +714,30 @@ moText oscpath = "";
         lo::Bundle myBundle = lo::Bundle({{"example", lo::Message("i", 1234321)},
                        {"example", lo::Message("i", 4321234)}});
         transmitSockets[i]->send(myBundle);
-        */
-        //lo_send( transmitSockets[i], "/moldeo","sf","consoleget",1.618f);
-        if (lo_send_bundle( transmitSockets[i], bundle )<=0) {
-          MODebug2->Error("moNetOSCOut::SendDataMessage > Couldnt send OSC bundle");
+        *//*
+        
+        int rres = lo_send( transmitSockets[i], "/moldeo","sf","consoleget",1.618f);
+        lo_send( transmitSockets[i], "/moldeo", "f", 3.1415f );
+        
+        
+        moText pruebatexto = "";
+        for(int t=0; t<3000; t++ ) {
+            lo_message ms2 = lo_message_new();
+            int err = lo_message_add_float( ms2 , 3.1415 );
+            pruebatexto+= moText("á");
+            err = lo_message_add_string( ms2 , pruebatexto );
+            err = lo_message_add_int32( ms2 , pruebatexto.Length() );
+            rres = lo_send_message( transmitSockets[i], "/moldeo", ms2 );
+            if (rres<0) break;
+        }*/
+        
+        //err = lo_message_add_string( ms2 , data.ToText() );
+        int datalen = lo_bundle_length(bundle);
+        //MODebug2->Message( IntToStr(pruebatexto.Length()) );
+        int rres = lo_send_bundle( transmitSockets[i], bundle );
+        //int rres =
+        if (rres<=0) {
+          MODebug2->Error("moNetOSCOut::SendDataMessage > Couldnt send osc rres:"+IntToStr(rres)+" datamessage datalen:" + IntToStr(datalen)+"/"+IntToStr(LO_MAX_MSG_SIZE));
         }
 
     }
