@@ -27,7 +27,11 @@
 	CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+#ifdef OSCPACK
 #include "ip/NetworkingUtils.h"
+#else
+#include "lo/lo.h"
+#endif // OSCPACK
 
 #include <netdb.h>
 #include <sys/socket.h>
@@ -36,11 +40,11 @@
 #include <stdio.h>
 
 
-
+#ifdef OSCPACK
 NetworkInitializer::NetworkInitializer() {}
 
 NetworkInitializer::~NetworkInitializer() {}
-
+#endif
 
 unsigned long GetHostByName( const char *name )
 {

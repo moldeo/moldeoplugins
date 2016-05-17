@@ -220,7 +220,9 @@ private:
 
     ola::client::StreamingClient ola_client;
     ola::DmxBuffer buffer; // A DmxBuffer to hold the data.
-
+    moInlet* m_pPixelIndex;
+    moInlet** m_pPixelRow;
+    moInlet** m_pPixelCol;
     moEventList *events;
 
 protected:

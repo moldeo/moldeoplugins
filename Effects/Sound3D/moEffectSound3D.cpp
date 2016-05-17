@@ -929,11 +929,13 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
 
     }
 
-    if (m_bLaunch != m_Config.Int(moR(SOUND3D_LAUNCH)) ) {
+    double newflaun = m_Config.Eval(moR(SOUND3D_LAUNCH));
+    if (m_fLaunch != newflaun ) {
 
       DMessage("Launching sound!" + m_pAudio->GetName());
-      m_bLaunch = m_Config.Int(moR(SOUND3D_LAUNCH));
-        if (m_bLaunch && moIsTimerPlaying()) {
+      //m_bLaunch = m_Config.Int(moR(SOUND3D_LAUNCH));
+      m_fLaunch = newflaun;
+        if (m_fLaunch>=1.0 && moIsTimerPlaying()) {
           m_pAudio->Play();
         }
     }
@@ -943,7 +945,7 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
       if (m_pAudio->IsPlaying())
         m_pAudio->Stop();
     }
-    if (m_bLaunch && m_pAudio && Activated() ) {
+    if (m_fLaunch>=1.0 && m_pAudio && Activated() ) {
       if (!m_pAudio->IsPlaying() && moIsTimerPlaying() ) {
         m_pAudio->Play();
       }
@@ -1203,8 +1205,8 @@ moEffectSound3D::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
   p_configdefinition->Add( moText("seekposition"), MO_PARAM_FUNCTION, SOUND3D_SEEKPOSITION, moValue( "0", MO_VALUE_FUNCTION ).Ref() );
   p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, SOUND3D_MODE, moValue( "0", MO_VALUE_NUM_INT ) );
-	p_configdefinition->Add( moText("loop"), MO_PARAM_NUMERIC, SOUND3D_LOOP, moValue( "0", MO_VALUE_NUM_INT ) );
-	p_configdefinition->Add( moText("launch"), MO_PARAM_NUMERIC, SOUND3D_LAUNCH, moValue( "0", MO_VALUE_NUM_INT ) );
+	p_configdefinition->Add( moText("loop"), MO_PARAM_FUNCTION, SOUND3D_LOOP, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
+	p_configdefinition->Add( moText("launch"), MO_PARAM_FUNCTION, SOUND3D_LAUNCH, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("speedofsound"), MO_PARAM_FUNCTION, SOUND3D_SPEEDOFSOUND, moValue( "0.0", MO_VALUE_FUNCTION).Ref() );
 	p_configdefinition->Add( moText("pitch"), MO_PARAM_FUNCTION, SOUND3D_PITCH, moValue( "1.0", MO_VALUE_FUNCTION).Ref() );
 

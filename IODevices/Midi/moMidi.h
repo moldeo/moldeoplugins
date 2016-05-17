@@ -86,6 +86,8 @@ enum moMidiParamIndex {
 
   MIDI_DEVICE,
   MIDI_CHANNEL,
+  MIDI_NOTEFADEOUT,
+  MIDI_NOTEGATEVELOCITY,
   MIDI_CODES
 
 };
@@ -104,8 +106,8 @@ enum moEncoderType {
 	MOMIDI_ROTARY=0, /** custom: */
 	MOMIDI_PUSHBUTTON=1, /** custom: */
 	MOMIDI_FADER=2, /** custom: */
-	MOMIDI_NOTEON=8, /** 0x80     Note Off */
-	MOMIDI_NOTEOFF=9, /** 0x90     Note On */
+	MOMIDI_NOTEOFF=8, /** 0x80     Note Off */
+	MOMIDI_NOTEON=9, /** 0x90     Note On */
 	MOMIDI_AFTERTOUCH=10, /** 0xA0     Aftertouch */
 	MOMIDI_CC=11, /** 0xB0     Continuous controller */
 	MOMIDI_PATCHCHANGE=12, /** 0xC0     Patch change */
@@ -174,6 +176,45 @@ template class moDynamicArray<moMidiDataCode>;
 typedef  moDynamicArray<moMidiDataCode> moMidiDataCodes;
 
 
+class moMidiNote : public moAbstract {
+
+  public:
+    moMidiNote() {
+      tone = 0;
+      velocity = 0;
+      sustain.Stop();
+      release.Stop();
+    }
+    virtual ~moMidiNote() {
+    }
+
+    moMidiNote( const moMidiNote& src ) {
+      (*this) = src;
+    }
+
+    moMidiNote& operator=( const moMidiNote& src ) {
+
+      tone = src.tone;
+      velocity = src.velocity;
+      sustain = src.sustain;
+      release = src.release;
+
+      return (*this);
+    }
+
+		int tone;
+		int velocity;
+
+		moTimer sustain;
+		moTimer release;
+
+};
+template class moDynamicArray<moMidiNote>;
+typedef  moDynamicArray<moMidiNote> moMidiNotes;
+
+
+
+
 class moMidiDevice : /*public moThread,*/ public moAbstract {
 
 	public:
@@ -235,6 +276,9 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	/* A flag to indicate whether I'm currently receiving a SysX message */
 	unsigned char SysXFlag;
   moTimer TBN;/**Time Between Notes*/
+  moTimer SUS;/**Note sustain*/
+  moTimer REL;/**Release time decay*/
+  moMidiNotes m_Notes;
 
 	protected:
 
@@ -255,11 +299,13 @@ typedef moMidiDevice* moMidiDevicePtr;
 template class moDynamicArray<moMidiDevicePtr>;
 typedef  moDynamicArray<moMidiDevicePtr> moMidiDevicePtrs;
 
+static moMidiDevicePtrs m_MidiDevices;
+
 class moMidi : public moIODevice
 {
 public:
     moMidi();
-    ~moMidi();
+    virtual ~moMidi();
 
     void Update(moEventList*);
     MOboolean Init();
@@ -275,19 +321,24 @@ public:
     MOdevcode GetCode( moText);
     MOboolean Finish();
 
+  void UpdateParameters();
 
 
 private:
     moConfig config;
+    double m_vMidiFadeout;
+    double m_vGateVelocity;
 
     moEventList *events;
 
 protected:
 
-	MOint	mididevices;
-	MOint midichannels;
-   	moMidiDevicePtrs		m_MidiDevices;
-	moMidiDataCodes			m_Codes;
+    MOint	mididevices;
+    MOint midichannels;
+    MOint midifadeout;
+
+    moMidiDataCodes m_Codes;
+
 
 };
 

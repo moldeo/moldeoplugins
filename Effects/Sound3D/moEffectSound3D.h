@@ -225,6 +225,7 @@ private:
 
   bool    m_bAudioStarted;
   bool    m_bLaunch;
+  float    m_fLaunch;
   bool    m_bLoop;
   float   m_fPitch;
   float   m_fVolume;

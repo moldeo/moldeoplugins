@@ -96,6 +96,7 @@ moMidiDevice::moMidiDevice() {
 	m_DeviceId = -1;
 	m_bInit = false;
 	m_bActive = false;
+	m_Notes.Init( 127, moMidiNote() );
 }
 
 
@@ -303,6 +304,54 @@ moMidiDevice::Update(moEventList *Events ) {
             m_MidiDatas.Add( mididata );
 
             TBN.Start();
+
+            /*** CONVERSIONS!!!! TODO: PUT A FLAG SOMEWHERE IN MIDI configuration*/
+            /*if (  mididata.m_Type==MOMIDI_CC
+                  && (
+                    mididata.m_CC==30 ||
+                    mididata.m_CC==31 ||
+                    mididata.m_CC==40 ||
+                    mididata.m_CC==41
+                  )
+                  && mididata.m_Val==127 ) {
+              mididata.m_Type=MOMIDI_NOTEON;
+              mididata.m_Val = 64;
+            } else
+            if ( mididata.m_Type==MOMIDI_CC && (
+                    mididata.m_CC==30 ||
+                    mididata.m_CC==31 ||
+                    mididata.m_CC==40 ||
+                    mididata.m_CC==41
+                  )
+                  && mididata.m_Val==0 ) {
+              mididata.m_Type=MOMIDI_NOTEOFF;
+              mididata.m_Val = 0;
+            }*/
+            /***/
+
+            if ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val>0 ) {
+            //if ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val>0 ) {
+
+              m_Notes[mididata.m_CC].tone = mididata.m_CC;
+              m_Notes[mididata.m_CC].velocity = mididata.m_Val;
+              m_Notes[mididata.m_CC].sustain.Start();
+              m_Notes[mididata.m_CC].release.Stop();
+
+              SUS.Start();
+              REL.Stop();
+
+            } else if ( mididata.m_Type==MOMIDI_NOTEOFF || ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val==0) )  {
+            //} else if ( mididata.m_Type==MOMIDI_NOTEON || ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val==0) )  {
+
+              m_Notes[mididata.m_CC].tone = mididata.m_CC;
+              m_Notes[mididata.m_CC].velocity = mididata.m_Val;
+              m_Notes[mididata.m_CC].sustain.Stop();
+              m_Notes[mididata.m_CC].release.Start();
+
+              SUS.Stop();
+              REL.Start();
+            }
+
         }
 
     }
@@ -358,9 +407,11 @@ moMidi::Init() {
 
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
   moDefineParamIndex( MIDI_CHANNEL, moText("midichannel") );
+  moDefineParamIndex( MIDI_NOTEFADEOUT, moText("notefadeout"));
 
 	mididevices = m_Config.GetParamIndex("mididevice");
 	midichannels = m_Config.GetParamIndex("midichannel");
+
 
 	MOint nvalues = m_Config.GetValuesCount( mididevices );
 	m_Config.SetCurrentParamIndex( mididevices );
@@ -482,6 +533,13 @@ moMidi::GetPointer(MOdevcode devcode ) {
 	return NULL;
 }
 
+void moMidi::UpdateParameters() {
+
+  m_vMidiFadeout = m_Config.Eval( moR(MIDI_NOTEFADEOUT) );
+  m_vGateVelocity = m_Config.Eval( moR(MIDI_NOTEGATEVELOCITY) );
+
+}
+
 void
 moMidi::Update(moEventList *Events) {
 	MOuint i;
@@ -502,18 +560,86 @@ moMidi::Update(moEventList *Events) {
 		} else actual = actual->next;//no es nuestro pasamos al next
 	}
 
+  UpdateParameters();
+  long release_max = 400; ///100ms
 
     ///ACTUALIZAMOS CADA DISPOSITIVO
 	for( i = 0; i < m_MidiDevices.Count(); i++ ) {
         //MODebug2->Message("Update devices");
 		moMidiDevicePtr MidiDevPtr;
 		MidiDevPtr = m_MidiDevices.Get(i);
+    int idx = -1;
 
 		if (MidiDevPtr!=NULL) {
 			if (MidiDevPtr->IsInit()) {
 				MidiDevPtr->Update( Events );
 
 				moText codetbn = "TIMEBN";
+				moText codesus = "SUSTAIN";
+				moText coderel = "RELEASE";
+				moText codenote = "NOTE";
+				const char* outs[] = { "ISON","SUS","REL","VEL" };
+
+        //MODebug2->Message("Nnotes:"+IntToStr( MidiDevPtr->m_Notes.Count() ) );
+				for( int iN=0; iN<MidiDevPtr->m_Notes.Count(); iN++ ) {
+
+          moMidiNote Note = MidiDevPtr->m_Notes[iN];
+
+          moOutlet* pOutNote = NULL;
+          moText base_note_txt = codenote + IntToStr( iN );
+          //MODebug2->Message( base_note_txt+ " > " );
+          if (Note.sustain.Duration()>0 || Note.release.Duration()>0 ) {
+            ///SEND "NOTE42ISON" CC=42 > value = 0|1 if on or off
+            ///SEND "NOTE42SUS" value = sustain.duration
+            ///SEND "NOTE42REL" value = release.duration
+            ///SEND "NOTE42VEL" value = velocity
+            double releaseNormal =  ( (double)release_max - (double)Note.release.Duration() ) / (double)release_max;
+            if (releaseNormal<=0.0)  { releaseNormal = 0.0; MidiDevPtr->m_Notes[iN].release.Stop(); }
+            if (releaseNormal>=1.0) releaseNormal = 1.0;
+
+            MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
+                                            + " [SUS] " + IntToStr(Note.sustain.Duration())
+                                            + " [REL] " + FloatToStr(releaseNormal)
+                                            + " [VEL] " + FloatToStr(Note.velocity) );
+
+            for( int outi=0; outi<4; outi++) {
+              moText postext = (char*)outs[outi];
+              moText note_txt = base_note_txt + postext;
+              //MODebug2->Message( note_txt+ " > " );
+              idx = GetOutletIndex( note_txt );
+              if( idx>-1) {
+
+                  moOutlet* pOutNote = m_Outlets[idx];
+
+                  if (pOutNote) {
+                      switch(outi) {
+                        case 0:
+                          pOutNote->GetData()->SetDouble( (double)(Note.sustain.Duration()>0) );
+                          //MODebug2->Message( note_txt+ ": " + IntToStr(Note.sustain.Duration()>0) );
+                          break;
+                        case 1:
+                          pOutNote->GetData()->SetDouble( (double)Note.sustain.Duration() );
+                          //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.sustain.Duration()) );
+                          break;
+                        case 2:
+                          pOutNote->GetData()->SetDouble( (double) releaseNormal );
+                          //MODebug2->Message( note_txt+ ": " + FloatToStr(releaseNormal) );
+                          break;
+                        case 3:
+                          pOutNote->GetData()->SetDouble( (double)Note.velocity );
+                          //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.velocity) );
+                          break;
+                        default:
+                          //pOutNote->GetData()->SetDouble(0);
+                          break;
+                      }
+                      pOutNote->Update();
+                  }
+              }
+            }//en all note[ison,sus,rel,vel]
+          }///end sustain
+				}///end notes
+
 				//moText tn = "TIMEN";
 				int tbnidx = GetOutletIndex( codetbn );
         if( tbnidx>-1) {
@@ -526,12 +652,35 @@ moMidi::Update(moEventList *Events) {
             }
         }
 
+        tbnidx = GetOutletIndex( codesus );
+        if( tbnidx>-1) {
+            int dura = MidiDevPtr->SUS.Duration();
+            //MODebug2->Message( codetbn+ " founded! Udpating value:" + IntToStr(dura)  );
+            moOutlet* pOutSUS = m_Outlets[tbnidx];
+            if (pOutSUS) {
+                pOutSUS->GetData()->SetDouble( (double)dura );
+                pOutSUS->Update();
+            }
+        }
+
+        tbnidx = GetOutletIndex( coderel );
+        if( tbnidx>-1) {
+            int dura = MidiDevPtr->REL.Duration();
+            //MODebug2->Message( codetbn+ " founded! Udpating value:" + IntToStr(dura)  );
+            moOutlet* pOutREL = m_Outlets[tbnidx];
+            if (pOutREL) {
+                pOutREL->GetData()->SetDouble( (double)dura );
+                pOutREL->Update();
+            }
+        }
+
+
 				const moMidiDatas& mdatas( MidiDevPtr->GetMidiDatas() );
 				for(int md=0; md<mdatas.Count(); md++ ) {
                     const moMidiData& mdata( mdatas.Get(md) );
                     int ccode = mdata.m_CC;
                     moOutlet* pOutCCode = NULL;
-                    moText ccodetxt = "none";
+                    moText ccodetxt = "";
                     int idx = -1;
 
                     switch( mdata.m_Type ) {
@@ -681,6 +830,8 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("mididevice"), MO_PARAM_TEXT, MIDI_DEVICE, moValue( "nanoKONTROL MIDI 1", "TXT") );
 	p_configdefinition->Add( moText("midichannel"), MO_PARAM_NUMERIC, MIDI_CHANNEL, moValue( "0", "NUM"), moText("No channel,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16") );
+	p_configdefinition->Add( moText("notefadeout"), MO_PARAM_FUNCTION, MIDI_NOTEFADEOUT, moValue( "0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("notegatevelocity"), MO_PARAM_FUNCTION, MIDI_NOTEGATEVELOCITY, moValue( "0", "FUNCTION").Ref() );
 	return p_configdefinition;
 }
 

@@ -184,6 +184,7 @@ moOlaDevice::Update(moEventList *Events) {
 
 moOla::moOla() : ola_client((ola::client::StreamingClient::Options())) {
 	SetName("ola");
+  m_pPixelIndex = NULL;
 }
 
 moOla::~moOla() {
@@ -212,7 +213,7 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                     buffer.SetChannel( cha*3+2, blue );
                     if (!ola_client.SendDmx( uni, buffer ) ) {
                         //cout << "Send DMX failed" << endl;
-                        return false;
+                        return;
                     }// else cout << "Send DMX ok" << i << endl;
                     if (debug_on) {
                         cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
@@ -228,7 +229,7 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
                     buffer.SetChannel( cha*3+2, blue  );
                     if (!ola_client.SendDmx( uni, buffer ) ) {
                         //cout << "Send DMX failed" << endl;
-                        return false;
+                        return;
                     }// else cout << "Send DMX ok" << i << endl;
                     if (debug_on) {
                         cout << "Send DMX ok. Cha: " << cha << " val2:" << colorv2 << endl;
@@ -246,11 +247,45 @@ moOla::TestLeds( int ciclos, int steps, bool debug_on ) {
 
 }
 
+int nrows = 4;
+int ncols = 30;
+
+typedef moInlet* inptr;
+
 MOboolean
 moOla::Init() {
 
 	moText conf;
 	MOint i;
+
+    m_pPixelIndex = new moInlet();
+    if (m_pPixelIndex) {
+      ((moConnector*)m_pPixelIndex)->Init( moText("pixelindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+      m_Inlets.Add(m_pPixelIndex);
+    }
+
+
+    m_pPixelRow = new inptr [nrows];
+    m_pPixelCol = new inptr [ncols];
+
+    for( int nr = 0; nr < nrows ; nr++ ) {
+      m_pPixelRow[nr] = new moInlet();
+      ((moConnector*)m_pPixelRow[nr])->Init( moText("row")+IntToStr(nr), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+      m_Inlets.Add(m_pPixelRow[nr]);
+    }
+    for( int nc = 0; nc < ncols ; nc++ ) {
+      m_pPixelCol[nc] = new moInlet();
+      ((moConnector*)m_pPixelCol[nc])->Init( moText("col")+IntToStr(nc), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+      m_Inlets.Add(m_pPixelCol[nc]);
+    }
+    //m_pPixelRow[0] = new moInlet();
+    /**
+    if (m_pPixelIndex) {
+      ((moConnector*)m_pPixelIndex)->Init( moText("pixelindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+      m_Inlets.Add(m_pPixelIndex);
+    }
+    */
+
 
 	// Loading config file.
 	//levantamos el config del keyboard
@@ -435,7 +470,6 @@ moOla::Update(moEventList *Events) {
         //MODebug2->Message("Update devices");
 		moOlaDevicePtr OlaDevPtr;
 		OlaDevPtr = m_OlaDevices.Get(i);
-
 		if (OlaDevPtr!=NULL) {
 			if (OlaDevPtr->IsInit()) {
 				OlaDevPtr->Update( Events );
@@ -451,7 +485,6 @@ moOla::Update(moEventList *Events) {
     int colorv2 = 25;
 
 
-
     double red = m_Config.Eval(moR(OLA_RED));
     double green = m_Config.Eval(moR(OLA_GREEN));
     double blue = m_Config.Eval(moR(OLA_BLUE));
@@ -463,15 +496,52 @@ moOla::Update(moEventList *Events) {
     alpha = 0;
     */
 
-    for (unsigned int uni = 1; uni < 5; uni++) {
-        for (unsigned int cha = 1; cha < 170; cha++) {
+    long pindex = 0;
+    int pixelperstring = 300;
 
+    for (unsigned int uni = 1; uni < 9; uni++) {
+        for (unsigned int cha = 0; cha < 170; cha++) {
+
+          pindex++;
+          if (m_pPixelIndex) {
+            m_pPixelIndex->GetData()->SetLong(pindex);
+            m_pPixelIndex->Update(true);
+          }
+          int row = (int)  ( pindex / pixelperstring);
+          int col = (int)  ( pindex % pixelperstring);
+          if (ncols<pixelperstring) {
+            col = (int) col / ( pixelperstring / ncols ) ;
+          }
+          //MODebug2->Message( "pindex:"+IntToStr(pindex)+" row:"+IntToStr(row)+" col:"+IntToStr(col) );
+
+          int prow = GetInletIndex( moText("row")+IntToStr(row) );
+          if (prow>-1) {
+            moInlet* pinrow = m_Inlets[prow];
+            if (pinrow) {
+              pinrow->GetData()->SetDouble(1);
+              pinrow->Update(true);
+            }
+          }
+
+          int pcol = GetInletIndex( moText("col")+IntToStr(col) );
+          if (pcol>-1) {
+            moInlet* pincol = m_Inlets[pcol];
+            if (pincol) {
+              pincol->GetData()->SetDouble(1);
+              pincol->Update(true);
+            }
+          }
+
+          red = m_Config.Eval(moR(OLA_RED));
+          green = m_Config.Eval(moR(OLA_GREEN));
+          blue = m_Config.Eval(moR(OLA_BLUE));
+          alpha = m_Config.Eval(moR(OLA_ALPHA));
           buffer.SetChannel( cha*3, (int)255*red*alpha  );
           buffer.SetChannel( cha*3+1, (int)255*green*alpha  );
           buffer.SetChannel( cha*3+2, (int)255*blue*alpha );
 /**
             for ( colorv1 = 0; colorv1 < steps; colorv1++) {
-                int red = 255*colorv1/steps;
+               int red =255*colorv1/steps;
                 int green = red;
                 int blue = red;
                 buffer.SetChannel( cha*3, red  );
@@ -480,13 +550,13 @@ moOla::Update(moEventList *Events) {
                 if (!ola_client.SendDmx( uni, buffer ) ) {
                     //cout << "Send DMX failed" << endl;
                     return false;
-                }// else cout << "Send DMX ok" << i << endl;
+              }// else cout << "Send DMX ok" << i << endl;
                 if (debug_on) {
                     cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
-                }
+              }
                 usleep(3); // sleep for 25ms between frames.
             }
-            for ( colorv2 = steps-1; colorv2 > 0 ; colorv2--) {
+            for ( colorv2 = steps-1; colorv2 > 0; colorv2--) {
                 int red = 255*colorv2/steps;
                 int green = red;
                 int blue = red;
@@ -507,6 +577,23 @@ moOla::Update(moEventList *Events) {
             buffer.SetChannel( cha*3+2, 0  );
             usleep(2);
 */
+
+          if (prow>-1) {
+            moInlet* pinrow = m_Inlets[prow];
+            if (pinrow) {
+              pinrow->GetData()->SetDouble(0);
+              pinrow->Update(true);
+            }
+          }
+
+          if (pcol>-1) {
+            moInlet* pincol = m_Inlets[pcol];
+            if (pincol) {
+              pincol->GetData()->SetDouble(0);
+              pincol->Update(true);
+            }
+          }
+
         }
       if (!ola_client.SendDmx( uni, buffer ) ) {
         MODebug2->Error("Couldnt send buffer");
