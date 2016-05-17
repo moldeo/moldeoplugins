@@ -41,12 +41,23 @@
 #include "moIODeviceManager.h"
 #include "moFilterManager.h"
 
+#ifndef OSCPACK
+//#define OSCPACK 1
+#endif // OSCPACK
+
+#ifdef OSCPACK
 #include "OscOutboundPacketStream.h"
 #include "UdpSocket.h"
 
 //template class LIBMOLDEO_API moDynamicArray<UdpTransmitSocket*>;
 //typedef moDynamicArray<UdpTransmitSocket*> moUdpTransmitSocketArray;
 moDeclareDynamicArray( UdpTransmitSocket*, moUdpTransmitSocketArray )
+#else
+#include "lo/lo.h"
+#include <lo/lo_cpp.h>
+//moDeclareDynamicArray( lo::Address*, moUdpTransmitSocketArray )
+moDeclareDynamicArray( lo_address, moUdpTransmitSocketArray )
+#endif
 
 enum moNetOSCOutParamIndex {
     NETOSCOUT_INLET,
@@ -86,8 +97,13 @@ public:
     void UpdateParameters();
 
 private:
+
 	moUdpTransmitSocketArray transmitSockets;
+
+#ifdef OSCPACK
 	osc::OutboundPacketStream* packetStream;
+#endif
+
 	char* packetBuffer;
 	moEventPacketArray eventPacket;
 	int OUTPUT_BUFFER_SIZE;

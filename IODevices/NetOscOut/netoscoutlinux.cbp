@@ -30,13 +30,16 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
-			<Add directory="../../../inc" />
-			<Add directory="../../../inc/3ds" />
-			<Add directory="./inc" />
-			<Add directory="/usr/include/freetype2" />
+			<Add option="-std=c++11" />
+			<Add option="`pkg-config libmoldeo --cflags`" />
+			<Add option="`pkg-config liblo --cflags`" />
+			<Add option="-fPIC" />
 			<Add directory="/usr/include/lua5.1/" />
-			<Add directory="/usr/include/muParser/" />
 		</Compiler>
+		<Linker>
+			<Add option="`pkg-config libmoldeo --libs`" />
+			<Add option="`pkg-config liblo --libs`" />
+		</Linker>
 		<Unit filename="moNetOSCOut.cpp" />
 		<Unit filename="moNetOSCOut.h" />
 		<Extensions>

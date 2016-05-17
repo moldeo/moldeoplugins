@@ -67,7 +67,9 @@ void moNetOscOutFactory::Destroy(moIODevice* fx) {
 moNetOSCOut::moNetOSCOut()
 {
 	packetBuffer = NULL;
+#ifdef OSCPACK
 	packetStream = NULL;
+#endif
     SetName("netoscout");
 
     m_Port = 7400;
@@ -146,24 +148,21 @@ MOboolean moNetOSCOut::Init()
 
     UpdateParameters();
 
-
 	for(i = 0; i < n_hosts; i++)
 	{
+#ifdef OSCPACK
 	    unsigned long ii = GetHostByName(host_name[i]);
-
         char buffer[100];
         snprintf(buffer, 100, "%lu", ii); // Memory-safe version of sprintf.
-
         moText str = buffer;
-
 	    //MODebug2->Message( moText("moNetOscOut:: host: ") + moText(host_name[i]) + moText(" ip int:") + (moText)str );
-
-
-
 	    IpEndpointName ipendpointname( ii, host_port[i] ) ;
-
-
 		transmitSockets[i] = new UdpTransmitSocket( ipendpointname );
+#else
+    //transmitSockets[i] = new lo::Address( host_name[i], IntToStr(host_port[i]) );
+    transmitSockets[i] = lo_address_new( host_name[i], IntToStr(host_port[i]) );
+#endif
+
 		if (transmitSockets[i]) {
        // MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created") );
     }
@@ -172,11 +171,12 @@ MOboolean moNetOSCOut::Init()
 	    //eventPacket[i] = new moEventPacket(sendInterval, maxEventNum);
 	}
 
-
     //OUTPUT_BUFFER_SIZE = 1024; // 10 = maximum length of a 32 bit int in decimal rep.
     OUTPUT_BUFFER_SIZE = 60000;
     packetBuffer = new char[OUTPUT_BUFFER_SIZE];
+    #ifdef OSCPACK
     packetStream = new osc::OutboundPacketStream( packetBuffer, OUTPUT_BUFFER_SIZE );
+    #endif
 	return true;
 }
 
@@ -538,11 +538,13 @@ void moNetOSCOut::Update(moEventList *Eventos)
 
 MOboolean moNetOSCOut::Finish()
 {
+#ifdef OSCPACK
 	if (packetStream != NULL)
 	{
 		delete packetStream;
 		packetStream = NULL;
 	}
+	#endif
 	if (packetBuffer != NULL)
 	{
 		delete packetBuffer;
@@ -563,6 +565,7 @@ void moNetOSCOut::SendEvent(int i)
 	int n;
 	moEventStruct ev;
 
+#ifdef OSCPACK
 	packetStream->Clear();
     (*packetStream) << osc::BeginBundleImmediate;
 	for (n = 0; n < eventPacket[i]->GetNumEvents(); n++)
@@ -576,16 +579,19 @@ void moNetOSCOut::SendEvent(int i)
     }
     (*packetStream) << osc::EndBundle;
     transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
+#endif // OSCPACK
 }
 
 void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
+#ifdef OSCPACK
     if (packetStream==NULL) {
         cout << "moNetOSCOut::SendDataMessage > error: packetStream is NULL" << endl;
         return;
     }
+#endif
 
 	//cout << "moNetOSCOut::SendDataMessage > start" << endl;
-
+#ifdef OSCPACK
 	packetStream->Clear();
 	//cout << "moNetOSCOut::SendDataMessage > Clear() ok." << endl;
 
@@ -594,14 +600,21 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
 
     (*packetStream) << osc::BeginMessage( moText("")+ IntToStr(datamessage.Count()) );
     //cout << "moNetOSCOut::SendDataMessage > data in messages:" << datamessage.Count() << endl;
-
+#else
+lo_timetag timetag;
+lo_timetag_now(&timetag);
+lo_bundle bundle = lo_bundle_new(timetag);
+lo_message ms = lo_message_new();
+moText oscpath = "";
+#endif
     moData data;
-
+    int nfields = 0;
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
           //cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText() << endl;
           switch(data.Type()) {
+          #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:
                   (*packetStream) << data.Float();
                   break;
@@ -617,14 +630,43 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
               case MO_DATA_TEXT:
                   (*packetStream) << (char*)data.Text();
                   break;
+          #else
+              case MO_DATA_NUMBER_FLOAT:
+                  lo_message_add_float( ms , data.Float());
+                  nfields++;
+                  break;
+              case MO_DATA_NUMBER_INT:
+                  lo_message_add_int32( ms , data.Int());
+                  nfields++;
+                  break;
+              case MO_DATA_NUMBER_LONG:
+                  lo_message_add_int64( ms , data.Long());
+                  nfields++;
+                  break;
+              case MO_DATA_NUMBER_DOUBLE:
+                  lo_message_add_double( ms , data.Double());
+                  nfields++;
+                  break;
+              case MO_DATA_TEXT:
+                  if (oscpath=="") {
+                    oscpath = data.Text();
+                    lo_message_add_string( ms , (char*)data.Text());
+                    nfields++;
+                  } else {
+                    lo_message_add_string( ms , (char*)data.Text());
+                    nfields++;
+                  }
+                  break;
+
+          #endif
+
 
           }
 
           //MODebug2->Message(moText("moNetOSCOut > data size: ") +  );
       }
+#ifdef OSCPACK
     } catch(osc::Exception E) {
-      //cout << "moNetOSCOut::SendDataMessage > exception!!" << endl;
-
       MODebug2->Error( moText("moNetOSCOut > Exception: ") + E.what()
                       + " packet actual size: (" + IntToStr( (*packetStream).Size() ) + ") "
                       + " Data too long for buffer: (max OUTPUT_BUFFER_SIZE:" + IntToStr(OUTPUT_BUFFER_SIZE) + ") "
@@ -632,8 +674,7 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
                       + " (size:"+ IntToStr(data.ToText().Length())+" )"
                       + " (total size:" + IntToStr( data.ToText().Length() + (*packetStream).Size() ) + ")" );
     }
-
-    (*packetStream) << osc::EndMessage;
+  (*packetStream) << osc::EndMessage;
     //cout << "moNetOSCOut::SendDataMessage > osc::EndMessage ok" << endl;
     //cout << "osc::EndBundle: " << endl;
     //cout << osc::EndBundle << endl;
@@ -650,6 +691,30 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
         transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
 
     }
+#else
+    } catch(...) {
+    }
+
+    //char* bundlen = IntToStr(nfields);
+    lo_bundle_add_message( bundle, "moldeo", ms);
+    if (transmitSockets[i]) {
+        //MODebug2->Message(moText("moNetOSCOut > sending ") + IntToStr(i) + " size:" + IntToStr(packetStream->Size()) );
+        //transmitSockets[i]->Send( packetStream->Data(), packetStream->Size() );
+        /*
+        lo::Bundle myBundle = lo::Bundle({{"example", lo::Message("i", 1234321)},
+                       {"example", lo::Message("i", 4321234)}});
+        transmitSockets[i]->send(myBundle);
+        */
+        //lo_send( transmitSockets[i], "/moldeo","sf","consoleget",1.618f);
+        if (lo_send_bundle( transmitSockets[i], bundle )<=0) {
+          MODebug2->Error("moNetOSCOut::SendDataMessage > Couldnt send OSC bundle");
+        }
+
+    }
+#endif
+
+
+
 
     //MODebug2->Push(moText("sending"));
 
