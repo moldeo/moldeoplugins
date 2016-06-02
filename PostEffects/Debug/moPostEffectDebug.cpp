@@ -129,6 +129,7 @@ void moPostEffectDebug::Draw( moTempo* tempogral,moEffectState* parentstate)
 	TextArray.Add(fps_text);
 
 
+
 /*
     for(int g=560;g>=80 ;g-=20) {
         //glPrint(0,g,MODebug2->Pop(),0,1.0,1.0);

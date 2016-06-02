@@ -501,7 +501,7 @@ void moEffectMovie::UpdateParameters() {
 if (m_pSound) {
     if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pSound->SetVolume(m_Volume); }
     if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pSound->SetBalance(m_Balance);}
-    
+
     m_pSound->SetVolume(m_Volume);
     m_pSound->SetBalance(m_Balance);
 }
@@ -605,13 +605,13 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 
   SetColor( m_Config[moR(MOVIE_COLOR)], m_Config[moR(MOVIE_ALPHA)], m_EffectState );
   SetBlending( (moBlendingModes) m_Config.Int( moR(MOVIE_BLENDING) ) );
-	
+
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, FrameGLid );
 
 #ifndef OPENGLESV2
   //RENDER->Render( &Mesh, &Camera3D );
-  
+
 	glBegin(GL_QUADS);
 		glTexCoord2f( PosTextX0, PosTextY1);
 		glVertex2f ( PosCuadX0, PosCuadY0);
@@ -625,7 +625,7 @@ void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
 		glTexCoord2f( PosTextX0, PosTextY0);
 		glVertex2f ( PosCuadX0, PosCuadY1);
 	glEnd();
-	
+
 #else
   RENDER->Render( &Mesh, &Camera3D );
 #endif
@@ -677,19 +677,19 @@ MOuint moEffectMovie::MovieGLId() {
 
             ///stop current
               if (m_pMovie->IsEOS()) {
-                MODebug2->Push( "Reached End");
-                MODebug2->Push( "Reached EOS!! > STOPPING stream (NULL), must reload...");
+                MODebug2->Message( "Reached End");
+                MODebug2->Message( "Reached EOS!! > STOPPING stream (NULL), must reload...");
                 //m_pMovie->Stop();
 
               } else if (!m_pMovie->IsPaused()) {
-                MODebug2->Push( "Reached End");
-                MODebug2->Push( "Pausing. Virtual Stop!");
+                MODebug2->Message( "Reached End at " + IntToStr(m_FramePosition));
+                MODebug2->Message( "Pausing. Virtual Stop at " + IntToStr(m_FramePosition) );
                 m_pMovie->Pause();
                 //m_pMovie->Seek( 0 );
               }
 
               if (m_bLoop) {
-                    MODebug2->Push( "Looping video.");
+                    MODebug2->Message( "Looping video.");
                     if (m_pMovie->IsPaused()) {
                       m_pMovie->Seek(0);
                     }
@@ -808,8 +808,32 @@ moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {
 	pInfo.Add( moText(" "));
 
 	*/
+	moText moviestate = "";
+	if (m_pMovie) {
+    switch (m_pMovie->State()) {
+      case MO_STREAMSTATE_PAUSED:
+        moviestate = "paused";
+        break;
+      case MO_STREAMSTATE_PLAYING:
+        moviestate = "playing";
+        break;
+      case MO_STREAMSTATE_STOPPED:
+        moviestate = "stopped";
+        break;
+      case MO_STREAMSTATE_READY:
+        moviestate = "ready";
+        break;
+      case MO_STREAMSTATE_UNKNOWN:
+      default:
+        moviestate = "none";
+        break;
+    }
+}
+
 	pInfo.Add( moText("Frame:") + IntToStr( m_FramePosition ) + moText("/") + IntToStr( m_FramesLength )
-           + moText(" FPS:") + FloatToStr( m_FramesPerSecond ));
+           + moText(" FPS:") + FloatToStr( m_FramesPerSecond )
+           + moText(" State:") + moviestate);
+
   pInfo.Add( moVideoManager::FramesToTimecode( (MOulonglong)m_FramePosition, m_FramesPerSecond )
                     + moText("/")
                     + moVideoManager::FramesToTimecode( (MOulonglong)m_FramesLength, m_FramesPerSecond ) );
