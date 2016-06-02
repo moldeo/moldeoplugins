@@ -82,6 +82,7 @@ using std::endl;
 enum moOlaParamIndex {
 
   OLA_DEVICE,
+  OLA_TEXTURE,
   OLA_RED,
   OLA_GREEN,
   OLA_BLUE,
@@ -221,6 +222,9 @@ private:
     ola::client::StreamingClient ola_client;
     ola::DmxBuffer buffer; // A DmxBuffer to hold the data.
     moInlet* m_pPixelIndex;
+    moInlet* m_pPixelIndexX;
+    moInlet* m_pPixelIndexY;
+
     moInlet** m_pPixelRow;
     moInlet** m_pPixelCol;
     moEventList *events;
@@ -230,6 +234,9 @@ protected:
 	MOint	oladevices;
    	moOlaDevicePtrs		m_OlaDevices;
 	moOlaDataCodes			m_Codes;
+	moTexture* m_pOlaTexture;
+	unsigned char* m_pData;
+
 
 };
 

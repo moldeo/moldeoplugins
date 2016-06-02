@@ -185,6 +185,11 @@ moOlaDevice::Update(moEventList *Events) {
 moOla::moOla() : ola_client((ola::client::StreamingClient::Options())) {
 	SetName("ola");
   m_pPixelIndex = NULL;
+  m_pPixelIndexX = NULL;
+  m_pPixelIndexY = NULL;
+  m_pData = NULL;
+  m_pOlaTexture = NULL;
+
 }
 
 moOla::~moOla() {
@@ -258,12 +263,38 @@ moOla::Init() {
 	moText conf;
 	MOint i;
 
+    int Mid = -1;
+    moTexParam tparam = MODefTex2DParams;
+    tparam.internal_format = GL_RGB;
+
+
+    /** OLA texture*/
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "OLA"+GetLabelName(), 300, 4, tparam );
+    if (Mid>-1) {
+      m_pOlaTexture = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
+      m_pData = new unsigned char [ 300 * 4 * 3 ];///w:300 h:4 rgb:3
+      for(int a=0;a<(300*4*3);a++) {
+        m_pData[a] = 127;
+      }
+    }
+
     m_pPixelIndex = new moInlet();
     if (m_pPixelIndex) {
       ((moConnector*)m_pPixelIndex)->Init( moText("pixelindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
       m_Inlets.Add(m_pPixelIndex);
     }
 
+    m_pPixelIndexX = new moInlet();
+    if (m_pPixelIndexX) {
+      ((moConnector*)m_pPixelIndexX)->Init( moText("x"), m_Inlets.Count(), MO_DATA_NUMBER_FLOAT );
+      m_Inlets.Add(m_pPixelIndexX);
+    }
+
+    m_pPixelIndexY = new moInlet();
+    if (m_pPixelIndexY) {
+      ((moConnector*)m_pPixelIndexY)->Init( moText("y"), m_Inlets.Count(), MO_DATA_NUMBER_FLOAT );
+      m_Inlets.Add(m_pPixelIndexY);
+    }
 
     m_pPixelRow = new inptr [nrows];
     m_pPixelCol = new inptr [ncols];
@@ -294,10 +325,12 @@ moOla::Init() {
   } else return false;
 
 	moDefineParamIndex( OLA_DEVICE, moText("oladevice") );
+	moDefineParamIndex( OLA_TEXTURE, moText("texture") );
 	moDefineParamIndex( OLA_RED, moText("red") );
 	moDefineParamIndex( OLA_GREEN, moText("green") );
 	moDefineParamIndex( OLA_BLUE, moText("blue") );
 	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
+	moDefineParamIndex( OLA_STARTUNIVERSE, moText("startuniverse") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -489,22 +522,31 @@ moOla::Update(moEventList *Events) {
     double green = m_Config.Eval(moR(OLA_GREEN));
     double blue = m_Config.Eval(moR(OLA_BLUE));
     double alpha = m_Config.Eval(moR(OLA_ALPHA));
+    //int startuniverse = min( 1, max( 1, m_Config.Int(moR(OLA_STARTUNIVERSE)) ) );
+    int startuniverse = m_Config.Int(moR(OLA_STARTUNIVERSE));
     /**
     red = 0;
     green = 0;
     blue = 0;
     alpha = 0;
-    */
+*/
+    //MODebug2->Message("moOla::Update >" +GetLabelName()+ " StartUniverse:"+IntToStr(startuniverse) );
 
     long pindex = 0;
+    long pindexrgb = 0;
     int pixelperstring = 300;
 
-    for (unsigned int uni = 1; uni < 9; uni++) {
+    /// 170 = floor( 512 / 3 )
+    /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512 wont match: 511 is last possible channel...
+
+
+    for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
         for (unsigned int cha = 0; cha < 170; cha++) {
 
           pindex++;
+          pindexrgb++;
           if (m_pPixelIndex) {
-            m_pPixelIndex->GetData()->SetLong(pindex);
+            m_pPixelIndex->GetData()->SetLong(pindexrgb);
             m_pPixelIndex->Update(true);
           }
           int row = (int)  ( pindex / pixelperstring);
@@ -512,7 +554,20 @@ moOla::Update(moEventList *Events) {
           if (ncols<pixelperstring) {
             col = (int) col / ( pixelperstring / ncols ) ;
           }
+
+          int x = (int) ( pindexrgb % pixelperstring );
+          int y = (int) ( pindexrgb / pixelperstring );
           //MODebug2->Message( "pindex:"+IntToStr(pindex)+" row:"+IntToStr(row)+" col:"+IntToStr(col) );
+
+          if (m_pPixelIndexX) {
+            m_pPixelIndexX->GetData()->SetDouble(x);
+            m_pPixelIndexX->Update(true);
+          }
+
+          if (m_pPixelIndexY) {
+            m_pPixelIndexY->GetData()->SetDouble(y);
+            m_pPixelIndexY->Update(true);
+          }
 
           int prow = GetInletIndex( moText("row")+IntToStr(row) );
           if (prow>-1) {
@@ -536,9 +591,21 @@ moOla::Update(moEventList *Events) {
           green = m_Config.Eval(moR(OLA_GREEN));
           blue = m_Config.Eval(moR(OLA_BLUE));
           alpha = m_Config.Eval(moR(OLA_ALPHA));
-          buffer.SetChannel( cha*3, (int)255*red*alpha  );
-          buffer.SetChannel( cha*3+1, (int)255*green*alpha  );
-          buffer.SetChannel( cha*3+2, (int)255*blue*alpha );
+
+
+          unsigned char ired = 255*red*alpha;
+          unsigned char igreen = 255*green*alpha;
+          unsigned char iblue = 255*blue*alpha;
+          buffer.SetChannel( cha*3, (unsigned char) ired );
+          buffer.SetChannel( cha*3+1, (unsigned char) igreen );
+          buffer.SetChannel( cha*3+2, (unsigned char) iblue );
+
+          if (m_pData && 0<=x && x<pixelperstring && 0<=y && y<4) {
+            m_pData[ (y*pixelperstring+x)*3+2 ] = iblue;
+            m_pData[ (y*pixelperstring+x)*3+1 ] = igreen;
+            m_pData[ (y*pixelperstring+x)*3 ] = ired;
+          }
+
 /**
             for ( colorv1 = 0; colorv1 < steps; colorv1++) {
                int red =255*colorv1/steps;
@@ -596,12 +663,14 @@ moOla::Update(moEventList *Events) {
 
         }
       if (!ola_client.SendDmx( uni, buffer ) ) {
-        MODebug2->Error("Couldnt send buffer");
+        //MODebug2->Error("Couldnt send buffer");
       }
     }
 
 
-
+    if (m_pOlaTexture && m_pData) {
+        m_pOlaTexture->BuildFromBuffer( 300, 4, m_pData, GL_RGB, GL_UNSIGNED_BYTE );
+    }
 
 	//m_Codes
 /*
@@ -643,6 +712,7 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
 
 	p_configdefinition->Add( moText("oladevice"), MO_PARAM_TEXT, OLA_DEVICE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, OLA_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("red"), MO_PARAM_FUNCTION, OLA_RED, moValue("0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("green"), MO_PARAM_FUNCTION, OLA_GREEN, moValue("0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("blue"), MO_PARAM_FUNCTION, OLA_BLUE, moValue("0.0","FUNCTION").Ref() );
