@@ -613,7 +613,7 @@ moText oscpath = "";
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
-          cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText() << endl;
+          cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText().Length() << endl;
           switch(data.Type()) {
           #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:
@@ -715,11 +715,11 @@ moText oscpath = "";
                        {"example", lo::Message("i", 4321234)}});
         transmitSockets[i]->send(myBundle);
         *//*
-        
+
         int rres = lo_send( transmitSockets[i], "/moldeo","sf","consoleget",1.618f);
         lo_send( transmitSockets[i], "/moldeo", "f", 3.1415f );
-        
-        
+
+
         moText pruebatexto = "";
         for(int t=0; t<3000; t++ ) {
             lo_message ms2 = lo_message_new();
@@ -730,7 +730,7 @@ moText oscpath = "";
             rres = lo_send_message( transmitSockets[i], "/moldeo", ms2 );
             if (rres<0) break;
         }*/
-        
+
         //err = lo_message_add_string( ms2 , data.ToText() );
         int datalen = lo_bundle_length(bundle);
         //MODebug2->Message( IntToStr(pruebatexto.Length()) );
