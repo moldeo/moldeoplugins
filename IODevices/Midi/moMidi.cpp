@@ -232,7 +232,12 @@ moMidiDevice::Init( moText devicetext ) {
       if (pinfo->name) {
             if ( moText(pinfo->name)==devicetext && pinfo->input==1) {
                 m_DeviceId = (int) pid;
-                Pm_OpenInput(&stream, pid, NULL, 128, NULL, NULL);
+                try {
+                  Pm_OpenInput(&stream, pid, NULL, 128, NULL, NULL);
+
+                } catch(...) {
+                  MODebug2->Error("moMidi::Init(devicetext="+devicetext+") > Pm_OpenInput(pid="+IntToStr(pid)+")");
+                }
                 m_bInit =  true;
                 return m_bInit;
             }
@@ -242,14 +247,15 @@ moMidiDevice::Init( moText devicetext ) {
         try {
             pinfo = Pm_GetDeviceInfo(pid);
         } catch(...) {
-
+            MODebug2->Error("moMidi::Init(devicetext="+devicetext+") > Pm_GetDeviceInfo(pid="+IntToStr(pid)+")");
         }
 
         //pid++;
         //pinfo = *Pm_GetDeviceInfo(pid);
     }
 
-
+    if (m_DeviceId>0)
+      MODebug2->Message("moMidi::Init(devicetext="+devicetext+") > OK.");
 
 		return m_bInit;
 }
@@ -411,6 +417,7 @@ moMidi::Init() {
 
 	mididevices = m_Config.GetParamIndex("mididevice");
 	midichannels = m_Config.GetParamIndex("midichannel");
+	//debugison = m_Config.GetParamIndex("debug");
 
 
 	MOint nvalues = m_Config.GetValuesCount( mididevices );
@@ -597,11 +604,12 @@ moMidi::Update(moEventList *Events) {
             if (releaseNormal<=0.0)  { releaseNormal = 0.0; MidiDevPtr->m_Notes[iN].release.Stop(); }
             if (releaseNormal>=1.0) releaseNormal = 1.0;
 
-            MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
+            /*if (debugison)
+              MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
                                             + " [SUS] " + IntToStr(Note.sustain.Duration())
                                             + " [REL] " + FloatToStr(releaseNormal)
                                             + " [VEL] " + FloatToStr(Note.velocity) );
-
+              */
             for( int outi=0; outi<4; outi++) {
               moText postext = (char*)outs[outi];
               moText note_txt = base_note_txt + postext;

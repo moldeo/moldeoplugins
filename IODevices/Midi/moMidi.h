@@ -258,7 +258,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
 	char channel;
-	PmEvent buffer[4000];
+	PmEvent buffer[40000];
 	/*
 	#endif
 	*/
@@ -336,6 +336,7 @@ protected:
     MOint	mididevices;
     MOint midichannels;
     MOint midifadeout;
+    bool debugison;
 
     moMidiDataCodes m_Codes;
 
