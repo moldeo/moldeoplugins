@@ -1289,8 +1289,9 @@ moOpenCV::BodyDetection() {
       m_pDataMessage->Add(pData);
   }
 
-
-  cv::imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  #ifndef WIN32
+  imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  #endif
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
 
   m_bReInit = false;
@@ -1456,7 +1457,9 @@ moOpenCV::FaceDetection() {
     m_FaceSizeHeight->Update(true);
   }
 
-  cv::imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  #ifndef WIN32
+  imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  #endif // WIN32
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
 
     if (m_pDataMessage) {

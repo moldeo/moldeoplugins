@@ -53,10 +53,11 @@
 			<Add directory="$(externlibs)/portmidi/include" />
 		</Compiler>
 		<Linker>
+			<Add library="portmidi_s" />
 			<Add library="liblua" />
 			<Add library="setupapi" />
-			<Add library="libwinmm" />
-			<Add library="portmidi_s" />
+			<Add library="winmm" />
+			<Add library="user32" />
 			<Add directory="../../../lib/win" />
 			<Add directory="$(externlibs)/lua/lib" />
 			<Add directory="$(externlibs)/cg/lib" />
