@@ -402,7 +402,7 @@ void moOpenCV::UpdateParameters() {
   m_blob_max_area = m_Config.Eval( moR(OPENCV_BLOB_MAX_AREA));
   m_blob_min_distance = m_Config.Eval( moR(OPENCV_BLOB_MIN_DISTANCE));
 
-  m_trainingImagesPath = m_Config.Text( moR(OPENCV_TRAINING_IMAGES_FOLDER) );
+  m_trainingImagesPath = m_pResourceManager->GetDataMan()->GetDataPath() + moSlash+m_Config.Text( moR(OPENCV_TRAINING_IMAGES_FOLDER) );
   m_savingImagesPath = m_Config.Text( moR(OPENCV_SAVING_IMAGES_FOLDER) );
   m_savingImagesMode = m_Config.Int( moR(OPENCV_SAVING_IMAGES_MODE) );
   m_savingImagesTime = m_Config.Eval( moR(OPENCV_SAVING_IMAGES_TIME) );
