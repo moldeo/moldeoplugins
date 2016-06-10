@@ -88,6 +88,8 @@ enum moMidiParamIndex {
   MIDI_CHANNEL,
   MIDI_NOTEFADEOUT,
   MIDI_NOTEGATEVELOCITY,
+  MIDI_DEBUG,
+  MIDI_REINIT,
   MIDI_CODES
 
 };
@@ -231,6 +233,8 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 
 		MOboolean		Init();
 		MOboolean		Init( moText devicetext );
+		bool        Reinit();
+
 		MOboolean		Finish();
 
 		MOboolean			IsInit() {
@@ -258,7 +262,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 	*/
 	PortMidiStream *stream; /* A PortMidiStream pointer */
 	char channel;
-	PmEvent buffer[40000];
+	PmEvent buffer[60000];
 	/*
 	#endif
 	*/
@@ -309,6 +313,9 @@ public:
 
     void Update(moEventList*);
     MOboolean Init();
+    bool InitDevices();
+    bool ReinitDevice();
+
     MOswitch GetStatus(MOdevcode);
     MOswitch SetStatus( MOdevcode,MOswitch);
 	void SetValue( MOdevcode cd, MOint vl );
@@ -328,6 +335,8 @@ private:
     moConfig config;
     double m_vMidiFadeout;
     double m_vGateVelocity;
+    bool m_debugison;
+    bool m_reinit;
 
     moEventList *events;
 
@@ -336,7 +345,6 @@ protected:
     MOint	mididevices;
     MOint midichannels;
     MOint midifadeout;
-    bool debugison;
 
     moMidiDataCodes m_Codes;
 

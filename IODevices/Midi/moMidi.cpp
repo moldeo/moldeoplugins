@@ -97,6 +97,7 @@ moMidiDevice::moMidiDevice() {
 	m_bInit = false;
 	m_bActive = false;
 	m_Notes.Init( 127, moMidiNote() );
+	stream = NULL;
 }
 
 
@@ -111,109 +112,39 @@ void moMidiDevice::PrintMidiInErrorMsg(unsigned long err)
 
 MOboolean
 moMidiDevice::Init() {
+  stream = NULL;
 	return true;
 }
 
 MOboolean
 moMidiDevice::Finish() {
+  if (stream) {
+    Pm_Close(stream);
+    stream = NULL;
+  }
 	return true;
+}
+
+bool
+moMidiDevice::Reinit() {
+  Finish();
+  return Init(m_Name);
 }
 
 MOboolean
 moMidiDevice::Init( moText devicetext ) {
 
 	SetName(devicetext);
-    m_bInit = false;
+  m_bInit = false;
 
 #ifdef WIN32
 
-/**
-	MIDIINCAPS     moc;
-	unsigned long   iNumDevs, i;
-
-	iNumDevs = midiInGetNumDevs();
-
-	if (iNumDevs==0) {
-	    MODebug2->Message( moText("ERROR! NO MIDI DEVICES FOUND"));
-    }
-
-	// Go through all of those devices, displaying their names
-	for (i = 0; i < iNumDevs; i++)
-	{
-		// Get info about the next device
-		if (!midiInGetDevCaps(i, &moc, sizeof(MIDIINCAPS)))
-		{
-
-            //CString mycstring(moc.szPname);
-            //char* nam = mycstringa.GetBuffer( mycstring.GetLength());
-			// Display its Device ID and name
-
-			char* nam = "xxsss";
-			MODebug2->Message( moText("Device ID #")
-                     + IntToStr(i) + moText(":")
-                     + moText(nam) );
-            #ifdef UNICODE
-                std::wstring wc( 1024, L'#' );
-                mbstowcs( &wc[0], devicetext, 1024 );
-                if ( !m_stricmp( moc.szPname, (wchar_t*)wc.c_str() ) ) {
-                    m_DeviceId = i;
-                    break;
-                }
-            #else
-                if ( !m_stricmp( moc.szPname, devicetext) ) {
-                    m_DeviceId = i;
-                    break;
-                }
-            #endif
-		}
-	}
-
-
-	HMIDIIN			handle;
-	MIDIHDR			midiHdr;
-	unsigned long	err;
-
-	if (m_DeviceId!=-1) {
-		if (!(err = midiInOpen(&handle, m_DeviceId, (DWORD)midiCallback, (DWORD)this, CALLBACK_FUNCTION)))
-		{
-			// Store pointer to our input buffer for System Exclusive messages in MIDIHDR
-			midiHdr.lpData = (LPSTR)&SysXBuffer[0];
-
-			// Store its size in the MIDIHDR
-			midiHdr.dwBufferLength = sizeof(SysXBuffer);
-
-			// Flags must be set to 0
-			midiHdr.dwFlags = 0;
-
-			// Prepare the buffer and MIDIHDR
-			err = midiInPrepareHeader(handle, &midiHdr, sizeof(MIDIHDR));
-			if (!err)
-			{
-				// Queue MIDI input buffer
-				err = midiInAddBuffer(handle, &midiHdr, sizeof(MIDIHDR));
-				if (!err)
-				{
-					// Start recording Midi
-					err = midiInStart(handle);
-					m_bInit = true;
-					return true;
-
-				}
-			}
-
-		}
-		else
-		{
-			printf("Error opening the default MIDI In Device!\r\n");
-			PrintMidiInErrorMsg(err);
-			return false;
-		}
-	}
-*/
 #else
 
 #endif
-    stream = NULL;
+    if (stream) {
+      Pm_Close(stream);
+    }
     PmDeviceID pid = (int)Pm_GetDefaultInputDeviceID();
     const PmDeviceInfo *pinfo;
     pinfo = Pm_GetDeviceInfo(pid);
@@ -289,9 +220,10 @@ moMidiDevice::Update(moEventList *Events ) {
 	moMidiData	mididata;
 
 	//m_lock.Lock();
+	try {
 	m_MidiDatas.Empty();
     if (this->channel>0) Pm_SetChannelMask( this->stream, Pm_Channel(this->channel-1) );
-    int c = Pm_Read( this->stream, &buffer[0], 10 );
+    int c = Pm_Read( this->stream, &buffer[0], 100 );
     if (c>0) {
 
         for(int cc=0; cc<c;cc++) {
@@ -373,6 +305,10 @@ moMidiDevice::Update(moEventList *Events ) {
 		Events->Add( MO_IODEVICE_MIDI, (MOint)(mididata.m_Type), mididata.m_Channel, mididata.m_CC, mididata.m_Val );
 
 	}
+
+	} catch(...) {
+    MODebug2->Error("Read error");
+	}
 	//m_MidiDatas.Empty();
 
 
@@ -414,44 +350,15 @@ moMidi::Init() {
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
   moDefineParamIndex( MIDI_CHANNEL, moText("midichannel") );
   moDefineParamIndex( MIDI_NOTEFADEOUT, moText("notefadeout"));
+  moDefineParamIndex( MIDI_DEBUG, moText("debug"));
+  moDefineParamIndex( MIDI_REINIT, moText("reinit"));
 
 	mididevices = m_Config.GetParamIndex("mididevice");
 	midichannels = m_Config.GetParamIndex("midichannel");
 	//debugison = m_Config.GetParamIndex("debug");
 
 
-	MOint nvalues = m_Config.GetValuesCount( mididevices );
-	m_Config.SetCurrentParamIndex( mididevices );
-
-	/*
-        MO_MIDI_SYTEM_LABELNAME	0
-        MO_MIDI_SYSTEM_ON 1
-	*/
-	for( int i = 0; i < nvalues; i++) {
-
-		m_Config.SetCurrentValueIndex( mididevices, i );
-
-		moMidiDevicePtr pDevice = NULL;
-		pDevice = new moMidiDevice();
-
-		if (pDevice!=NULL) {
-			pDevice->MODebug = MODebug;
-			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
-			if ( pDevice->Init( MidiDeviceCode ) ) {
-				pDevice->SetActive( m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int() );
-				int MidiDeviceChannel = m_Config.Int( moR(MIDI_CHANNEL) );
-				pDevice->channel = MidiDeviceChannel;
-				if (pDevice->IsActive()) {
-                    MODebug2->Message( moText("Midi Device is ACTIVE!"));
-				}
-			} else {
-				MODebug2->Error( moText("Midi Device not found: ") + (moText)MidiDeviceCode );
-			}
-		}
-
-		m_MidiDevices.Add( pDevice );
-
-	}
+	InitDevices();
 
 
 
@@ -481,6 +388,74 @@ moMidi::Init() {
 		m_Config.NextValue();
 	}
 	return true;
+}
+
+bool
+moMidi::InitDevices() {
+
+try {
+  MOint nvalues = m_Config.GetValuesCount( mididevices );
+	m_Config.SetCurrentParamIndex( mididevices );
+
+/*
+	for( int c=0; c < m_MidiDevices.Count(); c++ ) {
+
+    moMidiDevicePtr pDevice = m_MidiDevices[c];
+    if (pDevice) {
+      pDevice->Finish();
+      delete pDevice;
+    }
+
+	}
+
+	m_MidiDevices.Empty();
+*/
+	/*
+        MO_MIDI_SYTEM_LABELNAME	0
+        MO_MIDI_SYSTEM_ON 1
+	*/
+	for( int i = 0; i < nvalues; i++) {
+
+		m_Config.SetCurrentValueIndex( mididevices, i );
+
+		moMidiDevicePtr pDevice = NULL;
+		pDevice = new moMidiDevice();
+
+		if (pDevice!=NULL) {
+			pDevice->MODebug = MODebug;
+			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
+			if ( pDevice->Init( MidiDeviceCode ) ) {
+				pDevice->SetActive( m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int() );
+				int MidiDeviceChannel = m_Config.Int( moR(MIDI_CHANNEL) );
+				pDevice->channel = MidiDeviceChannel;
+				if (pDevice->IsActive()) {
+                    MODebug2->Message( moText("Midi Device ===================") + MidiDeviceCode + moText("========> is ACTIVE !"));
+				}
+			} else {
+				MODebug2->Error( moText("Midi Device not found: ") + (moText)MidiDeviceCode );
+			}
+		}
+
+		m_MidiDevices.Add( pDevice );
+
+	}
+}
+catch(...) {
+  MODebug2->Error("InitDevices");
+}
+
+}
+
+bool
+moMidi::ReinitDevice() {
+  for( int c=0; c < m_MidiDevices.Count(); c++ ) {
+
+    moMidiDevicePtr pDevice = m_MidiDevices[c];
+    if (pDevice) {
+      pDevice->Reinit();
+    }
+
+	}
 }
 
 
@@ -544,6 +519,15 @@ void moMidi::UpdateParameters() {
 
   m_vMidiFadeout = m_Config.Eval( moR(MIDI_NOTEFADEOUT) );
   m_vGateVelocity = m_Config.Eval( moR(MIDI_NOTEGATEVELOCITY) );
+
+  bool reinit = m_Config.Eval( moR(MIDI_REINIT) );
+  //reinitialize
+  if ( m_reinit != reinit && reinit==true) {
+    ReinitDevice();
+    m_reinit = reinit;
+  } else m_reinit = reinit;
+
+  m_debugison = m_Config.Eval( moR(MIDI_DEBUG) );
 
 }
 
@@ -840,6 +824,8 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("midichannel"), MO_PARAM_NUMERIC, MIDI_CHANNEL, moValue( "0", "NUM"), moText("No channel,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16") );
 	p_configdefinition->Add( moText("notefadeout"), MO_PARAM_FUNCTION, MIDI_NOTEFADEOUT, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("notegatevelocity"), MO_PARAM_FUNCTION, MIDI_NOTEGATEVELOCITY, moValue( "0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, MIDI_DEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
+	p_configdefinition->Add( moText("reinit"), MO_PARAM_NUMERIC, MIDI_REINIT, moValue( "0", "NUM").Ref(), moText("NO,YES") );
 	return p_configdefinition;
 }
 

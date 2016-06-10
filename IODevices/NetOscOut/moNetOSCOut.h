@@ -75,7 +75,7 @@ enum moNetOSCOutParamIndex {
 
 
 // moNetOSCOut class **************************************************
-bool debug_is_on = false;
+
 
 class moNetOSCOut : public moIODevice
 {
@@ -95,6 +95,7 @@ public:
 
     void UpdateParameters();
 
+    bool debug_is_on;
 private:
 
 	moUdpTransmitSocketArray transmitSockets;

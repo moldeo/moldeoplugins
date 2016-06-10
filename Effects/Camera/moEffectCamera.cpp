@@ -296,7 +296,7 @@ moEffectCamera::InitDevice( moText camera ) {
     m_DeviceName = camera;
 
     /** now check if we can get the Camera... */
-    m_pCamera = VMan->GetCameraByName( m_DeviceName, (bool)true /*LOAD!*/, m_CaptureDevice );
+    m_pCamera = VMan->GetCameraByName( m_DeviceName, (bool)true /*CREATE!!!*/, m_CaptureDevice );
     if (m_pCamera) {
       m_pCameraTexture = m_pCamera->GetTexture();
       m_pCameraGraph = m_pCamera->GetVideoGraph();
@@ -348,7 +348,7 @@ m_CaptureDevice = CD;
       m_CaptureDevice.GetSourceHeight()!=CD.GetSourceHeight()
       ) {
     //RELOAD CAMERA
-    MODebug2->Message("moEffectCamera::UpdateCamera > Reload Camera with with custom settings" );
+    MODebug2->Message("moEffectCamera::UpdateCamera > Reload Camera with custom settings" );
     m_CaptureDevice = CD;
     m_DeviceName = "";
   }

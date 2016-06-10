@@ -1664,6 +1664,9 @@ if (m_pSrcTexture==NULL) {
    Size(30, 30) /**min rect check size, the minimum!*/
    );
 
+
+  bool facerecognized = false;
+  moText facelabel = "";
   float FaceLeft = 0,FaceTop = 0;
   float FaceWidth  = 0,FaceHeight = 0;
 
@@ -1779,7 +1782,9 @@ if (m_pSrcTexture==NULL) {
           moText namep = (char*) names[predictedLabel].c_str();
           MODebug2->Message( moText("Recognized!! predictedLabel:") + IntToStr(predictedLabel)
                             + moText("=>")+namep );
-          putText( frame, (char*)namep, Point( faces[ic].x, faces[ic].y ), FONT_HERSHEY_SIMPLEX, 1.0, Scalar( 255, 0, 0 ) );
+          facerecognized = true;
+          facelabel = namep;
+          putText( frame, (char*)namep, Point( faces[ic].x, faces[ic].y ), FONT_HERSHEY_SIMPLEX, 0.5, Scalar( 255, 0, 0 ) );
         }
 
       }
@@ -1848,7 +1853,7 @@ if (m_pSrcTexture==NULL) {
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
   #ifndef WIN32
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
-  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs.jpg"  );
+  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
     if (m_pDataMessage) {
@@ -1887,6 +1892,20 @@ if (m_pSrcTexture==NULL) {
 
         pData.SetFloat( FaceHeight );
         m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_RECOGNITION") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetInt( facerecognized );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_RECOGNIZED") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( facelabel );
+        m_pDataMessage->Add(pData);
+
+
         /*
         moText ccc = "";
         for( int c=0; c<m_pDataMessage->Count(); c++) {

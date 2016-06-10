@@ -75,6 +75,7 @@ moNetOSCOut::moNetOSCOut()
     m_Port = 7400;
     m_SendEvents = 0;
     sendInterval = 100;
+    debug_is_on = false;
 
 }
 
@@ -326,7 +327,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     //res = eventPacket[i]->AddEvent(actual);
                     //if (eventPacket[i]->ReadyToSend())
                     {
-                        if (debug_is_on) MODebug2->Push( moText("sending I:") + (moText)IntToStr( i ) );
+                        if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update > SendDataMessage to host: I:") + (moText)IntToStr( i )+host_name[i] );
                         SendDataMessage( i, *MoldeoAPIMessage );
                         //eventPacket[i]->ClearPacket();
                         //if (!res) eventPacket[i]->AddEvent(actual);
@@ -613,7 +614,7 @@ moText oscpath = "";
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
-          cout << "moNetOSCOut::SendDataMessage > data:" << j << " totext:" << data.ToText().Length() << endl;
+          if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::SendDataMessage > data:") + IntToStr(j) );
           switch(data.Type()) {
           #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:
