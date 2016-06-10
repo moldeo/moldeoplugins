@@ -1616,11 +1616,10 @@ if (m_pSrcTexture==NULL) {
           images.push_back(imread(filepath, 0));
           labels.push_back(f);
           names.push_back(trainname);
-
         }
       }
       m_pFaceRecognizer = createEigenFaceRecognizer();
-      if (m_pFaceRecognizer)
+      if (m_pFaceRecognizer && images.size()>0)
         m_pFaceRecognizer->train(images, labels);
       //int predictedLabel = model->predict(testSample);
 
@@ -1762,7 +1761,7 @@ if (m_pSrcTexture==NULL) {
           }
       }
 
-      if (m_pFaceRecognizer) {
+      if (m_pFaceRecognizer && images.size()>0) {
 
         /*
         if(m_keepAspectRatio)
@@ -1853,6 +1852,8 @@ if (m_pSrcTexture==NULL) {
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
   #ifndef WIN32
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
+  if (!moFileManager::DirectoryExists("/tmp/dstblobs"))
+    moFileManager::CreateDirectory(moDirectory("/tmp/dstblobs"));
   m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
