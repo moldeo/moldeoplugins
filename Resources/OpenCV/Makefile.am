@@ -12,6 +12,11 @@ modulesdir = ${exec_prefix}/lib/moldeo
 libdir = ${modulesdir}/${moduletype}
 docdir = ${prefix}/share/doc/moldeo
 
+haarcascadesdir = ${datadir}/haarcascades
+hogcascadesdir = ${datadir}/hogcascades
+lbpcascadesdir = ${datadir}/lbpcascades
+vec_filesdir = ${datadir}/vec_files
+
 AM_CPPFLAGS = ${DFLAGS} ${HOSTCFLAGS} $(all_includes) -DDATADIR=\"$(datadir)\" -DMODULESDIR=\"$(modulesdir)\" -I/usr/include/opencv2
 AM_CXXFLAGS = ${AM_CPPFLAGS}
 AM_LDFLAGS = -ldl ${HOSTLDFLAGS}
@@ -25,5 +30,10 @@ libmoldeo_opencv_la_LIBS = ${LIBMOLDEO_LIBS}
 
 libmoldeo_opencv_includedir = $(includedir)/moldeo/${moduletype}/opencv
 libmoldeo_opencv_include_HEADERS = moOpenCV.h
+
+dist_haarcascades_DATA = ./haarcascades/*.*
+dist_hogcascades_DATA = ./hogcascades/*.*
+dist_lbpcascades_DATA = ./lbpcascades/*.*
+dist_vec_files_DATA = ./vec_files/*.*
 
 METASOURCES = AUTO

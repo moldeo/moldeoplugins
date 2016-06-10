@@ -39,12 +39,17 @@
 
 #define HAVE_OPENGL 0
 
+#include "moFileManager.h"
+
 #include "cv.h"
 //#include "highgui/highgui.hpp"
 
 #define OPENCV2
 
 #ifdef OPENCV2
+
+    #include "opencv2/legacy/legacy.hpp"
+
     #ifdef WIN32
         #include "opencv2/features2d/features2d.hpp"
         #include "opencv2/objdetect/objdetect.hpp"
@@ -118,7 +123,22 @@ enum moOpenCVParamIndex {
     OPENCV_BLOB_MIN_AREA,
     OPENCV_BLOB_MAX_AREA,
     OPENCV_BLOB_MIN_DISTANCE,
+    OPENCV_TRAINING_IMAGES_FOLDER,
+
+    /** SAVING IMAGES (FACES)*/
+    OPENCV_SAVING_IMAGES_FOLDER,
+    OPENCV_SAVING_IMAGES_MODE,
+    OPENCV_SAVING_IMAGES_TIME,
+    OPENCV_SAVING_IMAGES_SIZE_WIDTH,
+    OPENCV_SAVING_IMAGES_SIZE_HEIGHT,
     OPENCV_DEBUG_ON,
+};
+
+enum moOpenCVSavingImagesMode {
+  OPENCV_SAVING_IMAGES_MODE_TIME=0, /** Same face stand for certain time so it is remembered, see: OPENCV_SAVING_IMAGES_TIME for values */
+  OPENCV_SAVING_IMAGES_MODE_STILL=1, /** */
+  OPENCV_SAVING_IMAGES_MODE_SMILE=2, /** */
+
 };
 
 #define MO_OPENCV_SYTEM_LABELNAME	0
@@ -186,6 +206,8 @@ typedef  moDynamicArray<moOpenCVSystemPtr> moOpenCVSystems;
 */
 moDeclareDynamicArray( moOpenCVSystemPtr, moOpenCVSystems );
 
+moDeclareDynamicArray( IplImage*, moOpenCVImages );
+
 
 class moOpenCV : public moResource
 {
@@ -215,6 +237,7 @@ public:
 
     void BodyDetection();
     void FaceDetection();
+    void FaceRecognition();
 
     void BlobRecognition();
     void ColorRecognition();
@@ -341,6 +364,8 @@ protected:
     moOpenCVThresholdType m_threshold_type;
 
     int m_debug_on;
+    std::vector<Rect> faces;
+
 
     float m_line_thickness;
     float m_line_offset_x;
@@ -383,6 +408,29 @@ protected:
     std::vector<std::vector<cv::Point> > contours;
     std::vector<KeyPoint> keypoints;
 
+
+    Ptr<FaceRecognizer> m_pFaceRecognizer;
+    vector<Mat> images;
+    vector<int> labels;
+    vector<string> names;
+    bool isTrained;
+
+    cv::Mat processImage(cv::Mat& image);
+    bool processAndSaveImage(cv::Mat& image, const std::string& name);
+    typedef std::map<std::string, std::string> StringMap;
+
+
+    moTimerAbsolute m_FaceTimer;
+
+    moText m_trainingImagesPath;
+    moText m_savingImagesPath;
+    int  m_savingImagesMode;
+    int  m_savingImagesSizeWidth;
+    int  m_savingImagesSizeHeight;
+    float m_savingImagesTime;
+
+		cv::Size m_goalSize;
+		bool m_keepAspectRatio;
 
 };
 
