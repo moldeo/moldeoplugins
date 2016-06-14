@@ -1686,6 +1686,9 @@ if (m_pSrcTexture==NULL) {
     }
   }
 
+    double confidence = 0.0;
+  int predictedLabel = -1;
+
   for (int ic = 0; ic < faces.size(); ic++) // Iterate through all current elements (detected faces)
   {
 
@@ -1775,11 +1778,15 @@ if (m_pSrcTexture==NULL) {
 
         }*/
 
-        int predictedLabel = m_pFaceRecognizer->predict(faceresized);
+        confidence = 0.0;
+        predictedLabel = -1;
 
-        if (predictedLabel>=0) {
+        m_pFaceRecognizer->predict(faceresized, predictedLabel, confidence);
+
+        if (predictedLabel>=0 && confidence<1100.0) {
           moText namep = (char*) names[predictedLabel].c_str();
           MODebug2->Message( moText("Recognized!! predictedLabel:") + IntToStr(predictedLabel)
+                            + moText("Confidence:") + FloatToStr(confidence)
                             + moText("=>")+namep );
           facerecognized = true;
           facelabel = namep;
@@ -1904,6 +1911,12 @@ if (m_pSrcTexture==NULL) {
         m_pDataMessage->Add(pData);
 
         pData.SetText( facelabel );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_CONFIDENCE") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetDouble( confidence );
         m_pDataMessage->Add(pData);
 
 
