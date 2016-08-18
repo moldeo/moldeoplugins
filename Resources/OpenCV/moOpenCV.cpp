@@ -1503,7 +1503,7 @@ moOpenCV::FaceDetection() {
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
   #ifndef WIN32
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
-  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
+  //m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
     if (m_pDataMessage) {
@@ -1861,7 +1861,7 @@ if (m_pSrcTexture==NULL) {
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
   if (!moFileManager::DirectoryExists("/tmp/dstblobs"))
     moFileManager::CreateDirectory(moDirectory("/tmp/dstblobs"));
-  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
+  //m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
     if (m_pDataMessage) {

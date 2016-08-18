@@ -293,7 +293,10 @@ enum moParticlesSimpleTextureMode {
     /// 2: Many Different Textures Image for each Particle ( taken from texturefolder )
     PARTICLES_TEXTUREMODE_MANY = 2,
     /// 3: Many textures/particle to construct a patched texture one ( taken from texturefolder, build the one defined on texture parameter, or from a folder, call to Shot(source) then ReInit to build... )
-    PARTICLES_TEXTUREMODE_MANY2PATCH = 3
+    PARTICLES_TEXTUREMODE_MANY2PATCH = 3,
+    /// 4: Many Different Textures Image for each Particle ( taken from texturefolder in loading order! )
+    PARTICLES_TEXTUREMODE_MANYBYORDER = 4
+
 };
 
 static moTextArray TextureModeOptions;
@@ -322,14 +325,18 @@ enum moParticlesRandomMethod {
 
 ///Orientation Method
 enum moParticlesOrientationMode {
-    /// 0: \if spanish \else \endif
+    /// 0: \if spanish Fijo. \else Default position. \endif
     PARTICLES_ORIENTATIONMODE_FIXED=0,
-    /// 1: \if spanish \else \endif
+    /// 1: \if spanish De frente al observador. \else Facing camera. \endif
     PARTICLES_ORIENTATIONMODE_CAMERA=1,
-    /// 2: \if spanish \else \endif
+    /// 2: \if spanish Según el vector velocidad. \else Following motion direction. \endif
     PARTICLES_ORIENTATIONMODE_MOTION=2,
-    /// 3: \if spanish \else \endif
-    PARTICLES_ORIENTATIONMODE_ACCELERATION=3
+    /// 3: \if spanish Según el vector aceleración. \else Following acceleration direction vector. \endif
+    PARTICLES_ORIENTATIONMODE_ACCELERATION=3,
+    /// 4: \if spanish Según la normal de la generatriz \else Following generator normal vector \endif
+    PARTICLES_ORIENTATIONMODE_NORMAL=4,
+    /// 5: \if spanish Según la normal personalizada en los parametros NORMAL_PARTICLEX|Y|Z \else Following generator normal vector defined in parameters NORMAL_PARTICLEX|Y|Z \endif
+    PARTICLES_ORIENTATIONMODE_CUSTOMNORMAL=5
 };
 
 enum moParticlesOrderingMode {
@@ -450,6 +457,9 @@ enum moParticlesSimpleParamIndex {
 	PARTICLES_VIEWX,
 	PARTICLES_VIEWY,
 	PARTICLES_VIEWZ,
+	PARTICLES_UPVIEWX,
+	PARTICLES_UPVIEWY,
+	PARTICLES_UPVIEWZ,
   PARTICLES_ORDERING_MODE,
   PARTICLES_LIGHTMODE,
   PARTICLES_LIGHTX,
@@ -488,6 +498,7 @@ class moParticlesSimple : public moAbstract {
       Alpha = 1.0;
       Scale = 1.0;
       ImageProportion = 1.0;
+      ImageIndex = 0;
 
       Fixed = false;
       Visible = false;
@@ -599,6 +610,7 @@ class moParticlesSimple : public moAbstract {
 
     ///Texture image proportion Width / Height ....
     float       ImageProportion;
+    long        ImageIndex;
 
     moVector3f  Color;
 
@@ -654,6 +666,8 @@ class moParticlesSimplePhysics : public moAbstract {
       m_RandomMotion = 0.0;
       m_MotionVector = moVector3f( 0.0, 0.0, 0.0 );
 
+      m_UpViewVector = moVector3f( 0.0, 1.0, 0.0 );
+
       gravitational = 0.0;
       viscousdrag = 0.0;
 
@@ -662,7 +676,6 @@ class moParticlesSimplePhysics : public moAbstract {
       m_ParticleScript = moText("");
 
       m_pLastBordParticle = NULL;
-
 
     }
     virtual ~moParticlesSimplePhysics() {}
@@ -699,6 +712,7 @@ class moParticlesSimplePhysics : public moAbstract {
 
     moVector3f      m_EyeVector;
     moVector3f      m_TargetViewVector;
+    moVector3f      m_UpViewVector;
     moVector3f      m_SourceLightVector;
     moParticlesSimpleLightMode m_SourceLighMode;
 
@@ -719,8 +733,6 @@ class moParticlesSimplePhysics : public moAbstract {
     moText  m_ParticleScript;
 
     moParticlesSimple*  m_pLastBordParticle;
-
-
 
 
 };

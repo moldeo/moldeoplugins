@@ -91,7 +91,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("folders"), MO_PARAM_TEXTUREFOLDER, PARTICLES_FOLDERS, moValue( "", "TXT") );
 
-	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM"), moText("UNIT,PATCH,MANY,MANY2PATCH"));
+	p_configdefinition->Add( moText("texture_mode"), MO_PARAM_NUMERIC, PARTICLES_TEXTUREMODE, moValue( "0", "NUM"), moText("UNIT,PATCH,MANY,MANY2PATCH,MANYBYORDER"));
 
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, PARTICLES_WIDTH, moValue( "9", "NUM") );
@@ -113,7 +113,7 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 
 	p_configdefinition->Add( moText("randommethod"), MO_PARAM_NUMERIC, PARTICLES_RANDOMMETHOD, moValue( "0", "NUM").Ref(), moText("NOISY,COLINEAR,PERPENDICULAR") );
 	p_configdefinition->Add( moText("creationmethod"), MO_PARAM_NUMERIC, PARTICLES_CREATIONMETHOD, moValue( "0", "NUM").Ref(), moText("LINEAR,PLANAR,VOLUMETRIC,CENTER") );
-	p_configdefinition->Add( moText("orientationmode"), MO_PARAM_NUMERIC, PARTICLES_ORIENTATIONMODE, moValue( "0", "NUM").Ref(), moText("FIXED,CAMERA,MOTION,ACCELERATION") );
+	p_configdefinition->Add( moText("orientationmode"), MO_PARAM_NUMERIC, PARTICLES_ORIENTATIONMODE, moValue( "0", "NUM").Ref(), moText("FIXED,CAMERA,MOTION,ACCELERATION,NORMAL") );
 
 	p_configdefinition->Add( moText("fadein"), MO_PARAM_FUNCTION, PARTICLES_FADEIN, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("fadeout"), MO_PARAM_FUNCTION, PARTICLES_FADEOUT, moValue( "0", "FUNCTION").Ref() );
@@ -178,6 +178,9 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("viewx"), MO_PARAM_FUNCTION, PARTICLES_VIEWX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewy"), MO_PARAM_FUNCTION, PARTICLES_VIEWY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("viewz"), MO_PARAM_FUNCTION, PARTICLES_VIEWZ, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("upviewx"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWX, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("upviewy"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWY, moValue( "1.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("upviewz"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWZ, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM"), moText("NONE,ZDEPTHTEST,ZPOSITION,COMPLETE") );
 	p_configdefinition->Add( moText("lightmode"), MO_PARAM_NUMERIC, PARTICLES_LIGHTMODE, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("lightx"), MO_PARAM_FUNCTION, PARTICLES_LIGHTX, moValue( "0.0", "FUNCTION").Ref() );
@@ -313,6 +316,9 @@ moEffectParticlesSimple::Init()
 	moDefineParamIndex( PARTICLES_VIEWX, moText("viewx") );
 	moDefineParamIndex( PARTICLES_VIEWY, moText("viewy") );
 	moDefineParamIndex( PARTICLES_VIEWZ, moText("viewz") );
+	moDefineParamIndex( PARTICLES_UPVIEWX, moText("upviewx") );
+	moDefineParamIndex( PARTICLES_UPVIEWY, moText("upviewy") );
+	moDefineParamIndex( PARTICLES_UPVIEWZ, moText("upviewz") );
 	moDefineParamIndex( PARTICLES_ORDERING_MODE, moText("orderingmode") );
 	moDefineParamIndex( PARTICLES_LIGHTMODE, moText("lightmode") );
 	moDefineParamIndex( PARTICLES_LIGHTX, moText("lightx") );
@@ -809,6 +815,12 @@ void moEffectParticlesSimple::UpdateParameters() {
                                         m_Config.Eval( moR(PARTICLES_VIEWX)),
                                         m_Config.Eval( moR(PARTICLES_VIEWY)),
                                         m_Config.Eval( moR(PARTICLES_VIEWZ))
+                                       );
+
+    m_Physics.m_UpViewVector = moVector3f(
+                                        m_Config.Eval( moR(PARTICLES_UPVIEWX)),
+                                        m_Config.Eval( moR(PARTICLES_UPVIEWY)),
+                                        m_Config.Eval( moR(PARTICLES_UPVIEWZ))
                                        );
 
     m_Physics.m_SourceLighMode = (moParticlesSimpleLightMode) m_Config.Int( moR(PARTICLES_LIGHTMODE));
@@ -1399,7 +1411,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
                 pPar->TSize = moVector2f( 1.0f / (float) p_cols, 1.0f / (float) p_rows );
 
             }
-            else if (texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
+            else if (texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANYBYORDER ) {
 
                 pPar->TCoord = moVector2f( 0.0, 0.0 );
                 pPar->TSize = moVector2f( 1.0f, 1.0f );
@@ -1537,6 +1549,7 @@ void moEffectParticlesSimple::Regenerate() {
 
     int i,j;
     float randommotionx,randommotiony,randommotionz;
+    long LastImageIndex = -1;
 
     long emitiontimer_duration = m_Physics.EmitionTimer.Duration();
     //MODebug2->Message("dur:"+IntToStr(emitiontimer_duration));
@@ -1646,6 +1659,10 @@ void moEffectParticlesSimple::Regenerate() {
                   pPar->Age.Start();
 
                   //guardamos la referencia a esta particula, que servira para la proxima
+                  if (m_Physics.m_pLastBordParticle) {
+                    //guardamos la referencia del imageindex de la ultima particula (para mantener el orden en MANYBYORDER)
+                    LastImageIndex = m_Physics.m_pLastBordParticle->ImageIndex;
+                  }
                   m_Physics.m_pLastBordParticle = pPar;
 
                   /**Update the rate counter*/
@@ -1676,7 +1693,7 @@ void moEffectParticlesSimple::Regenerate() {
                    /**SPECIAL CASE for texture folders*/
                    ///asigna un id al azar!!!! de todos los que componen el moTextureBuffer
                    ///hay q pedir el moTextureBuffer
-                   if ( texture_mode==PARTICLES_TEXTUREMODE_MANY ) {
+                   if ( texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANYBYORDER ) {
                        moTextureBuffer* pTexBuf = m_Config[ moR(PARTICLES_FOLDERS) ][MO_SELECTED][0].TextureBuffer();
                        //m_Config[moR(PARTICLES_TEXTURE)].GetData()->GetGLId(&m_EffectState.tempo, 1, NULL );
                        if (pTexBuf) {
@@ -1693,9 +1710,17 @@ void moEffectParticlesSimple::Regenerate() {
 
                                //int irandom = ( ::rand() * nim )/ RAND_MAX;
                                int irandom = (int)frandom;
-                               //MODebug2->Push( "irandom: " + IntToStr(irandom) + " rand: " + IntToStr(::rand()) );
+                               if (irandom>=nim) irandom = nim - 1;/** last one repeated if out of bound*/
 
-                               if (irandom>=nim) irandom = nim - 1;
+                               if (texture_mode==PARTICLES_TEXTUREMODE_MANYBYORDER) {
+                                irandom = LastImageIndex+1;
+                                if (irandom>=nim) irandom = 0;
+                               }
+
+                               LastImageIndex = irandom;
+                               pPar->ImageIndex = LastImageIndex;
+
+                               //MODebug2->Push( "irandom: " + IntToStr(irandom) + " rand: " + IntToStr(::rand()) );
 
                                pPar->GLId = pTexBuf->GetFrame( irandom );
 
@@ -2441,7 +2466,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
               if (pPar->Visible) {
 
 
-                  if (texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH ) {
+                  if (texture_mode==PARTICLES_TEXTUREMODE_MANY || texture_mode==PARTICLES_TEXTUREMODE_MANYBYORDER || texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH ) {
                       //pPar->GLId = 22;
                       if (pPar->GLId>0) {
                           glActiveTextureARB( GL_TEXTURE0_ARB );
@@ -2515,6 +2540,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                               break;
 
                           case PARTICLES_ORIENTATIONMODE_CAMERA:
+                          /** TODO: fix this */
                               V = moVector3f( -CO.Y(), CO.X(), 0.0f );
                               V.Normalize();
 
@@ -2526,6 +2552,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                               break;
 
                           case PARTICLES_ORIENTATIONMODE_MOTION:
+                          /** TODO: fix this */
                               if (pPar->Velocity.Length()>0) U = pPar->Velocity;
                               U.Normalize();
                               if (U.Length() < 0.5) {
@@ -3195,13 +3222,16 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
     if (!ortho) {
         if ( m_EffectState.stereoside == MO_STEREO_NONE ) {
 
-        mGL->LookAt(  m_Physics.m_EyeVector.X(),
-                      m_Physics.m_EyeVector.Y(),
-                      m_Physics.m_EyeVector.Z(),
-                      m_Physics.m_TargetViewVector.X(),
-                      m_Physics.m_TargetViewVector.Y(),
-                      m_Physics.m_TargetViewVector.Z(),
-                      0, 1, 0 );
+        mGL->LookAt(  m_Physics.m_EyeVector.X(),/*0*/
+                      m_Physics.m_EyeVector.Y(),/*0*/
+                      m_Physics.m_EyeVector.Z(),/*-10*/
+                      m_Physics.m_TargetViewVector.X(),/*0*/
+                      m_Physics.m_TargetViewVector.Y(),/*0*/
+                      m_Physics.m_TargetViewVector.Z(),/*0*/
+                      /** 0,  1,  0 **/
+                      /** producto vectorial de eye x target */
+                      m_Physics.m_UpViewVector.X(), m_Physics.m_UpViewVector.Y(), m_Physics.m_UpViewVector.Z()
+                       );
 
         } else {
           /*
