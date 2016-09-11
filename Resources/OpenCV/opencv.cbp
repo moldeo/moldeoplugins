@@ -79,6 +79,7 @@
 			<Add directory="opencv/modules/legacy/include" />
 			<Add directory="C:/opencv/build/x86/mingw" />
 			<Add directory="C:/opencv/build/include" />
+			<Add directory="C:/opencv/build/include/opencv" />
 		</Compiler>
 		<Linker>
 			<Add library="libopencv_core2410.dll.a" />
@@ -87,6 +88,9 @@
 			<Add library="libopencv_legacy2410.dll.a" />
 			<Add library="libopencv_imgproc2410.dll.a" />
 			<Add library="libopencv_features2d2410.dll.a" />
+			<Add library="libopencv_haartraining_engine.a" />
+			<Add library="libopencv_contrib2410.dll.a" />
+			<Add library="libopencv_highgui2410.dll.a" />
 			<Add directory="$(externlibs)/SDL/lib" />
 			<Add directory="$(externlibs)/glew/lib" />
 			<Add directory="$(externlibs)/lua/lib" />
