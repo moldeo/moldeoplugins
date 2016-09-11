@@ -592,6 +592,7 @@ cout << "receiving" << endl;
 moOscPacketListener* self = NULL;
 #ifdef OSCPACK
   self = this;
+  moText path = moText( m.AddressPattern() );
 #else
   if (user_data==NULL) { cout << "no user data" << endl; return -1; }
   self = (moOscPacketListener*) user_data;
@@ -701,7 +702,7 @@ moOscPacketListener* self = NULL;
                       }
                       break;
 
-                    case osc::MIDI_MESSAGE_TYPE_TAG):
+                    case osc::MIDI_MESSAGE_TYPE_TAG:
                       data = moData( (int)rec.AsMidiMessage() );
                       break;
 
