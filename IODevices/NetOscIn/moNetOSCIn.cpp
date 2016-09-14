@@ -218,11 +218,11 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
                     pOutBlinkValue = pOutlet;
                 }
 
-                if (pOutlet->GetConnectorLabelName() == moText("SURPRISE")) {
+                if (pOutlet->GetConnectorLabelName() == moText("EYEBROW")) {
                     pOutSurpriseValue = pOutlet;
                 }
 
-                if (pOutlet->GetConnectorLabelName() == moText("FROWN")) {
+                if (pOutlet->GetConnectorLabelName() == moText("FURROW")) {
                     pOutFrownValue = pOutlet;
                 }
 
@@ -535,11 +535,34 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                     pOutBlinkValue->Update();
                 }
 
-                if (debug_is_on) MODebug2->Message( moText( "Message EXP Value: " )
+            } else
+            if (ApiMessage=="WINK_LEFT") {
+
+            } else
+            if (ApiMessage=="WINK_RIGHT") {
+
+            } else
+            if (ApiMessage=="HORIEYE") {
+                if (pOutHoriValue) {
+
+                    pOutHoriValue->GetData()->SetDouble(Value.Double());
+                    pOutHoriValue->Update();
+                }
+
+            } else
+            if (ApiMessage=="VERTIEYE") {
+                if (pOutVertiValue) {
+
+                    pOutVertiValue->GetData()->SetDouble(Value.Double());
+                    pOutVertiValue->Update();
+                }
+
+            }
+
+            if (debug_is_on) MODebug2->Message( moText( "Message EXP Value: " )
                                                 + ApiMessage
                                                 + moText(" Val:")
                                                 + FloatToStr(Value.Double()) );
-            }
         }
 
         if (message.Count()>=3) {
@@ -700,9 +723,30 @@ moOscPacketListener* self = NULL;
                 data1 =  moData( moText( "BLINK" ) );
                 message.Add( data0 );
                 message.Add( data1 );
-                //cout << "============/EXP/BLINK" << endl;
-                //if (self->debug_is_on)
-                //self->MODebug2->Message( moText(" ============/EXP/BLINK") );
+            } else if ( addresspath == moText("/EXP/HORIEYE") ) {
+                MODebug2->Message( moText(" ============/EXP/HORIEYE") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "HORIEYE" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/VERTIEYE") ) {
+                MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "VERTIEYE" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/EYEBROW") ) {
+                MODebug2->Message( moText(" ============/EXP/EYEBROW") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "EYEBROW" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/FURROW") ) {
+                MODebug2->Message( moText(" ============/EXP/FURROW") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "FURROW" ) );
+                message.Add( data0 );
+                message.Add( data1 );
             } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
                 cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
