@@ -536,11 +536,20 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 }
 
             } else
-            if (ApiMessage=="WINK_LEFT") {
+            if (ApiMessage=="EYEBROW") {
+                if (pOutSurpriseValue) {
+
+                    pOutSurpriseValue->GetData()->SetDouble(Value.Double());
+                    pOutSurpriseValue->Update();
+                }
 
             } else
-            if (ApiMessage=="WINK_RIGHT") {
+            if (ApiMessage=="FURROW") {
+                if (pOutFrownValue) {
 
+                    pOutFrownValue->GetData()->SetDouble(Value.Double());
+                    pOutFrownValue->Update();
+                }
             } else
             if (ApiMessage=="HORIEYE") {
                 if (pOutHoriValue) {
