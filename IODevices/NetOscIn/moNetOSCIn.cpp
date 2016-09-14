@@ -528,17 +528,18 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
             moText ApiMessage = message.Get(1).ToText();
             moData Value = message.Get(2);
+            if (ApiMessage=="BLINK") {
+                if (pOutBlinkValue) {
 
-            if (pOutBlinkValue) {
+                    pOutBlinkValue->GetData()->SetDouble(Value.Double());
+                    pOutBlinkValue->Update();
+                }
 
-                pOutBlinkValue->GetData()->SetDouble(Value.Double());
-                pOutBlinkValue->Update();
+                if (debug_is_on) MODebug2->Message( moText( "Message EXP Value: " )
+                                                + ApiMessage
+                                                + moText(" Val:")
+                                                + FloatToStr(Value.Double()) );
             }
-
-            if (debug_is_on) MODebug2->Push( moText( "Message EXP Value: " )
-                                            + ApiMessage
-                                            + moText(" Val:")
-                                            + FloatToStr(Value.Double()) );
         }
 
         if (message.Count()>=3) {
@@ -650,8 +651,10 @@ moOscPacketListener* self = NULL;
         moDataMessage message;
 
         moData  data0;
+        moData  data1;
+
         moText addresspath = path;
-        cout << "addresspath:" << addresspath << endl;
+        cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
          addresspath = moText( m.AddressPattern() );
 #endif
@@ -688,12 +691,21 @@ moOscPacketListener* self = NULL;
             } else if ( addresspath == moText("/beatlow") ) {
                 data0 = moData( moText( "BEATLOW" ) );
                 message.Add( data0 );
+            } else if ( addresspath == moText("/opencv") ) {
+                data0 = moData( moText( "OPENCV" ) );
+                message.Add( data0 );
+            } else if ( addresspath == moText("/EXP/BLINK") ) {
+                MODebug2->Message( moText(" ============/EXP/BLINK") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "BLINK" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+                //cout << "============/EXP/BLINK" << endl;
+                //if (self->debug_is_on)
+                //self->MODebug2->Message( moText(" ============/EXP/BLINK") );
             } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
                 cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
-                message.Add( data0 );
-            } else if ( addresspath == moText("/opencv") ) {
-                data0 = moData( moText( "OPENCV" ) );
                 message.Add( data0 );
             } else {
                 data0 = moData( addresspath );
