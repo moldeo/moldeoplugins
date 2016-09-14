@@ -94,6 +94,12 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutBeatMediumFreq = NULL;
     pOutBeatMediumValue = NULL;
 
+    pOutBlinkValue = NULL;
+    pOutSurpriseValue = NULL;
+    pOutFrownValue = NULL;
+    pOutHoriValue = NULL;
+    pOutVertiValue = NULL;
+
 
     debug_is_on = false;
 }
@@ -205,6 +211,27 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
 
                 if (pOutlet->GetConnectorLabelName() == moText("BEATMEDIUMVAL")) {
                     pOutBeatMediumValue = pOutlet;
+                }
+
+
+                if (pOutlet->GetConnectorLabelName() == moText("BLINK")) {
+                    pOutBlinkValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("SURPRISE")) {
+                    pOutSurpriseValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("FROWN")) {
+                    pOutFrownValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("HORIEYE")) {
+                    pOutHoriValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("VERTIEYE")) {
+                    pOutVertiValue = pOutlet;
                 }
 
 
@@ -492,6 +519,26 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
               }
             }
+        }
+
+
+        if (
+            DataCode.Text() == moText("EXP")
+            ) {
+
+            moText ApiMessage = message.Get(1).ToText();
+            moData Value = message.Get(2);
+
+            if (pOutBlinkValue) {
+
+                pOutBlinkValue->GetData()->SetDouble(Value.Double());
+                pOutBlinkValue->Update();
+            }
+
+            if (debug_is_on) MODebug2->Push( moText( "Message EXP Value: " )
+                                            + ApiMessage
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
         }
 
         if (message.Count()>=3) {
