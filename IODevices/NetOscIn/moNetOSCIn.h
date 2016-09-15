@@ -118,6 +118,13 @@ class moOscPacketListener : public moAbstract {
          moOutlet*   pOutBeatMediumFreq;
          moOutlet*   pOutBeatMediumValue;
 
+         moOutlet*   pOutBlinkValue;
+         moOutlet*   pOutSurpriseValue;
+         moOutlet*   pOutFrownValue;
+         moOutlet*   pOutHoriValue;
+         moOutlet*   pOutVertiValue;
+
+
         moOutlet*   pOutEvents;
         moOutlet*   pOutTracker;
         moOutlet*   pOutTuio;

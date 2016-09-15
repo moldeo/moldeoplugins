@@ -49,6 +49,7 @@
 		<Compiler>
 			<Add option="-DUNICODE" />
 			<Add option="-DGLEW_STATIC" />
+			<Add option="-DOSCPACK" />
 			<Add directory="../NetOscOut" />
 			<Add directory="./ip" />
 			<Add directory="./ip/win32" />
