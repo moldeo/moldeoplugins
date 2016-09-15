@@ -2115,6 +2115,7 @@ void moEffectParticlesSimple::UpdateParticles( double dt,int method )
       Regenerate();
       CalculateForces();
       CalculateDerivatives(false,dt);
+      if (dt!=0.0)
       for ( i=0; i<m_ParticlesSimpleArray.Count(); i++ ) {
         moParticlesSimple* pPar = m_ParticlesSimpleArray[i];
 
@@ -2128,6 +2129,7 @@ void moEffectParticlesSimple::UpdateParticles( double dt,int method )
       Regenerate();
       CalculateForces();
       CalculateDerivatives(false,dt);
+      if (dt!=0.0)
       for (i=0;i<m_ParticlesSimpleArray.Count();i++) {
             moParticlesSimple* pPar = m_ParticlesSimpleArray[i];
             moParticlesSimple* ptmpPar = m_ParticlesSimpleArrayTmp[i];
@@ -2141,6 +2143,7 @@ void moEffectParticlesSimple::UpdateParticles( double dt,int method )
       }
       CalculateForces(true);
       CalculateDerivatives(true,dt);
+      if (dt!=0.0)
       for ( i=0; i < m_ParticlesSimpleArray.Count(); i++ ) {
             moParticlesSimple* pPar = m_ParticlesSimpleArray[i];
             moParticlesSimple* ptmpPar = m_ParticlesSimpleArrayTmp[i];
