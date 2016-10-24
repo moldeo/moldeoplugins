@@ -356,6 +356,7 @@ private:
 
 
     moInlet*  m_pContourIndex;
+    moInlet*  m_pLineIndex;
     moInlet*  m_pBlobIndex;
     moInlet*  m_pObjectIndex;
     moInlet*  m_pFaceIndex;
