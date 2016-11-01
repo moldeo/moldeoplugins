@@ -276,6 +276,9 @@ moOla::Init() {
       for(int a=0;a<(300*4*3);a++) {
         m_pData[a] = 127;
       }
+      if (m_pOlaTexture && m_pData) {
+        m_pOlaTexture->BuildFromBuffer( 300, 4, m_pData, GL_RGB, GL_UNSIGNED_BYTE );
+      }
     }
 
     m_pPixelIndex = new moInlet();
@@ -331,6 +334,7 @@ moOla::Init() {
 	moDefineParamIndex( OLA_BLUE, moText("blue") );
 	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
 	moDefineParamIndex( OLA_STARTUNIVERSE, moText("startuniverse") );
+	moDefineParamIndex( OLA_MODE, moText("mode") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -524,6 +528,7 @@ moOla::Update(moEventList *Events) {
     double alpha = m_Config.Eval(moR(OLA_ALPHA));
     //int startuniverse = min( 1, max( 1, m_Config.Int(moR(OLA_STARTUNIVERSE)) ) );
     int startuniverse = m_Config.Int(moR(OLA_STARTUNIVERSE));
+    int mode = m_Config.Int(moR(OLA_MODE));
     /**
     red = 0;
     green = 0;
@@ -535,16 +540,20 @@ moOla::Update(moEventList *Events) {
     long pindex = 0;
     long pindexrgb = 0;
     int pixelperstring = 300;
-
+    unsigned int rgbindexmax = 170;///512 / 3 = 170 -> 170*3 = 510
     /// 170 = floor( 512 / 3 )
-    /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512 wont match: 511 is last possible channel...
+    /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512(doesnt exist!)
 
+    if (mode==1) {
+      int TGLId = m_Config.GetGLId( moR(OLA_TEXTURE), this );
+      glBindTexture( GL_TEXTURE_2D, TGLId );
+      glGetTexImage( GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pData );
+    }
 
     for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
-        for (unsigned int cha = 0; cha < 170; cha++) {
+        for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
 
-          pindex++;
-          pindexrgb++;
+
           if (m_pPixelIndex) {
             m_pPixelIndex->GetData()->SetLong(pindexrgb);
             m_pPixelIndex->Update(true);
@@ -568,7 +577,7 @@ moOla::Update(moEventList *Events) {
             m_pPixelIndexY->GetData()->SetDouble(y);
             m_pPixelIndexY->Update(true);
           }
-
+/**
           int prow = GetInletIndex( moText("row")+IntToStr(row) );
           if (prow>-1) {
             moInlet* pinrow = m_Inlets[prow];
@@ -586,25 +595,36 @@ moOla::Update(moEventList *Events) {
               pincol->Update(true);
             }
           }
+*/
 
-          red = m_Config.Eval(moR(OLA_RED));
-          green = m_Config.Eval(moR(OLA_GREEN));
-          blue = m_Config.Eval(moR(OLA_BLUE));
-          alpha = m_Config.Eval(moR(OLA_ALPHA));
+          int rgbiidx = (y*pixelperstring+x)*3;
 
+          if (mode==0) {
+            red = m_Config.Eval(moR(OLA_RED));
+            green = m_Config.Eval(moR(OLA_GREEN));
+            blue = m_Config.Eval(moR(OLA_BLUE));
+            alpha = m_Config.Eval(moR(OLA_ALPHA));
 
-          unsigned char ired = 255*red*alpha;
-          unsigned char igreen = 255*green*alpha;
-          unsigned char iblue = 255*blue*alpha;
-          buffer.SetChannel( cha*3, (unsigned char) ired );
-          buffer.SetChannel( cha*3+1, (unsigned char) igreen );
-          buffer.SetChannel( cha*3+2, (unsigned char) iblue );
+            unsigned char ired = 255*red*alpha;
+            unsigned char igreen = 255*green*alpha;
+            unsigned char iblue = 255*blue*alpha;
 
-          if (m_pData && 0<=x && x<pixelperstring && 0<=y && y<4) {
-            m_pData[ (y*pixelperstring+x)*3+2 ] = iblue;
-            m_pData[ (y*pixelperstring+x)*3+1 ] = igreen;
-            m_pData[ (y*pixelperstring+x)*3 ] = ired;
+            if (m_pData && 0<=x && x<pixelperstring && 0<=y && y<4) {
+              m_pData[ rgbiidx+2 ] = iblue;
+              m_pData[ rgbiidx+1 ] = igreen;
+              m_pData[ rgbiidx ] = ired;
+            }
+          } else if (mode==1) {
+
           }
+
+
+          if (m_pData) {
+            buffer.SetChannel( cha*3, (unsigned char) m_pData[rgbiidx] );
+            buffer.SetChannel( cha*3+1, (unsigned char) m_pData[rgbiidx+1] );
+            buffer.SetChannel( cha*3+2, (unsigned char) m_pData[rgbiidx+2] );
+          }
+
 
 /**
             for ( colorv1 = 0; colorv1 < steps; colorv1++) {
@@ -644,7 +664,7 @@ moOla::Update(moEventList *Events) {
             buffer.SetChannel( cha*3+2, 0  );
             usleep(2);
 */
-
+/**
           if (prow>-1) {
             moInlet* pinrow = m_Inlets[prow];
             if (pinrow) {
@@ -660,6 +680,10 @@ moOla::Update(moEventList *Events) {
               pincol->Update(true);
             }
           }
+          */
+
+          pindex++;
+          pindexrgb++;
 
         }
       if (!ola_client.SendDmx( uni, buffer ) ) {
@@ -724,6 +748,7 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("testoffset"), MO_PARAM_NUMERIC, OLA_TESTOFFSET, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("checkserver"), MO_PARAM_NUMERIC, OLA_CHECKSERVER, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, OLA_MDEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
+	p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, OLA_MODE, moValue( "0", "NUM").Ref(), moText("RGBA,TEXTURE") );
 
 	return p_configdefinition;
 }

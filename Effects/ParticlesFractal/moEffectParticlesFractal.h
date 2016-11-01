@@ -1036,6 +1036,7 @@ class moEffectParticlesFractal : public moEffect
 
         int numParticles;
         GLfloat *posArray;
+        GLfloat *scaleArray;
         GLfloat *stateArray;
         GLfloat *velocityArray;
         GLfloat *colArray;

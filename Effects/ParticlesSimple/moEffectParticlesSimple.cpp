@@ -3492,7 +3492,7 @@ void moEffectParticlesSimple::setUpLighting()
                     m_Physics.m_SourceLightVector.Y(),
                     m_Physics.m_SourceLightVector.Z() );
     glColor4f( 1, 1, 0, 0.5 );
-    glutSolidSphere( 0.1, 4, 4);
+    //glutSolidSphere( 0.1, 4, 4);
     glPopMatrix();
 
 
