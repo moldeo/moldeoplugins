@@ -345,7 +345,7 @@ MOboolean moOpenCV::Init() {
     Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVBLOBS", 512, 512, tparam );
     if (Mid>0) {
         m_pCVBlobs = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pCVBlobs->BuildEmpty(1024, 1024);
+        m_pCVBlobs->BuildEmpty(512, 512);
 
         if (m_debug_on) MODebug2->Message("CVBLOBS texture created!!");
     } else {
@@ -355,7 +355,7 @@ MOboolean moOpenCV::Init() {
     Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVTHRESH", 512, 512, tparam );
     if (Mid>0) {
         m_pCVThresh = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pCVThresh->BuildEmpty(1024, 1024);
+        m_pCVThresh->BuildEmpty(512, 512);
 
         if (m_debug_on) MODebug2->Message("CVTHRESH texture created!!");
     } else {
@@ -408,7 +408,7 @@ void moOpenCV::UpdateParameters() {
   m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
   m_crop_max_y =  m_Config.Eval( moR(OPENCV_CROP_MAX_Y));
 
-  m_line_thickness = m_Config.Eval( moR(OPENCV_LINE_THICKNESS));
+  m_line_thickness = fabs( m_Config.Eval( moR(OPENCV_LINE_THICKNESS)) );
   m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
   m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
   m_line_steps = m_Config.Eval( moR(OPENCV_LINE_STEPS));
