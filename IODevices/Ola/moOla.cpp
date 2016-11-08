@@ -535,16 +535,16 @@ moOla::Update(moEventList *Events) {
     long pindex = 0;
     long pindexrgb = 0;
     int pixelperstring = 300;
+    unsigned int rgbindexmax = 170;//512 / 3 = 170 -> 170*3 = 510
 
     /// 170 = floor( 512 / 3 )
     /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512 wont match: 511 is last possible channel...
 
 
     for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
-        for (unsigned int cha = 0; cha < 170; cha++) {
+        for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
 
-          pindex++;
-          pindexrgb++;
+
           if (m_pPixelIndex) {
             m_pPixelIndex->GetData()->SetLong(pindexrgb);
             m_pPixelIndex->Update(true);
@@ -568,7 +568,7 @@ moOla::Update(moEventList *Events) {
             m_pPixelIndexY->GetData()->SetDouble(y);
             m_pPixelIndexY->Update(true);
           }
-
+/**
           int prow = GetInletIndex( moText("row")+IntToStr(row) );
           if (prow>-1) {
             moInlet* pinrow = m_Inlets[prow];
@@ -586,7 +586,7 @@ moOla::Update(moEventList *Events) {
               pincol->Update(true);
             }
           }
-
+*/
           red = m_Config.Eval(moR(OLA_RED));
           green = m_Config.Eval(moR(OLA_GREEN));
           blue = m_Config.Eval(moR(OLA_BLUE));
@@ -644,7 +644,7 @@ moOla::Update(moEventList *Events) {
             buffer.SetChannel( cha*3+2, 0  );
             usleep(2);
 */
-
+/**
           if (prow>-1) {
             moInlet* pinrow = m_Inlets[prow];
             if (pinrow) {
@@ -660,6 +660,10 @@ moOla::Update(moEventList *Events) {
               pincol->Update(true);
             }
           }
+          */
+
+          pindex++;
+          pindexrgb++;
 
         }
       if (!ola_client.SendDmx( uni, buffer ) ) {

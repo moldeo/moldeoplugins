@@ -769,6 +769,18 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pPositionTextureFinal = m_pPositionTexture;
     }
 
+    if ( m_bScaleTextureSwapOn && m_pTFilter_ScaleTextureSwap ) {
+        m_bScaleTextureSwapOn = false;
+        //m_pTFilter_PositionTextureSwap->Apply( &m_EffectState.tempo );
+        m_pTFilter_ScaleTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pScaleTextureFinal = m_pScaleTextureSwap;
+    } else if ( m_pTFilter_PositionTexture ) {
+        m_bScaleTextureSwapOn = true;
+        //m_pTFilter_PositionTexture->Apply( &m_EffectState.tempo );
+        m_pTFilter_ScaleTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pScaleTextureFinal = m_pScaleTexture;
+    }
+
     if (stateArray==NULL) {
       numParticles = m_rows * m_cols;
       stateArray = new GLfloat[4 * numParticles]();
@@ -1690,8 +1702,51 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  //GL_ARB_vertex_buffer_object
+  tName = "particlesfractal_scale_swap_fx#"+this->GetLabelName()+"_";
+  Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
+  if (Mid>0) {
+      m_pScaleTextureSwap = TextureMan()->GetTexture(Mid);
+      m_pScaleTextureSwap->BuildEmpty( p_cols, p_rows );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
 
+  //GL_ARB_vertex_buffer_object
+  /// CREATE FILTER FOR SCALE !! (SWAP)
+  if ( !m_pTFilter_ScaleTextureSwap && m_pScaleTexture && m_pScaleTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add(
+                      //+  moText(" shaders/Birth.cfg res:64x64 " )
+                      m_pStateTextureSwap->GetName()
+                      + " " + m_pVelocityTextureSwap->GetName()
+                      + " " + m_pScaleTexture->GetName()
+                      + " " + m_MediumTextureLoadedName
+                      + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
+                      + " " + m_pScaleTextureSwap->GetName() );
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_ScaleTextureSwap = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_PositionTextureSwap: ") + m_pTFilter_ScaleTextureSwap->GetTextureFilterLabelName() );
+    }
+  }
+
+  /// CREATE FILTER FOR SCALE !! ()
+  if ( !m_pTFilter_ScaleTexture && m_pScaleTexture && m_pScaleTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add(//+  moText(" shaders/Birth.cfg res:64x64 " )
+                      m_pStateTexture->GetName()
+                      + " " + m_pVelocityTexture->GetName()
+                      + " " + m_pScaleTextureSwap->GetName()
+                      + " " + m_MediumTextureLoadedName
+                      + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
+                      + " " + m_pScaleTexture->GetName() );
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_ScaleTexture = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_ScaleTexture: ") + m_pTFilter_ScaleTexture->GetTextureFilterLabelName() );
+    }
+  }
 
 
 }
