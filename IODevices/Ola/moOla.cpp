@@ -276,6 +276,9 @@ moOla::Init() {
       for(int a=0;a<(300*4*3);a++) {
         m_pData[a] = 127;
       }
+      if (m_pOlaTexture && m_pData) {
+        m_pOlaTexture->BuildFromBuffer( 300, 4, m_pData, GL_RGB, GL_UNSIGNED_BYTE );
+      }
     }
 
     m_pPixelIndex = new moInlet();
@@ -331,6 +334,7 @@ moOla::Init() {
 	moDefineParamIndex( OLA_BLUE, moText("blue") );
 	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
 	moDefineParamIndex( OLA_STARTUNIVERSE, moText("startuniverse") );
+	moDefineParamIndex( OLA_MODE, moText("mode") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -524,6 +528,7 @@ moOla::Update(moEventList *Events) {
     double alpha = m_Config.Eval(moR(OLA_ALPHA));
     //int startuniverse = min( 1, max( 1, m_Config.Int(moR(OLA_STARTUNIVERSE)) ) );
     int startuniverse = m_Config.Int(moR(OLA_STARTUNIVERSE));
+    int mode = m_Config.Int(moR(OLA_MODE));
     /**
     red = 0;
     green = 0;
@@ -535,6 +540,7 @@ moOla::Update(moEventList *Events) {
     long pindex = 0;
     long pindexrgb = 0;
     int pixelperstring = 300;
+<<<<<<< HEAD
     unsigned int rgbindexmax = 170;//512 / 3 = 170 -> 170*3 = 510
 
     /// 170 = floor( 512 / 3 )
@@ -658,10 +664,151 @@ moOla::Update(moEventList *Events) {
             if (pincol) {
               pincol->GetData()->SetDouble(0);
               pincol->Update(true);
+=======
+    unsigned int rgbindexmax = 170;///512 / 3 = 170 -> 170*3 = 510
+    /// 170 = floor( 512 / 3 )
+    /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512(doesnt exist!)
+
+    if (mode==1) {
+      int TGLId = m_Config.GetGLId( moR(OLA_TEXTURE), this );
+      glBindTexture( GL_TEXTURE_2D, TGLId );
+      glGetTexImage( GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pData );
+    }
+
+    for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
+        for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
+
+
+          if (m_pPixelIndex) {
+            m_pPixelIndex->GetData()->SetLong(pindexrgb);
+            m_pPixelIndex->Update(true);
+          }
+          int row = (int)  ( pindex / pixelperstring);
+          int col = (int)  ( pindex % pixelperstring);
+          if (ncols<pixelperstring) {
+            col = (int) col / ( pixelperstring / ncols ) ;
+          }
+
+          int x = (int) ( pindexrgb % pixelperstring );
+          int y = (int) ( pindexrgb / pixelperstring );
+          //MODebug2->Message( "pindex:"+IntToStr(pindex)+" row:"+IntToStr(row)+" col:"+IntToStr(col) );
+
+          if (m_pPixelIndexX) {
+            m_pPixelIndexX->GetData()->SetDouble(x);
+            m_pPixelIndexX->Update(true);
+          }
+
+          if (m_pPixelIndexY) {
+            m_pPixelIndexY->GetData()->SetDouble(y);
+            m_pPixelIndexY->Update(true);
+          }
+/**
+          int prow = GetInletIndex( moText("row")+IntToStr(row) );
+          if (prow>-1) {
+            moInlet* pinrow = m_Inlets[prow];
+            if (pinrow) {
+              pinrow->GetData()->SetDouble(1);
+              pinrow->Update(true);
+            }
+          }
+
+          int pcol = GetInletIndex( moText("col")+IntToStr(col) );
+          if (pcol>-1) {
+            moInlet* pincol = m_Inlets[pcol];
+            if (pincol) {
+              pincol->GetData()->SetDouble(1);
+              pincol->Update(true);
+            }
+          }
+*/
+
+          int rgbiidx = (y*pixelperstring+x)*3;
+
+          if (mode==0) {
+            red = m_Config.Eval(moR(OLA_RED));
+            green = m_Config.Eval(moR(OLA_GREEN));
+            blue = m_Config.Eval(moR(OLA_BLUE));
+            alpha = m_Config.Eval(moR(OLA_ALPHA));
+
+            unsigned char ired = 255*red*alpha;
+            unsigned char igreen = 255*green*alpha;
+            unsigned char iblue = 255*blue*alpha;
+
+            if (m_pData && 0<=x && x<pixelperstring && 0<=y && y<4) {
+              m_pData[ rgbiidx+2 ] = iblue;
+              m_pData[ rgbiidx+1 ] = igreen;
+              m_pData[ rgbiidx ] = ired;
+>>>>>>> e98aa02eab7f89ada9db9faec1db5e9b07ac095d
+            }
+          } else if (mode==1) {
+
+          }
+
+
+          if (m_pData) {
+            buffer.SetChannel( cha*3, (unsigned char) m_pData[rgbiidx] );
+            buffer.SetChannel( cha*3+1, (unsigned char) m_pData[rgbiidx+1] );
+            buffer.SetChannel( cha*3+2, (unsigned char) m_pData[rgbiidx+2] );
+          }
+
+
+/**
+            for ( colorv1 = 0; colorv1 < steps; colorv1++) {
+               int red =255*colorv1/steps;
+                int green = red;
+                int blue = red;
+                buffer.SetChannel( cha*3, red  );
+                buffer.SetChannel( cha*3+1, green  );
+                buffer.SetChannel( cha*3+2, blue );
+                if (!ola_client.SendDmx( uni, buffer ) ) {
+                    //cout << "Send DMX failed" << endl;
+                    return false;
+              }// else cout << "Send DMX ok" << i << endl;
+                if (debug_on) {
+                    cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
+              }
+                usleep(3); // sleep for 25ms between frames.
+            }
+            for ( colorv2 = steps-1; colorv2 > 0; colorv2--) {
+                int red = 255*colorv2/steps;
+                int green = red;
+                int blue = red;
+                buffer.SetChannel( cha*3, red  );
+                buffer.SetChannel( cha*3+1, green  );
+                buffer.SetChannel( cha*3+2, blue  );
+                if (!ola_client.SendDmx( uni, buffer ) ) {
+                    //cout << "Send DMX failed" << endl;
+                    return false;
+                }// else cout << "Send DMX ok" << i << endl;
+                if (debug_on) {
+                    cout << "Send DMX ok. Cha: " << cha << " val2:" << colorv2 << endl;
+                }
+                usleep(3); // sleep for 25ms between frames.
+            }
+            buffer.SetChannel( cha*3, 0  );
+            buffer.SetChannel( cha*3+1, 0  );
+            buffer.SetChannel( cha*3+2, 0  );
+            usleep(2);
+*/
+/**
+          if (prow>-1) {
+            moInlet* pinrow = m_Inlets[prow];
+            if (pinrow) {
+              pinrow->GetData()->SetDouble(0);
+              pinrow->Update(true);
+            }
+          }
+
+          if (pcol>-1) {
+            moInlet* pincol = m_Inlets[pcol];
+            if (pincol) {
+              pincol->GetData()->SetDouble(0);
+              pincol->Update(true);
             }
           }
           */
 
+<<<<<<< HEAD
           pindex++;
           pindexrgb++;
 
@@ -727,7 +874,75 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("testmode"), MO_PARAM_NUMERIC, OLA_TESTMODE, moValue( "0", "NUM").Ref(), moText("None,") );
 	p_configdefinition->Add( moText("testoffset"), MO_PARAM_NUMERIC, OLA_TESTOFFSET, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("checkserver"), MO_PARAM_NUMERIC, OLA_CHECKSERVER, moValue( "0", "NUM").Ref() );
+=======
+          pindex++;
+          pindexrgb++;
+
+        }
+      if (!ola_client.SendDmx( uni, buffer ) ) {
+        //MODebug2->Error("Couldnt send buffer");
+      }
+    }
+
+
+    if (m_pOlaTexture && m_pData) {
+        m_pOlaTexture->BuildFromBuffer( 300, 4, m_pData, GL_RGB, GL_UNSIGNED_BYTE );
+    }
+
+	//m_Codes
+/*
+	actual = Events->First;
+	//recorremos todos los events y parseamos el resultado
+	//borrando aquellos que ya usamos
+	MOint tempval;
+	while(actual!=NULL) {
+		//solo nos interesan los del ola q nosotros mismos generamos, para destruirlos
+		if(actual->deviceid == MO_IODEVICE_OLA) {
+
+		    ///actual->reservedvalue1 corresponds to CC ola code : it works as a n index in m_Codes (has to be defined in param "code" in the config file...
+		    ///actual->reservedvalue2 corresponds to VAL
+
+			moOlaDataCode pcode = m_Codes.Get( actual->reservedvalue1 );
+
+			//tempval = actual->reservedvalue2;
+			//calculamos la diferencia y modificamos el valor del evento...
+			//actual->reservedvalue2 = (tempval - pcode.oladata.m_Val) * 8;
+			//actual->reservedvalue2 = ( tempval - 64)*4;
+			//guardamos el valor actual para calcular la proxima
+			pcode.oladata.m_Val = actual->reservedvalue2;
+			m_Codes.Set( actual->reservedvalue1, pcode );
+			if (actual->reservedvalue2>0) SetStatus( actual->reservedvalue1, MO_ON );
+			else  SetStatus( actual->reservedvalue1, MO_OFF );
+
+			actual = actual->next;
+		} else actual = actual->next;//no es nuestro pasamos al next
+	}
+
+*/
+    moMoldeoObject::Update(Events);
+}
+
+moConfigDefinition *
+moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
+
+	//default: alpha, color, syncro
+	p_configdefinition = moIODevice::GetDefinition( p_configdefinition );
+
+	p_configdefinition->Add( moText("oladevice"), MO_PARAM_TEXT, OLA_DEVICE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, OLA_TEXTURE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("red"), MO_PARAM_FUNCTION, OLA_RED, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("green"), MO_PARAM_FUNCTION, OLA_GREEN, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("blue"), MO_PARAM_FUNCTION, OLA_BLUE, moValue("0.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("alpha"), MO_PARAM_FUNCTION, OLA_ALPHA, moValue("1.0","FUNCTION").Ref() );
+	p_configdefinition->Add( moText("startuniverse"), MO_PARAM_NUMERIC, OLA_STARTUNIVERSE, moValue( "1", "NUM").Ref() );
+	p_configdefinition->Add( moText("leds"), MO_PARAM_NUMERIC, OLA_LEDS, moValue( "50", "NUM").Ref() );
+	p_configdefinition->Add( moText("rgbtype"), MO_PARAM_NUMERIC, OLA_RGBTYPE, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("testmode"), MO_PARAM_NUMERIC, OLA_TESTMODE, moValue( "0", "NUM").Ref(), moText("None,") );
+	p_configdefinition->Add( moText("testoffset"), MO_PARAM_NUMERIC, OLA_TESTOFFSET, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("checkserver"), MO_PARAM_NUMERIC, OLA_CHECKSERVER, moValue( "0", "NUM").Ref() );
+>>>>>>> e98aa02eab7f89ada9db9faec1db5e9b07ac095d
 	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, OLA_MDEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
+	p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, OLA_MODE, moValue( "0", "NUM").Ref(), moText("RGBA,TEXTURE") );
 
 	return p_configdefinition;
 }

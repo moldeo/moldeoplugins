@@ -3,7 +3,7 @@ libmoldeo_particlessimple_la_SOURCES = moEffectParticlesSimple.cpp moEffectParti
 libmoldeo_particlessimple_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmoldeo_particlessimple_la_LDFLAGS =
 libmoldeo_particlessimple_la_LIBADD = 
-libmoldeo_particlessimple_la_LIBS = ${LIBMOLDEO_LIBS}
+libmoldeo_particlessimple_la_LIBS = ${LIBMOLDEO_LIBS} -lglut
 
 moduletype = effects
 datadir = ${prefix}/share/moldeo

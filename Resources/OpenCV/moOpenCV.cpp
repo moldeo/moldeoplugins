@@ -369,6 +369,13 @@ MOboolean moOpenCV::Init() {
     m_Inlets.Add(m_pContourIndex);
   }
 
+  m_pLineIndex = new moInlet();
+
+  if (m_pLineIndex) {
+    ((moConnector*)m_pLineIndex)->Init( moText("lineindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pLineIndex);
+  }
+
 
     UpdateParameters();
 
@@ -401,7 +408,7 @@ void moOpenCV::UpdateParameters() {
   m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
   m_crop_max_y =  m_Config.Eval( moR(OPENCV_CROP_MAX_Y));
 
-  m_line_thickness = m_Config.Eval( moR(OPENCV_LINE_THICKNESS));
+  m_line_thickness = fabs( m_Config.Eval( moR(OPENCV_LINE_THICKNESS)) );
   m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
   m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
   m_line_steps = m_Config.Eval( moR(OPENCV_LINE_STEPS));
@@ -2024,6 +2031,8 @@ hierarchy[2] = contour 2
 */
     int idx = 0;
 
+
+
     if (contours.size())
     for( ; idx >= 0; idx = hierarchy[idx][0] )
     {
@@ -2037,6 +2046,7 @@ hierarchy[2] = contour 2
                 m_pContourIndex->Update(true);
             }
           }
+
           m_line_color = m_Config.EvalColor(moR( OPENCV_COLOR ));
           Scalar color( m_line_color.Z()*255, m_line_color.Y()*255, m_line_color.X()*255  );
           //drawContours( dstblobs, contours, idx, color, /*CV_FILLED*/m_line_thickness, CV_AA, hierarchy );
@@ -2047,17 +2057,70 @@ hierarchy[2] = contour 2
             int ivfirst;
             int ivlast = -1;
             ivfirst = m_line_steps;
+            Point2f pfrom, pto;
+            pfrom = contours[idx][0];
+
+            if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              Point2f centerx = center[idx];
+              Point2f vertex = pto;
+              Point2f dis = vertex -centerx;
+              float nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+
             for( iv=m_line_steps; iv<(contours[idx].size()-m_line_steps); iv+=m_line_steps ) {
-              Point pfrom, pto;
-              pfrom = contours[idx][iv-m_line_steps];
+
               pto =  contours[idx][iv];
+
+              if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              centerx = center[idx];
+              vertex = pto;
+              Point2f dis = vertex -centerx;
+              nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+              //Point dir = (center[idx]-pto);
+
               line( dstblobs, pfrom, pto, color, m_line_thickness  );
               line( dstblobs, center[idx], pto, color, m_line_thickness  );
               if (iv!=ivfirst) ivlast = iv;
+              pfrom = pto;
             }
             //close
-            if (ivlast)
-              line( dstblobs, contours[idx][ivlast], contours[idx][0], color, m_line_thickness  );
+            if (ivlast) {
+              pto = contours[idx][0];
+
+              if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              centerx = center[idx];
+              vertex = pto;
+              dis = vertex -centerx;
+              nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+
+              line( dstblobs, pfrom, pto, color, m_line_thickness  );
+            }
           }
         //}
         //fillPoly( dstblobs, contours, color );
