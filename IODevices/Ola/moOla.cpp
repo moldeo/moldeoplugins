@@ -617,9 +617,7 @@ moOla::Update(moEventList *Events) {
 
         }
 
-        if (mode==1) {
-          buffer.Set( m_pData,  );
-        }
+
       if (!ola_client.SendDmx( uni, buffer ) ) {
         //MODebug2->Error("Couldnt send buffer");
       }
