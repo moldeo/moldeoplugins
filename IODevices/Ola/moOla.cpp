@@ -553,27 +553,6 @@ moOla::Update(moEventList *Events) {
     for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
         for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
 
-
-
-/**
-          int prow = GetInletIndex( moText("row")+IntToStr(row) );
-          if (prow>-1) {
-            moInlet* pinrow = m_Inlets[prow];
-            if (pinrow) {
-              pinrow->GetData()->SetDouble(1);
-              pinrow->Update(true);
-            }
-          }
-
-          int pcol = GetInletIndex( moText("col")+IntToStr(col) );
-          if (pcol>-1) {
-            moInlet* pincol = m_Inlets[pcol];
-            if (pincol) {
-              pincol->GetData()->SetDouble(1);
-              pincol->Update(true);
-            }
-          }
-*/
           int x = (int) ( pindexrgb % pixelperstring );
           int y = (int) ( pindexrgb / pixelperstring );
           int rgbiidx = (y*pixelperstring+x)*3;
@@ -622,6 +601,7 @@ moOla::Update(moEventList *Events) {
               buffer.SetChannel( cha*3, (unsigned char) m_pData[rgbiidx] );
               buffer.SetChannel( cha*3+1, (unsigned char) m_pData[rgbiidx+1] );
               buffer.SetChannel( cha*3+2, (unsigned char) m_pData[rgbiidx+2] );
+
             }
           } else if (mode==1) {
             if (m_pData) {
@@ -631,66 +611,6 @@ moOla::Update(moEventList *Events) {
             }
 
           }
-
-
-
-
-
-/**
-            for ( colorv1 = 0; colorv1 < steps; colorv1++) {
-               int red =255*colorv1/steps;
-                int green = red;
-                int blue = red;
-                buffer.SetChannel( cha*3, red  );
-                buffer.SetChannel( cha*3+1, green  );
-                buffer.SetChannel( cha*3+2, blue );
-                if (!ola_client.SendDmx( uni, buffer ) ) {
-                    //cout << "Send DMX failed" << endl;
-                    return false;
-              }// else cout << "Send DMX ok" << i << endl;
-                if (debug_on) {
-                    cout << "Send DMX ok. Cha: " << cha << " val1:" << colorv1 << endl;
-              }
-                usleep(3); // sleep for 25ms between frames.
-            }
-            for ( colorv2 = steps-1; colorv2 > 0; colorv2--) {
-                int red = 255*colorv2/steps;
-                int green = red;
-                int blue = red;
-                buffer.SetChannel( cha*3, red  );
-                buffer.SetChannel( cha*3+1, green  );
-                buffer.SetChannel( cha*3+2, blue  );
-                if (!ola_client.SendDmx( uni, buffer ) ) {
-                    //cout << "Send DMX failed" << endl;
-                    return false;
-                }// else cout << "Send DMX ok" << i << endl;
-                if (debug_on) {
-                    cout << "Send DMX ok. Cha: " << cha << " val2:" << colorv2 << endl;
-                }
-                usleep(3); // sleep for 25ms between frames.
-            }
-            buffer.SetChannel( cha*3, 0  );
-            buffer.SetChannel( cha*3+1, 0  );
-            buffer.SetChannel( cha*3+2, 0  );
-            usleep(2);
-*/
-/**
-          if (prow>-1) {
-            moInlet* pinrow = m_Inlets[prow];
-            if (pinrow) {
-              pinrow->GetData()->SetDouble(0);
-              pinrow->Update(true);
-            }
-          }
-
-          if (pcol>-1) {
-            moInlet* pincol = m_Inlets[pcol];
-            if (pincol) {
-              pincol->GetData()->SetDouble(0);
-              pincol->Update(true);
-            }
-          }
-          */
 
           pindex++;
           pindexrgb++;
@@ -710,38 +630,9 @@ moOla::Update(moEventList *Events) {
         m_pOlaTexture->BuildFromBuffer( 300, 4, m_pData, GL_RGB, GL_UNSIGNED_BYTE );
     }
 
-	//m_Codes
-/*
-	actual = Events->First;
-	//recorremos todos los events y parseamos el resultado
-	//borrando aquellos que ya usamos
-	MOint tempval;
-	while(actual!=NULL) {
-		//solo nos interesan los del ola q nosotros mismos generamos, para destruirlos
-		if(actual->deviceid == MO_IODEVICE_OLA) {
-
-		    ///actual->reservedvalue1 corresponds to CC ola code : it works as a n index in m_Codes (has to be defined in param "code" in the config file...
-		    ///actual->reservedvalue2 corresponds to VAL
-
-			moOlaDataCode pcode = m_Codes.Get( actual->reservedvalue1 );
-
-			//tempval = actual->reservedvalue2;
-			//calculamos la diferencia y modificamos el valor del evento...
-			//actual->reservedvalue2 = (tempval - pcode.oladata.m_Val) * 8;
-			//actual->reservedvalue2 = ( tempval - 64)*4;
-			//guardamos el valor actual para calcular la proxima
-			pcode.oladata.m_Val = actual->reservedvalue2;
-			m_Codes.Set( actual->reservedvalue1, pcode );
-			if (actual->reservedvalue2>0) SetStatus( actual->reservedvalue1, MO_ON );
-			else  SetStatus( actual->reservedvalue1, MO_OFF );
-
-			actual = actual->next;
-		} else actual = actual->next;//no es nuestro pasamos al next
-	}
-
-*/
     moMoldeoObject::Update(Events);
 }
+
 
 moConfigDefinition *
 moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
