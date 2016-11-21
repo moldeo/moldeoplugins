@@ -150,7 +150,8 @@ class moOscPacketListener : public moAbstract {
         moOutlet*   pOutOrientationZ; //azimuth
 
 
-
+        moOutlet* pOutAndiamoX;
+        moOutlet* pOutAndiamoY;
 };
 
 moDeclareDynamicArray( moOscPacketListener*, moOscPacketListeners )

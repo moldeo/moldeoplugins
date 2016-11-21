@@ -100,6 +100,9 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutHoriValue = NULL;
     pOutVertiValue = NULL;
 
+    pOutAndiamoX = NULL;
+    pOutAndiamoY = NULL;
+
 
     debug_is_on = false;
 }
@@ -232,6 +235,14 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
 
                 if (pOutlet->GetConnectorLabelName() == moText("VERTIEYE")) {
                     pOutVertiValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ANDIAMOX")) {
+                    pOutAndiamoX = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ANDIAMOY")) {
+                    pOutAndiamoY = pOutlet;
                 }
 
 
@@ -402,6 +413,26 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                                             + FloatToStr(Freq.Double())
                                             + moText(" Val:")
                                             + FloatToStr(Value.Double()) );
+        }
+
+        if (
+            DataCode.Text() == moText("ANDIAMO")
+            && message.Count()>=2
+            ) {
+            moData Cx = message.Get(1);
+            moData Cy = message.Get(2);
+            if (pOutAndiamoX) {
+                pOutAndiamoX->GetData()->SetDouble(Cx.Double());
+                pOutAndiamoX->Update();
+            }
+            if (pOutAndiamoY) {
+                pOutAndiamoY->GetData()->SetDouble(Cy.Double());
+                pOutAndiamoY->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Andiamo X,Y, Cx: " )
+                                            + FloatToStr(Cx.Double())
+                                            + moText(", Cy: ")
+                                            + FloatToStr(Cy.Double()) );
         }
 
         if ( DataCode.Text() == moText("EVENT") ) {
@@ -722,6 +753,9 @@ moOscPacketListener* self = NULL;
                 message.Add( data0 );
             } else if ( addresspath == moText("/beatlow") ) {
                 data0 = moData( moText( "BEATLOW" ) );
+                message.Add( data0 );
+            } else if ( addresspath == moText("/andiamo") ) {
+                data0 = moData( moText( "ANDIAMO" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/opencv") ) {
                 data0 = moData( moText( "OPENCV" ) );
