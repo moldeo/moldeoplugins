@@ -406,7 +406,7 @@ void moEffectRegularSolid::recursive_render (const aiScene *sc, const aiNode* nd
 //  Efecto
 //========================
 moEffectRegularSolid::moEffectRegularSolid() {
-	SetName("assimp");
+	SetName("regularsolid");
 }
 
 moEffectRegularSolid::~moEffectRegularSolid() {
@@ -429,6 +429,9 @@ MOboolean moEffectRegularSolid::Init() {
 	moDefineParamIndex( REGULARSOLID_DIFFUSE, moText("diffuse") );
 	moDefineParamIndex( REGULARSOLID_POLYGONMODE, moText("polygonmode") );
 	moDefineParamIndex( REGULARSOLID_BLENDING, moText("blending") );
+	moDefineParamIndex( REGULARSOLID_SEGMENTSA, moText("segmentsa") );
+	moDefineParamIndex( REGULARSOLID_SEGMENTSB, moText("segmentsb") );
+	moDefineParamIndex( REGULARSOLID_SEGMENTSC, moText("segmentsc") );
 	moDefineParamIndex( REGULARSOLID_TRANSLATEX, moText("translatex") );
 	moDefineParamIndex( REGULARSOLID_TRANSLATEY, moText("translatey") );
 	moDefineParamIndex( REGULARSOLID_TRANSLATEZ, moText("translatez") );
@@ -452,8 +455,9 @@ MOboolean moEffectRegularSolid::Init() {
 
 
 
-	Tx = 1; Ty = 1; Tz = 1;
+	Tx = 0; Ty = 0; Tz = 0;
 	Sx = 1; Sy = 1; Sz = 1;
+	Rx = 0; Ry = 0; Rz = 0;
 
 //  str = (aiString*)malloc(sizeof(struct aiString));
 
@@ -550,13 +554,27 @@ void moEffectRegularSolid::UpdateRotation()
 
 void moEffectRegularSolid::UpdateParameters() {
 
-  int solid_object = m_Config.Int( moR(REGULARSOLID_OBJECT) );
 
-  if (solid_object!=m_SolidObject) {
+  Tx = m_Config.Eval( moR(REGULARSOLID_TRANSLATEX));
+  Ty = m_Config.Eval( moR(REGULARSOLID_TRANSLATEY));
+  Tz = m_Config.Eval( moR(REGULARSOLID_TRANSLATEZ));
+  Sx = m_Config.Eval( moR(REGULARSOLID_SCALEX) );
+  Sy = m_Config.Eval( moR(REGULARSOLID_SCALEY) );
+  Sz = m_Config.Eval( moR(REGULARSOLID_SCALEZ) );
+  Rx = m_Config.Eval( moR(REGULARSOLID_ROTATEX) );
+  Ry = m_Config.Eval( moR(REGULARSOLID_ROTATEY) );
+  Rz = m_Config.Eval( moR(REGULARSOLID_ROTATEZ) );
+
+  int solid_object = m_Config.Int( moR(REGULARSOLID_TEXTURE) );
+  float sA = m_Config.Int( moR(REGULARSOLID_SEGMENTSA) );
+  float sB = m_Config.Int( moR(REGULARSOLID_SEGMENTSB) );
+  float sC = m_Config.Int( moR(REGULARSOLID_SEGMENTSC) );
+
+  if (solid_object!=m_SolidObject || sA!=m_SegmentsA || sB!=m_SegmentsB || sC!=m_SegmentsC) {
 
         switch(solid_object) {
             case REGULARSOLID_OBJECT_TETRA:
-                moBoxGeometry();
+
                 break;
             case REGULARSOLID_OBJECT_HEXA:
                 break;
@@ -567,11 +585,16 @@ void moEffectRegularSolid::UpdateParameters() {
             case REGULARSOLID_OBJECT_DODECA:
                 break;
             case REGULARSOLID_OBJECT_SPHERE:
+                ///float radius, int widthSegments, int heightSegments, float phiStart, float phiLength, float thetaStart, float thetaLength
+                m_Sphere = moSphereGeometry( 1.0f, m_SegmentsA, m_SegmentsB  );
                 break;
             case REGULARSOLID_OBJECT_PLANE:
                 break;
         }
     m_SolidObject = solid_object;
+    m_SegmentsA = sA;
+    m_SegmentsB = sB;
+    m_SegmentsC = sC;
   }
 
   /*if ( AssetFile.GetCompletePath() != testasset ) {
@@ -586,12 +609,39 @@ void moEffectRegularSolid::UpdateParameters() {
   }
 */
 
+  moData* TD = m_Config[moR(REGULARSOLID_TEXTURE)].GetData();
+  if (TD && TD->Texture()==NULL) UpdateConnectors();
+	///MATERIAL
+	///pTMan->GetTextureMOId( "default", false )
+  if (TD) m_Mat.m_Map = TD->Texture();
+  m_Mat.m_MapGLId = m_Config.GetGLId( moR(REGULARSOLID_TEXTURE), this );///Mat.m_Map->GetGLId();
+  m_Mat.m_Color = m_Effect3D.m_Material.m_Color;
+  m_Mat.m_fOpacity = m_Effect3D.m_Material.m_fOpacity;
+  m_Mat.m_fTextWSegments = sA;
+  m_Mat.m_fTextHSegments = sB;
+  m_Mat.m_vLight = moVector3f( 0.0, 0.0, -1.0 );
+  m_Mat.m_vLight.Normalize();
+  //Mat.m_PolygonMode = MO_POLYGONMODE_LINE;
+  m_Mat.m_PolygonMode = MO_POLYGONMODE_FILL;
+  //m_Mat.m_fWireframeWidth = 0.0005f;
+  m_Mat.m_fWireframeWidth = 0.0f;
 
+  eyeX = m_Config.Eval( moR(REGULARSOLID_EYEX));
+  eyeY = m_Config.Eval( moR(REGULARSOLID_EYEY));
+  eyeZ = m_Config.Eval( moR(REGULARSOLID_EYEZ));
+
+  viewX = m_Config.Eval( moR(REGULARSOLID_VIEWX));
+  viewY = m_Config.Eval( moR(REGULARSOLID_VIEWY));
+  viewZ = m_Config.Eval( moR(REGULARSOLID_VIEWZ));
+
+  upX = 0;
+  upY = 1;
+  upZ = 0;
 
 
 }
 
-void moEffectRegularSolid::RenderModel() {
+int moEffectRegularSolid::RenderModel( int w, int h) {
 
 /*  if (loadedAsset!=AI_SUCCESS) {
 
@@ -601,20 +651,44 @@ void moEffectRegularSolid::RenderModel() {
 */
 	if(scene_list == 0) {
 
-	    scene_list = glGenLists(1);
+	    /*scene_list = glGenLists(1);
 	    glNewList(scene_list, GL_COMPILE);
 
-
+*/
 
 
     // now begin at the root node of the imported data and traverse
     // the scenegraph by multiplying subsequent local transforms
     // together on GL's matrix stack.
 //	    recursive_render(scene, scene->mRootNode, 1.0 /*scale*/);
-	    glEndList();
+	    /*glEndList();*/
 	}
 
-	glCallList(scene_list);
+
+///GEOMETRY
+    ///check UpdateParameters
+
+    ///MESH MODEL (aka SCENE NODE)
+    m_Model.MakeIdentity()
+         .Rotate( Rz*moMathf::DEG_TO_RAD, 0.0, 0.0, 1.0 )
+         .Rotate( Ry*moMathf::DEG_TO_RAD, 0.0, 1.0, 0.0 )
+         .Rotate( Rx*moMathf::DEG_TO_RAD, 1.0, 0.0, 0.0 )
+         .Scale( Sx, Sy, Sz )
+         .Translate( Tx, Ty, Tz );
+    moMesh Mesh( m_Sphere, m_Mat );
+    Mesh.SetModelMatrix(m_Model);
+
+    ///CAMERA PERSPECTIVE
+    moCamera3D Camera3D;
+    m_pResourceManager->GetGLMan()->SetDefaultPerspectiveView( w, h );
+    m_pResourceManager->GetGLMan()->LookAt( eyeX, eyeY, eyeZ, viewX, viewY, viewZ, upX, upY, upZ );
+    //  Camera3D.MakePerspective(60.0f, p_display_info.Proportion(), 0.01f, 1000.0f );
+    Camera3D = m_pResourceManager->GetGLMan()->GetProjectionMatrix();
+
+    ///RENDERING
+    m_pResourceManager->GetRenderMan()->Render( &Mesh, &Camera3D );
+
+	//glCallList(scene_list);
 }
 
 void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
@@ -626,7 +700,7 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     PreDraw( tempogral, parentstate);
 
-
+/**
     glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
     glPushMatrix();
     m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
@@ -640,7 +714,7 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
                     m_Config.Eval( moR(REGULARSOLID_VIEWY)),
                     m_Config.Eval( moR(REGULARSOLID_VIEWZ)),
                     0, 1, 0);
-
+*/
 
 
     // Guardar y resetar la matriz de vista del modelo //
@@ -659,8 +733,9 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
     glEnable(GL_DEPTH_TEST);		// Enables Depth Testing
     glDepthFunc(GL_LEQUAL);			// The Type Of Depth Test To Do
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculation
+    glDisable(GL_BLEND);
 
-
+/**
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);    // Uses default lighting parameters
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -681,7 +756,7 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
     LightPosition[1] = m_Config.Eval( moR(REGULARSOLID_LIGHTY) );
     LightPosition[2] =  m_Config.Eval( moR(REGULARSOLID_LIGHTZ) );
     glLightfv(GL_LIGHT0,GL_POSITION,LightPosition);
-
+*/
     // XXX docs say all polygons are emitted CCW, but tests show that some aren't.
     //if(getenv("MODEL_IS_BROKEN"))
     glFrontFace(GL_CW);
@@ -778,7 +853,7 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
   SetColor( m_Config[moR(REGULARSOLID_COLOR)], m_Config[moR(REGULARSOLID_ALPHA)], m_EffectState );
 
 	SetBlending( (moBlendingModes) m_Config.Int( moR(REGULARSOLID_BLENDING) ) );
-
+/**
 	glTranslatef(   m_Config.Eval( moR(REGULARSOLID_TRANSLATEX) ),
                   m_Config.Eval( moR(REGULARSOLID_TRANSLATEY) ),
                   m_Config.Eval( moR(REGULARSOLID_TRANSLATEZ) ));
@@ -790,7 +865,7 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
 	glScalef(   m_Config.Eval( moR(REGULARSOLID_SCALEX) ),
                 m_Config.Eval( moR(REGULARSOLID_SCALEY) ),
                 m_Config.Eval( moR(REGULARSOLID_SCALEZ) ));
-
+*/
 
   /*float tmp = scene_max.x-scene_min.x;
 	tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
@@ -803,7 +878,9 @@ void moEffectRegularSolid::Draw( moTempo* tempogral,moEffectState* parentstate)
 
   // if the display list has not been made yet, create a new one and
   // fill it with scene contents
-  RenderModel();
+
+  RenderModel( w, h );
+
 	glDisable(GL_NORMALIZE);
 	glDisable(GL_LIGHTING);
 
@@ -912,6 +989,9 @@ moEffectRegularSolid::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("diffuse"), MO_PARAM_COLOR, REGULARSOLID_DIFFUSE );
 	p_configdefinition->Add( moText("polygonmode"), MO_PARAM_POLYGONMODE, REGULARSOLID_POLYGONMODE, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, REGULARSOLID_BLENDING, moValue( "0", "NUM").Ref() );
+	p_configdefinition->Add( moText("segmentsa"), MO_PARAM_NUMERIC, REGULARSOLID_SEGMENTSA, moValue( "8", "NUM").Ref() );
+	p_configdefinition->Add( moText("segmentsb"), MO_PARAM_NUMERIC, REGULARSOLID_SEGMENTSB,  moValue( "8", "NUM").Ref() );
+	p_configdefinition->Add( moText("segmentsc"), MO_PARAM_NUMERIC, REGULARSOLID_SEGMENTSC,  moValue( "8", "NUM").Ref() );
 	p_configdefinition->Add( moText("translatex"), MO_PARAM_TRANSLATEX, REGULARSOLID_TRANSLATEX );
 	p_configdefinition->Add( moText("translatey"), MO_PARAM_TRANSLATEY, REGULARSOLID_TRANSLATEY );
 	p_configdefinition->Add( moText("translatez"), MO_PARAM_TRANSLATEZ, REGULARSOLID_TRANSLATEZ );

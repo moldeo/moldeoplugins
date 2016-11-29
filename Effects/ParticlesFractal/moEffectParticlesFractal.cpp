@@ -1384,7 +1384,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 */
 
 
-  tName = "particlesfractal_medium_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_medium_swap_fx#"+this->GetLabelName()+"_";
 
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
@@ -1397,7 +1397,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   }
 
 
-  tName = "particlesfractal_medium_fx#"+this->GetLabelName()+"_";
+  tName = "pf_medium_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pMediumTexture = TextureMan()->GetTexture(Mid);
@@ -1452,7 +1452,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 */
 
 
-  tName = "particlesfractal_state_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_state_swap_fx#"+this->GetLabelName()+"_";
 
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
@@ -1465,7 +1465,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   }
 
 
-  tName = "particlesfractal_state_fx#"+this->GetLabelName()+"_";
+  tName = "pf_state_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pStateTexture = TextureMan()->GetTexture(Mid);
@@ -1513,7 +1513,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 
 */
 
-  tName = "particlesfractal_genetic_fx#"+this->GetLabelName()+"_";
+  tName = "pf_genetic_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pGeneticTexture = TextureMan()->GetTexture(Mid);
@@ -1523,7 +1523,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  tName = "particlesfractal_genetic_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_genetic_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pGeneticTextureSwap = TextureMan()->GetTexture(Mid);
@@ -1572,7 +1572,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 */
 
   //vx,vy,vz
-  tName = "particlesfractal_velocity_fx#"+this->GetLabelName()+"_";
+  tName = "pf_velocity_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pVelocityTexture = TextureMan()->GetTexture(Mid);
@@ -1583,7 +1583,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   }
 
   //vx,vy,vz
-  tName = "particlesfractal_velocity_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_velocity_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pVelocityTextureSwap = TextureMan()->GetTexture(Mid);
@@ -1594,7 +1594,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   }
 
 //pos x, y, z, alive
-  tName = "particlesfractal_position_fx#"+this->GetLabelName()+"_";
+  tName = "pf_position_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pPositionTexture = TextureMan()->GetTexture(Mid);
@@ -1605,7 +1605,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   }
 
   //pos x, y, z, alive SWAP
-  tName = "particlesfractal_position_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_position_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pPositionTextureSwap = TextureMan()->GetTexture(Mid);
@@ -2031,6 +2031,12 @@ void moEffectParticlesFractal::Draw( moTempo* tempogral, moEffectState* parentst
     sy = m_Config.Eval( moR(PARTICLES_SCALEY));
     sz = m_Config.Eval( moR(PARTICLES_SCALEZ));
 
+
+//scale
+	glScalef(   sx,
+              sy,
+              sz);
+
     glTranslatef(   tx,
                     ty,
                     tz );
@@ -2040,10 +2046,7 @@ void moEffectParticlesFractal::Draw( moTempo* tempogral, moEffectState* parentst
     glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY)), 0.0, 1.0, 0.0 );
     glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEX)), 1.0, 0.0, 0.0 );
 
-	//scale
-	glScalef(   sx,
-              sy,
-              sz);
+
 
     //blending
     SetBlending( (moBlendingModes) m_Config.Int( moR(PARTICLES_BLENDING) ) );

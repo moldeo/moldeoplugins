@@ -85,6 +85,10 @@ enum moRegularSolidParamIndex {
 	REGULARSOLID_DIFFUSE,
 	REGULARSOLID_POLYGONMODE,
 	REGULARSOLID_BLENDING,
+	REGULARSOLID_PRECISION,
+	REGULARSOLID_SEGMENTSA,
+	REGULARSOLID_SEGMENTSB,
+	REGULARSOLID_SEGMENTSC,
 	REGULARSOLID_TRANSLATEX,
 	REGULARSOLID_TRANSLATEY,
 	REGULARSOLID_TRANSLATEZ,
@@ -136,7 +140,7 @@ public:
     int loadasset (const char* path);
     /*void recursive_render (const aiScene *sc, const aiNode* nd, float scale);*/
     /*void apply_material(const aiMaterial *mtl);*/
-
+    int RenderModel( int w, int h);
 
 private:
     /*aiString* str;*/
@@ -144,19 +148,27 @@ private:
 
     MOint g_ViewMode;
 
-    MOfloat	Tx,Ty,Tz,Sx,Sy,Sz;
+    MOint m_SegmentsA;
+    MOint m_SegmentsB;
+    MOint m_SegmentsC;
+
+    MOfloat	Tx,Ty,Tz,Sx,Sy,Sz,Rx,Ry,Rz;
+    MOfloat eyeX,eyeY,eyeZ,viewX,viewY,viewZ,upX,upY,upZ;
 
     bool loadedAsset;
     moFile AssetFile;
     int m_SolidObject;
 
+    moMaterial m_Mat;
+    moGLMatrixf m_Model;
+
     moGeometry* m_pGeometry;
 
-    moTetrahedronGeometry m_Tetra;
+    /*moTetrahedronGeometry m_Tetra;
     moBoxGeometry m_Hexa;
     moOctahedronGeometry m_Octa;
     moIcosahedronGeometry m_Icosa;
-    moDodecahedronGeometry m_Dodeca;
+    moDodecahedronGeometry m_Dodeca;*/
     moSphereGeometry m_Sphere;
 
     // Mouse input.

@@ -698,7 +698,7 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
                     int argc, void *data, void *user_data) {
 #endif
 
-cout << "receiving" << endl;
+//cout << "receiving" << endl;
 
 moOscPacketListener* self = NULL;
 #ifdef OSCPACK
@@ -709,7 +709,7 @@ moOscPacketListener* self = NULL;
   self = (moOscPacketListener*) user_data;
 #endif
 
-        cout << "blocking" << endl;
+        //cout << "blocking" << endl;
         self->m_Semaphore.Lock();
         moDataMessage message;
 
@@ -717,7 +717,7 @@ moOscPacketListener* self = NULL;
         moData  data1;
 
         moText addresspath = path;
-        cout << "addresspath:" << "[" << addresspath << "]" << endl;
+        //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
          addresspath = moText( m.AddressPattern() );
 #endif

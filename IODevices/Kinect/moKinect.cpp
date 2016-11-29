@@ -1841,26 +1841,30 @@ if (update_on>0 && this->Initialized() ) {
                     m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
                     moData pData;
 
-                    pData.SetText( moText("kinect") );
+                    pData.SetText( moText("1/fader1") );
                     m_pDataMessage->Add(pData);
 
-                    pData.SetText( moText("USER") );
+                    /*pData.SetText( moText("USER") );
                     m_pDataMessage->Add(pData);
 
                     pData.SetInt( (int)(i) );
                     m_pDataMessage->Add(pData);
 
                     pData.SetText( moText("TORSOX") );
+                    m_pDataMessage->Add(pData);*/
+
+                    pData.SetFloat(  sqrt(m_VBody.X()*m_VBody.X() + m_VBody.Y()*m_VBody.Y())+ m_VBody.Z()*m_VBody.Z());
                     m_pDataMessage->Add(pData);
 
-                    pData.SetFloat(  m_VBody.X());
-                    m_pDataMessage->Add(pData);
-
+                    /*
                     pData.SetText( moText("TORSOY") );
                     m_pDataMessage->Add(pData);
+*/
+                   // pData.SetFloat(  m_VBody.Y());
+                   // m_pDataMessage->Add(pData);
 
-                    pData.SetFloat(  m_VBody.Y());
-                    m_pDataMessage->Add(pData);
+                   // pData.SetFloat(  m_VBody.Z());
+                   // m_pDataMessage->Add(pData);
                 /*
                     moText ccc = "";
                     for( int c=0; c<m_pDataMessage->Count(); c++) {

@@ -84,6 +84,9 @@ typedef int* TBITMAP;
 
 typedef struct GridDefinition {
 
+    double m_red;
+    double m_green;
+    double m_blue;
     double m_alpha;
 
     int m_escalas;
