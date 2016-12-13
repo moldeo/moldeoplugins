@@ -354,7 +354,8 @@ enum moParticlesFractalParamIndex {
   PARTICLES_UPVIEWX,
 	PARTICLES_UPVIEWY,
 	PARTICLES_UPVIEWZ,
-	PARTICLES_RANDOMCOLORFUNCTION
+	PARTICLES_RANDOMCOLORFUNCTION,
+	PARTICLES_SEPARATION
 	/*
   PARTICLES_ORDERING_MODE,
   PARTICLES_LIGHTMODE,
@@ -974,7 +975,8 @@ class moEffectParticlesFractal : public moEffect
         long time_of_restoration;
         long drawing_features; /// 0: nothing 1: motion  2: all
         long texture_mode;
-
+        float particles_separation;
+        int random_color_function;
 
 
         bool ortho;

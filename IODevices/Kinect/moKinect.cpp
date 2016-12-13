@@ -830,7 +830,7 @@ moKinect::Init() {
         this->m_bInitialized = false;
         return false;
     } else {
-
+        if (m_nRetVal) {
         MODebug2->Message("Kinect User Generator Initialized!!");
 
 
@@ -901,6 +901,7 @@ moKinect::Init() {
 
 
             }
+        }
         }
     }
 

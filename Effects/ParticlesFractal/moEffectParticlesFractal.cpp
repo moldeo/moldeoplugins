@@ -146,6 +146,13 @@ moEffectParticlesFractal::moEffectParticlesFractal() {
   m_pGeneticTextureFinal = NULL;
   m_bGeneticTextureSwapOn = false;
 
+  m_pTFilter_OrientationTexture = NULL;
+	m_pOrientationTexture = NULL;
+  m_pTFilter_OrientationTextureSwap = NULL;
+  m_pOrientationTextureSwap = NULL;
+  m_pOrientationTextureFinal = NULL;
+  m_bOrientationTextureSwapOn = false;
+
   posArray = NULL;
   scaleArray = NULL;
   stateArray = NULL;
@@ -279,7 +286,8 @@ p_configdefinition->Add( moText("upviewx"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWX
 	p_configdefinition->Add( moText("upviewy"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWY, moValue( "1.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("upviewz"), MO_PARAM_FUNCTION, PARTICLES_UPVIEWZ, moValue( "0.0", "FUNCTION").Ref() );
 
-		p_configdefinition->Add( moText("random_color_function"), MO_PARAM_NUMERIC, PARTICLES_RANDOMCOLORFUNCTION, moValue( "0", "NUM").Ref(), moText("NONE,OSCILLATE,RED,GREEN,BLUE,YELLOW") );
+		p_configdefinition->Add( moText("random_color_function"), MO_PARAM_NUMERIC, PARTICLES_RANDOMCOLORFUNCTION, moValue( "0", "NUM").Ref(), moText("NONE,DEGRADE,OSCILLATE,RED,GREEN,BLUE,YELLOW") );
+		p_configdefinition->Add( moText("particles_separation"), MO_PARAM_FUNCTION, PARTICLES_SEPARATION, moValue( "0.0", "FUNCTION").Ref() );
 
 	/*
 		p_configdefinition->Add( moText("orderingmode"), MO_PARAM_NUMERIC, PARTICLES_ORDERING_MODE, moValue( "0", "NUM"), moText("NONE,ZDEPTHTEST,ZPOSITION,COMPLETE") );
@@ -398,6 +406,10 @@ moEffectParticlesFractal::Init()
     moDefineParamIndex( PARTICLES_UPVIEWX, moText("upviewx") );
     moDefineParamIndex( PARTICLES_UPVIEWY, moText("upviewy") );
     moDefineParamIndex( PARTICLES_UPVIEWZ, moText("upviewz") );
+
+    moDefineParamIndex( PARTICLES_RANDOMCOLORFUNCTION, moText("random_color_function") );
+    moDefineParamIndex( PARTICLES_SEPARATION, moText("particles_separation") );
+
     /*
     moDefineParamIndex( PARTICLES_ORDERING_MODE, moText("orderingmode") );
     moDefineParamIndex( PARTICLES_LIGHTMODE, moText("lightmode") );
@@ -770,17 +782,34 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pPositionTextureFinal = m_pPositionTexture;
     }
 
+
     if ( m_bScaleTextureSwapOn && m_pTFilter_ScaleTextureSwap ) {
         m_bScaleTextureSwapOn = false;
-        //m_pTFilter_PositionTextureSwap->Apply( &m_EffectState.tempo );
         m_pTFilter_ScaleTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
         m_pScaleTextureFinal = m_pScaleTextureSwap;
-    } else if ( m_pTFilter_PositionTexture ) {
+    } else if ( m_pTFilter_ScaleTexture ) {
         m_bScaleTextureSwapOn = true;
-        //m_pTFilter_PositionTexture->Apply( &m_EffectState.tempo );
         m_pTFilter_ScaleTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
         m_pScaleTextureFinal = m_pScaleTexture;
     }
+
+/*
+    if ( m_bOrientationTextureSwapOn && m_pTFilter_OrientationTextureSwap ) {
+        m_bOrientationTextureSwapOn = false;
+        //m_pTFilter_PositionTextureSwap->Apply( &m_EffectState.tempo );
+        m_pTFilter_OrientationTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pOrientationTextureFinal = m_pOrientationTextureSwap;
+    } else if ( m_pTFilter_OrientationTexture ) {
+        m_bOrientationTextureSwapOn = true;
+        //m_pTFilter_PositionTexture->Apply( &m_EffectState.tempo );
+        m_pTFilter_OrientationTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pOrientationTextureFinal = m_pOrientationTexture;
+    }
+*/
+
+
+
+
 
     if (stateArray==NULL) {
       numParticles = m_rows * m_cols;
@@ -817,7 +846,7 @@ void moEffectParticlesFractal::UpdateParameters() {
       glBindTexture( GL_TEXTURE_2D, m_pPositionTextureFinal->GetGLId() );
       glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, posArray );
     }
-
+/**
     if (scaleArray==NULL) {
       numParticles = m_rows * m_cols;
       scaleArray = new GLfloat[4 * numParticles]();
@@ -834,7 +863,7 @@ void moEffectParticlesFractal::UpdateParameters() {
 
       glBindTexture( GL_TEXTURE_2D, m_pScaleTextureFinal->GetGLId() );
       glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, scaleArray );
-    }
+    }*/
 
     if (geneticArray==NULL) {
       numParticles = m_rows * m_cols;
@@ -939,7 +968,7 @@ m_pResourceManager->GetFBMan()->GetFBO(FBO[2])->SetReadTexture(m_pResourceManage
 
 
 
-m_Physics.m_MaxAge = (long) m_Config.Eval( moR(PARTICLES_MAXAGE) );
+    m_Physics.m_MaxAge = (long) m_Config.Eval( moR(PARTICLES_MAXAGE) );
     //m_Physics.m_EmitionPeriod = emiperi;
     //emiperi = m_Config[moR(PARTICLES_EMITIONPERIOD)][MO_SELECTED][0].Int() * midi_emitionperiod;
     //m_Physics.m_EmitionPeriod = emiperi;
@@ -1015,6 +1044,8 @@ m_Physics.m_MaxAge = (long) m_Config.Eval( moR(PARTICLES_MAXAGE) );
 
     normalf = m_Physics.m_EmitterSize.X();
 
+    random_color_function = m_Config.Eval(moR(PARTICLES_RANDOMCOLORFUNCTION));
+    particles_separation = m_Config.Eval(moR(PARTICLES_SEPARATION));
 
 }
 
@@ -1711,7 +1742,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 */
 
   //sx,sy,sz
-  tName = "particlesfractal_scale_fx#"+this->GetLabelName()+"_";
+  if (1==2) {
+  tName = "pf_scale_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pScaleTexture = TextureMan()->GetTexture(Mid);
@@ -1721,7 +1753,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  tName = "particlesfractal_scale_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_scale_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pScaleTextureSwap = TextureMan()->GetTexture(Mid);
@@ -1730,34 +1762,35 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   } else {
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
-
+  }
   //GL_ARB_vertex_buffer_object
   /// CREATE FILTER FOR SCALE !! (SWAP)
-  if ( !m_pTFilter_ScaleTextureSwap && m_pScaleTexture && m_pScaleTextureSwap ) {
+  if (1==2 && !m_pTFilter_ScaleTextureSwap && m_pScaleTexture && m_pScaleTextureSwap ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add(
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      m_pStateTextureSwap->GetName()
+                      /*m_pStateTextureSwap->GetName()
                       + " " + m_pPositionTextureSwap->GetName()
-                      + " " + m_pScaleTexture->GetName()
-                      + " " + m_MediumTextureLoadedName
+                      + " " +*/
+                      m_pScaleTexture->GetName()
+                      /*+ " " + m_MediumTextureLoadedName*/
                       + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
                       + " " + m_pScaleTextureSwap->GetName() );
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
     if (idx>0) {
         m_pTFilter_ScaleTextureSwap = pTextureFilterIndex->Get(idx-1);
-        MODebug2->Message( moText("filter loaded m_pTFilter_PositionTextureSwap: ") + m_pTFilter_ScaleTextureSwap->GetTextureFilterLabelName() );
+        MODebug2->Message( moText("filter loaded m_pTFilter_ScaleTextureSwap: ") + m_pTFilter_ScaleTextureSwap->GetTextureFilterLabelName() );
     }
   }
 
   /// CREATE FILTER FOR SCALE !! ()
-  if ( !m_pTFilter_ScaleTexture && m_pScaleTexture && m_pScaleTextureSwap ) {
+  if (1==2 && !m_pTFilter_ScaleTexture && m_pScaleTexture && m_pScaleTextureSwap ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add(//+  moText(" shaders/Birth.cfg res:64x64 " )
-                      m_pStateTexture->GetName()
+                      /*m_pStateTexture->GetName()
                       + " " + m_pPositionTexture->GetName()
-                      + " " + m_pScaleTextureSwap->GetName()
-                      + " " + m_MediumTextureLoadedName
+                      + " " +*/ m_pScaleTextureSwap->GetName()
+                      /*+ " " + m_MediumTextureLoadedName*/
                       + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
                       + " " + m_pScaleTexture->GetName() );
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1767,7 +1800,68 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     }
   }
 
+/**
 
+  ORIENTATION
+
+*/
+/**
+//sx,sy,sz
+  tName = "pf_orientation_fx#"+this->GetLabelName()+"_";
+  Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
+  if (Mid>0) {
+      m_pOrientationTexture = TextureMan()->GetTexture(Mid);
+      m_pOrientationTexture->BuildEmpty( p_cols, p_rows );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
+
+  tName = "pf_orientation_swap_fx#"+this->GetLabelName()+"_";
+  Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
+  if (Mid>0) {
+      m_pOrientationTextureSwap = TextureMan()->GetTexture(Mid);
+      m_pOrientationTextureSwap->BuildEmpty( p_cols, p_rows );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
+
+  /// CREATE FILTER FOR ORIENTATION CHANGES !!!
+  if ( !m_pTFilter_OrientationTextureSwap && m_pOrientationTexture && m_pOrientationTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add(
+                      //+  moText(" shaders/Birth.cfg res:64x64 " )
+                      m_pStateTextureSwap->GetName()
+                      + " " + m_pVelocityTextureSwap->GetName()
+                      + " " + m_pOrientationTexture->GetName()
+                      + " " + m_MediumTextureLoadedName
+                      + moText(" ")+this->GetLabelName()+moText("/Orientation.cfg" )
+                      + " " + m_pOrientationTextureSwap->GetName() );
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_OrientationTextureSwap = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_OrientationTextureSwap: ") + m_pTFilter_OrientationTextureSwap->GetTextureFilterLabelName() );
+    }
+  }
+
+  /// CREATE FILTER FOR ORIENTATION CHANGES !!!
+  if ( !m_pTFilter_OrientationTexture && m_pOrientationTexture && m_pOrientationTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add(//+  moText(" shaders/Birth.cfg res:64x64 " )
+                      m_pStateTexture->GetName()
+                      + " " + m_pVelocityTexture->GetName()
+                      + " " + m_pOrientationTextureSwap->GetName()
+                      + " " + m_MediumTextureLoadedName
+                      + moText(" ")+this->GetLabelName()+moText("/Orientation.cfg" )
+                      + " " + m_pOrientationTexture->GetName() );
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_OrientationTexture = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_OrientationTexture: ") + m_pTFilter_OrientationTexture->GetTextureFilterLabelName() );
+    }
+  }
+*/
 
 }
 
@@ -1853,6 +1947,9 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
   float alpha = m_EffectState.alpha*m_Config.Eval( moR(PARTICLES_ALPHA) );
   int ioff,joff,ijoff;
 
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix();
+
   if (posArray && stateArray && geneticArray)
   for (int i = 0; i < m_cols; i++) {
       ioff = i * 4;
@@ -1932,27 +2029,46 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
   y = 0.0;
   z = 0.0;
   */
+            float rz = 0.0;
+            if ( m_Physics.m_EmitterType == PARTICLES_EMITTERTYPE_SPIRAL ) {
+              float ag = float(ijoff) / float(m_cols*m_rows);
+              float alx = float(i) / float(m_cols);
+              float aly = float(j) / float(m_rows);
+              rz = alx*(1.0+particles_separation)*360+90;
 
+              //glRotatef(  rz, U.X(), U.Y(), U.Z() );
+            }
+/*            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+*/
+            glPushMatrix();
+            //glLoadIdentity();
+            //glRotatef(  ry, W.X(), W.Y(), W.Z() );
+            //glRotatef(  rx, V.X(), V.Y(), V.Z() );
+            glTranslatef( x, y, z );
+
+            glRotatef(  rz, U.X(), U.Y(), U.Z() );
             glBegin(GL_QUADS);
               glTexCoord2f( tcoordx, tcoordy );
-              glVertex3f( x-sizex*scalex, y-sizey*scaley, z);
+              glVertex3f( 0-sizex*scalex, 0-sizey*scaley, z);
 
               glTexCoord2f( tcoordx+tsizex, tcoordy );
-              glVertex3f( x+sizex*scalex, y-sizey*scaley, z);
+              glVertex3f( 0+sizex*scalex, 0-sizey*scaley, z);
 
               glTexCoord2f( tcoordx+tsizex, tcoordy+tsizey );
-              glVertex3f( x+sizex*scalex, y+sizey*scaley, z);
+              glVertex3f( 0+sizex*scalex, 0+sizey*scaley, z);
 
               glTexCoord2f( tcoordx, tcoordy+tsizey );
-              glVertex3f( x-sizex*scalex, y+sizey*scaley, z);
+              glVertex3f( 0-sizex*scalex, 0+sizey*scaley, z);
             glEnd();
+            glPopMatrix();
         }
 
       }
   }
 
   //MODebug2->Push( "positions:" + Tpositions );
-
+  glPopMatrix();
   glEnable(GL_TEXTURE_2D);
 }
 #ifdef USE_TUIO
@@ -1972,9 +2088,9 @@ void moEffectParticlesFractal::Draw( moTempo* tempogral, moEffectState* parentst
     frame++;
     moFont* pFont = m_Config[moR(PARTICLES_FONT)].GetData()->Font();
 
-    UpdateParameters();
-
     PreDraw( tempogral, parentstate);
+
+    UpdateParameters();
 
     if (ortho) {
         glDisable(GL_DEPTH_TEST);							// Disables Depth Testing
@@ -2255,7 +2371,7 @@ void moEffectParticlesFractal::Interaction( moIODeviceManager *IODeviceManager )
                     midi_emitionrate = (float)VAL / (float) 127.0;
                     break;
                 case 87:
-                    midi_randomvelocity = (float)VAL / (float) 127.0;
+                    midi_frandomvelocity = (float)VAL / (float) 127.0;
                     break;
 
                 case 88:

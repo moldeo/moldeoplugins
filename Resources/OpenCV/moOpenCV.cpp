@@ -1722,7 +1722,7 @@ if (m_pSrcTexture==NULL) {
       FaceHeight*=1.3;
 
        Mat roi_gray( frame_gray, cvRect( faces[ic].x,faces[ic].y, faces[ic].width, faces[ic].height ) );
-/*
+
       std::vector<Rect> eyes;
 
       //eyes = eye_cascade.detectMultiScale(roi_gray)
@@ -1743,7 +1743,7 @@ if (m_pSrcTexture==NULL) {
            Point( faces[ic].x+eyes[ice].x+eyes[ice].width, faces[ic].y+eyes[ice].y+eyes[ice].height),
            Scalar( 0, 255, 255 ), 2);
       }
-*/
+
 
 
         cv::Mat faceresized;

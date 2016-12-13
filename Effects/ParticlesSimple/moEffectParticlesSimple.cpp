@@ -1224,7 +1224,7 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
             //CIRCLE POSITION
             switch(m_Physics.m_CreationMethod) {
                 case PARTICLES_CREATIONMETHOD_LINEAR:
-                    alpha = 2 * moMathf::PI * ( pParticle->Pos.X() + pParticle->Pos.Y()*m_rows ) / ((double)m_cols*(double)m_rows );
+                    alpha = 2 * moMathf::PI * ( pParticle->Pos.X() + pParticle->Pos.Y()*m_cols ) / ((double)m_cols*(double)m_rows );
                     radius1 = m_Physics.m_EmitterSize.X() / 2.0;
                     radius2 = m_Physics.m_EmitterSize.Y() / 2.0;
                     z = 0.0;
