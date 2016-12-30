@@ -2,11 +2,14 @@
 # http://www.openni.org/openni-sdk/openni-sdk-history-2/
 
 sudo apt-get install libusb-1.0-0-dev freeglut3-dev g++
+
+cp Platform.Arm.RPI3 ~/Platform.Arm
 cd ~
 mkdir kinect
 cd kinect
 git clone https://github.com/OpenNI/OpenNI.git -b unstable
 cd ~/kinect/OpenNI/Platform/Linux/CreateRedist
+cp ~/Platform.Arm ~/kinect/OpenNI/Platform/Linux/Build/Common/Platform.Arm
 bash RedistMaker
 cd ../Redist/OpenNI-Bin-Dev-Linux-*/
 sudo ./install.sh
