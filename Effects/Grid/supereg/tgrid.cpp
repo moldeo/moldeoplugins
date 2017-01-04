@@ -73,9 +73,15 @@ TGrid::TGrid(int dim, int valor,char N,  int altitud)
    Memoria_Utilizada = 0;
    Poligonos = 0;
 
+/*
    Luzx =(float)(8.0) / sqrt(129.0);
    Luzy =(float)(-8.0) / sqrt(129.0);
    Luzz =(float)(-1.0) / sqrt(129.0);
+*/
+
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
 
    Nesima = N;
 
@@ -1328,6 +1334,10 @@ TGrid::CalcularNormalesBorde(void)
 
   if(Nesima==0) return;
 
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
+
   brd1 =(dvs/2) -(dvs/4) + 1;
   brd2 = dvs - brd1 ;
   brdax = brd1 +((Hijo->difx+1)/2); brdbx = brd2 -((1-Hijo->difx)/2);
@@ -1465,6 +1475,11 @@ TGrid::CalcularNormalesTodo(void)
   escal = 1.0;
 
   if(Nesima==0) return;
+
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
+
 
   indax =(abs(difx) + 1) / 2 + 2 ;
   indbx = dvs - indax ;

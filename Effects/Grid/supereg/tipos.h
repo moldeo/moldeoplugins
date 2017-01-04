@@ -107,6 +107,13 @@ typedef struct GridDefinition {
     float m_wireframe_width;
     float m_wireframe_configuration;
 
+    float m_lightx;
+    float m_lighty;
+    float m_lightz;
+    float m_light_r;
+    float m_light_g;
+    float m_light_b;
+
 } TGridDefinition;
 
 void holamundo(void);
