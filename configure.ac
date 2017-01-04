@@ -57,6 +57,12 @@ case "$host" in
                 with_boost_libdir="/usr/lib/x86_64-linux-gnu"
                 libdir=$prefix"/lib"
                 ;;
+	armv7l-*)
+                AC_DEFINE(ARCH_X86_64, 1, [Architecture is armv7l x86-64])
+                ARCH_SPECIFIC_CFLAGS="-DUSE_ADDR64"
+                ARCH_STRING="X86-64"
+                libdir=$prefix"/lib"
+                ;;
         ppc-* | powerpc-*)
 		AC_MSG_WARN([HI THERE!])
                 AC_DEFINE(ARCH_PPC, 1, [Architecture is PowerPC])
