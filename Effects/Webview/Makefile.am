@@ -3,7 +3,7 @@ libmoldeo_webview_la_SOURCES =  moEffectWebview.cpp \
                                 moEffectWebview.h\
                                 awesomium/common/gl_texture_surface.h\
                                 awesomium/common/gl_texture_surface.cc
-libmoldeo_webview_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} -I./awesomium/common -I./awesomium/include
+libmoldeo_webview_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmoldeo_webview_la_LDFLAGS = -lawesomium-1-7
 libmoldeo_webview_la_LIBADD =
 libmoldeo_webview_la_LIBS = ${LIBMOLDEO_LIBS}
