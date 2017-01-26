@@ -1525,7 +1525,9 @@ int moEffectMovie::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
     MODebug2->Message( moText("m_iMethodBaseIterator: ") + IntToStr( m_iMethodBaseIterator ) );
     MODebug2->Message( moText("m_iMethodBase: ") + IntToStr( m_iMethodBase ) );
 */
-    m_iMethodBase = 46;
+    //MODebug2->Message( moText("m_iMethodBase: ") + IntToStr( m_iMethodBase ) );
+    //MODebug2->Message( moText("iFunctionNumber: ") + IntToStr( iFunctionNumber ) );
+    m_iMethodBase = 47;
     switch (iFunctionNumber - m_iMethodBase)
     {
 
@@ -1601,9 +1603,9 @@ int moEffectMovie::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
             return DrawLine(vm);//22
         default:
             //MODebug2->Message( moText("Called moEffectMovie::ScriptCalling, NextScriptCalling, from m_iMethodBase: ") + IntToStr(m_iMethodBase) );
-            //NextScriptCalling();
-            m_iMethodBase = m_MethodBases[m_iMethodBaseIterator-1];
-            m_iMethodBaseIterator = m_iMethodBaseIterator - 1;
+            NextScriptCalling();
+            //m_iMethodBase = m_MethodBases[m_iMethodBaseIterator-1];
+            //m_iMethodBaseIterator = m_iMethodBaseIterator - 1;
             //MODebug2->Message( moText("Called moEffectMovie::ScriptCalling, NextScriptCalling, to m_iMethodBase: ") + IntToStr(m_iMethodBase) );
             return moEffect::ScriptCalling( vm, iFunctionNumber );
             //return moMoldeoObject::ScriptCalling( vm, iFunctionNumber );

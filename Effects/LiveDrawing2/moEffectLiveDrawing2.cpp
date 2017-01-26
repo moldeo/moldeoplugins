@@ -1345,7 +1345,8 @@ void Gesture::RenderPolygons()
 	    moTexture* pTexture = (moTexture*) datatexture->Pointer();
 	    if (pTexture!=NULL) {
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1, NULL ) );
+            moTextFilterParam DefParam;
+            glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, DefParam ) );
             texw = pTexture->GetWidth();
             texh = pTexture->GetHeight();
 	    } else {
