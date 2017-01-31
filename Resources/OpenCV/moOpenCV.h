@@ -101,6 +101,7 @@
 */
 using namespace std;
 using namespace cv;
+using namespace cv::face;
 
 #ifndef __MO_OPENCV_H
 #define __MO_OPENCV_H
