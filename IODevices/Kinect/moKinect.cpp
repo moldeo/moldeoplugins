@@ -224,6 +224,8 @@ moKinect::moKinect() {
   m_HandsAngle = NULL;
 
   m_Gesture = NULL;
+  m_pDataMessage = NULL;
+  m_OutletDataMessage = NULL;
 
 	show_callback = false;
 }
@@ -334,6 +336,21 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 
 void moKinect::UpdateParameters() {
+
+    if (!m_OutletDataMessage) {
+        m_OutletDataMessage = m_Outlets.GetRef( GetOutletIndex( moText("DATAMESSAGE") ) );
+        //MODebug2->Message("moOpenCV::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+    } else {
+      //m_OutletDataMessage->GetData()->SetInt(  (int)(number_of_sequence>0) );
+      if (m_pDataMessage) {
+        m_OutletDataMessage->GetData()->SetMessage(m_pDataMessage);
+        m_OutletDataMessage->Update(true);
+      }
+
+    }
+
+    if (m_pDataMessage)
+      m_pDataMessage->Empty();
 
     m_Offset = moVector2f(
                             m_Config.Eval( moR(KINECT_OFFSET_MIN) ),
@@ -773,6 +790,8 @@ moKinect::Init() {
     moDefineParamIndex( KINECT_UPDATE_ON, moText("update_on") );
 	moDefineParamIndex( KINECT_VERBOSE, moText("verbose") );
 
+    m_pDataMessage = new moDataMessage();
+
     UpdateParameters();
 
 /**
@@ -811,7 +830,7 @@ moKinect::Init() {
         this->m_bInitialized = false;
         return false;
     } else {
-
+        if (m_nRetVal) {
         MODebug2->Message("Kinect User Generator Initialized!!");
 
 
@@ -882,6 +901,7 @@ moKinect::Init() {
 
 
             }
+        }
         }
     }
 
@@ -1815,6 +1835,45 @@ if (update_on>0 && this->Initialized() ) {
                         m_KneeSeparationVz->Update(true);
                     }
                 }
+
+
+
+                if (m_pDataMessage) {
+                    m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
+                    moData pData;
+
+                    pData.SetText( moText("1/fader1") );
+                    m_pDataMessage->Add(pData);
+
+                    /*pData.SetText( moText("USER") );
+                    m_pDataMessage->Add(pData);
+
+                    pData.SetInt( (int)(i) );
+                    m_pDataMessage->Add(pData);
+
+                    pData.SetText( moText("TORSOX") );
+                    m_pDataMessage->Add(pData);*/
+
+                    pData.SetFloat(  sqrt(m_VBody.X()*m_VBody.X() + m_VBody.Y()*m_VBody.Y())+ m_VBody.Z()*m_VBody.Z());
+                    m_pDataMessage->Add(pData);
+
+                    /*
+                    pData.SetText( moText("TORSOY") );
+                    m_pDataMessage->Add(pData);
+*/
+                   // pData.SetFloat(  m_VBody.Y());
+                   // m_pDataMessage->Add(pData);
+
+                   // pData.SetFloat(  m_VBody.Z());
+                   // m_pDataMessage->Add(pData);
+                /*
+                    moText ccc = "";
+                    for( int c=0; c<m_pDataMessage->Count(); c++) {
+                      ccc = ccc + m_pDataMessage->Get(c).ToText();
+                    }
+                    //MODebug2->Push(ccc);
+                */
+                  }
             }
 
         }
@@ -2239,6 +2298,8 @@ if (update_on>0 && this->Initialized() ) {
                 if (m_pDepthFloatTexture) {
                     m_pDepthFloatTexture->BuildFromBuffer( m_OutputMode.nXRes, m_OutputMode.nYRes, pFData, GL_RGBA, GL_FLOAT );
                 }
+
+
 
 
                 /*CALCULAMOS LA NORMAL DE LA BASE*/

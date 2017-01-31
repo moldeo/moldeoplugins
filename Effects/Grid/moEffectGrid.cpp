@@ -146,6 +146,10 @@ moEffectGrid::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("rotatey"), MO_PARAM_TRANSLATEY, GRID_ROTATEY, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("rotatez"), MO_PARAM_TRANSLATEZ, GRID_ROTATEZ, moValue( "0.0", "FUNCTION").Ref() );
 
+    p_configdefinition->Add( moText("lightx"), MO_PARAM_FUNCTION, GRID_LIGHTX );
+	p_configdefinition->Add( moText("lighty"), MO_PARAM_FUNCTION, GRID_LIGHTY );
+	p_configdefinition->Add( moText("lightz"), MO_PARAM_FUNCTION, GRID_LIGHTZ );
+
 	return p_configdefinition;
 }
 
@@ -272,7 +276,24 @@ void moEffectGrid::UpdateParameters() {
       Grid->m_GridDefinition.m_wireframe_configuration = wireframe_configuration;
       Grid->m_GridDefinition.m_alpha = alpha*this->m_EffectState.alpha;
       Grid->m_GridDefinition.m_minimum_surface_altitude = control_minimum_surface_altitude;
-      //MODebug2->Message( "height_multiply: "+ FloatToStr(height_multiply) );
+
+      moVector4d gcolor = m_Config.EvalColor( moR(GRID_COLOR) );
+
+      Grid->m_GridDefinition.m_red = gcolor.X();
+      Grid->m_GridDefinition.m_green = gcolor.Y();
+      Grid->m_GridDefinition.m_blue = gcolor.Z();
+
+      Grid->m_GridDefinition.m_lightx = m_Config.Eval(moR(GRID_LIGHTX));
+      Grid->m_GridDefinition.m_lighty = m_Config.Eval(moR(GRID_LIGHTY));
+      Grid->m_GridDefinition.m_lightz = m_Config.Eval(moR(GRID_LIGHTZ));
+
+      //Grid->m_GridDefinition.m_red = gcolor.X();
+      //Grid->m_GridDefinition.m_green = gcolor.Y();
+      //Grid->m_GridDefinition.m_blue = gcolor.Z();
+      /*Grid->m_GridDefinition.m_red = m_Config.GetParam(moR(GRID_COLOR)).GetValue().GetSubValue(MO_RED).Float()*m_EffectState.tintr;
+      Grid->m_GridDefinition.m_green = m_Config.GetParam(moR(GRID_COLOR)).GetValue().GetSubValue(MO_GREEN).Float()*m_EffectState.tintg;
+      Grid->m_GridDefinition.m_blue = m_Config.GetParam(moR(GRID_COLOR)).GetValue().GetSubValue(MO_BLUE).Float()*m_EffectState.tintb;
+      *///MODebug2->Message( "height_multiply: "+ FloatToStr(height_multiply) );
 
       if ( control_speed!=0.0f ) {
           Grid->RapidezF =  control_speed;

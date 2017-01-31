@@ -1050,6 +1050,10 @@ private:
 
     moTexture* m_pDepthTexture2;
 
+    moDataMessage*          m_pDataMessage;
+    moOutlet* m_OutletDataMessage;
+    moDataMessages          m_DataMessages;
+
     unsigned char* pData;
     unsigned char* pData2;
     unsigned char* pImage;

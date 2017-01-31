@@ -134,6 +134,7 @@ moConfigDefinition * moOpenCV::GetDefinition( moConfigDefinition *p_configdefini
 	//default: alpha, color, syncro
 	p_configdefinition = moMoldeoObject::GetDefinition( p_configdefinition );
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, OPENCV_TEXTURE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("color"), MO_PARAM_COLOR, OPENCV_COLOR );
 /*
 enum moOpenCVRecognitionMode {
   OPENCV_RECOGNITION_MODE_UNDEFINED=-1,
@@ -200,6 +201,7 @@ MOboolean moOpenCV::Init() {
   if (!moResource::Init()) return false;
 
   moDefineParamIndex( OPENCV_TEXTURE, "texture" );
+  moDefineParamIndex( OPENCV_COLOR, "color" );
   moDefineParamIndex( OPENCV_RECOGNITION_MODE, "recognition_mode" );
   moDefineParamIndex( OPENCV_REDUCE_WIDTH, moText("reduce_width") );
   moDefineParamIndex( OPENCV_REDUCE_HEIGHT, moText("reduce_height") );
@@ -340,25 +342,40 @@ MOboolean moOpenCV::Init() {
         MODebug2->Error("Couldn't create texture: CVRESULT3");
     }
 
-    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVBLOBS", 128, 128, tparam );
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVBLOBS", 512, 512, tparam );
     if (Mid>0) {
         m_pCVBlobs = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pCVBlobs->BuildEmpty(128, 128);
+        m_pCVBlobs->BuildEmpty(512, 512);
 
         if (m_debug_on) MODebug2->Message("CVBLOBS texture created!!");
     } else {
         MODebug2->Error("Couldn't create texture: CVBLOBS");
     }
 
-    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVTHRESH", 128, 128, tparam );
+    Mid = GetResourceManager()->GetTextureMan()->AddTexture( "CVTHRESH", 512, 512, tparam );
     if (Mid>0) {
         m_pCVThresh = GetResourceManager()->GetTextureMan()->GetTexture(Mid);
-        m_pCVThresh->BuildEmpty(128, 128);
+        m_pCVThresh->BuildEmpty(512, 512);
 
         if (m_debug_on) MODebug2->Message("CVTHRESH texture created!!");
     } else {
         MODebug2->Error("Couldn't create texture: CVTHRESH");
     }
+
+  m_pContourIndex = new moInlet();
+
+  if (m_pContourIndex) {
+    ((moConnector*)m_pContourIndex)->Init( moText("contourindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pContourIndex);
+  }
+
+  m_pLineIndex = new moInlet();
+
+  if (m_pLineIndex) {
+    ((moConnector*)m_pLineIndex)->Init( moText("lineindex"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pLineIndex);
+  }
+
 
     UpdateParameters();
 
@@ -391,9 +408,11 @@ void moOpenCV::UpdateParameters() {
   m_crop_min_y =  m_Config.Eval( moR(OPENCV_CROP_MIN_Y));
   m_crop_max_y =  m_Config.Eval( moR(OPENCV_CROP_MAX_Y));
 
-  m_line_thickness = m_Config.Eval( moR(OPENCV_LINE_THICKNESS));
+  m_line_thickness = fabs( m_Config.Eval( moR(OPENCV_LINE_THICKNESS)) );
   m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
   m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+  m_line_steps = m_Config.Eval( moR(OPENCV_LINE_STEPS));
+  m_line_color = m_Config.EvalColor(moR( OPENCV_LINE_COLOR ));
 
   m_motion_pixels = m_Config.Eval( moR(OPENCV_MOTION_PIXELS));
   m_motion_deviation = m_Config.Eval( moR(OPENCV_MOTION_DEVIATION));
@@ -1503,7 +1522,7 @@ moOpenCV::FaceDetection() {
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
   #ifndef WIN32
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
-  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
+  //m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
     if (m_pDataMessage) {
@@ -1703,7 +1722,7 @@ if (m_pSrcTexture==NULL) {
       FaceHeight*=1.3;
 
        Mat roi_gray( frame_gray, cvRect( faces[ic].x,faces[ic].y, faces[ic].width, faces[ic].height ) );
-/*
+
       std::vector<Rect> eyes;
 
       //eyes = eye_cascade.detectMultiScale(roi_gray)
@@ -1724,7 +1743,7 @@ if (m_pSrcTexture==NULL) {
            Point( faces[ic].x+eyes[ice].x+eyes[ice].width, faces[ic].y+eyes[ice].y+eyes[ice].height),
            Scalar( 0, 255, 255 ), 2);
       }
-*/
+
 
 
         cv::Mat faceresized;
@@ -1861,7 +1880,7 @@ if (m_pSrcTexture==NULL) {
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
   if (!moFileManager::DirectoryExists("/tmp/dstblobs"))
     moFileManager::CreateDirectory(moDirectory("/tmp/dstblobs"));
-  m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
+  //m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
 
     if (m_pDataMessage) {
@@ -1985,17 +2004,135 @@ moOpenCV::ContourRecognition(){
 
   Mat dstblobs = Mat::zeros(dstthresh.rows, dstthresh.cols, CV_8UC3);
 //m_line_color = 2;
+
+/**
+hierarchy[0] = contour 0
+hierarchy[0][0] = previous contour same level
+hierarchy[0][1] = next contour same level o -1
+hierarchy[0][2] = child contour or -1
+hierarchy[0][3] = parent contour or -1
+
+hierarchy[1] = contour 1
+hierarchy[2] = contour 2
+*/
+
+    vector<vector<Point> > contours_poly( contours.size() );
+    vector<Rect> boundRect( contours.size() );
+    vector<Point2f>center( contours.size() );
+    vector<float>radius( contours.size() );
+
 /*
+    for( int i = 0; i < contours.size(); i++ )
+     {
+       approxPolyDP( Mat(contours[i]), contours_poly[i], 3, true );
+       boundRect[i] = boundingRect( Mat(contours_poly[i]) );
+       minEnclosingCircle( (Mat)contours_poly[i], center[i], radius[i] );
+     }
+*/
     int idx = 0;
+
+
+
+    if (contours.size())
     for( ; idx >= 0; idx = hierarchy[idx][0] )
     {
-        Scalar color( rand()&255, rand()&255, rand()&255 );
+        //if (contours[idx].size()>40) {
+          minEnclosingCircle( (Mat)contours[idx], center[idx], radius[idx] );
 
-        drawContours( dstblobs, contours, idx, color, m_line_thickness, 8, hierarchy );
+
+          if (m_pContourIndex) {
+            if (m_pContourIndex->GetData()) {
+                m_pContourIndex->GetData()->SetLong( idx );
+                m_pContourIndex->Update(true);
+            }
+          }
+
+          m_line_color = m_Config.EvalColor(moR( OPENCV_COLOR ));
+          Scalar color( m_line_color.Z()*255, m_line_color.Y()*255, m_line_color.X()*255  );
+          //drawContours( dstblobs, contours, idx, color, /*CV_FILLED*/m_line_thickness, CV_AA, hierarchy );
+          int iv = 0;
+          //float steps = m_Config.Eval(moR( OPENCV_LINE_STEPS ));
+          if (m_line_steps>=1 && ( contours[idx].size() > m_line_steps*3 ) ) {
+            //vector<Point> poly(contours[idx].size()/m_line_steps);
+            int ivfirst;
+            int ivlast = -1;
+            ivfirst = m_line_steps;
+            Point2f pfrom, pto;
+            pfrom = contours[idx][0];
+
+            if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              Point2f centerx = center[idx];
+              Point2f vertex = pto;
+              Point2f dis = vertex -centerx;
+              float nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+
+            for( iv=m_line_steps; iv<(contours[idx].size()-m_line_steps); iv+=m_line_steps ) {
+
+              pto =  contours[idx][iv];
+
+              if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              centerx = center[idx];
+              vertex = pto;
+              Point2f dis = vertex -centerx;
+              nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+              //Point dir = (center[idx]-pto);
+
+              line( dstblobs, pfrom, pto, color, m_line_thickness  );
+              line( dstblobs, center[idx], pto, color, m_line_thickness  );
+              if (iv!=ivfirst) ivlast = iv;
+              pfrom = pto;
+            }
+            //close
+            if (ivlast) {
+              pto = contours[idx][0];
+
+              if (m_pLineIndex) {
+                if (m_pLineIndex->GetData()) {
+                    m_pLineIndex->GetData()->SetLong( iv );
+                    m_pLineIndex->Update(true);
+                }
+              }
+
+              m_line_offset_x = m_Config.Eval( moR(OPENCV_LINE_OFFSET_X));
+              m_line_offset_y = m_Config.Eval( moR(OPENCV_LINE_OFFSET_Y));
+              centerx = center[idx];
+              vertex = pto;
+              dis = vertex -centerx;
+              nrm = sqrt(dis.x*dis.x+dis.y*dis.y);
+              pto = centerx + dis*(1.0f + m_line_offset_x*nrm);
+
+              line( dstblobs, pfrom, pto, color, m_line_thickness  );
+            }
+          }
+        //}
+        //fillPoly( dstblobs, contours, color );
     }
-*/
-  Scalar color( rand()&255, rand()&255, rand()&255 );
-  drawContours( dstblobs, contours, -1, color, /*CV_FILLED*/m_line_thickness, 8, hierarchy );
+ //Scalar color( rand()&255, rand()&255, rand()&255 );
+  //fitEllipse( contours );
+
+  //drawContours( dstblobs, contours, -1, color, /*CV_FILLED*/m_line_thickness, CV_AA, hierarchy );
+  //fillPoly( dstblobs, contours, color );
+
+  //float area = contourArea( contours,  );
+  //approxPolyDP( contours,  );
   CvMatToTexture( dstblobs, 0 , 0, 0, m_pCVBlobs );
   //dstblobs.release();
   dstthresh.release();

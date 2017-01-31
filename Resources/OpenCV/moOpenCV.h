@@ -55,6 +55,7 @@
         #include "opencv2/objdetect/objdetect.hpp"
         //#include "opencv2/highgui/highgui.hpp"
         #include "opencv2/imgproc/imgproc.hpp"
+        #include <opencv2/opencv.hpp>
     #else
 
 
@@ -110,6 +111,7 @@ enum moOpenCVParamIndex {
     OPENCV_INLET=0,
     OPENCV_OUTLET,
     OPENCV_SCRIPT,
+    OPENCV_COLOR,
     OPENCV_TEXTURE,
     OPENCV_RECOGNITION_MODE,
     OPENCV_REDUCE_WIDTH,
@@ -361,6 +363,11 @@ private:
     moOutlet* m_Blob4Vy;
 
 
+    moInlet*  m_pContourIndex;
+    moInlet*  m_pLineIndex;
+    moInlet*  m_pBlobIndex;
+    moInlet*  m_pObjectIndex;
+    moInlet*  m_pFaceIndex;
 
 protected:
     int m_steps;
@@ -378,7 +385,8 @@ protected:
     float m_line_thickness;
     float m_line_offset_x;
     float m_line_offset_y;
-    float m_line_color;
+    moVector4d m_line_color;
+    float m_line_steps;
 
     float m_crop_min_x;
     float m_crop_max_x;

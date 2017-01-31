@@ -200,6 +200,10 @@ virtual void OnChangeTitle(Awesomium::WebView* caller,
   virtual void OnJSMoldeoAction(WebView* caller,
                   const JSArray& args);
 
+  virtual void OnLaunch(Awesomium::WebView* caller) {
+
+  };
+
    private:
 
         moTexture*    m_pMoldeoSurface;

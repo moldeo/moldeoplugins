@@ -94,6 +94,15 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutBeatMediumFreq = NULL;
     pOutBeatMediumValue = NULL;
 
+    pOutBlinkValue = NULL;
+    pOutSurpriseValue = NULL;
+    pOutFrownValue = NULL;
+    pOutHoriValue = NULL;
+    pOutVertiValue = NULL;
+
+    pOutAndiamoX = NULL;
+    pOutAndiamoY = NULL;
+
 
     debug_is_on = false;
 }
@@ -205,6 +214,35 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
 
                 if (pOutlet->GetConnectorLabelName() == moText("BEATMEDIUMVAL")) {
                     pOutBeatMediumValue = pOutlet;
+                }
+
+
+                if (pOutlet->GetConnectorLabelName() == moText("BLINK")) {
+                    pOutBlinkValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("EYEBROW")) {
+                    pOutSurpriseValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("FURROW")) {
+                    pOutFrownValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("HORIEYE")) {
+                    pOutHoriValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("VERTIEYE")) {
+                    pOutVertiValue = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ANDIAMOX")) {
+                    pOutAndiamoX = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("ANDIAMOY")) {
+                    pOutAndiamoY = pOutlet;
                 }
 
 
@@ -377,6 +415,26 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                                             + FloatToStr(Value.Double()) );
         }
 
+        if (
+            DataCode.Text() == moText("ANDIAMO")
+            && message.Count()>=2
+            ) {
+            moData Cx = message.Get(1);
+            moData Cy = message.Get(2);
+            if (pOutAndiamoX) {
+                pOutAndiamoX->GetData()->SetDouble(Cx.Double());
+                pOutAndiamoX->Update();
+            }
+            if (pOutAndiamoY) {
+                pOutAndiamoY->GetData()->SetDouble(Cy.Double());
+                pOutAndiamoY->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( "Message Andiamo X,Y, Cx: " )
+                                            + FloatToStr(Cx.Double())
+                                            + moText(", Cy: ")
+                                            + FloatToStr(Cy.Double()) );
+        }
+
         if ( DataCode.Text() == moText("EVENT") ) {
             /*
             poutlet = pOutEvents;
@@ -494,6 +552,59 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             }
         }
 
+
+        if (
+            DataCode.Text() == moText("EXP")
+            ) {
+
+            moText ApiMessage = message.Get(1).ToText();
+            moData Value = message.Get(2);
+            if (ApiMessage=="BLINK") {
+                if (pOutBlinkValue) {
+
+                    pOutBlinkValue->GetData()->SetDouble(Value.Double());
+                    pOutBlinkValue->Update();
+                }
+
+            } else
+            if (ApiMessage=="EYEBROW") {
+                if (pOutSurpriseValue) {
+
+                    pOutSurpriseValue->GetData()->SetDouble(Value.Double());
+                    pOutSurpriseValue->Update();
+                }
+
+            } else
+            if (ApiMessage=="FURROW") {
+                if (pOutFrownValue) {
+
+                    pOutFrownValue->GetData()->SetDouble(Value.Double());
+                    pOutFrownValue->Update();
+                }
+            } else
+            if (ApiMessage=="HORIEYE") {
+                if (pOutHoriValue) {
+
+                    pOutHoriValue->GetData()->SetDouble(Value.Double());
+                    pOutHoriValue->Update();
+                }
+
+            } else
+            if (ApiMessage=="VERTIEYE") {
+                if (pOutVertiValue) {
+
+                    pOutVertiValue->GetData()->SetDouble(Value.Double());
+                    pOutVertiValue->Update();
+                }
+
+            }
+
+            if (debug_is_on) MODebug2->Message( moText( "Message EXP Value: " )
+                                                + ApiMessage
+                                                + moText(" Val:")
+                                                + FloatToStr(Value.Double()) );
+        }
+
         if (message.Count()>=3) {
         if (
              message.Get(1).ToText() == moText("opencv")
@@ -587,23 +698,26 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
                     int argc, void *data, void *user_data) {
 #endif
 
-cout << "receiving" << endl;
+//cout << "receiving" << endl;
 
 moOscPacketListener* self = NULL;
 #ifdef OSCPACK
   self = this;
+  moText path = moText( m.AddressPattern() );
 #else
   if (user_data==NULL) { cout << "no user data" << endl; return -1; }
   self = (moOscPacketListener*) user_data;
 #endif
 
-        cout << "blocking" << endl;
+        //cout << "blocking" << endl;
         self->m_Semaphore.Lock();
         moDataMessage message;
 
         moData  data0;
+        moData  data1;
+
         moText addresspath = path;
-        cout << "addresspath:" << addresspath << endl;
+        //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
          addresspath = moText( m.AddressPattern() );
 #endif
@@ -640,12 +754,45 @@ moOscPacketListener* self = NULL;
             } else if ( addresspath == moText("/beatlow") ) {
                 data0 = moData( moText( "BEATLOW" ) );
                 message.Add( data0 );
-            } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
-                cout << "addresspath MOLDEO:" << endl;
-                data0 = moData( moText( "MOLDEO" ) );
+            } else if ( addresspath == moText("/andiamo") ) {
+                data0 = moData( moText( "ANDIAMO" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/opencv") ) {
                 data0 = moData( moText( "OPENCV" ) );
+                message.Add( data0 );
+            } else if ( addresspath == moText("/EXP/BLINK") ) {
+                MODebug2->Message( moText(" ============/EXP/BLINK") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "BLINK" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/HORIEYE") ) {
+                MODebug2->Message( moText(" ============/EXP/HORIEYE") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "HORIEYE" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/VERTIEYE") ) {
+                MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "VERTIEYE" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/EYEBROW") ) {
+                MODebug2->Message( moText(" ============/EXP/EYEBROW") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "EYEBROW" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath == moText("/EXP/FURROW") ) {
+                MODebug2->Message( moText(" ============/EXP/FURROW") );
+                data0 = moData( moText( "EXP" ) );
+                data1 =  moData( moText( "FURROW" ) );
+                message.Add( data0 );
+                message.Add( data1 );
+            } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
+                cout << "addresspath MOLDEO:" << endl;
+                data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
             } else {
                 data0 = moData( addresspath );
@@ -701,7 +848,7 @@ moOscPacketListener* self = NULL;
                       }
                       break;
 
-                    case osc::MIDI_MESSAGE_TYPE_TAG):
+                    case osc::MIDI_MESSAGE_TYPE_TAG:
                       data = moData( (int)rec.AsMidiMessage() );
                       break;
 

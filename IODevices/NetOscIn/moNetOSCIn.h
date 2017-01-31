@@ -118,6 +118,13 @@ class moOscPacketListener : public moAbstract {
          moOutlet*   pOutBeatMediumFreq;
          moOutlet*   pOutBeatMediumValue;
 
+         moOutlet*   pOutBlinkValue;
+         moOutlet*   pOutSurpriseValue;
+         moOutlet*   pOutFrownValue;
+         moOutlet*   pOutHoriValue;
+         moOutlet*   pOutVertiValue;
+
+
         moOutlet*   pOutEvents;
         moOutlet*   pOutTracker;
         moOutlet*   pOutTuio;
@@ -143,7 +150,8 @@ class moOscPacketListener : public moAbstract {
         moOutlet*   pOutOrientationZ; //azimuth
 
 
-
+        moOutlet* pOutAndiamoX;
+        moOutlet* pOutAndiamoY;
 };
 
 moDeclareDynamicArray( moOscPacketListener*, moOscPacketListeners )

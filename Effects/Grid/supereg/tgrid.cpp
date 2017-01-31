@@ -73,9 +73,15 @@ TGrid::TGrid(int dim, int valor,char N,  int altitud)
    Memoria_Utilizada = 0;
    Poligonos = 0;
 
+/*
    Luzx =(float)(8.0) / sqrt(129.0);
    Luzy =(float)(-8.0) / sqrt(129.0);
    Luzz =(float)(-1.0) / sqrt(129.0);
+*/
+
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
 
    Nesima = N;
 
@@ -1328,6 +1334,10 @@ TGrid::CalcularNormalesBorde(void)
 
   if(Nesima==0) return;
 
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
+
   brd1 =(dvs/2) -(dvs/4) + 1;
   brd2 = dvs - brd1 ;
   brdax = brd1 +((Hijo->difx+1)/2); brdbx = brd2 -((1-Hijo->difx)/2);
@@ -1465,6 +1475,11 @@ TGrid::CalcularNormalesTodo(void)
   escal = 1.0;
 
   if(Nesima==0) return;
+
+    Luzx = m_GridDefinition.m_lightx;
+    Luzy = m_GridDefinition.m_lighty;
+    Luzz = m_GridDefinition.m_lightz;
+
 
   indax =(abs(difx) + 1) / 2 + 2 ;
   indbx = dvs - indax ;
@@ -2287,7 +2302,7 @@ TGrid::glDibujarAlturaBorde(int area,TBITMAP *pagina,TCAMARA3D* CAM)
           glFrontFace(GL_CW);
           */
 
-          glColor4f(1.0f,1.0f,1.0f,m_GridDefinition.m_alpha);
+          glColor4f(m_GridDefinition.m_red,m_GridDefinition.m_green,m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
 
           /*
           glBegin(GL_TRIANGLE_STRIP);
@@ -2318,7 +2333,7 @@ TGrid::glDibujarAlturaBorde(int area,TBITMAP *pagina,TCAMARA3D* CAM)
           }
           glBegin(GL_TRIANGLE_STRIP);
           glNormal3f(v1.N.x,v1.N.y,v1.N.z);
-          glColor4f(v1.C.r,v1.C.g,v1.C.b,m_GridDefinition.m_alpha);
+          glColor4f(v1.C.r * m_GridDefinition.m_red,v1.C.g * m_GridDefinition.m_green,v1.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v1.u,v1.v);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v1.u*2.0f, v1.v*2.0f);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v1.u*4.0f, v1.v*4.0f);
@@ -2332,7 +2347,7 @@ TGrid::glDibujarAlturaBorde(int area,TBITMAP *pagina,TCAMARA3D* CAM)
           glVertex3f(v1.x,v1.y,v1.z);
 
           glNormal3f(v2.N.x,v2.N.y,v2.N.z);
-          glColor4f(v2.C.r,v2.C.g,v2.C.b,m_GridDefinition.m_alpha);
+          glColor4f(v2.C.r * m_GridDefinition.m_red,v2.C.g * m_GridDefinition.m_green,v2.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v2.u,v2.v);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v2.u*2.0f, v2.v*2.0f);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v2.u*4.0f, v2.v*4.0f);
@@ -2346,7 +2361,7 @@ TGrid::glDibujarAlturaBorde(int area,TBITMAP *pagina,TCAMARA3D* CAM)
           glVertex3f(v2.x,v2.y,v2.z);
 
           glNormal3f(v3.N.x,v3.N.y,v3.N.z);
-          glColor4f(v3.C.r,v3.C.g,v3.C.b,m_GridDefinition.m_alpha);
+          glColor4f(v3.C.r * m_GridDefinition.m_red,v3.C.g * m_GridDefinition.m_green,v3.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v3.u,v3.v);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v3.u*2.0f, v3.v*2.0f);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v3.u*4.0f, v3.v*4.0f);
@@ -2361,7 +2376,7 @@ TGrid::glDibujarAlturaBorde(int area,TBITMAP *pagina,TCAMARA3D* CAM)
           glVertex3f(v3.x,v3.y,v3.z);
 
           glNormal3f(v4.N.x,v4.N.y,v4.N.z);
-          glColor4f(v4.C.r,v4.C.g,v4.C.b,m_GridDefinition.m_alpha);
+          glColor4f(v4.C.r * m_GridDefinition.m_red,v4.C.g * m_GridDefinition.m_green,v4.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v4.u,v4.v);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v4.u*2.0f, v4.v*2.0f);
           if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v4.u*4.0f, v4.v*4.0f);
@@ -2584,7 +2599,7 @@ glCullFace(GL_BACK);
 glFrontFace(GL_CW);
 */
 
-glColor4f(1.0f,1.0f,1.0f,m_GridDefinition.m_alpha);
+glColor4f(m_GridDefinition.m_red,m_GridDefinition.m_green,m_GridDefinition.m_blue,m_GridDefinition.m_alpha);
 /*
 glBegin(GL_TRIANGLE_STRIP);
 glNormal3f(v1.N.x,v1.N.y,v1.N.z);
@@ -2610,8 +2625,7 @@ glEnd();
 */
 glBegin(GL_TRIANGLE_STRIP);
 glNormal3f(v1.N.x,v1.N.y,v1.N.z);
-glColor4f(v1.C.r,v1.C.g,v1.C.b,m_GridDefinition.m_alpha);
-if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v1.u,v1.v);
+glColor4f(v1.C.r * m_GridDefinition.m_red,v1.C.g * m_GridDefinition.m_green,v1.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v1.u,v1.v);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v1.u*2.0f, v1.v*2.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v1.u*4.0f, v1.v*4.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE3, v1.u*8.0f, v1.v*8.0f);
@@ -2624,8 +2638,7 @@ if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE7, v1.u*128.0f, v1.v*128.0f);
 glVertex3f(v1.x,v1.y,v1.z);
 
 glNormal3f(v2.N.x,v2.N.y,v2.N.z);
-glColor4f(v2.C.r,v2.C.g,v2.C.b,m_GridDefinition.m_alpha);
-if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v2.u,v2.v);
+glColor4f(v2.C.r * m_GridDefinition.m_red,v2.C.g * m_GridDefinition.m_green,v2.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v2.u,v2.v);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v2.u*2.0f, v2.v*2.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v2.u*4.0f, v2.v*4.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE3, v2.u*8.0f, v2.v*8.0f);
@@ -2637,8 +2650,7 @@ if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE7, v2.u*128.0f, v2.v*128.0f);
 glVertex3f(v2.x,v2.y,v2.z);
 
 glNormal3f(v3.N.x,v3.N.y,v3.N.z);
-glColor4f(v3.C.r,v3.C.g,v3.C.b,m_GridDefinition.m_alpha);
-if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v3.u,v3.v);
+glColor4f(v3.C.r * m_GridDefinition.m_red,v3.C.g * m_GridDefinition.m_green,v3.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v3.u,v3.v);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v3.u*2.0f,v3.v*2.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v3.u*4.0f, v3.v*4.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE3, v3.u*8.0f, v3.v*8.0f);
@@ -2651,8 +2663,7 @@ if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE7, v3.u*128.0f, v3.v*128.0f);
 glVertex3f(v3.x,v3.y,v3.z);
 
 glNormal3f(v4.N.x,v4.N.y,v4.N.z);
-glColor4f(v4.C.r,v4.C.g,v4.C.b,m_GridDefinition.m_alpha);
-if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v4.u,v4.v);
+glColor4f(v4.C.r * m_GridDefinition.m_red,v4.C.g * m_GridDefinition.m_green,v4.C.b * m_GridDefinition.m_blue,m_GridDefinition.m_alpha);if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE0, v4.u,v4.v);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE1, v4.u*2.0f,v4.v*2.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE2, v4.u*4.0f, v4.v*4.0f);
 if (glMultiTexCoord2f) glMultiTexCoord2f(GL_TEXTURE3, v4.u*8.0f, v4.v*8.0f);

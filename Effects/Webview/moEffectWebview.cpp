@@ -67,7 +67,7 @@ moEffectWebview::moEffectWebview() {
 	m_glidsurface = -1;
 	m_pMoldeoSurface = NULL;
 	m_pWebCore = NULL;
-	m_Url = "";
+	m_Url = "http://www.moldeo.org";
 	m_CursorX = 0.0;
 	m_CursorY = 0.0;
 }
@@ -117,6 +117,7 @@ moEffectWebview::Init()
   if (m_pMoldeoSurface) {
     m_pMoldeoSurface->BuildEmpty(1280,800);
     m_glidsurface = m_pMoldeoSurface->GetGLId();
+    MODebug2->Message("moEffectWebview::Init() > Added Webview Texture:"+m_pMoldeoSurface->GetName());
   }
   else { MODebug2->Error("moEffectWebview::Init() Surface do not exists"); return false; }
 
@@ -126,12 +127,16 @@ moEffectWebview::Init()
   m_pWebCore = WebCore::Initialize(conf);
 
   if(m_pWebCore) {
+    MODebug2->Message("moEffectWebview::Init() > WebCore Initialized");
     m_pWebCore->set_surface_factory(new GLTextureSurfaceFactory());
     m_pWebView = WebCore::instance()->CreateWebView(1280, 800);
 
     if (m_pWebView) {
-      Load( m_Config.Text(moR(WEBVIEW_URL)) );
-      MODebug2->Push("moEffectWebview::Init() > m_pWebView created with w = " + IntToStr(1280) + " h:" + IntToStr(800) );
+      MODebug2->Message("moEffectWebview::Init() > Webview object has been created.");
+      MODebug2->Message("moEffectWebview::Init() > Loading WEBVIEW_URL...");
+      moText wurl = m_Config.Text(moR(WEBVIEW_URL));
+      Load( wurl );
+      MODebug2->Message("moEffectWebview::Init() > m_pWebView created and loaded with w = " + IntToStr(1280) + " h:" + IntToStr(800) );
 
     } else MODebug2->Error("moEffectWebview::Init() > NO WEBVIEW!");
   } else MODebug2->Error("moEffectWebview::Init() > NO WEBCORE!");
@@ -147,13 +152,12 @@ void moEffectWebview::Load(moText url) {
     m_Url = url;
     WebURL webUrl(WSLit(url));
     if (m_pWebView) {
-      MODebug2->Push("moEffectWebview::Load() > Loading url" + url );
+      MODebug2->Message("moEffectWebview::Load() > Loading url: " + url );
       m_pWebView->LoadURL( webUrl );
       m_pWebView->set_view_listener(this);
       m_pWebView->set_load_listener(this);
       m_pWebView->set_process_listener(this);
       BindMethods( m_pWebView );
-
     }
 }
 
@@ -169,9 +173,8 @@ void moEffectWebview::Draw( moTempo* tempogral, moEffectState* parentstate)
 
     moText newUrl = m_Config.Text(moR(WEBVIEW_URL));
 //    WebURL newWebUrl( WSLit(newUrl) ) ;
-
     if ( newUrl != m_Url ) {
-      MODebug2->Push("moEffectWebview::Draw > Loading newurl" + newUrl );
+      MODebug2->Message("moEffectWebview::Draw > Loading newurl" + newUrl );
       Load( newUrl );
     }
 
@@ -264,10 +267,10 @@ glTranslatef(   m_Config.Eval( moR(WEBVIEW_TRANSLATEX) ),
 
     ancho = 2;
     alto = 2;
-	
-    
+
+
 	SetColor( m_Config[moR(WEBVIEW_COLOR)], m_Config[moR(WEBVIEW_ALPHA)], m_EffectState );
-	
+
 	glBindTexture( GL_TEXTURE_2D, -1 );
     glBegin(GL_QUADS);
 		glTexCoord2f( 0.0, 0.0);
@@ -282,7 +285,7 @@ glTranslatef(   m_Config.Eval( moR(WEBVIEW_TRANSLATEX) ),
 		glTexCoord2f( 0.0, 1.0);
 		glVertex2f( -ancho*0.5+m_CursorX,  alto*0.5+h-m_CursorY);
 	glEnd();
-	
+
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
     glLoadIdentity();									// Reset The View
 
@@ -324,7 +327,7 @@ moEffectWebview::GetDefinition( moConfigDefinition *p_configdefinition ) {
 
 	//default: alpha, color, syncro
 	p_configdefinition = moEffect::GetDefinition( p_configdefinition );
-	p_configdefinition->Add( moText("url"), MO_PARAM_TEXT, WEBVIEW_URL, moValue( "Url to complete", "TXT") );
+	p_configdefinition->Add( moText("url"), MO_PARAM_TEXT, WEBVIEW_URL, moValue( "http://www.moldeo.org", "TXT") );
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, WEBVIEW_BLENDING, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("width"), MO_PARAM_FUNCTION, WEBVIEW_WIDTH, moValue( "1.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("height"), MO_PARAM_FUNCTION, WEBVIEW_HEIGHT, moValue( "1.0", "FUNCTION").Ref() );
@@ -438,9 +441,9 @@ moEffectWebview::Update( moEventList *Events ) {
 					break;
 			}
 			break;
-			
+
         case MO_IODEVICE_MOUSE:
-			
+
           switch(actual->devicecode) {
             case SDL_MOUSEMOTION:
               //cout << "Webview receiving mouse motion: x: " << actual->reservedvalue2 << " y:" << actual->reservedvalue3 << endl;
@@ -489,7 +492,7 @@ moEffectWebview::Update( moEventList *Events ) {
               break;
           }
           break;
-		  
+
         case MO_IODEVICE_KEYBOARD:
 
           break;

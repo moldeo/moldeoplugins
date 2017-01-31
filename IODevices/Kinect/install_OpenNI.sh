@@ -2,11 +2,14 @@
 # http://www.openni.org/openni-sdk/openni-sdk-history-2/
 
 sudo apt-get install libusb-1.0-0-dev freeglut3-dev g++
+
+cp Platform.Arm.RPI3 ~/Platform.Arm
 cd ~
 mkdir kinect
 cd kinect
 git clone https://github.com/OpenNI/OpenNI.git -b unstable
 cd ~/kinect/OpenNI/Platform/Linux/CreateRedist
+cp ~/Platform.Arm ~/kinect/OpenNI/Platform/Linux/Build/Common/Platform.Arm
 bash RedistMaker
 cd ../Redist/OpenNI-Bin-Dev-Linux-*/
 sudo ./install.sh
@@ -37,7 +40,7 @@ sudo sh install.sh
 #tar xvjf NITE-Bin-Linux-x64-v1.5.2.21.tar.bz2
 #mv NITE-Bin-Linux-x64-v1.5.2.21 nite
 cd ~/kinect
-wget http://www.mira-project.org/downloads/3rdparty/bin-linux/nite-bin-linux-x64-v1.5.2.21.tar.bz2
+wget http://www.moldeo.org/archivos/binario/nite-bin-linux-x64-v1.5.2.21.tar.bz2
 tar -xvf nite-bin-linux-x64-v1.5.2.21.tar.bz2
 mv NITE-Bin-Dev-Linux-x64-v1.5.2.21 nite
 cd ~/kinect/nite/
