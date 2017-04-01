@@ -2591,8 +2591,8 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                       int glid = pPar->GLId;
 
                       if ( pPar->MOId==-1 ) {
-
-                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, NULL );
+                          moTextFilterParam DefParam;
+                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, DefParam );
 
                       } else {
 
@@ -3233,8 +3233,9 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
                       m_Physics.m_TargetViewVector.Z(),/*0*/
                       /** 0,  1,  0 **/
                       /** producto vectorial de eye x target */
-                      m_Physics.m_UpViewVector.X(), m_Physics.m_UpViewVector.Y(), m_Physics.m_UpViewVector.Z()
-                       );
+                      m_Physics.m_UpViewVector.X(),
+                      m_Physics.m_UpViewVector.Y(),
+                      m_Physics.m_UpViewVector.Z());
 
         } else {
           /*

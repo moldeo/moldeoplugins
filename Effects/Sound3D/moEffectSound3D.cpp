@@ -573,7 +573,7 @@ void moEffectSound3D::ShowBufferInfo( ALint p_BufferId ) {
 
 MOboolean moEffectSound3D::Init() {
 
-#ifdef MAC_OSX
+#ifdef MO_MACOSX
     m_pALCDevice = alcOpenDevice( alcGetString(NULL, ALC_DEVICE_SPECIFIER) );
     if (!m_pALCDevice) {
         DError("Init > alcOpenDevice no device created!");
@@ -606,7 +606,7 @@ MOboolean moEffectSound3D::Init() {
     }
     */
 
-#ifdef MAC_OSX
+#ifdef MO_MACOSX
     m_pALCContext = alcCreateContext(m_pALCDevice, NULL);
     if (!alcMakeContextCurrent(m_pALCContext)) {
         DError("Init > alcMakeContextCurrent Error!");
@@ -634,7 +634,7 @@ MOboolean moEffectSound3D::Init() {
       //generate al id
       //generate al buffer
       //MM_render_one_buffer();
-  #ifndef MAC_OSX
+  #ifndef MO_MACOSX
   /*
       helloBuffer = alutCreateBufferHelloWorld ();
       alutCheckError( "alutCreateBufferHelloWorld" );
@@ -711,7 +711,7 @@ MOboolean moEffectSound3D::Init() {
 
 MOboolean moEffectSound3D::Finish()
 {
-  #ifdef MAC_OSX
+  #ifdef MO_MACOSX
 
     if (m_pALCContext) {
         alcDestroyContext(m_pALCContext);
@@ -963,6 +963,7 @@ void moEffectSound3D::Draw( moTempo* tempogral, moEffectState* parentstate )
     int h = m_pResourceManager->GetRenderMan()->ScreenHeight();
 
     PreDraw( tempogral, parentstate);
+    return;
 
     /** Callling UpdateParameters() in ::Update(), no need here*/
     // UpdateParameters();
