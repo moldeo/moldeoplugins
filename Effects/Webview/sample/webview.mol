@@ -67,7 +67,8 @@
         </PARAM>
         <PARAM name="outputresolution" type="TEXT">
             <VAL>
-                <D type="TXT"></D>
+                <D type="TXT">1280</D>
+                <D type="TXT">800</D>
             </VAL>
         </PARAM>
         <PARAM name="rendermode" type="TEXT">

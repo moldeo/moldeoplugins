@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="opencv" />
+		<Option pch_mode="0" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="debug">
+				<Option output="../../../plugins/resources/opencv_d.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option object_output=".wobjsd" />
+				<Option deps_output=".depsd" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="release">
+				<Option output="../../../plugins/resources/opencv.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option object_output=".wobjs" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+			</Target>
+		</Build>
+		<VirtualTargets>
+			<Add alias="All" targets="debug;release;" />
+		</VirtualTargets>
+		<Compiler>
+			<Add option="`pkg-config --cflags libmoldeo`" />
+			<Add option="`pkg-config --cflags opencv`" />
+			<Add option="-fPIC" />
+			<Add directory="./" />
+			<Add directory="../../../include" />
+			<Add directory="$(externlibs)/glew/include" />
+			<Add directory="$(externlibs)/TUIO_CPP" />
+			<Add directory="$(externlibs)/opengl/include" />
+			<Add directory="$(externlibs)/openal/include" />
+			<Add directory="$(externlibs)/lua/include" />
+			<Add directory="$(externlibs)/SDL/include" />
+			<Add directory="$(externlibs)/gstreamer/include" />
+			<Add directory="$(externlibs)/gstreamer/include/glib-2.0" />
+			<Add directory="$(externlibs)/gstreamer/lib/glib-2.0/include" />
+			<Add directory="./opencv/include/opencv" />
+			<Add directory="./opencv/3rdparty" />
+			<Add directory="./opencv/3rdparty/flann" />
+			<Add directory="./opencv/3rdparty/flann/util" />
+			<Add directory="./opencv/3rdparty/flann/nn" />
+			<Add directory="./opencv/3rdparty/flann/algorithms" />
+			<Add directory="./opencv/3rdparty/include" />
+			<Add directory="./opencv/3rdparty/zlib" />
+			<Add directory="./cvblob" />
+			<Add directory="../../../inc/tuio" />
+		</Compiler>
+		<Linker>
+			<Add option="`pkg-config --libs opencv`" />
+			<Add option="`pkg-config --libs libmoldeo`" />
+			<Add directory="$(externlibs)/SDL/lib" />
+			<Add directory="$(externlibs)/glew/lib" />
+			<Add directory="$(externlibs)/lua/lib" />
+			<Add directory="$(externlibs)/cg/lib" />
+			<Add directory="$(externlibs)/openal/libs/win32" />
+			<Add directory="$(externlibs)/opengl/lib" />
+			<Add directory="../../../lib/win" />
+		</Linker>
+		<Unit filename="moOpenCV.cpp" />
+		<Unit filename="moOpenCV.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

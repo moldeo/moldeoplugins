@@ -121,17 +121,48 @@ moEffectWebview::Init()
   }
   else { MODebug2->Error("moEffectWebview::Init() Surface do not exists"); return false; }
 
+
+
   Awesomium::WebConfig conf;
+  //Awesomium::WebStringArray arr = Awesomium::WebStringArray();
+  //std::string glStr = "--use-gl=desktop";
+  //arr.Push( Awesomium::WebString::CreateFromUTF8( glStr.c_str(), glStr.size() ) );
+  //conf.additional_options = arr;
+
   conf.log_level = kLogLevel_Verbose;
+  //conf.remote_debugging_host = WebString::CreateFromUTF8("127.0.0.1", strlen("127.0.0.1"));
+  conf.remote_debugging_port = 8008;
+  moText webview_log = m_pResourceManager->GetDataMan()->GetDataPath()+"webviewlog.log";
+  MODebug2->Message("moEffectWebview::Init() > WebCore log_path: " + webview_log);
+  conf.log_path = WebString::CreateFromUTF8((char*)webview_log, strlen((char*)webview_log));
+
 
   m_pWebCore = WebCore::Initialize(conf);
 
   if(m_pWebCore) {
     MODebug2->Message("moEffectWebview::Init() > WebCore Initialized");
     m_pWebCore->set_surface_factory(new GLTextureSurfaceFactory());
-    m_pWebView = WebCore::instance()->CreateWebView(1280, 800);
+
+    Awesomium::WebPreferences prefs;
+    //prefs.enable_gpu_acceleration = true ;
+    //prefs.enable_web_gl = true ;
+    prefs.enable_javascript = true;
+    prefs.allow_file_access_from_file_url = true;
+    prefs.allow_running_insecure_content = true;
+    prefs.allow_scripts_to_access_clipboard = true;
+    prefs.allow_universal_access_from_file_url = true;
+    prefs.enable_web_security = false;
+
+    WebString my_string = WebString::CreateFromUTF8("", strlen(""));
+    Awesomium::WebSession* my_session = m_pWebCore->CreateWebSession(my_string, prefs);
+
+    m_pWebView = WebCore::instance()->CreateWebView(1280, 800, my_session);
 
     if (m_pWebView) {
+
+    //Awesomium::NativeWindow wind = (Awesomium::NativeWindow) getWindow ()-> getNative ();
+    //m_pWebView -> set_parent_window ( wind);
+
       MODebug2->Message("moEffectWebview::Init() > Webview object has been created.");
       MODebug2->Message("moEffectWebview::Init() > Loading WEBVIEW_URL...");
       moText wurl = m_Config.Text(moR(WEBVIEW_URL));
@@ -642,6 +673,12 @@ void moEffectWebview::OnChangeTooltip(Awesomium::WebView* caller,
 
 void moEffectWebview::OnChangeTargetURL(Awesomium::WebView* caller,
                                     const Awesomium::WebURL& url) {
+
+    int length = url.spec().ToUTF8( NULL, 0);
+    char *dest = new (char)(sizeof(char) * length + 1);
+    dest[length] = 0;
+    url.spec().ToUTF8(dest, length + 1);
+    MODebug2->Message("moEffectWebview::OnChangeTargetURL > "+moText(dest));
 }
 
 void moEffectWebview::OnChangeCursor(Awesomium::WebView* caller,

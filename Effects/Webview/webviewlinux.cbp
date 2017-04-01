@@ -36,6 +36,7 @@
 			<Add directory="../../../inc" />
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
+			<Add directory="/usr/include/" />
 		</Compiler>
 		<Unit filename="awesomium/common/gl_texture_surface.cc" />
 		<Unit filename="awesomium/common/gl_texture_surface.h" />
