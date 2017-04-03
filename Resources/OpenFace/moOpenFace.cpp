@@ -1416,19 +1416,7 @@ moOpenFace::visualise_tracking(cv::Mat& captured_image,
 	string fpsSt("FPS:");
 	fpsSt += fpsC;
 	cv::putText(captured_image, fpsSt, cv::Point(10, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 0));
-/**
-	if (!det_parameters.quiet_mode)
-	{
-		cv::namedWindow("tracking_result", 1);
-		cv::imshow("tracking_result", captured_image);
 
-		if (!depth_image.empty())
-		{
-			// Division needed for visualisation purposes
-			imshow("depth", depth_image / 2000.0);
-		}
-
-	}*/
 }
 
 void
@@ -1453,7 +1441,7 @@ moOpenFace::FaceDetection() {
 
     MODebug2->Message("Loading CLNF." );
     p_clnf_model = new LandmarkDetector::CLNF(det_parameters.model_location);
-    det_parameters.track_gaze = true;
+    det_parameters.track_gaze = false;
 
   }
 
@@ -1481,18 +1469,6 @@ moOpenFace::FaceDetection() {
   Mat frame_gray;
   cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
   //equalizeHist(frame_gray, frame_gray);
-
-// Detect faces
-/*face_cascade.detectMultiScale( frame_gray,//the frame, input frame for detection
-  faces, //the the result vector, the output
-  1.13, //the the scale factor opencv uses to increase the window each pass, default 1.1
-  2, //minNeighbors, default: 3 (the min. number of rects to group together to call it a face)
-  0 | CASCADE_SCALE_IMAGE, // cv::CascadeClassifier::DO_CANNY_PRUNING,
-   				//flags, Canny Prunning runs the canny edge detector to elimiate regions
-				  which are unlikely to contain faces
-   Size(30, 30) //min rect check size, the minimum!
-   );
-*/
 
 // The actual facial landmark detection / tracking
 
@@ -1533,6 +1509,7 @@ moOpenFace::FaceDetection() {
 		}
 
         // Gaze tracking, absolute gaze direction
+
         cv::Point3f gazeDirection0(0, 0, -1);
         cv::Point3f gazeDirection1(0, 0, -1);
 
