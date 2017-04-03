@@ -1,7 +1,7 @@
 ACLOCAL_AMFLAGS=-I m4
 
 if DEBUG
-DFLAGS = -g3 -O0 -fpermissive
+DFLAGS = -g3 -O0 -fpermissive -std=c++11 -msse -msse2 -msse3
 else
 DFLAGS = -O2 -fpermissive -std=c++11 -msse -msse2 -msse3
 endif
@@ -24,8 +24,8 @@ lib_LTLIBRARIES = libmoldeo_openface.la
 libmoldeo_openface_la_SOURCES = moOpenFace.cpp moOpenFace.h
 libmoldeo_openface_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} ${LIBOPENCV_CFLAGS}
 libmoldeo_openface_la_LDFLAGS = -L./OpenFace/build/lib/3rdParty/dlib -L./OpenFace/build/lib/local/LandmarkDetector -L./OpenFace/build/lib/local/FaceAnalyser
-libmoldeo_openface_la_LIBADD = ${LIBOPENCV_LIBS} -lLandmarkDetector -lFaceAnalyser -ldlib
-libmoldeo_openface_la_LIBS = ${LIBMOLDEO_LIBS} 
+libmoldeo_openface_la_LIBADD = -lLandmarkDetector -lFaceAnalyser -ldlib ${LIBOPENCV_LIBS} -ltbb -latomic -lippicv
+libmoldeo_openface_la_LIBS = ${LIBMOLDEO_LIBS}  -lLandmarkDetector -lFaceAnalyser -ldlib ${LIBOPENCV_LIBS} -ltbb -latomic -lippicv
 
 libmoldeo_openface_includedir = $(includedir)/moldeo/${moduletype}/openface
 libmoldeo_openface_include_HEADERS = moOpenFace.h

@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="opencv" />
+		<Option title="openface" />
 		<Option pch_mode="0" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="debug">
-				<Option output="../../../plugins/resources/opencv_d.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../plugins/resources/openface_d.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjsd" />
 				<Option deps_output=".depsd" />
 				<Option type="3" />
@@ -19,7 +19,7 @@
 				</Compiler>
 			</Target>
 			<Target title="release">
-				<Option output="../../../plugins/resources/opencv.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
+				<Option output="../../../plugins/resources/openface.so" imp_lib="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).a" def_file="$(TARGET_OUTPUT_DIR)$(TARGET_OUTPUT_BASENAME).def" prefix_auto="0" extension_auto="0" />
 				<Option object_output=".wobjs" />
 				<Option type="3" />
 				<Option compiler="gcc" />
@@ -34,27 +34,13 @@
 			<Add option="`pkg-config --cflags libmoldeo`" />
 			<Add option="`pkg-config --cflags opencv`" />
 			<Add option="-fPIC" />
-			<Add directory="./" />
-			<Add directory="../../../include" />
-			<Add directory="$(externlibs)/glew/include" />
-			<Add directory="$(externlibs)/TUIO_CPP" />
-			<Add directory="$(externlibs)/opengl/include" />
-			<Add directory="$(externlibs)/openal/include" />
-			<Add directory="$(externlibs)/lua/include" />
-			<Add directory="$(externlibs)/SDL/include" />
-			<Add directory="$(externlibs)/gstreamer/include" />
-			<Add directory="$(externlibs)/gstreamer/include/glib-2.0" />
-			<Add directory="$(externlibs)/gstreamer/lib/glib-2.0/include" />
-			<Add directory="./opencv/include/opencv" />
-			<Add directory="./opencv/3rdparty" />
-			<Add directory="./opencv/3rdparty/flann" />
-			<Add directory="./opencv/3rdparty/flann/util" />
-			<Add directory="./opencv/3rdparty/flann/nn" />
-			<Add directory="./opencv/3rdparty/flann/algorithms" />
-			<Add directory="./opencv/3rdparty/include" />
-			<Add directory="./opencv/3rdparty/zlib" />
-			<Add directory="./cvblob" />
-			<Add directory="../../../inc/tuio" />
+			<Add option="-std=c++11" />
+			<Add option="-msse" />
+			<Add option="-msse2" />
+			<Add option="-msse3" />
+			<Add directory="OpenFace/lib/local/LandmarkDetector/include" />
+			<Add directory="OpenFace/lib/local/FaceAnalyser/include" />
+			<Add directory="OpenFace/lib/3rdParty/dlib/include" />
 		</Compiler>
 		<Linker>
 			<Add option="`pkg-config --libs opencv`" />
@@ -67,8 +53,8 @@
 			<Add directory="$(externlibs)/opengl/lib" />
 			<Add directory="../../../lib/win" />
 		</Linker>
-		<Unit filename="moOpenCV.cpp" />
-		<Unit filename="moOpenCV.h" />
+		<Unit filename="moOpenFace.cpp" />
+		<Unit filename="moOpenFace.h" />
 		<Extensions>
 			<code_completion />
 			<debugger />

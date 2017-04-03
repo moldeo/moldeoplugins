@@ -30,7 +30,7 @@ AC_PROG_CXX_C_O
 PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
 #PKG_CHECK_MODULES([LIBOPENCV], [opencv] ,has_opencv=yes)
 LIBOPENCV_CFLAGS="-I./opencv-3.1.0/include/opencv -I./opencv-3.1.0/modules/highgui/include -I./opencv-3.1.0/modules/imgproc/include"
-LIBOPENCV_LIBS=
+LIBOPENCV_LIBS="-L/home/fabricio/moldeo/moldeoinstaller/moldeoplugins/Resources/OpenFace/opencv-3.1.0/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64 -L/home/fabricio/moldeo/moldeoinstaller/moldeoplugins/Resources/OpenFace/opencv-3.1.0/build/lib -lopencv_shape -lopencv_stitching -lopencv_objdetect -lopencv_superres -lopencv_videostab -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_video -lopencv_photo -lopencv_ml -lopencv_imgproc -lopencv_flann -lopencv_core"
 
 AC_SUBST(LIBOPENCV_CFLAGS)
 AC_SUBST(LIBOPENCV_LIBS)

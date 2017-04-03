@@ -86,7 +86,7 @@ void moOpenFaceFactory::Destroy(moResource* fx) {
 
 
 moOpenFace::moOpenFace() {
-	SetName(moText("opencv"));
+	SetName(moText("openface"));
 	m_pCVSourceTexture = NULL;
 	m_pCVResultTexture = NULL;
 	m_pCVResult2Texture = NULL;
@@ -120,6 +120,8 @@ moOpenFace::moOpenFace() {
   m_Blob4Size = NULL;
   m_Blob4Vx = NULL;
   m_Blob4Vy = NULL;
+
+  p_clnf_model = NULL;
 
   m_keepAspectRatio = true;
 
@@ -494,9 +496,10 @@ void moOpenFace::UpdateParameters() {
   switch( m_RecognitionMode ) {
     case OPENFACE_RECOGNITION_MODE_FACE:
       {
-      int stepN = 5;
-      ( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
-      if (m_steps==stepN) { FaceDetection(); }
+      //int stepN = 5;
+      //( m_steps<0 || m_steps>stepN )?  m_steps = 0 : m_steps++;
+      //if (m_steps==stepN) { FaceDetection(); }
+        FaceDetection();
       }
       break;
     case OPENFACE_RECOGNITION_MODE_FACERECOGNITION_REM:
@@ -1361,24 +1364,20 @@ moOpenFace::FaceDetection() {
     return;
   }
 
+    ThresholdFilter();
   /**INIT CASCADE CLASIFFIER with haarcascades standard training XML files*/
 
-// Some initial parameters that can be overriden from command line	
-	vector<string> files, depth_directories, output_video_files, out_dummy;
-// Get the input output file parameters
-	
-	// Indicates that rotation should be with respect to world or camera coordinates
-	bool u;
-	string output_codec;
-    vector<string> arguments;
 
-	LandmarkDetector::get_video_input_output_params(files, depth_directories, out_dummy, output_video_files, u, output_codec, arguments);
-    LandmarkDetector::FaceModelParameters det_parameters(arguments);
-
-// The modules that are being used for tracking
-	LandmarkDetector::CLNF clnf_model(det_parameters.model_location);	
 
   if (m_bReInit) {
+
+    MODebug2->Message("Loaded OpenFace FaceModelParameters." );
+    MODebug2->Message("face_detector_location: " + moText(det_parameters.face_detector_location.c_str()) );
+    MODebug2->Message("model_location: " + moText(det_parameters.model_location.c_str()) );
+
+    MODebug2->Message("Loading CLNF." );
+    p_clnf_model = new LandmarkDetector::CLNF(det_parameters.model_location);
+
 /*
     moText cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_frontalface_alt.xml";
     string cfile( (char*)cascade_file );
@@ -1442,7 +1441,8 @@ moOpenFace::FaceDetection() {
 
     cv::Mat_<float> depth_image;
 
-    bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, clnf_model, det_parameters);
+    bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
+
 			/*
 			// Visualising the results
 			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised

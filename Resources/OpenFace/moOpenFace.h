@@ -454,6 +454,13 @@ protected:
 		cv::Size m_goalSize;
 		bool m_keepAspectRatio;
 
+
+    /** OpenFace
+    */
+
+    LandmarkDetector::FaceModelParameters det_parameters;
+    LandmarkDetector::CLNF*  p_clnf_model;
+
 };
 
 
