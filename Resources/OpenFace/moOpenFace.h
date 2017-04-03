@@ -266,6 +266,21 @@ public:
                  int max_deviation,
                  Scalar & color);
 
+    double fps_tracker = -1.0;
+    int64 t0 = 0;
+    int64 frame_count = 0;
+
+    void visualise_tracking(cv::Mat& captured_image,
+        cv::Mat_<float>& depth_image,
+        const LandmarkDetector::CLNF& face_model,
+        const LandmarkDetector::FaceModelParameters& det_parameters,
+        cv::Point3f gazeDirection0,
+        cv::Point3f gazeDirection1,
+        int frame_count,
+        double fx,
+        double fy,
+        double cx,
+        double cy);
 
     moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 

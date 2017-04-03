@@ -1354,6 +1354,82 @@ moOpenFace::BodyDetection() {
 
 }
 
+// Visualising the results
+void
+moOpenFace::visualise_tracking(cv::Mat& captured_image,
+    cv::Mat_<float>& depth_image,
+    const LandmarkDetector::CLNF& face_model,
+    const LandmarkDetector::FaceModelParameters& det_parameters,
+    cv::Point3f gazeDirection0,
+    cv::Point3f gazeDirection1,
+    int frame_count,
+    double fx,
+    double fy,
+    double cx,
+    double cy)
+{
+
+	// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
+	double detection_certainty = face_model.detection_certainty;
+	bool detection_success = face_model.detection_success;
+
+	double visualisation_boundary = 0.2;
+
+	// Only draw if the reliability is reasonable, the value is slightly ad-hoc
+	if (detection_certainty < visualisation_boundary)
+	{
+		LandmarkDetector::Draw(captured_image, face_model);
+
+		double vis_certainty = detection_certainty;
+		if (vis_certainty > 1)
+			vis_certainty = 1;
+		if (vis_certainty < -1)
+			vis_certainty = -1;
+
+		vis_certainty = (vis_certainty + 1) / (visualisation_boundary + 1);
+
+		// A rough heuristic for box around the face width
+		int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
+
+		cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(face_model, fx, fy, cx, cy);
+
+		// Draw it in reddish if uncertain, blueish if certain
+		LandmarkDetector::DrawBox(captured_image, pose_estimate_to_draw, cv::Scalar((1 - vis_certainty)*255.0, 0, vis_certainty * 255), thickness, fx, fy, cx, cy);
+
+		if (det_parameters.track_gaze && detection_success && face_model.eye_model)
+		{
+			FaceAnalysis::DrawGaze(captured_image, face_model, gazeDirection0, gazeDirection1, fx, fy, cx, cy);
+		}
+	}
+
+	// Work out the framerate
+	if (frame_count % 10 == 0)
+	{
+		double t1 = cv::getTickCount();
+		fps_tracker = 10.0 / (double(t1 - t0) / cv::getTickFrequency());
+		t0 = t1;
+	}
+
+	// Write out the framerate on the image before displaying it
+	char fpsC[255];
+	std::sprintf(fpsC, "%d", (int)fps_tracker);
+	string fpsSt("FPS:");
+	fpsSt += fpsC;
+	cv::putText(captured_image, fpsSt, cv::Point(10, 20), CV_FONT_HERSHEY_SIMPLEX, 0.5, CV_RGB(255, 0, 0));
+/**
+	if (!det_parameters.quiet_mode)
+	{
+		cv::namedWindow("tracking_result", 1);
+		cv::imshow("tracking_result", captured_image);
+
+		if (!depth_image.empty())
+		{
+			// Division needed for visualisation purposes
+			imshow("depth", depth_image / 2000.0);
+		}
+
+	}*/
+}
 
 void
 moOpenFace::FaceDetection() {
@@ -1377,27 +1453,8 @@ moOpenFace::FaceDetection() {
 
     MODebug2->Message("Loading CLNF." );
     p_clnf_model = new LandmarkDetector::CLNF(det_parameters.model_location);
+    det_parameters.track_gaze = true;
 
-/*
-    moText cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_frontalface_alt.xml";
-    string cfile( (char*)cascade_file );
-    if (!face_cascade.load(cfile))
-    {
-        MODebug2->Error("Error loading : " + cascade_file );
-        return;
-    }
-    if (m_debug_on) MODebug2->Message("Loaded! : " + cascade_file );
-
-
-    cascade_file = m_pResourceManager->GetDataMan()->GetDataPath() + "/haarcascades/" + "haarcascade_eye.xml";
-    cfile = (char*)cascade_file;
-    if (!eye_cascade.load(cfile))
-    {
-        MODebug2->Error("Error loading : " + cascade_file );
-        return;
-    }
-    if (m_debug_on) MODebug2->Message("Loaded! : " + cascade_file );
-*/
   }
 
   /**GET THE IMAGE: resized*/
@@ -1442,21 +1499,54 @@ moOpenFace::FaceDetection() {
     cv::Mat_<float> depth_image;
 
     bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
+    if (detection_success && p_clnf_model) {
+        //MODebug2->Message("Detection Success!");
+        // Visualising the results
+        // Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
+        double detection_certainty = p_clnf_model->detection_certainty;
+        float fx = 0, fy = 0, cx = 0, cy = 0;
+        // If cx (optical axis centre) is undefined will use the image size/2 as an estimate
+        bool cx_undefined = false;
+        bool fx_undefined = false;
+        if (cx == 0 || cy == 0)
+        {
+            cx_undefined = true;
+        }
+        if (fx == 0 || fy == 0)
+        {
+            fx_undefined = true;
+        }
+        // If optical centers are not defined just use center of image
+		if (cx_undefined)
+		{
+			cx = m_reduce_width / 2.0f;
+			cy = m_reduce_height / 2.0f;
+		}
+		// Use a rough guess-timate of focal length
+		if (fx_undefined)
+		{
+			fx = 500 * (m_reduce_width / 640.0);
+			fy = 500 * (m_reduce_height / 480.0);
 
-			/*
-			// Visualising the results
-			// Drawing the facial landmarks on the face and the bounding box around it if tracking is successful and initialised
-			double detection_certainty = clnf_model.detection_certainty;
+			fx = (fx + fy) / 2.0;
+			fy = fx;
+		}
 
-			// Gaze tracking, absolute gaze direction
-			cv::Point3f gazeDirection0(0, 0, -1);
-			cv::Point3f gazeDirection1(0, 0, -1);
+        // Gaze tracking, absolute gaze direction
+        cv::Point3f gazeDirection0(0, 0, -1);
+        cv::Point3f gazeDirection1(0, 0, -1);
 
-			if (det_parameters.track_gaze && detection_success && clnf_model.eye_model)
-			{
-				FaceAnalysis::EstimateGaze(clnf_model, gazeDirection0, fx, fy, cx, cy, true);
-				FaceAnalysis::EstimateGaze(clnf_model, gazeDirection1, fx, fy, cx, cy, false);
-			}*/
+        if (det_parameters.track_gaze && detection_success && p_clnf_model->eye_model)
+        {
+            FaceAnalysis::EstimateGaze(*p_clnf_model, gazeDirection0, fx, fy, cx, cy, true);
+            FaceAnalysis::EstimateGaze(*p_clnf_model, gazeDirection1, fx, fy, cx, cy, false);
+        }
+
+        cv::Mat_<float> depth_image;
+        frame_count++;
+        visualise_tracking(frame, depth_image, *p_clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
+    }
+
 
   float FaceLeft = 0,FaceTop = 0;
   float FaceWidth  = 0,FaceHeight = 0;
