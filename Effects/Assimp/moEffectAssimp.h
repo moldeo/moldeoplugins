@@ -34,15 +34,11 @@
 #include "moPlugin.h"
 #include "mo3dModelManager.h"
 #include "moArcBall.h"
+#include "moMathMatrix.h"
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
-// the global Assimp scene object
-const struct aiScene* scene = NULL;
-GLuint scene_list = 0;
-aiVector3D scene_min, scene_max, scene_center;
 
 // current rotation angle
 #define aisgl_min(x,y) (x<y?x:y)
@@ -101,6 +97,9 @@ enum moIcon3dParamIndex {
 	ASSIMP_LIGHTX,
 	ASSIMP_LIGHTY,
 	ASSIMP_LIGHTZ,
+	ASSIMP_OFFSETX,
+	ASSIMP_OFFSETY,
+	ASSIMP_OFFSETZ,
 	ASSIMP_INLET,
 	ASSIMP_OUTLET
 };
@@ -124,8 +123,20 @@ public:
     int loadasset (const char* path);
     void recursive_render (const aiScene *sc, const aiNode* nd, float scale);
     void apply_material(const aiMaterial *mtl);
+    moMatrix4d& Euler2RotationMatrix( double ex, double ey, double ez );
 
+    moMatrix4d rotation_matrix;
+    moMatrix4d offset_matrix;
 
+    // the global Assimp scene object
+    const aiScene* scene;
+    GLuint scene_list;
+    aiVector3D scene_min, scene_max, scene_center;
+    void get_bounding_box (aiVector3D* min, aiVector3D* max);
+    void get_bounding_box_for_node (const aiNode* nd,
+	aiVector3D* min,
+	aiVector3D* max,
+	aiMatrix4x4* trafo);
 private:
     aiString* str;
     void UpdateRotation();
@@ -133,6 +144,9 @@ private:
     MOint g_ViewMode;
 
     MOfloat	Tx,Ty,Tz,Sx,Sy,Sz;
+    moInlet* m_Euler_Angle_X;
+    moInlet* m_Euler_Angle_Y;
+    moInlet* m_Euler_Angle_Z;
 
     bool loadedAsset;
     moFile AssetFile;

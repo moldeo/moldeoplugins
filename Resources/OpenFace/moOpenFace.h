@@ -346,6 +346,14 @@ private:
     moOutlet* m_FaceSizeWidth;
     moOutlet* m_FaceSizeHeight;
 
+    moOutlet* m_FacePositionZ;
+    moOutlet* m_FaceSizeDepth;
+
+    moOutlet* m_FaceAngleX;
+    moOutlet* m_FaceAngleY;
+    moOutlet* m_FaceAngleZ;
+
+
     moOutlet* m_EyeLeftX;
     moOutlet* m_EyeLeftY;
     moOutlet* m_EyeLeftWidth;

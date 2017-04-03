@@ -25,7 +25,6 @@
 
   Authors:
   Fabricio Costa
-  Andr� Colubri
 
 *******************************************************************************/
 
@@ -78,7 +77,7 @@ void color4_to_float4(const aiColor4D *c, float f[4])
 	f[3] = c->a;
 }
 // ----------------------------------------------------------------------------
-void get_bounding_box_for_node (const aiNode* nd,
+void moEffectAssimp::get_bounding_box_for_node (const aiNode* nd,
 	aiVector3D* min,
 	aiVector3D* max,
 	aiMatrix4x4* trafo
@@ -113,7 +112,7 @@ void get_bounding_box_for_node (const aiNode* nd,
 }
 
 // ----------------------------------------------------------------------------
-void get_bounding_box (aiVector3D* min, aiVector3D* max)
+void moEffectAssimp::get_bounding_box (aiVector3D* min, aiVector3D* max)
 {
 	aiMatrix4x4 trafo;
 	aiIdentityMatrix4(&trafo);
@@ -349,7 +348,7 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
 	aiColor4D emission;
 	float shininess, strength;
 	int two_sided;
-	int wireframe;
+	int wireframe = m_Config.Int(moR(ASSIMP_POLYGONMODE));
 	unsigned int max;	// changed: to unsigned
 
 	int texIndex = 0;
@@ -412,17 +411,25 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
 	}
 
 	max = 1;
+	if (wireframe==0) {
 	if(AI_SUCCESS == aiGetMaterialIntegerArray(mtl, AI_MATKEY_ENABLE_WIREFRAME, &wireframe, &max))
 		fill_mode = wireframe ? GL_LINE : GL_FILL;
 	else
 		fill_mode = GL_FILL;
+    } else {
+        fill_mode = wireframe ? GL_LINE : GL_FILL;
+    }
+
 	glPolygonMode(GL_FRONT_AND_BACK, fill_mode);
 
 	max = 1;
+
 	if((AI_SUCCESS == aiGetMaterialIntegerArray(mtl, AI_MATKEY_TWOSIDED, &two_sided, &max)) && two_sided)
 		glEnable(GL_CULL_FACE);
 	else
 		glDisable(GL_CULL_FACE);
+
+    glEnable(GL_CULL_FACE);
 }
 
 
@@ -523,6 +530,14 @@ void moEffectAssimp::recursive_render (const aiScene *sc, const aiNode* nd, floa
 //========================
 moEffectAssimp::moEffectAssimp() {
 	SetName("assimp");
+	m_Euler_Angle_X = NULL;
+	m_Euler_Angle_Y = NULL;
+	m_Euler_Angle_Z = NULL;
+	rotation_matrix = moMatrix4d::IDENTITY;
+	offset_matrix = moMatrix4d::IDENTITY;
+
+	scene = NULL;
+    scene_list = 0;
 }
 
 moEffectAssimp::~moEffectAssimp() {
@@ -563,6 +578,9 @@ MOboolean moEffectAssimp::Init() {
 	moDefineParamIndex( ASSIMP_LIGHTX, moText("lightx") );
 	moDefineParamIndex( ASSIMP_LIGHTY, moText("lighty") );
 	moDefineParamIndex( ASSIMP_LIGHTZ, moText("lightz") );
+	moDefineParamIndex( ASSIMP_OFFSETX, moText("offsetx") );
+	moDefineParamIndex( ASSIMP_OFFSETY, moText("offsety") );
+	moDefineParamIndex( ASSIMP_OFFSETZ, moText("offsetz") );
 	moDefineParamIndex( ASSIMP_INLET, moText("inlet") );
 	moDefineParamIndex( ASSIMP_OUTLET, moText("outlet") );
 
@@ -676,7 +694,7 @@ void moEffectAssimp::UpdateParameters() {
                       + m_pResourceManager->GetDataMan()->GetDataPath() + AssetFile.GetCompletePath() );
 
     scene_list = 0;
-    loadedAsset = loadasset( m_pResourceManager->GetDataMan()->GetDataPath() + AssetFile.GetCompletePath() );
+    loadedAsset = loadasset( m_pResourceManager->GetDataMan()->GetDataPath() + moSlash + AssetFile.GetCompletePath() );
 
     if ( loadedAsset == AI_SUCCESS ) {
       MODebug2->Message("moEffectAssimp::UpdateParameters > loaded asset: "+AssetFile.GetCompletePath());
@@ -710,6 +728,31 @@ void moEffectAssimp::RenderModel() {
 	}
 
 	glCallList(scene_list);
+}
+
+
+moMatrix4d& moEffectAssimp::Euler2RotationMatrix( double ex, double ey, double ez ) {
+
+	double s1 = sin(ex);
+	double s2 = sin(ey);
+	double s3 = sin(ez);
+
+	double c1 = cos(ex);
+	double c2 = cos(ey);
+	double c3 = cos(ez);
+
+	rotation_matrix(0,0) = c2 * c3;
+	rotation_matrix(0,1) = -c2 *s3;
+	rotation_matrix(0,2) = s2;
+	rotation_matrix(1,0) = c1 * s3 + c3 * s1 * s2;
+	rotation_matrix(1,1) = c1 * c3 - s1 * s2 * s3;
+	rotation_matrix(1,2) = -c2 * s1;
+	rotation_matrix(2,0) = s1 * s3 - c1 * c3 * s2;
+	rotation_matrix(2,1) = c3 * s1 + c1 * s2 * s3;
+	rotation_matrix(2,2) = c1 * c2;
+
+	return rotation_matrix;
+
 }
 
 void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
@@ -779,7 +822,8 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     // XXX docs say all polygons are emitted CCW, but tests show that some aren't.
     //if(getenv("MODEL_IS_BROKEN"))
-    glFrontFace(GL_CW);
+    //glFrontFace(GL_CW);
+    glFrontFace(GL_CCW);
 
 	//glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 
@@ -867,7 +911,7 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 	//glBindTexture(GL_TEXTURE_2D, Images.Get(Image,&m_EffectState.tempo));
                   // Select The Modelview Matrix
 
-	SetPolygonMode( (moPolygonModes)m_Config[moR(ASSIMP_POLYGONMODE)].GetValue().GetSubValue(0).Int());
+	SetPolygonMode( (moPolygonModes)m_Config.Int( moR(ASSIMP_POLYGONMODE)));
 	//SetBlending( );
 
   SetColor( m_Config[moR(ASSIMP_COLOR)], m_Config[moR(ASSIMP_ALPHA)], m_EffectState );
@@ -878,15 +922,21 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
                   m_Config.Eval( moR(ASSIMP_TRANSLATEY) ),
                   m_Config.Eval( moR(ASSIMP_TRANSLATEZ) ));
 
+    offset_matrix = rotation_matrix;
+
+/**
 	glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEX) ), 1.0, 0.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEY) ), 0.0, 1.0, 0.0 );
-  glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEZ) ), 0.0, 0.0, 1.0 );
+    glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEY) ), 0.0, 1.0, 0.0 );
+    glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEZ) ), 0.0, 0.0, 1.0 );
+*/
+
+    glMultTransposeMatrixd( rotation_matrix );
 
 	glScalef(   m_Config.Eval( moR(ASSIMP_SCALEX) ),
                 m_Config.Eval( moR(ASSIMP_SCALEY) ),
                 m_Config.Eval( moR(ASSIMP_SCALEZ) ));
 
-
+/*
   float tmp = scene_max.x-scene_min.x;
 	tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
 	tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
@@ -895,7 +945,16 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 
         // center the model
 	glTranslatef( -scene_center.x, -scene_center.y, -scene_center.z );
-
+*/
+    glTranslatef( offset_matrix(0,0)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
+                  offset_matrix(0,1)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
+                  offset_matrix(0,2)*m_Config.Eval( moR(ASSIMP_OFFSETX) ));
+    glTranslatef( offset_matrix(1,0)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
+                  offset_matrix(1,1)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
+                  offset_matrix(1,2)*m_Config.Eval( moR(ASSIMP_OFFSETY) ));
+    glTranslatef( offset_matrix(2,0)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
+                  offset_matrix(2,1)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
+                  offset_matrix(2,2)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ));
   // if the display list has not been made yet, create a new one and
   // fill it with scene contents
   RenderModel();
@@ -918,9 +977,33 @@ MOboolean moEffectAssimp::Finish()
 
 void moEffectAssimp::Update( moEventList* p_EventList ) {
 
+    if (!m_Euler_Angle_X) {
+        m_Euler_Angle_X = m_Inlets.GetRef( GetInletIndex( moText("EULER_ANGLE_X") ) );
+        //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+    }
+    if (!m_Euler_Angle_Y) {
+        m_Euler_Angle_Y = m_Inlets.GetRef( GetInletIndex( moText("EULER_ANGLE_Y") ) );
+        //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+    }
+    if (!m_Euler_Angle_Z) {
+        m_Euler_Angle_Z = m_Inlets.GetRef( GetInletIndex( moText("EULER_ANGLE_Z") ) );
+        //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+    }
 
+    if (m_Euler_Angle_X && m_Euler_Angle_Y && m_Euler_Angle_Z) {
+        if (m_Euler_Angle_X->Updated()) {
+            moData mData;
+            float ex = m_Euler_Angle_X->GetData()->Float(), ey = m_Euler_Angle_Y->GetData()->Float(), ez = m_Euler_Angle_Z->GetData()->Float();
+            MODebug2->Message("Euler Angle X:" + FloatToStr(ex)+" Y:" + FloatToStr(ey)+" Z:" + FloatToStr(ez) );
+            Euler2RotationMatrix( ex, -ey, -ez );
 
-  moEffect::Update(p_EventList);
+            //MODebug2->Message("Rotation Matrix:" +  );
+            //cout << rotation_matrix << endl;
+
+        }
+    }
+
+    moEffect::Update(p_EventList);
 }
 
 void moEffectAssimp::Interaction( moIODeviceManager *IODeviceManager ) {
@@ -1025,5 +1108,8 @@ moEffectAssimp::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("lightx"), MO_PARAM_FUNCTION, ASSIMP_LIGHTX );
 	p_configdefinition->Add( moText("lighty"), MO_PARAM_FUNCTION, ASSIMP_LIGHTY );
 	p_configdefinition->Add( moText("lightz"), MO_PARAM_FUNCTION, ASSIMP_LIGHTZ );
+	p_configdefinition->Add( moText("offsetx"), MO_PARAM_FUNCTION, ASSIMP_OFFSETX );
+	p_configdefinition->Add( moText("offsety"), MO_PARAM_FUNCTION, ASSIMP_OFFSETY );
+	p_configdefinition->Add( moText("offsetz"), MO_PARAM_FUNCTION, ASSIMP_OFFSETZ );
 	return p_configdefinition;
 }

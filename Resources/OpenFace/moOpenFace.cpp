@@ -287,6 +287,13 @@ MOboolean moOpenFace::Init() {
     m_FaceSizeWidth = NULL;
     m_FaceSizeHeight = NULL;
 
+    m_FacePositionZ = NULL;
+    m_FaceSizeDepth = NULL;
+
+    m_FaceAngleX = NULL;
+    m_FaceAngleY = NULL;
+    m_FaceAngleZ = NULL;
+
     m_MotionDetection = NULL;
     m_MotionDetectionX = NULL;
     m_MotionDetectionY = NULL;
@@ -1473,6 +1480,7 @@ moOpenFace::FaceDetection() {
 // The actual facial landmark detection / tracking
 
     cv::Mat_<float> depth_image;
+    cv::Vec6d pose_estimate_to_draw;
 
     bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
     if (detection_success && p_clnf_model) {
@@ -1522,11 +1530,14 @@ moOpenFace::FaceDetection() {
         cv::Mat_<float> depth_image;
         frame_count++;
         visualise_tracking(frame, depth_image, *p_clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
+
+        pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(*p_clnf_model, fx, fy, cx, cy);
     }
 
 
-  float FaceLeft = 0,FaceTop = 0;
-  float FaceWidth  = 0,FaceHeight = 0;
+  float FaceX = 0,FaceY = 0, FaceZ = 0;
+  float FaceWidth  = 0,FaceHeight = 0, FaceDepth = 0;
+  float FaceAngleX = 0,FaceAngleY = 0, FaceAngleZ = 0;
 
   float EyeLeftX = 0,EyeLeftY = 0;
   float EyeLeftWidth = 0,EyeLeftHeight = 0;
@@ -1535,8 +1546,16 @@ moOpenFace::FaceDetection() {
 
   if (resizer.X()==0 ) resizer = moVector2i( m_pSrcTexture->GetWidth(),m_pSrcTexture->GetHeight() );
 
+    if (p_clnf_model) {
+        FaceX = pose_estimate_to_draw[0];
+        FaceY = pose_estimate_to_draw[1];
+        FaceZ = pose_estimate_to_draw[2];
+        FaceAngleX = pose_estimate_to_draw[3];
+        FaceAngleY = pose_estimate_to_draw[4];
+        FaceAngleZ = pose_estimate_to_draw[5];
+    }
 
-
+/*
   for (int ic = 0; ic < faces.size(); ic++) // Iterate through all current elements (detected faces)
   {
 
@@ -1548,7 +1567,7 @@ moOpenFace::FaceDetection() {
       FaceTop = -(float)faces[ic].y/(float)resizer.Y() + 0.5f - FaceHeight*0.5f;
 
       FaceWidth*=1.3;
-      FaceHeight*=1.3;
+      FaceHeight*=1.3;*/
 /*
       std::vector<Rect> eyes;
 
@@ -1571,7 +1590,7 @@ moOpenFace::FaceDetection() {
            Scalar( 0, 255, 255 ), 2);
       }
 */
-
+/*
       rectangle( frame,
            Point( faces[ic].x, faces[ic].y ),
            Point( faces[ic].x+faces[ic].width, faces[ic].y+faces[ic].height),
@@ -1587,7 +1606,7 @@ moOpenFace::FaceDetection() {
     );
 
 
-  }
+  }*/
 /**
   rectangle( frame,
            Point( 1,1 ),
@@ -1598,15 +1617,23 @@ moOpenFace::FaceDetection() {
       m_FacePositionX = m_Outlets.GetRef( GetOutletIndex( moText("FACE_POSITION_X") ) );
       //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
   } else {
-    m_FacePositionX->GetData()->SetFloat(  FaceLeft );
+    m_FacePositionX->GetData()->SetFloat(  FaceX );
     m_FacePositionX->Update(true);
   }
   if (!m_FacePositionY) {
       m_FacePositionY = m_Outlets.GetRef( this->GetOutletIndex( moText("FACE_POSITION_Y") ) );
       //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_Y: "+IntToStr((int)m_FacePositionY));
   } else {
-    m_FacePositionY->GetData()->SetFloat(  FaceTop );
+    m_FacePositionY->GetData()->SetFloat(  FaceY );
     m_FacePositionY->Update(true);
+  }
+  if (!m_FacePositionZ) {
+      m_FacePositionZ = m_Outlets.GetRef( GetOutletIndex( moText("FACE_POSITION_Z") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_FacePositionZ->GetData()->SetFloat(  FaceZ );
+    m_FacePositionZ->Update(true);
+    MODebug2->Message("Z:"+FloatToStr(FaceZ));
   }
 
   if (!m_FaceSizeWidth) {
@@ -1623,6 +1650,33 @@ moOpenFace::FaceDetection() {
     m_FaceSizeHeight->GetData()->SetFloat(  FaceHeight );
     m_FaceSizeHeight->Update(true);
   }
+
+
+    if (!m_FaceAngleX) {
+      m_FaceAngleX = m_Outlets.GetRef( GetOutletIndex( moText("FACE_ANGLE_X") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_FaceAngleX->GetData()->SetFloat(  FaceAngleX );
+    m_FaceAngleX->Update(true);
+  }
+
+    if (!m_FaceAngleY) {
+      m_FaceAngleY = m_Outlets.GetRef( GetOutletIndex( moText("FACE_ANGLE_Y") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_FaceAngleY->GetData()->SetFloat(  FaceAngleY );
+    m_FaceAngleY->Update(true);
+  }
+
+  if (!m_FaceAngleZ) {
+      m_FaceAngleZ = m_Outlets.GetRef( GetOutletIndex( moText("FACE_ANGLE_Z") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    m_FaceAngleZ->GetData()->SetFloat(  FaceAngleZ );
+    m_FaceAngleZ->Update(true);
+  }
+
+
 
   CvMatToTexture( frame, 0 , 0, 0, m_pCVBlobs );
   #ifndef WIN32
@@ -1646,13 +1700,19 @@ moOpenFace::FaceDetection() {
         pData.SetText( moText("FACE_POSITION_X") );
         m_pDataMessage->Add(pData);
 
-        pData.SetFloat( FaceLeft );
+        pData.SetFloat( FaceX );
         m_pDataMessage->Add(pData);
 
         pData.SetText( moText("FACE_POSITION_Y") );
         m_pDataMessage->Add(pData);
 
-        pData.SetFloat( FaceTop );
+        pData.SetFloat( FaceY );
+        m_pDataMessage->Add(pData);
+
+        pData.SetText( moText("FACE_POSITION_Z") );
+        m_pDataMessage->Add(pData);
+
+        pData.SetFloat( FaceZ );
         m_pDataMessage->Add(pData);
 
         pData.SetText( moText("FACE_SIZE_WIDTH") );
