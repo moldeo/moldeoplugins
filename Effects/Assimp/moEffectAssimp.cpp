@@ -994,7 +994,7 @@ void moEffectAssimp::Update( moEventList* p_EventList ) {
         if (m_Euler_Angle_X->Updated()) {
             moData mData;
             float ex = m_Euler_Angle_X->GetData()->Float(), ey = m_Euler_Angle_Y->GetData()->Float(), ez = m_Euler_Angle_Z->GetData()->Float();
-            MODebug2->Message("Euler Angle X:" + FloatToStr(ex)+" Y:" + FloatToStr(ey)+" Z:" + FloatToStr(ez) );
+            //MODebug2->Message("Euler Angle X:" + FloatToStr(ex)+" Y:" + FloatToStr(ey)+" Z:" + FloatToStr(ez) );
             Euler2RotationMatrix( ex, -ey, -ez );
 
             //MODebug2->Message("Rotation Matrix:" +  );

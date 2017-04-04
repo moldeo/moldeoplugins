@@ -34,10 +34,18 @@
 		</VirtualTargets>
 		<Compiler>
 			<Add option="`pkg-config lua5.1 --cflags`" />
+			<Add option="`pkg-config libmoldeo --cflags`" />
+			<Add option="`pkg-config assimp --cflags`" />
+			<Add option="-fPIC" />
 			<Add directory="../../../inc" />
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
 		</Compiler>
+		<Linker>
+			<Add option="`pkg-config lua5.1 --libs`" />
+			<Add option="`pkg-config libmoldeo --libs`" />
+			<Add option="`pkg-config assimp --libs`" />
+		</Linker>
 		<Unit filename="moEffectAssimp.cpp" />
 		<Unit filename="moEffectAssimp.h" />
 		<Extensions>

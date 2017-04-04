@@ -1633,7 +1633,7 @@ moOpenFace::FaceDetection() {
   } else {
     m_FacePositionZ->GetData()->SetFloat(  FaceZ );
     m_FacePositionZ->Update(true);
-    MODebug2->Message("Z:"+FloatToStr(FaceZ));
+    //MODebug2->Message("Z:"+FloatToStr(FaceZ));
   }
 
   if (!m_FaceSizeWidth) {
