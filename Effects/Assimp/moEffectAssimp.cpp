@@ -360,7 +360,7 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
 		//unsigned int texId = *textureIdMap[texPath.data];
 		moText texture_name = moText( texPath.data );
     texture_name = AssetFile.GetPath() + texture_name;
-    MODebug2->Message("moEffectAssimp::apply_material > loading texture: " + texture_name );
+    //MODebug2->Message("moEffectAssimp::apply_material > loading texture: " + texture_name );
     int tex_moid = GetResourceManager()->GetTextureMan()->GetTextureMOId( texture_name, false );
 
     moTexture* Texture = NULL;
@@ -424,12 +424,16 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
 
 	max = 1;
 
-	if((AI_SUCCESS == aiGetMaterialIntegerArray(mtl, AI_MATKEY_TWOSIDED, &two_sided, &max)) && two_sided)
-		glEnable(GL_CULL_FACE);
-	else
-		glDisable(GL_CULL_FACE);
-
-    glEnable(GL_CULL_FACE);
+    if (m_iCullFace==ASSIMP_CULLFACE_AUTOMATIC) {
+        if((AI_SUCCESS == aiGetMaterialIntegerArray(mtl, AI_MATKEY_TWOSIDED, &two_sided, &max)) && two_sided)
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+    } else if (m_iCullFace==ASSIMP_CULLFACE_ENABLED) {
+        glEnable(GL_CULL_FACE);
+    } else {
+        glDisable(GL_CULL_FACE);
+    }
 }
 
 
@@ -494,17 +498,36 @@ void moEffectAssimp::recursive_render (const aiScene *sc, const aiNode* nd, floa
 			{
 				int vertexIndex = face->mIndices[i];	// get group index for current index
 				if(mesh->mColors[0] != NULL)
-					glColor4f( mesh->mColors[0][vertexIndex].r, mesh->mColors[0][vertexIndex].g, mesh->mColors[0][vertexIndex].b, mesh->mColors[0][vertexIndex].a);
-				if(mesh->mNormals != NULL)
+					glColor4f( mesh->mColors[0][vertexIndex].r,
+					mesh->mColors[0][vertexIndex].g,
+					mesh->mColors[0][vertexIndex].b,
+					mesh->mColors[0][vertexIndex].a);
+				//if(mesh->mNormals != NULL)
 
 					if(mesh->HasTextureCoords(0))		//HasTextureCoords(texture_coordinates_set)
 					{
-						glTexCoord2f(mesh->mTextureCoords[0][vertexIndex].x, 1 - mesh->mTextureCoords[0][vertexIndex].y); //mTextureCoords[channel][vertex]
+						glTexCoord2f( mesh->mTextureCoords[0][vertexIndex].x, 1.0-mesh->mTextureCoords[0][vertexIndex].y); //mTextureCoords[channel][vertex]
 					}
 
 					if (mesh->mNormals) glNormal3fv(&mesh->mNormals[vertexIndex].x);
 					else glNormal3f( 1.0, 0.0, 0.0 );
-					if (mesh->mVertices) glVertex3fv(&mesh->mVertices[vertexIndex].x);
+
+					if (mesh->mVertices) {
+                        if (m_Vertices_OpenFace.Count()>0) {
+                            std::map<int, int>::iterator it = mapOfVertexAssociation.find(vertexIndex);
+                            if (it != mapOfVertexAssociation.end()) {
+                                int idmap = it->second;
+                                if (idmap<m_Vertices_OpenFace.Count()) {
+                                    glVertex3f( m_Vertices_OpenFace[idmap].X(), m_Vertices_OpenFace[idmap].Y(), m_Vertices_OpenFace[idmap].Z());
+                                }
+                            } else {
+                                glVertex3fv(&mesh->mVertices[vertexIndex].x);
+                            }
+                        } else {
+                            glVertex3fv(&mesh->mVertices[vertexIndex].x);
+                        }
+					}
+
 			}
 
 			glEnd();
@@ -538,6 +561,8 @@ moEffectAssimp::moEffectAssimp() {
 
 	scene = NULL;
     scene_list = 0;
+    m_print_mesh_vertices = true;
+    m_b_no_perspective = false;
 }
 
 moEffectAssimp::~moEffectAssimp() {
@@ -581,6 +606,9 @@ MOboolean moEffectAssimp::Init() {
 	moDefineParamIndex( ASSIMP_OFFSETX, moText("offsetx") );
 	moDefineParamIndex( ASSIMP_OFFSETY, moText("offsety") );
 	moDefineParamIndex( ASSIMP_OFFSETZ, moText("offsetz") );
+	moDefineParamIndex( ASSIMP_CULLFACE, moText("cullface") );
+	moDefineParamIndex( ASSIMP_VERTICES_OPENFACE, moText("vertices_openface") );
+	moDefineParamIndex( ASSIMP_NO_PERSPECTIVE, moText("no_perspective") );
 	moDefineParamIndex( ASSIMP_INLET, moText("inlet") );
 	moDefineParamIndex( ASSIMP_OUTLET, moText("outlet") );
 
@@ -603,7 +631,7 @@ MOboolean moEffectAssimp::Init() {
 
   ArcBall.setBounds( 1.0, 1.0 );
 
-isClicked  = false;
+    isClicked  = false;
     isRPressed = false;
     isDragging = false;
 
@@ -645,6 +673,19 @@ isClicked  = false;
     distance_z = 0;
     show_cursor = 0;
 
+    moParam& vxParam( m_Config.GetParam(moR(ASSIMP_VERTICES_OPENFACE)) );
+    if (vxParam.GetValuesCount()>0) {
+        for( int vi=0; vi<vxParam.GetValuesCount(); vi++) {
+            vxParam.SetIndexValue(vi);
+            moText vertex_str = m_Config.Text(moR(ASSIMP_VERTICES_OPENFACE));
+            std::string s_v_str = (char*)vertex_str;
+            mapOfVertexStrings.insert(std::make_pair( s_v_str, vi ));
+            MODebug2->Message("vertices_openface defined! Importing: " + IntToStr(vi) + " x,y,z: " +  vertex_str );
+        }
+        m_Vertices_OpenFace.Init( vxParam.GetValuesCount(), moVector3d( 0.0, 0.0, 0.0) );
+    }
+
+
 	return true;
 }
 
@@ -685,6 +726,13 @@ void moEffectAssimp::UpdateRotation()
 void moEffectAssimp::UpdateParameters() {
 
   moText testasset = m_Config.Text( moR(ASSIMP_OBJECT) );
+  if (m_iCullFace != m_Config.Int(moR(ASSIMP_CULLFACE)) ) {
+    m_iCullFace = m_Config.Int(moR(ASSIMP_CULLFACE));
+    MODebug2->Message("CullFace param changed to " + IntToStr(m_iCullFace) );
+  }
+
+  m_b_no_perspective = (m_Config.Int(moR(ASSIMP_NO_PERSPECTIVE))!=0);
+
 
   if ( AssetFile.GetCompletePath() != testasset ) {
 
@@ -715,19 +763,67 @@ void moEffectAssimp::RenderModel() {
 
   }
 
-	if(scene_list == 0) {
 
-	    scene_list = glGenLists(1);
-	    glNewList(scene_list, GL_COMPILE);
+    if (scene_list) {
+        glDeleteLists(scene_list,1);
+        scene_list = 0;
+    }
+
+	if(scene_list == 0 && scene) {
 
     // now begin at the root node of the imported data and traverse
     // the scenegraph by multiplying subsequent local transforms
     // together on GL's matrix stack.
-	    recursive_render(scene, scene->mRootNode, 1.0 /*scale*/);
-	    glEndList();
+        if (scene->mRootNode) {
+            scene_list = glGenLists(1);
+            glNewList(scene_list, GL_COMPILE);
+            if (m_print_mesh_vertices) {
+                MODebug2->Message("Root Node Childrens:"+IntToStr(scene->mRootNode->mNumChildren)+
+            " Meshes:" + IntToStr(scene->mRootNode->mNumMeshes) );
+                if (scene->mRootNode->mNumChildren>0) {
+                    MODebug2->Message("Root First Children -> Childrens:"+IntToStr(scene->mRootNode->mChildren[0]->mNumChildren)
+                    +" Meshes:" + IntToStr(scene->mRootNode->mChildren[0]->mNumMeshes) );
+
+                    if (scene->mRootNode->mChildren[0]->mNumMeshes>0) {
+                        const struct aiMesh* mesh = scene->mMeshes[scene->mRootNode->mChildren[0]->mMeshes[0]];
+                        MODebug2->Message("Root First Children Mesh -> Vertices: " + IntToStr(mesh->mNumVertices));
+                        for( int v=0;v<mesh->mNumVertices;v++) {
+
+                            MODebug2->Message("Index " + IntToStr(v) +
+                                +" "+FloatToStr(mesh->mVertices[v].x)
+                                +", "+FloatToStr(mesh->mVertices[v].y)
+                                +", "+FloatToStr(mesh->mVertices[v].z));
+
+                            moText vertex_str = FloatToStr(mesh->mVertices[v].x)+", "+FloatToStr(mesh->mVertices[v].y)+", "+FloatToStr(mesh->mVertices[v].z);
+                            std::string vstr = (char*)vertex_str;
+                            std::map<std::string, int>::iterator it = mapOfVertexStrings.find( vstr );
+                            if (it != mapOfVertexStrings.end()) {
+                                MODebug2->Message("Index Founded! vi: " + IntToStr(v) + " idmap: " + IntToStr(it->second) +
+                                +" "+FloatToStr(mesh->mVertices[v].x)
+                                +", "+FloatToStr(mesh->mVertices[v].y)
+                                +", "+FloatToStr(mesh->mVertices[v].z));
+                                mapOfVertexAssociation.insert( std::make_pair(v,it->second) );
+                            } else {
+                                MODebug2->Message("Not found > " + vertex_str );
+                            }
+
+                        }
+
+                    }
+                }
+                m_print_mesh_vertices = false;
+            }
+
+            recursive_render(scene, scene->mRootNode, 1.0 /*scale*/);
+            glEndList();
+        }
 	}
 
-	glCallList(scene_list);
+    if (scene_list) {
+        glCallList(scene_list);
+    }
+
+    //scene_list = 0;
 }
 
 
@@ -764,27 +860,30 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     PreDraw( tempogral, parentstate);
 
+    UpdateParameters();
 
     glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
     glPushMatrix();
-    m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
-
-
-    glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
-    gluLookAt(		 m_Config.Eval( moR(ASSIMP_EYEX)),
+    if (m_b_no_perspective==true) {
+        m_pResourceManager->GetGLMan()->SetDefaultOrthographicView( w, h);
+    } else {
+        m_pResourceManager->GetGLMan()->SetPerspectiveView( w, h );
+        glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
+        gluLookAt(		 m_Config.Eval( moR(ASSIMP_EYEX)),
                     m_Config.Eval( moR(ASSIMP_EYEY)),
                     m_Config.Eval( moR(ASSIMP_EYEZ)),
                     m_Config.Eval( moR(ASSIMP_VIEWX)),
                     m_Config.Eval( moR(ASSIMP_VIEWY)),
                     m_Config.Eval( moR(ASSIMP_VIEWZ)),
                     0, 1, 0);
+    }
+
+
 
 
 
     // Guardar y resetar la matriz de vista del modelo //
     glMatrixMode(GL_MODELVIEW);                         // Select The Modelview Matrix
-
-    UpdateParameters();
 
     glPushMatrix();                                     // Store The Modelview Matrix
     glLoadIdentity();									// Reset The View
@@ -918,43 +1017,52 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 	SetBlending( (moBlendingModes) m_Config.Int( moR(ASSIMP_BLENDING) ) );
 
-	glTranslatef(   m_Config.Eval( moR(ASSIMP_TRANSLATEX) ),
+glTranslatef(   m_Config.Eval( moR(ASSIMP_TRANSLATEX) ),
                   m_Config.Eval( moR(ASSIMP_TRANSLATEY) ),
                   m_Config.Eval( moR(ASSIMP_TRANSLATEZ) ));
 
-    offset_matrix = rotation_matrix;
+    if (m_b_no_perspective==false) {
 
-/**
-	glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEX) ), 1.0, 0.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEY) ), 0.0, 1.0, 0.0 );
-    glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEZ) ), 0.0, 0.0, 1.0 );
-*/
+        offset_matrix = rotation_matrix;
 
-    glMultTransposeMatrixd( rotation_matrix );
+        /**
+            glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEX) ), 1.0, 0.0, 0.0 );
+            glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEY) ), 0.0, 1.0, 0.0 );
+            glRotatef(  m_Config.Eval( moR(ASSIMP_ROTATEZ) ), 0.0, 0.0, 1.0 );
+        */
+        glMultTransposeMatrixd( rotation_matrix );
 
-	glScalef(   m_Config.Eval( moR(ASSIMP_SCALEX) ),
+
+    }
+
+
+    glScalef(   m_Config.Eval( moR(ASSIMP_SCALEX) ),
                 m_Config.Eval( moR(ASSIMP_SCALEY) ),
                 m_Config.Eval( moR(ASSIMP_SCALEZ) ));
-
 /*
   float tmp = scene_max.x-scene_min.x;
-	tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
-	tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
-	tmp = 1.f / tmp;
-	glScalef(tmp, tmp, tmp);
+    tmp = aisgl_max(scene_max.y - scene_min.y,tmp);
+    tmp = aisgl_max(scene_max.z - scene_min.z,tmp);
+    tmp = 1.f / tmp;
+    glScalef(tmp, tmp, tmp);
 
         // center the model
-	glTranslatef( -scene_center.x, -scene_center.y, -scene_center.z );
+    glTranslatef( -scene_center.x, -scene_center.y, -scene_center.z );
 */
-    glTranslatef( offset_matrix(0,0)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
-                  offset_matrix(0,1)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
-                  offset_matrix(0,2)*m_Config.Eval( moR(ASSIMP_OFFSETX) ));
-    glTranslatef( offset_matrix(1,0)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
-                  offset_matrix(1,1)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
-                  offset_matrix(1,2)*m_Config.Eval( moR(ASSIMP_OFFSETY) ));
-    glTranslatef( offset_matrix(2,0)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
-                  offset_matrix(2,1)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
-                  offset_matrix(2,2)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ));
+
+
+
+    if (m_b_no_perspective==false) {
+        glTranslatef( offset_matrix(0,0)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
+                      offset_matrix(0,1)*m_Config.Eval( moR(ASSIMP_OFFSETX) ),
+                      offset_matrix(0,2)*m_Config.Eval( moR(ASSIMP_OFFSETX) ));
+        glTranslatef( offset_matrix(1,0)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
+                      offset_matrix(1,1)*m_Config.Eval( moR(ASSIMP_OFFSETY) ),
+                      offset_matrix(1,2)*m_Config.Eval( moR(ASSIMP_OFFSETY) ));
+        glTranslatef( offset_matrix(2,0)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
+                      offset_matrix(2,1)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ),
+                      offset_matrix(2,2)*m_Config.Eval( moR(ASSIMP_OFFSETZ) ));
+    }
   // if the display list has not been made yet, create a new one and
   // fill it with scene contents
   RenderModel();
@@ -1001,6 +1109,68 @@ void moEffectAssimp::Update( moEventList* p_EventList ) {
             //cout << rotation_matrix << endl;
 
         }
+    }
+
+    int MsgToSend = GetInletIndex("DATAVECTORMESSAGE" );
+    if (MsgToSend > -1 && 1==1) {
+      moInlet* pInlet = GetInlets()->Get(MsgToSend);
+      if (pInlet ) {
+          if (pInlet->Updated()) {
+            moDataMessage data_message;
+            moData mData;
+            moData* pData = pInlet->GetData();
+            if (pData) {
+              if (pData->Type()==MO_DATA_MESSAGE) {
+
+              //if (debug_is_on) MODebug2->Push( moText(" text: ") + pData->ToText());
+
+                moDataMessage* pMess = pData->Message();
+                if (pMess) {
+                  //MODebug2->Message( moText(" Vectors: ") + IntToStr( pMess->Count() ) );
+                  int vcount = m_Config.GetParam(moR(ASSIMP_VERTICES_OPENFACE)).GetValuesCount();
+
+                  if (pMess->Count()==2*vcount ) {
+
+                      for(int kk=0; kk<pMess->Count(); kk++ ) {
+                        //mData = pMess->Get(k);
+                        //data_message.Add(mData);
+                      //}
+
+                        // pair x, y (2) * count vertices
+                        //MODebug2->Message("Updating vertices ok! " + FloatToStr(data_message.Count()) );
+    //                    for( int kk=0; kk<vcount; kk++) {
+                            float x = (pMess->Get(kk*2).Float()*2.0)/10000.0 - 0.5;
+                            float y = (pMess->Get(kk*2+1).Float()*2.0)/10000.0 - 0.5;
+                            m_Vertices_OpenFace[kk] = moVector3d( x, y, 0.0 );
+                            //MODebug2->Message("Up " + IntToStr(kk)+": "+FloatToStr(x)+","+FloatToStr(y));
+      //                  }
+                      }
+                    }
+                }
+
+              }
+            }
+            //moDataMessage* pMoldeoDataMessage = (moDataMessage*)pInlet->GetData()->Message();
+              /*
+              moText ccc;
+              for( int c=0; c<DM.Count(); c++) {
+                ccc = ccc + DM.Get(c).ToText();
+              }*/
+/*
+            if (pMoldeoDataMessage) {
+              moDataMessage DM = (*pMoldeoDataMessage);
+              for (i = 0; i < host_name.Count(); i++)
+              {
+                  {
+                      //MODebug2->Push( moText("sending DATAMESSAGE: ") + ccc );
+                      //SendDataMessage( i, DM );
+                  }
+              }
+
+            }
+            */
+          }
+      }
     }
 
     moEffect::Update(p_EventList);
@@ -1111,5 +1281,8 @@ moEffectAssimp::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("offsetx"), MO_PARAM_FUNCTION, ASSIMP_OFFSETX );
 	p_configdefinition->Add( moText("offsety"), MO_PARAM_FUNCTION, ASSIMP_OFFSETY );
 	p_configdefinition->Add( moText("offsetz"), MO_PARAM_FUNCTION, ASSIMP_OFFSETZ );
+	p_configdefinition->Add( moText("cullface"), MO_PARAM_NUMERIC, ASSIMP_CULLFACE, moValue( "0", "NUM").Ref(), moText("AUTOMATIC,ENABLED,DISABLED") );
+	p_configdefinition->Add( moText("vertices_openface"), MO_PARAM_TEXT, ASSIMP_VERTICES_OPENFACE );
+	p_configdefinition->Add( moText("no_perspective"), MO_PARAM_NUMERIC, ASSIMP_NO_PERSPECTIVE, moValue( "0", "NUM").Ref(), moText("AUTO,ON") );
 	return p_configdefinition;
 }

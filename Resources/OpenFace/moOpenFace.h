@@ -269,6 +269,9 @@ public:
     double fps_tracker = -1.0;
     int64 t0 = 0;
     int64 frame_count = 0;
+    // For subpixel accuracy drawing
+    const int draw_shiftbits = 4;
+    const int draw_multiplier = 1 << 4;
 
     void visualise_tracking(cv::Mat& captured_image,
         cv::Mat_<float>& depth_image,
@@ -286,6 +289,7 @@ public:
 
     moTrackerSystemData*    m_pTrackerSystemData;
     moDataMessage*          m_pDataMessage;
+    moDataMessage*          m_pDataVectorMessage;
     moDataMessages          m_DataMessages;
 
 private:
@@ -293,6 +297,9 @@ private:
     moTexture* m_pSrcTexture;
 
     bool      m_bReInit;
+
+    moVector2d vecEyeBrowLeft;
+    moVector2d vecOpenJaw;
 
     moTexture* m_pCVSourceTexture;
     moTexture* m_pCVResultTexture;
@@ -366,6 +373,7 @@ private:
 
     moOutlet* m_OutTracker;
     moOutlet* m_OutletDataMessage; //MESSAGE THAT CAN BE CONNECTED TO NetOscOut "DATAMESSAGE"
+    moOutlet* m_OutletDataVectorMessage;
 
     moOutlet* m_Blob1X;
     moOutlet* m_Blob1Y;

@@ -35,6 +35,10 @@
 #include "mo3dModelManager.h"
 #include "moArcBall.h"
 #include "moMathMatrix.h"
+#include "moMathVector3.h"
+#include <string>
+#include <iostream>
+#include <map>
 
 #include <assimp/cimport.h>
 #include <assimp/scene.h>
@@ -100,8 +104,17 @@ enum moIcon3dParamIndex {
 	ASSIMP_OFFSETX,
 	ASSIMP_OFFSETY,
 	ASSIMP_OFFSETZ,
+	ASSIMP_CULLFACE,
+	ASSIMP_VERTICES_OPENFACE,
+	ASSIMP_NO_PERSPECTIVE,
 	ASSIMP_INLET,
 	ASSIMP_OUTLET
+};
+
+enum moAssimpCullface {
+    ASSIMP_CULLFACE_AUTOMATIC = 0,
+    ASSIMP_CULLFACE_ENABLED = 1,
+    ASSIMP_CULLFACE_DISABLED = 2
 };
 
 class moEffectAssimp: public moEffect
@@ -132,23 +145,30 @@ public:
     const aiScene* scene;
     GLuint scene_list;
     aiVector3D scene_min, scene_max, scene_center;
+
+    int m_iCullFace;
+
     void get_bounding_box (aiVector3D* min, aiVector3D* max);
+
     void get_bounding_box_for_node (const aiNode* nd,
-	aiVector3D* min,
-	aiVector3D* max,
-	aiMatrix4x4* trafo);
+                                    aiVector3D* min,
+                                    aiVector3D* max,
+                                    aiMatrix4x4* trafo);
+
+
 private:
     aiString* str;
     void UpdateRotation();
 
     MOint g_ViewMode;
 
-    MOfloat	Tx,Ty,Tz,Sx,Sy,Sz;
+    MOfloat Tx,Ty,Tz,Sx,Sy,Sz;
     moInlet* m_Euler_Angle_X;
     moInlet* m_Euler_Angle_Y;
     moInlet* m_Euler_Angle_Z;
 
     bool loadedAsset;
+
     moFile AssetFile;
 
     // Mouse input.
@@ -164,6 +184,12 @@ private:
     Matrix3fT   LastRot;                 // Last Rotation
     Matrix3fT   ThisRot;                 // This Rotation
 
+
+    std::map<std::string, int> mapOfVertexStrings;
+    std::map<int, int> mapOfVertexAssociation;
+    moVector3dArray  m_Vertices_OpenFace;
+    bool m_print_mesh_vertices;
+    bool m_b_no_perspective;
 };
 
 class moEffectAssimpFactory : public moEffectFactory

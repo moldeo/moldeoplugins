@@ -95,7 +95,9 @@ moOpenFace::moOpenFace() {
 	m_pCVThresh = NULL;
 
   m_OutletDataMessage = NULL;
+  m_OutletDataVectorMessage = NULL;
   m_pDataMessage = NULL;
+  m_pDataVectorMessage = NULL;
 
   m_Blob1X = NULL;
   m_Blob1Y = NULL;
@@ -305,8 +307,11 @@ MOboolean moOpenFace::Init() {
 
     m_OutTracker = NULL;
     m_OutletDataMessage = NULL;
+    m_OutletDataVectorMessage = NULL;
     m_pDataMessage = NULL;
     m_pDataMessage = new moDataMessage();
+    m_pDataVectorMessage = NULL;
+    m_pDataVectorMessage = new moDataMessage();
 
     moTexParam tparam = MODefTex2DParams;
     //tparam.internal_format = GL_RGBA32F_ARB;
@@ -462,6 +467,9 @@ void moOpenFace::UpdateParameters() {
   if (m_pDataMessage)
     m_pDataMessage->Empty();
 
+  if (m_pDataVectorMessage)
+    m_pDataVectorMessage->Empty();
+
 	if (pTexData) {
     ///segun el modelo aplicamos...
     pTexData->GetGLId();
@@ -559,6 +567,19 @@ void moOpenFace::UpdateParameters() {
     }
 
   }
+
+  if (!m_OutletDataVectorMessage) {
+      m_OutletDataVectorMessage = m_Outlets.GetRef( GetOutletIndex( moText("DATAVECTORMESSAGE") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet DATAVECTORMESSAGE: "+IntToStr((int)m_OutletDataVectorMessage));
+  } else {
+    //m_OutletDataMessage->GetData()->SetInt(  (int)(number_of_sequence>0) );
+    if (m_pDataVectorMessage) {
+      m_OutletDataVectorMessage->GetData()->SetMessage(m_pDataVectorMessage);
+      m_OutletDataVectorMessage->Update(true);
+    }
+
+  }
+
 
 
 }
@@ -1381,11 +1402,39 @@ moOpenFace::visualise_tracking(cv::Mat& captured_image,
 	bool detection_success = face_model.detection_success;
 
 	double visualisation_boundary = 0.2;
-
 	// Only draw if the reliability is reasonable, the value is slightly ad-hoc
 	if (detection_certainty < visualisation_boundary)
 	{
 		LandmarkDetector::Draw(captured_image, face_model);
+
+		int n = face_model.detected_landmarks.rows/2;
+		int eyebrow_left = 20;
+		int eyebrow_right = 23;
+		int eye_left = 38;
+		int eye_right = 43;
+		int jaw_nose = 33;
+		int jaw_chin = 8;
+		cv::Point eyebrowLeft(
+            cvRound(face_model.detected_landmarks.at<double>(eyebrow_left) * (double)draw_multiplier),
+            cvRound(face_model.detected_landmarks.at<double>(eyebrow_left + n)* (double)draw_multiplier));
+		cv::Point eyeLeft(
+            cvRound(face_model.detected_landmarks.at<double>(eye_left) * (double)draw_multiplier),
+            cvRound(face_model.detected_landmarks.at<double>(eye_left + n)* (double)draw_multiplier));
+
+        cv::Point jawNose(
+            cvRound(face_model.detected_landmarks.at<double>(jaw_nose) * (double)draw_multiplier),
+            cvRound(face_model.detected_landmarks.at<double>(jaw_nose + n)* (double)draw_multiplier));
+        cv::Point jawChin(
+            cvRound(face_model.detected_landmarks.at<double>(jaw_chin) * (double)draw_multiplier),
+            cvRound(face_model.detected_landmarks.at<double>(jaw_chin + n)* (double)draw_multiplier));
+
+        cv::Point openEyeBrowLeft(eyebrowLeft-eyeLeft);
+        cv::Point openJaw(jawChin-jawNose);
+
+        vecEyeBrowLeft = moVector2d( openEyeBrowLeft.x, openEyeBrowLeft.y );
+        vecOpenJaw = moVector2d( openJaw.x, openJaw.y );
+
+        //cout << "eye left:" << eyeLeft << "eyebrow left:" << eyebrowLeft << "L:" << vecEyeBrowLeft.Length() << endl;
 
 		double vis_certainty = detection_certainty;
 		if (vis_certainty > 1)
@@ -1393,10 +1442,12 @@ moOpenFace::visualise_tracking(cv::Mat& captured_image,
 		if (vis_certainty < -1)
 			vis_certainty = -1;
 
+
 		vis_certainty = (vis_certainty + 1) / (visualisation_boundary + 1);
 
 		// A rough heuristic for box around the face width
 		int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
+
 
 		cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(face_model, fx, fy, cx, cy);
 
@@ -1435,7 +1486,7 @@ moOpenFace::FaceDetection() {
     return;
   }
 
-    ThresholdFilter();
+    //ThresholdFilter();
   /**INIT CASCADE CLASIFFIER with haarcascades standard training XML files*/
 
 
@@ -1683,6 +1734,25 @@ moOpenFace::FaceDetection() {
   //imwrite( "/tmp/dstblobs/dstblobs.jpg", frame );
   //m_pCVBlobs->CreateThumbnail( "JPG", m_pCVBlobs->GetWidth(), m_pCVBlobs->GetHeight(), "/tmp/dstblobs/dstblobs"  );
   #endif // WIN32
+
+    if (m_pDataVectorMessage && p_clnf_model) {
+
+        m_pDataVectorMessage->Empty();
+        moData pData;
+        int n = p_clnf_model->detected_landmarks.rows/2;
+        //MODebug2->Message("moOpenFace::FaceDetection > Sending n marks:"+IntToStr(n));
+        for( int i=0; i<n; i++) {
+            cv::Point featurePoint(
+                cvRound(p_clnf_model->detected_landmarks.at<double>(i) * (double)draw_multiplier),
+                cvRound(p_clnf_model->detected_landmarks.at<double>(i + n) * (double)draw_multiplier));
+            pData.SetFloat( featurePoint.x );
+            m_pDataVectorMessage->Add(pData);
+            pData.SetFloat( featurePoint.y );
+            m_pDataVectorMessage->Add(pData);
+        }
+
+
+    }
 
     if (m_pDataMessage) {
         m_pDataMessage->Empty();//EMPTY IN UpdateParameters()
