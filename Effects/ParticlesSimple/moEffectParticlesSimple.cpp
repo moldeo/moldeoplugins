@@ -2592,7 +2592,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
 
                       if ( pPar->MOId==-1 ) {
                           moTextFilterParam DefParam;
-                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, &DefParam );
+                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, DefParam );
 
                       } else {
 
