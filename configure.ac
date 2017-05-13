@@ -130,7 +130,7 @@ AC_CONFIG_SUBDIRS(
 	Effects/Plane
 	Effects/ParticlesSimple
 	Effects/Sound
-    Effects/Sound3D
+	Effects/Sound3D
 	Effects/Tunel
 	Effects/Grid
 	Effects/CubeMap
