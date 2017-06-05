@@ -269,6 +269,9 @@ enum moParticlesFractalParamIndex {
 	PARTICLES_TEXTURE,
 	PARTICLES_FOLDERS,
 	PARTICLES_TEXTURE_MEDIUM,
+	PARTICLES_TEXTURE_ALTITUDE,
+	PARTICLES_TEXTURE_VARIABILITY,
+	PARTICLES_TEXTURE_CONFIDENCE,
 	PARTICLES_TEXTUREMODE,
 	PARTICLES_BLENDING,
 
@@ -813,7 +816,36 @@ class moEffectParticlesFractal : public moEffect
         moTexture*  m_pMediumTexture;
         moTextureFilter*  m_pTFilter_MediumTexture;
 
-        moText  m_MediumTextureLoadedName;
+        moText  m_MediumTextureLoadedName;//Composition Medium [COLORS are OPTIONS]
+
+
+        bool  m_bAltitudeTextureSwapOn;
+        moTexture*  m_pAltitudeTextureSwap;
+        moTextureFilter*  m_pTFilter_AltitudeTextureSwap;
+        moStateFilterParams* m_pAltitudeFilterParams;
+        moTexture*  m_pAltitudeTexture;
+        moTextureFilter*  m_pTFilter_AltitudeTexture;
+
+        moText  m_AltitudeTextureLoadedName;//Altitude values [LIGHTER is more IMPORTANT]
+
+        bool  m_bVariabilityTextureSwapOn;
+        moTexture*  m_pVariabilityTextureSwap;
+        moTextureFilter*  m_pTFilter_VariabilityTextureSwap;
+        moStateFilterParams* m_pVariabilityFilterParams;
+        moTexture*  m_pVariabilityTexture;
+        moTextureFilter*  m_pTFilter_VariabilityTexture;
+
+        moText  m_VariabilityTextureLoadedName;//Variability values [LIGHTER is ENTROPIC]
+
+        bool  m_bConfidenceTextureSwapOn;
+        moTexture*  m_pConfidenceTextureSwap;
+        moTextureFilter*  m_pTFilter_ConfidenceTextureSwap;
+        moStateFilterParams* m_pConfidenceFilterParams;
+        moTexture*  m_pConfidenceTexture;
+        moTextureFilter*  m_pTFilter_ConfidenceTexture;
+
+        moText  m_ConfidenceTextureLoadedName;//Confidence values [LIGHTER is more CONFIDENT]
+
 
         bool  m_bStateTextureSwapOn;
         moTexture*  m_pStateTextureSwap;

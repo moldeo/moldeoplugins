@@ -614,7 +614,8 @@ void moEffectRegularSolid::UpdateParameters() {
 	///MATERIAL
 	///pTMan->GetTextureMOId( "default", false )
   if (TD) m_Mat.m_Map = TD->Texture();
-  m_Mat.m_MapGLId = m_Config.GetGLId( moR(REGULARSOLID_TEXTURE), this );///Mat.m_Map->GetGLId();
+  //m_Mat.m_MapGLId = m_Config.GetGLId( moR(REGULARSOLID_TEXTURE), this );///Mat.m_Map->GetGLId();
+  m_Mat.m_MapGLId = m_Config.GetGLId( moR(REGULARSOLID_TEXTURE), &this->m_EffectState.tempo );///Mat.m_Map->GetGLId();
   m_Mat.m_Color = m_Effect3D.m_Material.m_Color;
   m_Mat.m_fOpacity = m_Effect3D.m_Material.m_fOpacity;
   m_Mat.m_fTextWSegments = sA;

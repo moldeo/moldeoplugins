@@ -328,8 +328,8 @@ moKinect::GetDefinition( moConfigDefinition *p_configdefinition ) {
     p_configdefinition->Add( moText("texture2"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
     p_configdefinition->Add( moText("texture3"), MO_PARAM_TEXTURE, KINECT_OBJECT_TEXTURE1, moValue( "default", MO_VALUE_TXT) );
 
-    p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, KINECT_UPDATE_ON, moValue( "0", "INT") );
-    p_configdefinition->Add( moText("verbose"), MO_PARAM_NUMERIC, KINECT_VERBOSE, moValue( "0", "INT") );
+    p_configdefinition->Add( moText("update_on"), MO_PARAM_NUMERIC, KINECT_UPDATE_ON, moValue( "0", "INT"), moText("No,Yes") );
+    p_configdefinition->Add( moText("verbose"), MO_PARAM_NUMERIC, KINECT_VERBOSE, moValue( "0", "INT"), moText("No,Yes") );
 
 	return p_configdefinition;
 }
@@ -830,7 +830,7 @@ moKinect::Init() {
         this->m_bInitialized = false;
         return false;
     } else {
-        if (m_nRetVal) {
+        {
         MODebug2->Message("Kinect User Generator Initialized!!");
 
 
@@ -890,8 +890,12 @@ moKinect::Init() {
                 /*optimizar*/
                 pFBO = m_pResourceManager->GetFBMan()->GetFBO(m_fbo_idx);
                 if (pFBO) {
-                    pFBO->AddTexture(   m_OutputMode.nXRes, m_OutputMode.nYRes, m_pUserTexture->GetTexParam(), m_pUserTexture->GetGLId(),
-                                      attach_point );
+                    pFBO->AddTexture(
+                        m_OutputMode.nXRes,
+                        m_OutputMode.nYRes,
+                        m_pUserTexture->GetTexParam(),
+                        m_pUserTexture->GetGLId(),
+                        attach_point );
                     //opcion con depth buffer and stencil para escenas complejas
                     pFBO->AddDepthStencilBuffer();
 
@@ -1596,6 +1600,8 @@ if (update_on>0 && this->Initialized() ) {
         double distanceCenter = -1.0;
         bool bTrackingNeed  = true;
 
+        //MODebug2->Message("moKinect::Update > Users:" + IntToStr(nUsers));
+
         for (i = 0; i < nUsers; ++i)
         {
 
@@ -1623,6 +1629,10 @@ if (update_on>0 && this->Initialized() ) {
               }
             }
         }
+
+        //UNCOMMENT TO FORCE TRACKING FIRST USER
+        //process_user_in_front = true;
+        //userinfront = 0;
 
         if (process_user_in_front && verbose_on)
             MODebug2->Message("USER IN FRONT userinfront: " + IntToStr(userinfront) + " dcenter:" + FloatToStr( distanceCenter) );
@@ -1732,8 +1742,8 @@ if (update_on>0 && this->Initialized() ) {
                 if (m_BodyC) { m_BodyC->GetData()->SetFloat( xnbody.fConfidence ); m_BodyC->Update(true); }
                 if (m_Body) { m_Body->GetData()->SetVector( (moVector4d*)&m_VBody ); m_Body->Update(true); }
 
-
-              //MODebug2->Message("moKinect::Update > RightHand: user" + IntToStr(i) + " X:" + FloatToStr(xnrighthand.position.X) + " Y:" + FloatToStr(xnrighthand.position.Y) + " C:" + FloatToStr(xnrighthand.fConfidence) );
+                //MODebug2->Message("moKinect::Update > " + FloatToStr(m_BodyX->GetData()->Float()) );
+                //MODebug2->Message("moKinect::Update > RightHand: user" + IntToStr(i) + " X:" + FloatToStr(xnrighthand.position.X) + " Y:" + FloatToStr(xnrighthand.position.Y) + " C:" + FloatToStr(xnrighthand.fConfidence) );
                 XnSkeletonJointPosition xnleftknee;
                 m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_LEFT_KNEE, xnleftknee);
                 pt = xnleftknee.position;

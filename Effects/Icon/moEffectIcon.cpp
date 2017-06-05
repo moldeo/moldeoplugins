@@ -135,7 +135,7 @@ void moEffectIcon::Draw( moTempo* tempogral, moEffectState* parentstate )
     int h = mRender->ScreenHeight();
 
     //int TGLId = m_Config.GetGLId( moR(ICON_TEXTURE), &m_EffectState.tempo );
-    int TGLId = m_Config.GetGLId( moR(ICON_TEXTURE), this );
+    int TGLId = m_Config.GetGLId( moR(ICON_TEXTURE), this, &m_EffectState.tempo );
 
 
     moData* TD = m_Config[moR(ICON_TEXTURE)].GetData();

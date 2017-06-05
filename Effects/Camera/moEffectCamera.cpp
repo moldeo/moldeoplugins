@@ -303,7 +303,7 @@ moEffectCamera::InitDevice( moText camera ) {
       MODebug2->Message("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
 
     } else {
-	MODebug2->Error("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
+        MODebug2->Error("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
     }
 
   } else {
@@ -335,7 +335,7 @@ void moEffectCamera::UpdateCamera() {
   VF.m_ColorMode = (moColorMode) m_Config.Int( moR( CAMERA_COLOR_FORMAT ) );
 
   CD.SetVideoFormat( VF );
-m_CaptureDevice = CD;
+  m_CaptureDevice = CD;
 
   if ( m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
       ||

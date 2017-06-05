@@ -899,6 +899,8 @@ class moEffectParticlesSimple : public moEffect
         int luaGetParticleVelocity(moLuaVirtualMachine& vm);
         int luaGetParticleRotation(moLuaVirtualMachine& vm);
         int luaGetParticleGraphics(moLuaVirtualMachine& vm);
+        int luaGetParticleOpacity(moLuaVirtualMachine& vm);
+        int luaGetParticleColor(moLuaVirtualMachine& vm);
 
         int luaUpdateParticle( moLuaVirtualMachine& vm );
         int luaUpdateParticlePosition( moLuaVirtualMachine& vm );
@@ -907,6 +909,8 @@ class moEffectParticlesSimple : public moEffect
         int luaUpdateParticleVelocity( moLuaVirtualMachine& vm );
         int luaUpdateParticleRotation( moLuaVirtualMachine& vm );
         int luaUpdateParticleGraphics( moLuaVirtualMachine& vm );
+        int luaUpdateParticleOpacity( moLuaVirtualMachine& vm );
+        int luaUpdateParticleColor( moLuaVirtualMachine& vm );
 
         int luaUpdateForce( moLuaVirtualMachine& vm );
 

@@ -2583,17 +2583,20 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                   //TODO: dirty code here!!!
                   if (texture_mode==PARTICLES_TEXTUREMODE_UNIT || texture_mode==PARTICLES_TEXTUREMODE_PATCH) {
 
-                      MOfloat cycleage = m_EffectState.tempo.ang;
+                      MOfloat cycleage = m_EffectState.tempo.ang*m_EffectState.tempo.syncro;
 
                       //if (m_Physics.m_MaxAge>0) cycleage = (float) ((double)pPar->Age.Duration() /  (double)m_Physics.m_MaxAge );
-                      cycleage = part_timer;
+                      cycleage = part_timer*m_EffectState.tempo.syncro;
 
                       int glid = pPar->GLId;
 
                       if ( pPar->MOId==-1 ) {
-                          moTextFilterParam DefParam;
-                          glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), cycleage, 1.0, DefParam );
-
+                        moTextFilterParam DefParam;
+                        //glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage*(m_EffectState.tempo.syncro), (float)1.0, &DefParam );
+                        glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage, 1.0, &DefParam );
+                        //MODebug2->Message( moText("Unit GLID: ") + IntToStr(glid)
+                        //+ moText(" ang: ") + FloatToStr(cycleage)
+                        //+ moText(" syncro: ") + FloatToStr(m_EffectState.tempo.syncro) );
                       } else {
 
 
@@ -3685,22 +3688,26 @@ void moEffectParticlesSimple::RegisterFunctions()
     RegisterFunction("GetParticleVelocity");//6
     RegisterFunction("GetParticleRotation");//7
     RegisterFunction("GetParticleGraphics");//8
+    RegisterFunction("GetParticleOpacity");//9
+    RegisterFunction("GetParticleColor");//10
 
-    RegisterFunction("UpdateParticle");//9
-    RegisterFunction("UpdateParticlePosition");//10
-    RegisterFunction("UpdateParticleSize");//11
-    RegisterFunction("UpdateParticleScale");//12
-    RegisterFunction("UpdateParticleVelocity");//13
-    RegisterFunction("UpdateParticleRotation");//14
-    RegisterFunction("UpdateParticleGraphics");//15
+    RegisterFunction("UpdateParticle");//11
+    RegisterFunction("UpdateParticlePosition");//12
+    RegisterFunction("UpdateParticleSize");//13
+    RegisterFunction("UpdateParticleScale");//14
+    RegisterFunction("UpdateParticleVelocity");//15
+    RegisterFunction("UpdateParticleRotation");//16
+    RegisterFunction("UpdateParticleGraphics");//17
+    RegisterFunction("UpdateParticleOpacity");//18
+    RegisterFunction("UpdateParticleColor");//19
 
-	RegisterFunction("UpdateForce");//16
+	RegisterFunction("UpdateForce");//20
 
-	RegisterFunction("Shot");//17
-	RegisterFunction("ReInit");//18
+	RegisterFunction("Shot");//21
+	RegisterFunction("ReInit");//22
 
-    RegisterFunction("DrawPoint");//19
-    RegisterFunction("GetParticleIntersection");//20
+    RegisterFunction("DrawPoint");//23
+    RegisterFunction("GetParticleIntersection");//24
 
     ResetScriptCalling();
 }
@@ -3736,48 +3743,60 @@ int moEffectParticlesSimple::ScriptCalling(moLuaVirtualMachine& vm, int iFunctio
         case 8:
             ResetScriptCalling();
             return luaGetParticleGraphics(vm);
-
-
         case 9:
             ResetScriptCalling();
-            return luaUpdateParticle(vm);
+            return luaGetParticleOpacity(vm);
         case 10:
             ResetScriptCalling();
-            return luaUpdateParticlePosition(vm);
+            return luaGetParticleColor(vm);
+
+
         case 11:
             ResetScriptCalling();
-            return luaUpdateParticleSize(vm);
+            return luaUpdateParticle(vm);
         case 12:
             ResetScriptCalling();
-            return luaUpdateParticleScale(vm);
+            return luaUpdateParticlePosition(vm);
         case 13:
             ResetScriptCalling();
-            return luaUpdateParticleVelocity(vm);
+            return luaUpdateParticleSize(vm);
         case 14:
             ResetScriptCalling();
-            return luaUpdateParticleRotation(vm);
+            return luaUpdateParticleScale(vm);
         case 15:
             ResetScriptCalling();
-            return luaUpdateParticleGraphics(vm);
-
+            return luaUpdateParticleVelocity(vm);
         case 16:
+            ResetScriptCalling();
+            return luaUpdateParticleRotation(vm);
+        case 17:
+            ResetScriptCalling();
+            return luaUpdateParticleGraphics(vm);
+        case 18:
+            ResetScriptCalling();
+            return luaUpdateParticleOpacity(vm);
+        case 19:
+            ResetScriptCalling();
+            return luaUpdateParticleColor(vm);
+
+        case 20:
             ResetScriptCalling();
             return luaUpdateForce(vm);
 
 
-        case 17:
+        case 21:
             ResetScriptCalling();
             return luaShot(vm);
 
-        case 18:
+        case 22:
             ResetScriptCalling();
             return luaReInit(vm);
 
-        case 19:
+        case 23:
             ResetScriptCalling();
             return luaDrawPoint(vm);
 
-        case 20:
+        case 24:
             ResetScriptCalling();
             return luaGetParticleIntersection(vm);
 
@@ -3869,6 +3888,58 @@ int moEffectParticlesSimple::luaGetParticleRotation(moLuaVirtualMachine& vm)
         lua_pushnumber(state, (lua_Number) Rotation.X() );
         lua_pushnumber(state, (lua_Number) Rotation.Y() );
         lua_pushnumber(state, (lua_Number) Rotation.Z() );
+
+    } else {
+        lua_pushnumber(state, (lua_Number) 0 );
+        lua_pushnumber(state, (lua_Number) 0 );
+        lua_pushnumber(state, (lua_Number) 0 );
+    }
+
+    return 3;
+}
+
+int moEffectParticlesSimple::luaGetParticleOpacity(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+
+    MOint i = (MOint) lua_tonumber (state, 1);
+
+    moParticlesSimple* Par;
+
+    float opacity;
+
+    Par = m_ParticlesSimpleArray[i];
+
+    if (Par) {
+
+        opacity = Par->Alpha;
+        lua_pushnumber(state, (lua_Number) opacity );
+
+    } else {
+        lua_pushnumber(state, (lua_Number) 0 );
+    }
+
+    return 1;
+}
+
+int moEffectParticlesSimple::luaGetParticleColor(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+
+    MOint i = (MOint) lua_tonumber (state, 1);
+
+    moParticlesSimple* Par;
+
+    moVector3f Color;
+
+    Par = m_ParticlesSimpleArray[i];
+
+    if (Par) {
+
+        Color = Par->Color;
+        lua_pushnumber(state, (lua_Number) Color.X() );
+        lua_pushnumber(state, (lua_Number) Color.Y() );
+        lua_pushnumber(state, (lua_Number) Color.Z() );
 
     } else {
         lua_pushnumber(state, (lua_Number) 0 );
@@ -4257,6 +4328,41 @@ int moEffectParticlesSimple::luaUpdateForce( moLuaVirtualMachine& vm ) {
 
 }
 
+int moEffectParticlesSimple::luaUpdateParticleOpacity( moLuaVirtualMachine& vm ) {
+    lua_State *state = (lua_State *) vm;
+
+    MOint i = (MOint) lua_tonumber (state, 1);
+
+    MOfloat alpha = (MOfloat) lua_tonumber (state, 2);
+
+    moParticlesSimple* Par = m_ParticlesSimpleArray[i];
+
+    if (Par) {
+        Par->Alpha = alpha;
+    }
+
+    return 0;
+
+}
+
+int moEffectParticlesSimple::luaUpdateParticleColor( moLuaVirtualMachine& vm ) {
+    lua_State *state = (lua_State *) vm;
+
+    MOint i = (MOint) lua_tonumber (state, 1);
+
+    MOfloat r = (MOfloat) lua_tonumber (state, 2);
+    MOfloat g = (MOfloat) lua_tonumber (state, 3);
+    MOfloat b = (MOfloat) lua_tonumber (state, 4);
+
+    moParticlesSimple* Par = m_ParticlesSimpleArray[i];
+
+    if (Par) {
+        Par->Color = moVector3f(r,g,b);
+    }
+
+    return 0;
+
+}
 
 
 int moEffectParticlesSimple::luaShot( moLuaVirtualMachine& vm) {
