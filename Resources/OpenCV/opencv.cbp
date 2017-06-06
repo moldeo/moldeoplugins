@@ -77,9 +77,9 @@
 			<Add directory="opencv/modules/calib3d/include" />
 			<Add directory="opencv/modules/objdetect/include" />
 			<Add directory="opencv/modules/legacy/include" />
-			<Add directory="C:/opencv/build/x86/mingw" />
-			<Add directory="C:/opencv/build/include" />
-			<Add directory="C:/opencv/build/include/opencv" />
+			<Add directory="$(externlibs)/opencv/build/x86/mingw" />
+			<Add directory="$(externlibs)/opencv/build/include" />
+			<Add directory="$(externlibs)/opencv/build/include/opencv" />
 		</Compiler>
 		<Linker>
 			<Add library="libopencv_core2410.dll.a" />
@@ -98,7 +98,7 @@
 			<Add directory="$(externlibs)/openal/libs/win32" />
 			<Add directory="$(externlibs)/opengl/lib" />
 			<Add directory="../../../lib/win" />
-			<Add directory="C:/opencv/build/x86/mingw/lib" />
+			<Add directory="$(externlibs)/opencv/build/x86/mingw/lib" />
 		</Linker>
 		<Unit filename="moOpenCV.cpp" />
 		<Unit filename="moOpenCV.h" />
