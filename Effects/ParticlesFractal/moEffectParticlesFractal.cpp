@@ -1522,7 +1522,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTexture->GetName()
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Birth.cfg " )
                       + m_pStateTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: BIRTH SWAP   ======================"));
@@ -1540,7 +1540,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTextureSwap->GetName()
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Birth.cfg " )
                       + m_pStateTexture->GetName() );
     MODebug2->Message(     moText("SHADER: BIRTH        ======================"));
@@ -1591,7 +1591,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/*Afecta el brillo de la particula: (r*0.15+g*0.7+b*0.2) */
                       + " " + m_VariabilityTextureLoadedName/*Afecta la variación del color: entre que colores oscila*/
                       + " " + m_ConfidenceTextureLoadedName/*Afecta la confianza del dato: su opacidad: alpha channel (rgb,A)*/
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Genetic.cfg " )
                       + m_pGeneticTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: GENETIC SWAP ======================"));
@@ -1614,7 +1614,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/**/
                       + " " + m_VariabilityTextureLoadedName/**/
                       + " " + m_ConfidenceTextureLoadedName/**/
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Genetic.cfg " )
                       + m_pGeneticTexture->GetName() );
     MODebug2->Message(     moText("SHADER: GENETIC ==========================="));
@@ -1693,7 +1693,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_VariabilityTextureLoadedName/*la variabilidad: orienta la tendencia hacia donde se mueve este valor, el movimiento estará orientado hacia el centro de gravedad de la tendencia*/
                       + " " + m_ConfidenceTextureLoadedName/*la confianza reduce o aumenta el nivel de ruido dentro del movimiento*/
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Velocity.cfg " )
                       + m_pVelocityTextureSwap->GetName() );
 
@@ -1721,7 +1721,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_VariabilityTextureLoadedName
                       + " " + m_ConfidenceTextureLoadedName
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      +  moText(" ")+this->GetLabelName()
                       +moText("/Velocity.cfg " )
                       + m_pVelocityTexture->GetName() );
     MODebug2->Message(     moText("SHADER: VELOCITY =========================="));
@@ -1779,7 +1779,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName
                       + " " + m_VariabilityTextureLoadedName
                       + " " + m_ConfidenceTextureLoadedName
-                      + moText(" ")+pDM->GetDataPath()+this->GetLabelName()
+                      + moText(" ")+this->GetLabelName()
                       +moText("/Position.cfg" )
                       + " " + m_pPositionTexture->GetName() );
     MODebug2->Message(     moText("SHADER: POSITION ========================="));
