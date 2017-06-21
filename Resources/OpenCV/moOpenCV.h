@@ -103,7 +103,9 @@
 */
 using namespace std;
 using namespace cv;
-//using namespace cv::face;
+#ifdef MO_LINUX
+    using namespace cv::face;
+#endif
 
 #ifndef __MO_OPENCV_H
 #define __MO_OPENCV_H
@@ -142,6 +144,7 @@ enum moOpenCVParamIndex {
     OPENCV_SAVING_IMAGES_TIME,
     OPENCV_SAVING_IMAGES_SIZE_WIDTH,
     OPENCV_SAVING_IMAGES_SIZE_HEIGHT,
+    OPENCV_ECHO_RESULT,
     OPENCV_DEBUG_ON,
 };
 
@@ -377,6 +380,7 @@ protected:
     int m_reduce_height;
     int m_threshold;
     int m_threshold_max;
+    double m_echo_result;
     moOpenCVThresholdType m_threshold_type;
 
     int m_debug_on;
@@ -413,7 +417,8 @@ protected:
 
     /** THRESHOLD */
     Mat dstthresh;
-    /** */
+    /** BLENDING */
+    Mat dstblending;
 
     int levels;
     //CvSeq* contours;

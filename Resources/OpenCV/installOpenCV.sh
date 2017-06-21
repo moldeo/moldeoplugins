@@ -61,7 +61,7 @@ cd build
 echo "Installing OpenCV..."
 cmake -D CMAKE_BUILD_TYPE=RELEASE -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-3.1.0/modules -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D BUILD_SHARED_LIBS=OFF ..
 make -j4
-sudo make install
+#sudo make install
 cd "../.."
 echo "OpenCV installed."
 

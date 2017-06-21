@@ -183,7 +183,8 @@ enum moOpenCVRecognitionMode {
   p_configdefinition->Add( moText("saving_images_size_width"), MO_PARAM_FUNCTION, OPENCV_SAVING_IMAGES_SIZE_WIDTH, moValue( "30", "FUNCTION").Ref());
   p_configdefinition->Add( moText("saving_images_size_height"), MO_PARAM_FUNCTION, OPENCV_SAVING_IMAGES_SIZE_HEIGHT, moValue( "30", "FUNCTION").Ref());
 
-	p_configdefinition->Add( moText("debug_on"), MO_PARAM_NUMERIC, OPENCV_DEBUG_ON, moValue( "0", "NUM").Ref(), moText("Off,On,Full") );
+  p_configdefinition->Add( moText("echo_result"), MO_PARAM_FUNCTION, OPENCV_ECHO_RESULT, moValue( "0", "FUNCTION").Ref() );
+  p_configdefinition->Add( moText("debug_on"), MO_PARAM_NUMERIC, OPENCV_DEBUG_ON, moValue( "0", "NUM").Ref(), moText("Off,On,Full") );
 
 
 	return p_configdefinition;
@@ -234,6 +235,7 @@ MOboolean moOpenCV::Init() {
   moDefineParamIndex( OPENCV_SAVING_IMAGES_TIME, "saving_images_time" );
   moDefineParamIndex( OPENCV_SAVING_IMAGES_SIZE_WIDTH, "saving_images_size_width" );
   moDefineParamIndex( OPENCV_SAVING_IMAGES_SIZE_HEIGHT, "saving_images_size_height" );
+  moDefineParamIndex( OPENCV_ECHO_RESULT, "echo_result");
   moDefineParamIndex( OPENCV_DEBUG_ON, "debug_on" );
 
 /*
@@ -397,6 +399,8 @@ void moOpenCV::UpdateParameters() {
   int reduce_width = m_Config.Int(moR(OPENCV_REDUCE_WIDTH ));
   int reduce_height = m_Config.Int(moR(OPENCV_REDUCE_HEIGHT ));
   if ( m_reduce_width!=reduce_width || m_reduce_height!=reduce_height ) m_bReInit = true;
+
+  m_echo_result = m_Config.Eval( moR(OPENCV_ECHO_RESULT));
 
   m_reduce_width = reduce_width;
   m_reduce_height = reduce_height;
@@ -670,6 +674,8 @@ moOpenCV::MotionRecognition() {
 
       next_frame.copyTo(prev_frame);
       next_frame.copyTo(current_frame);
+
+
   }
 
   /**CONVERT AND ENHANCE TO GRAYSCALE*/
@@ -697,6 +703,18 @@ moOpenCV::MotionRecognition() {
 
   Mat motioncolor1;
   cvtColor( motion, motioncolor1, COLOR_GRAY2RGB);
+
+  if (m_bReInit) {
+    motion.copyTo( dstblending );
+  } else {
+
+    if (m_echo_result>0.0) {
+        addWeighted( dstblending, m_echo_result, motion, 1.0, 0.0, dstblending);
+        Mat dstblendingcolor;
+        cvtColor( dstblending, dstblendingcolor, COLOR_GRAY2RGB);
+        CvMatToTexture( dstblendingcolor, 0 , 0, 0, m_pCVResult2Texture );
+    }
+  }
   CvMatToTexture( motioncolor1, 0 , 0, 0, m_pCVResultTexture );
 
   number_of_changes = detectMotion(motion, result, result_cropped,  x_start, x_stop, y_start, y_stop, max_deviation, color);
