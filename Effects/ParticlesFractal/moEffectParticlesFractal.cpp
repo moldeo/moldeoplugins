@@ -155,6 +155,7 @@ moEffectParticlesFractal::moEffectParticlesFractal() {
 
   posArray = NULL;
   scaleArray = NULL;
+  orientationArray = NULL;
   stateArray = NULL;
   colArray = NULL;
   geneticArray = NULL;
@@ -803,7 +804,7 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pScaleTextureFinal = m_pScaleTexture;
     }
 
-/*
+
     if ( m_bOrientationTextureSwapOn && m_pTFilter_OrientationTextureSwap ) {
         m_bOrientationTextureSwapOn = false;
         //m_pTFilter_PositionTextureSwap->Apply( &m_EffectState.tempo );
@@ -815,7 +816,7 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pTFilter_OrientationTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
         m_pOrientationTextureFinal = m_pOrientationTexture;
     }
-*/
+
 
 
 
@@ -891,6 +892,24 @@ void moEffectParticlesFractal::UpdateParameters() {
 
       glBindTexture( GL_TEXTURE_2D, m_pGeneticTextureFinal->GetGLId() );
       glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, geneticArray );
+    }
+
+    if (orientationArray==NULL) {
+      numParticles = m_rows * m_cols;
+      orientationArray = new GLfloat[4 * numParticles]();
+      MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
+    }
+
+     if (orientationArray && m_pOrientationTextureFinal) {
+      //MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
+      //m_pPositionTextureFinal->GetFBO()->Bind();
+
+      //m_pPositionTextureFinal->GetFBO()->SetReadTexture( m_pPositionTextureFinal->GetGLId() );
+      //glReadPixels(0, 0, m_rows, m_cols, GL_RGBA, GL_FLOAT, posArray);
+      //m_pPositionTextureFinal->GetFBO()->Unbind();
+
+      glBindTexture( GL_TEXTURE_2D, m_pOrientationTextureFinal->GetGLId() );
+      glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, orientationArray );
     }
 
 /**
@@ -1872,9 +1891,9 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   ORIENTATION
 
 */
-/**
+
 //sx,sy,sz
-  tName = "pf_orientation_fx#"+this->GetLabelName()+"_";
+  tName = "pf_orien_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pOrientationTexture = TextureMan()->GetTexture(Mid);
@@ -1884,7 +1903,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  tName = "pf_orientation_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_orien_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
       m_pOrientationTextureSwap = TextureMan()->GetTexture(Mid);
@@ -1928,7 +1947,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
         MODebug2->Message( moText("filter loaded m_pTFilter_OrientationTexture: ") + m_pTFilter_OrientationTexture->GetTextureFilterLabelName() );
     }
   }
-*/
+
 
 }
 
@@ -2035,6 +2054,11 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
           float sy = scaleArray[ijoff + 1];
           float sz = scaleArray[ijoff + 2];
 
+          float rx = orientationArray[ijoff];
+          float ry = orientationArray[ijoff + 1];
+          float rz = orientationArray[ijoff + 2];
+            //float rz = 0.0;
+
           //z = z + ijoff*zoff*0.0f;
 
           float generation = stateArray[ijoff];
@@ -2100,12 +2124,11 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
   y = 0.0;
   z = 0.0;
   */
-            float rz = 0.0;
             if ( m_Physics.m_EmitterType == PARTICLES_EMITTERTYPE_SPIRAL ) {
               float ag = float(ijoff) / float(m_cols*m_rows);
               float alx = float(i) / float(m_cols);
               float aly = float(j) / float(m_rows);
-              rz = alx*(1.0+particles_separation)*360+90;
+              //rz = alx*(1.0+particles_separation)*360+90;
 
               //glRotatef(  rz, U.X(), U.Y(), U.Z() );
             }
@@ -2510,11 +2533,134 @@ void moEffectParticlesFractal::Update( moEventList *p_eventlist ) {
 void moEffectParticlesFractal::RegisterFunctions()
 {
 
+ moMoldeoObject::RegisterFunctions();
+
+    RegisterBaseFunction("GetDelta"); //0
+    RegisterFunction("GetParticleCount"); //1
+    RegisterFunction("GetParticle"); //2
+    RegisterFunction("GetParticlePosition");//3
+    RegisterFunction("GetParticleSize");//4
+    RegisterFunction("GetParticleScale");//5
+    RegisterFunction("GetParticleVelocity");//6
+    RegisterFunction("GetParticleRotation");//7
+    RegisterFunction("GetParticleGraphics");//8
+    RegisterFunction("GetParticleOpacity");//9
+    RegisterFunction("GetParticleColor");//10
+
+    RegisterFunction("UpdateParticle");//11
+    RegisterFunction("UpdateParticlePosition");//12
+    RegisterFunction("UpdateParticleSize");//13
+    RegisterFunction("UpdateParticleScale");//14
+    RegisterFunction("UpdateParticleVelocity");//15
+    RegisterFunction("UpdateParticleRotation");//16
+    RegisterFunction("UpdateParticleGraphics");//17
+    RegisterFunction("UpdateParticleOpacity");//18
+    RegisterFunction("UpdateParticleColor");//19
+
+	RegisterFunction("UpdateForce");//20
+
+	RegisterFunction("Shot");//21
+	RegisterFunction("ReInit");//22
+
+    RegisterFunction("DrawPoint");//23
+    RegisterFunction("GetParticleIntersection");//24
+
+    ResetScriptCalling();
+
 }
 
 int moEffectParticlesFractal::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
 {
+switch (iFunctionNumber - m_iMethodBase)
+    {
+        case 0:
+            ResetScriptCalling();
+            return luaGetDelta(vm);
+        case 1:
+            ResetScriptCalling();
+            return luaGetParticleCount(vm);
+        case 2:
+            ResetScriptCalling();
+            return luaGetParticle(vm);
+        case 3:
+            ResetScriptCalling();
+            return luaGetParticlePosition(vm);
+        case 4:
+            ResetScriptCalling();
+            return luaGetParticleSize(vm);
+        case 5:
+            ResetScriptCalling();
+            return luaGetParticleScale(vm);
+        case 6:
+            ResetScriptCalling();
+            return luaGetParticleVelocity(vm);
+        case 7:
+            ResetScriptCalling();
+            return luaGetParticleRotation(vm);
+        case 8:
+            ResetScriptCalling();
+            return luaGetParticleGraphics(vm);
+        case 9:
+            ResetScriptCalling();
+            return luaGetParticleOpacity(vm);
+        case 10:
+            ResetScriptCalling();
+            return luaGetParticleColor(vm);
 
+
+        case 11:
+            ResetScriptCalling();
+            return luaUpdateParticle(vm);
+        case 12:
+            ResetScriptCalling();
+            return luaUpdateParticlePosition(vm);
+        case 13:
+            ResetScriptCalling();
+            return luaUpdateParticleSize(vm);
+        case 14:
+            ResetScriptCalling();
+            return luaUpdateParticleScale(vm);
+        case 15:
+            ResetScriptCalling();
+            return luaUpdateParticleVelocity(vm);
+        case 16:
+            ResetScriptCalling();
+            return luaUpdateParticleRotation(vm);
+        case 17:
+            ResetScriptCalling();
+            return luaUpdateParticleGraphics(vm);
+        case 18:
+            ResetScriptCalling();
+            return luaUpdateParticleOpacity(vm);
+        case 19:
+            ResetScriptCalling();
+            return luaUpdateParticleColor(vm);
+
+        case 20:
+            ResetScriptCalling();
+            return luaUpdateForce(vm);
+
+
+        case 21:
+            ResetScriptCalling();
+            return luaShot(vm);
+
+        case 22:
+            ResetScriptCalling();
+            return luaReInit(vm);
+
+        case 23:
+            ResetScriptCalling();
+            return luaDrawPoint(vm);
+
+        case 24:
+            ResetScriptCalling();
+            return luaGetParticleIntersection(vm);
+
+        default:
+            NextScriptCalling();
+            return moMoldeoObject::ScriptCalling( vm, iFunctionNumber );
+    }
 }
 
 
