@@ -153,12 +153,29 @@ moEffectParticlesFractal::moEffectParticlesFractal() {
   m_pOrientationTextureFinal = NULL;
   m_bOrientationTextureSwapOn = false;
 
+  m_pTFilter_CellCodeTexture = NULL;
+	m_pCellCodeTexture = NULL;
+  m_pTFilter_CellCodeTextureSwap = NULL;
+  m_pCellCodeTextureSwap = NULL;
+  m_pCellCodeTextureFinal = NULL;
+  m_bCellCodeTextureSwapOn = false;
+
+  m_pTFilter_CellMemoryTexture = NULL;
+	m_pCellMemoryTexture = NULL;
+  m_pTFilter_CellMemoryTextureSwap = NULL;
+  m_pCellMemoryTextureSwap = NULL;
+  m_pCellMemoryTextureFinal = NULL;
+  m_bCellMemoryTextureSwapOn = false;
+
   posArray = NULL;
   scaleArray = NULL;
   orientationArray = NULL;
   stateArray = NULL;
   colArray = NULL;
   geneticArray = NULL;
+
+  cellcodeArray = NULL;
+  cellmemoryArray = NULL;
 
   g_fVBOSupported = false;
 }
@@ -196,6 +213,9 @@ moEffectParticlesFractal::GetDefinition( moConfigDefinition *p_configdefinition 
 	p_configdefinition->Add( moText("texture"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("folders"), MO_PARAM_TEXTUREFOLDER, PARTICLES_FOLDERS, moValue( "", "TXT") );
 
+	p_configdefinition->Add( moText("texture_code"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE_CODE, moValue( "default", "TXT") );
+	p_configdefinition->Add( moText("texture_memory"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE_MEMORY, moValue( "default", "TXT") );
+
 	p_configdefinition->Add( moText("texture_medium"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE_MEDIUM, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("texture_altitude"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE_ALTITUDE, moValue( "default", "TXT") );
 	p_configdefinition->Add( moText("texture_variability"), MO_PARAM_TEXTURE, PARTICLES_TEXTURE_VARIABILITY, moValue( "default", "TXT") );
@@ -206,6 +226,8 @@ moEffectParticlesFractal::GetDefinition( moConfigDefinition *p_configdefinition 
 	p_configdefinition->Add( moText("blending"), MO_PARAM_BLENDING, PARTICLES_BLENDING, moValue( "0", "NUM") );
 	p_configdefinition->Add( moText("width"), MO_PARAM_NUMERIC, PARTICLES_WIDTH, moValue( "16", "NUM") );
 	p_configdefinition->Add( moText("height"), MO_PARAM_NUMERIC, PARTICLES_HEIGHT, moValue( "16", "NUM") );
+	p_configdefinition->Add( moText("memory"), MO_PARAM_NUMERIC, PARTICLES_MEMORY, moValue( "4", "NUM") );
+	p_configdefinition->Add( moText("code"), MO_PARAM_NUMERIC, PARTICLES_CODE, moValue( "4", "NUM") );
 
   p_configdefinition->Add( moText("sizex"), MO_PARAM_FUNCTION, PARTICLES_SIZEX, moValue( "10.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("sizey"), MO_PARAM_FUNCTION, PARTICLES_SIZEY, moValue( "10.0", "FUNCTION").Ref() );
@@ -334,6 +356,8 @@ moEffectParticlesFractal::Init()
 
     moDefineParamIndex( PARTICLES_WIDTH, moText("width") );
     moDefineParamIndex( PARTICLES_HEIGHT, moText("height") );
+    moDefineParamIndex( PARTICLES_MEMORY, moText("memory") );
+    moDefineParamIndex( PARTICLES_CODE, moText("code") );
     moDefineParamIndex( PARTICLES_SIZEX, moText("sizex") );
     moDefineParamIndex( PARTICLES_SIZEY, moText("sizey") );
     moDefineParamIndex( PARTICLES_SIZEZ, moText("sizez") );
@@ -714,6 +738,8 @@ void moEffectParticlesFractal::UpdateParameters() {
 
     m_rows = m_Config.Int( moR(PARTICLES_WIDTH)  );
     m_cols = m_Config.Int( moR(PARTICLES_HEIGHT)  );
+    m_cellmem = m_Config.Int( moR(PARTICLES_MEMORY)  );
+    m_cellcode = m_Config.Int( moR(PARTICLES_CODE)  );
 
     m_MediumTextureLoadedName = m_Config.Texture( moR(PARTICLES_TEXTURE_MEDIUM)).GetName();
     m_AltitudeTextureLoadedName = m_Config.Texture( moR(PARTICLES_TEXTURE_ALTITUDE)).GetName();
@@ -726,6 +752,32 @@ void moEffectParticlesFractal::UpdateParameters() {
 
       InitParticlesFractal(   m_rows,
                               m_cols );
+
+      if (cellcodeArray==NULL) {
+        long numCellCodeBox = m_rows * m_cols * m_cellcode * m_cellcode;
+        cellcodeArray = new GLfloat[4 * numCellCodeBox]();
+        MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
+
+        if (cellcodeArray && m_pCellCodeTextureFinal) {
+          //MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
+          //m_pPositionTextureFinal->GetFBO()->Bind();
+
+          //m_pPositionTextureFinal->GetFBO()->SetReadTexture( m_pPositionTextureFinal->GetGLId() );
+          //glReadPixels(0, 0, m_rows, m_cols, GL_RGBA, GL_FLOAT, posArray);
+          //m_pPositionTextureFinal->GetFBO()->Unbind();
+
+          glBindTexture( GL_TEXTURE_2D, m_pCellCodeTextureFinal->GetGLId() );
+          glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, cellcodeArray );
+          for(long c=0; c<numCellCodeBox; c++) {
+            //cellcodeArray[c*4+3] = 1.0;
+            cellcodeArray[c*4] = 0.0;
+            cellcodeArray[c*4+1] = 0.0;
+            cellcodeArray[c*4+2] = 0.0;
+            cellcodeArray[c*4+3] = 0.0;
+          }
+        }
+      }
+
 
     }
 
@@ -745,6 +797,34 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pTFilter_MediumTexture->Apply( &m_EffectState.tempo, 1.0f, m_pStateFilterParams );
     }
 */
+
+    if ( m_bCellCodeTextureSwapOn && m_pTFilter_CellCodeTextureSwap ) {
+        m_bCellCodeTextureSwapOn = false;
+        //m_pTFilter_StateTextureSwap->Apply( &m_EffectState.tempo, 1.0f, m_pStateFilterParams );
+        m_pTFilter_CellCodeTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pCellCodeTextureFinal = m_pCellCodeTextureSwap;
+
+    } else if ( m_pTFilter_CellCodeTexture ) {
+        m_bCellCodeTextureSwapOn = true;
+        //m_pTFilter_StateTexture->Apply( &m_EffectState.tempo );
+        m_pTFilter_CellCodeTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pCellCodeTextureFinal = m_pCellCodeTexture;
+    }
+
+    if ( m_bCellMemoryTextureSwapOn && m_pTFilter_CellMemoryTextureSwap ) {
+        m_bCellMemoryTextureSwapOn = false;
+        //m_pTFilter_StateTextureSwap->Apply( &m_EffectState.tempo, 1.0f, m_pStateFilterParams );
+        m_pTFilter_CellMemoryTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pCellMemoryTextureFinal = m_pCellMemoryTextureSwap;
+
+    } else if ( m_pTFilter_CellMemoryTexture ) {
+        m_bCellMemoryTextureSwapOn = true;
+        //m_pTFilter_StateTexture->Apply( &m_EffectState.tempo );
+        m_pTFilter_CellMemoryTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pCellMemoryTextureFinal = m_pCellMemoryTexture;
+    }
+
+
     if ( m_bStateTextureSwapOn && m_pTFilter_StateTextureSwap ) {
         m_bStateTextureSwapOn = false;
         //m_pTFilter_StateTextureSwap->Apply( &m_EffectState.tempo, 1.0f, m_pStateFilterParams );
@@ -816,9 +896,6 @@ void moEffectParticlesFractal::UpdateParameters() {
         m_pTFilter_OrientationTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
         m_pOrientationTextureFinal = m_pOrientationTexture;
     }
-
-
-
 
 
 
@@ -1504,14 +1581,59 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 
 /**
 
-  STATE
-  x: generation or iteration ( number of reproduction cycles )
-  y: maturity reproduction
-  z: maturity cycle
-  w: origin generation (when this particle is born, its assigned a generation ) or 1.0f if not used
+  CELL CODE AND MEMORY
 
 */
 
+  tName = "pf_cellcode_fx#"+this->GetLabelName()+"_";
+
+  Mid = TextureMan()->AddTexture( tName, p_cols*m_cellcode, p_rows*m_cellcode, tparam );
+  if (Mid>0) {
+      m_pCellCodeTexture = TextureMan()->GetTexture(Mid);
+      m_pCellCodeTexture->BuildEmpty( p_cols*m_cellcode, p_rows*m_cellcode );
+      //m_pCellCodeTexture->CreateThumbnail( "PNGA", p_cols*m_cellcode, p_rows*m_cellcode );
+      m_pCellCodeTextureFinal = m_pCellCodeTexture;
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
+
+  tName = "pf_cellcode_swap_fx#"+this->GetLabelName()+"_";
+
+  Mid = TextureMan()->AddTexture( tName, p_cols*m_cellcode, p_rows*m_cellcode, tparam );
+  if (Mid>0) {
+      m_pCellCodeTextureSwap = TextureMan()->GetTexture(Mid);
+      m_pCellCodeTextureSwap->BuildEmpty( p_cols*m_cellcode, p_rows*m_cellcode );
+      m_pCellCodeTextureFinal = m_pCellCodeTextureSwap;
+      //m_pCellCodeTexture->CreateThumbnail( "PNGA", p_cols*m_cellcode, p_rows*m_cellcode );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
+
+
+  tName = "pf_cellmem_fx#"+this->GetLabelName()+"_";
+
+  Mid = TextureMan()->AddTexture( tName, p_cols*m_cellmem, p_rows*m_cellmem, tparam );
+  if (Mid>0) {
+      m_pCellMemoryTexture = TextureMan()->GetTexture(Mid);
+      m_pCellMemoryTexture->BuildEmpty( p_cols*m_cellmem, p_rows*m_cellmem );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
+
+  tName = "pf_cellmem_swap_fx#"+this->GetLabelName()+"_";
+
+  Mid = TextureMan()->AddTexture( tName, p_cols*m_cellmem, p_rows*m_cellmem, tparam );
+  if (Mid>0) {
+      m_pCellMemoryTextureSwap = TextureMan()->GetTexture(Mid);
+      m_pCellMemoryTextureSwap->BuildEmpty( p_cols*m_cellmem, p_rows*m_cellmem );
+      //TextureMan()->GetTexture(Mid)->BuildEmpty( p_cols, p_rows );
+      MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
+  } else {
+      MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
+  }
 
   tName = "pf_state_swap_fx#"+this->GetLabelName()+"_";
 
@@ -1536,13 +1658,111 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
+/// CREATE FILTER FOR CELL CODE CHANGES
+  if ( !m_pTFilter_CellCodeTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add( m_pCellCodeTexture->GetName()
+                      + moText(" ")+m_pCellMemoryTexture->GetName()
+                      + " " + m_pStateTexture->GetName()
+                      + " " + m_MediumTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_AltitudeTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_VariabilityTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_ConfidenceTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + moText(" ")+this->GetLabelName()+moText("/CellCode.cfg " )
+                      + m_pCellCodeTextureSwap->GetName() );
+    MODebug2->Message(     moText("SHADER: CELL CODE SWAP   ======================"));
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_CellCodeTextureSwap = pTextureFilterIndex->Get(idx-1);
+        m_pCellCodeFilterParams = new moStateFilterParams();
+        MODebug2->Message( moText("filter loaded m_pTFilter_CellCodeTextureSwap: ") + m_pTFilter_CellCodeTextureSwap->GetTextureFilterLabelName() );
+        MODebug2->Message( moText("-------------------------------------------"));
+    }
+  }
+
+ /// CREATE FILTER FOR CELL CODE CHANGES (BIRTH AND DEATH) !!!
+  if ( !m_pTFilter_CellCodeTexture ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add( m_pCellCodeTextureSwap->GetName()
+                      + moText(" ")+m_pCellMemoryTextureSwap->GetName()
+                      + " " + m_pStateTextureSwap->GetName()
+                      + " " + m_MediumTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_AltitudeTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_VariabilityTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + " " + m_ConfidenceTextureLoadedName/*Afecta el codigo ejecutado*/
+                      + moText(" ")+this->GetLabelName()+moText("/CellCode.cfg " )
+                      + m_pCellCodeTexture->GetName() );
+    MODebug2->Message(     moText("SHADER: CELL CODE        ======================"));
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_CellCodeTexture = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_CellCodeTexture: ") + m_pTFilter_CellCodeTexture->GetTextureFilterLabelName() );
+        MODebug2->Message( moText("-------------------------------------------"));
+    }
+  }
+
+
+/// CREATE FILTER FOR CELL MEMORY CHANGES
+  if ( !m_pTFilter_CellMemoryTextureSwap ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add( m_pCellCodeTexture->GetName()
+                      + moText(" ")+m_pCellMemoryTexture->GetName()
+                      + " " + m_pStateTexture->GetName()
+                      + " " + m_MediumTextureLoadedName/*Afecta la memoria*/
+                      + " " + m_AltitudeTextureLoadedName/*Afecta la memoria*/
+                      + " " + m_VariabilityTextureLoadedName/*Afecta la memoria*/
+                      + " " + m_ConfidenceTextureLoadedName/*Afecta la memoria*/
+                      + moText(" ")+this->GetLabelName()+moText("/CellMemory.cfg " )
+                      + m_pCellMemoryTextureSwap->GetName() );
+    MODebug2->Message(     moText("SHADER: CELL MEMORY SWAP   ======================"));
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_CellMemoryTextureSwap = pTextureFilterIndex->Get(idx-1);
+        m_pCellMemoryFilterParams = new moStateFilterParams();
+        MODebug2->Message( moText("filter loaded m_pTFilter_CellMemoryTextureSwap: ") + m_pTFilter_CellMemoryTextureSwap->GetTextureFilterLabelName() );
+        MODebug2->Message( moText("-------------------------------------------"));
+    }
+  }
+
+ /// CREATE FILTER FOR CELL MEMORY CHANGES (BIRTH AND DEATH) !!!
+  if ( !m_pTFilter_CellMemoryTexture ) {
+    moTextArray copy_filter_0;
+    copy_filter_0.Add( m_pCellCodeTextureSwap->GetName()
+                      + moText(" ")+m_pCellMemoryTextureSwap->GetName()
+                      + " " + m_pStateTextureSwap->GetName()
+                      + " " + m_MediumTextureLoadedName/*Afecta la memoria*/
+                      + " " + m_AltitudeTextureLoadedName/*Afecta la memoria */
+                      + " " + m_VariabilityTextureLoadedName/*Afecta la memoria*/
+                      + " " + m_ConfidenceTextureLoadedName/*Afecta la memoria*/
+                      + moText(" ")+this->GetLabelName()+moText("/CellMemory.cfg " )
+                      + m_pCellMemoryTexture->GetName() );
+    MODebug2->Message(     moText("SHADER: CELL MEMORY        ======================"));
+    int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
+    if (idx>0) {
+        m_pTFilter_CellMemoryTexture = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_CellMemoryTexture: ") + m_pTFilter_CellMemoryTexture->GetTextureFilterLabelName() );
+        MODebug2->Message( moText("-------------------------------------------"));
+    }
+  }
+
+/**
+
+  STATE
+  x: generation or iteration ( number of reproduction cycles )
+  y: maturity reproduction
+  z: maturity cycle
+  w: origin generation (when this particle is born, its assigned a generation ) or 1.0f if not used
+
+*/
+
+
   /// CREATE FILTER FOR STATE CHANGES (BIRTH AND DEATH) !!!
   if ( !m_pTFilter_StateTextureSwap && m_pStateTexture && m_pStateTextureSwap ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTexture->GetName()
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Birth.cfg " )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+m_pCellMemoryTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Birth.cfg " )
                       + m_pStateTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: BIRTH SWAP   ======================"));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1558,9 +1778,9 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   if ( !m_pTFilter_StateTexture && m_pStateTexture && m_pStateTextureSwap ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTextureSwap->GetName()
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Birth.cfg " )
+                      + moText(" ")+m_pCellCodeTextureSwap->GetName()
+                      + moText(" ")+m_pCellMemoryTextureSwap->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Birth.cfg " )
                       + m_pStateTexture->GetName() );
     MODebug2->Message(     moText("SHADER: BIRTH        ======================"));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1605,13 +1825,12 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTextureSwap->GetName()
                       + " " + m_pGeneticTexture->GetName()
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
-                       + " " + m_MediumTextureLoadedName/*Afecta el color de la particula: (r,g,b) || (h,s,v)*/
+                      + " " + m_MediumTextureLoadedName/*Afecta el color de la particula: (r,g,b) || (h,s,v)*/
                       + " " + m_AltitudeTextureLoadedName/*Afecta el brillo de la particula: (r*0.15+g*0.7+b*0.2) */
                       + " " + m_VariabilityTextureLoadedName/*Afecta la variación del color: entre que colores oscila*/
                       + " " + m_ConfidenceTextureLoadedName/*Afecta la confianza del dato: su opacidad: alpha channel (rgb,A)*/
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Genetic.cfg " )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Genetic.cfg " )
                       + m_pGeneticTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: GENETIC SWAP ======================"));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1633,8 +1852,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/**/
                       + " " + m_VariabilityTextureLoadedName/**/
                       + " " + m_ConfidenceTextureLoadedName/**/
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Genetic.cfg " )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Genetic.cfg " )
                       + m_pGeneticTexture->GetName() );
     MODebug2->Message(     moText("SHADER: GENETIC ==========================="));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1711,9 +1930,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/*la altitud se puede interpretar como gravedad o como altura: mayor gravedad=>menor velocidad, mayor altitud=>mayor velocidad*/
                       + " " + m_VariabilityTextureLoadedName/*la variabilidad: orienta la tendencia hacia donde se mueve este valor, el movimiento estará orientado hacia el centro de gravedad de la tendencia*/
                       + " " + m_ConfidenceTextureLoadedName/*la confianza reduce o aumenta el nivel de ruido dentro del movimiento*/
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Velocity.cfg " )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Velocity.cfg " )
                       + m_pVelocityTextureSwap->GetName() );
 
     MODebug2->Message(     moText("SHADER: VELOCITY SWAP ===================="));
@@ -1739,9 +1957,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName
                       + " " + m_VariabilityTextureLoadedName
                       + " " + m_ConfidenceTextureLoadedName
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
-                      +  moText(" ")+this->GetLabelName()
-                      +moText("/Velocity.cfg " )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Velocity.cfg " )
                       + m_pVelocityTexture->GetName() );
     MODebug2->Message(     moText("SHADER: VELOCITY =========================="));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1774,8 +1991,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/*la altidud a su vez puede servir para dar una profundidad al valor...*/
                       + " " + m_VariabilityTextureLoadedName/*la variabilidad del dato hace que permita nivelar la posicion con mayor precisión: hacia donde se dirige*/
                       + " " + m_ConfidenceTextureLoadedName/*la confianza del dato hace que tenga una posición menos precisa*/
-                      + moText(" ")+this->GetLabelName()
-                      +moText("/Position.cfg" )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Position.cfg" )
                       + " " + m_pPositionTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: POSITION SWAP ====================="));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1798,8 +2015,8 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName
                       + " " + m_VariabilityTextureLoadedName
                       + " " + m_ConfidenceTextureLoadedName
-                      + moText(" ")+this->GetLabelName()
-                      +moText("/Position.cfg" )
+                      + moText(" ")+m_pCellCodeTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Position.cfg" )
                       + " " + m_pPositionTexture->GetName() );
     MODebug2->Message(     moText("SHADER: POSITION ========================="));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1853,6 +2070,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/**/
                       + " " + m_VariabilityTextureLoadedName/**/
                       + " " + m_ConfidenceTextureLoadedName/**/
+                      + moText(" ")+m_pCellCodeTexture->GetName()
                       + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
                       + " " + m_pScaleTextureSwap->GetName() );
     MODebug2->Message(     moText("SHADER: SCALE SWAP ========================"));
@@ -1875,6 +2093,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       + " " + m_AltitudeTextureLoadedName/**/
                       + " " + m_VariabilityTextureLoadedName/**/
                       + " " + m_ConfidenceTextureLoadedName/**/
+                      + moText(" ")+m_pCellCodeTexture->GetName()
                       + moText(" ")+this->GetLabelName()+moText("/Scale.cfg" )
                       + " " + m_pScaleTexture->GetName() );
     MODebug2->Message(     moText("SHADER: SCALE ============================="));
@@ -1920,8 +2139,13 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       //+  moText(" shaders/Birth.cfg res:64x64 " )
                       m_pStateTextureSwap->GetName()
                       + " " + m_pVelocityTextureSwap->GetName()
+                      + " " + m_pPositionTextureSwap->GetName()
                       + " " + m_pOrientationTexture->GetName()
-                      + " " + m_MediumTextureLoadedName
+                      + " " + m_MediumTextureLoadedName/**/
+                      + " " + m_AltitudeTextureLoadedName/**/
+                      + " " + m_VariabilityTextureLoadedName/**/
+                      + " " + m_ConfidenceTextureLoadedName/**/
+                      + moText(" ")+m_pCellCodeTexture->GetName()
                       + moText(" ")+this->GetLabelName()+moText("/Orientation.cfg" )
                       + " " + m_pOrientationTextureSwap->GetName() );
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -1937,8 +2161,13 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     copy_filter_0.Add(//+  moText(" shaders/Birth.cfg res:64x64 " )
                       m_pStateTexture->GetName()
                       + " " + m_pVelocityTexture->GetName()
+                      + " " + m_pPositionTexture->GetName()
                       + " " + m_pOrientationTextureSwap->GetName()
-                      + " " + m_MediumTextureLoadedName
+                      + " " + m_MediumTextureLoadedName/**/
+                      + " " + m_AltitudeTextureLoadedName/**/
+                      + " " + m_VariabilityTextureLoadedName/**/
+                      + " " + m_ConfidenceTextureLoadedName/**/
+                      + moText(" ")+m_pCellCodeTexture->GetName()
                       + moText(" ")+this->GetLabelName()+moText("/Orientation.cfg" )
                       + " " + m_pOrientationTexture->GetName() );
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
@@ -2036,7 +2265,19 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
   glMatrixMode(GL_MODELVIEW);
   glPushMatrix();
 
-  if (posArray && stateArray && geneticArray)
+
+  if (texture_mode==PARTICLES_TEXTUREMODE_MANY2PATCH) {
+    m_pTexBuf = m_Config[moR(PARTICLES_FOLDERS)][MO_SELECTED][0].TextureBuffer();
+    if (m_pTexBuf) {
+        m_nImages = m_pTexBuf->GetImagesProcessed();
+    }
+  } else {
+    m_pTexBuf = NULL;
+  }
+
+
+
+  if (posArray && stateArray && geneticArray && orientationArray)
   for (int i = 0; i < m_cols; i++) {
       ioff = i * 4;
       for (int j = 0; j < m_rows; j++)
@@ -2124,14 +2365,18 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
   y = 0.0;
   z = 0.0;
   */
+  /*
             if ( m_Physics.m_EmitterType == PARTICLES_EMITTERTYPE_SPIRAL ) {
               float ag = float(ijoff) / float(m_cols*m_rows);
               float alx = float(i) / float(m_cols);
               float aly = float(j) / float(m_rows);
-              //rz = alx*(1.0+particles_separation)*360+90;
+              rz = alx*(1.0+particles_separation)*360+90;
 
-              //glRotatef(  rz, U.X(), U.Y(), U.Z() );
-            }
+              glRotatef(  rz, U.X(), U.Y(), U.Z() );
+            } else {
+
+
+            }*/
 /*            glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
 */
@@ -2139,12 +2384,25 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
             //glLoadIdentity();
             //glRotatef(  ry, W.X(), W.Y(), W.Z() );
             //glRotatef(  rx, V.X(), V.Y(), V.Z() );
+
             glTranslatef( x, y, z );
 
-            glRotatef(  rz, U.X(), U.Y(), U.Z() );
+            glRotatef(  45, U.X(), U.Y(), U.Z() );
+            glRotatef(  rx, V.X(), V.Y(), V.Z() );
+            glRotatef(  ry, W.X(), W.Y(), W.Z() );
+
             sx = sx*scalex;
             sy = sy*scaley;
             sz = sz*scalez;
+            if (m_pTexBuf) {
+                int irandom = int( float(m_nImages-1) * g );
+
+                //moTextureFrames& pTextFrames(m_pTexBuf->GetBufferLevels( 255*(r*0.2+g*0.7+b*0.1), 0 ) );
+                //int iTex = pTextFrames.GetRef( 0 );
+
+                int iTex = m_pTexBuf->GetFrame( irandom );
+                glBindTexture( GL_TEXTURE_2D, iTex );
+            }
             glBegin(GL_QUADS);
               glTexCoord2f( tcoordx, tcoordy );
               glVertex3f( 0-sizex*sx, 0-sizey*sy, z);
@@ -2565,6 +2823,67 @@ void moEffectParticlesFractal::RegisterFunctions()
     RegisterFunction("DrawPoint");//23
     RegisterFunction("GetParticleIntersection");//24
 
+    ////Estas funciones deben llamarse en la función Init
+
+    // 00: white
+    RegisterFunction("CellBeginProgram");//25 params: (id_cell)
+
+    // 01: red 01
+    RegisterFunction("CellAge");//26 change age parameter => params: (self, delta maturity time)
+    // 02: red 02
+    RegisterFunction("CellDuplicate");//27 duplicate cell program when maturity is reached, params: ( maturity_age  )
+    // 03: red 03
+    RegisterFunction("CellMutate");//28 mutate program: params: ( id_father, id_mother, [id_others] )
+    // 04: red 04
+    RegisterFunction("CellCrossover");//29 mutate program: params: ( id_father, id_mother, [id_others] )
+    // 05: red 05
+    RegisterFunction("CellDie");//30 change age parameter => params: (self, delta maturity time)
+
+    // 06: black
+    RegisterFunction("CellEndProgram");//31
+    RegisterFunction("CellDumpProgram");//32
+
+    RegisterFunction("WriteMemory");//33
+
+/*
+    // 05: yellow 01
+    RegisterFunction("cellGrow");//30 scale
+    // 06: yellow 02
+    RegisterFunction("cellRotate");//31 orientation
+    // 07: yellow 03
+    RegisterFunction("cellAcc");//32 force -> direction
+
+    // 08: blue 01
+    RegisterFunction("cellLink");//33 associate to others params, parent, none or other cell: (self, id_cell)
+    // 09: blue 02
+    RegisterFunction("cellEmit");//34 emite elementos dentro del medio (pinta por ejemplo): params: ( self, emit_code, emit_amount )
+    // 10: blue 03
+    RegisterFunction("cellSens");//35 sensa los elementos dentro del medio (lee): params ( self,  sens_code (una de las 4 texturas, posicion) )
+
+    // 11:
+    RegisterFunction("readCellAge");//36
+    // 12:
+    RegisterFunction("readCellScale");//37
+    // 13:
+    RegisterFunction("readCellOrientation");//38
+    // 14:
+    RegisterFunction("readCellSpeed");//39
+
+    // 15: green 01
+    RegisterFunction("readCellMemory");//40 read value from memory ( self, id_mem )
+    // 16: green 02
+    RegisterFunction("writeCellMemory");//41 write value from memory ( self, id_mem, values ) , can write sub-program
+    // 17: green 03
+    RegisterFunction("cmpCellMemory");//42 compare value between memory... (self, id_mem1, id_mem2, size )
+
+
+    // 18 FUNCTION (DERIVATION/INTEGRATION)
+    RegisterFunction("callCellMemory");//43 apply function: new code for operations depends on each implementation versions (this ensure fractality)
+    // 19
+    RegisterFunction("returnCellMemory");//44 return value -> end sub-program
+*/
+
+
     ResetScriptCalling();
 
 }
@@ -2657,12 +2976,287 @@ switch (iFunctionNumber - m_iMethodBase)
             ResetScriptCalling();
             return luaGetParticleIntersection(vm);
 
+
+
+        case 25:
+            ResetScriptCalling();
+            return luaCellBeginProgram(vm);
+        case 26:
+            ResetScriptCalling();
+            return luaCellAge(vm);
+        case 27:
+            ResetScriptCalling();
+            return luaCellDuplicate(vm);
+        case 28:
+            ResetScriptCalling();
+            return luaCellMutate(vm);
+        case 29:
+            ResetScriptCalling();
+            return luaCellCrossover(vm);
+        case 30:
+            ResetScriptCalling();
+            return luaCellDie(vm);
+        case 31:
+            ResetScriptCalling();
+            return luaCellEndProgram(vm);
+        case 32:
+            ResetScriptCalling();
+            return luaCellDumpProgram(vm);
+
+        case 33:
+            ResetScriptCalling();
+            return luaWriteMemory(vm);
+        /*case 29:
+            ResetScriptCalling();
+            return luaCellRotate(vm);
+        case 30:
+            ResetScriptCalling();
+            return luaCellGrow(vm);
+        case 31:
+            ResetScriptCalling();
+            return luaCellAcc(vm);
+*/
         default:
             NextScriptCalling();
             return moMoldeoObject::ScriptCalling( vm, iFunctionNumber );
     }
 }
 
+int moEffectParticlesFractal::luaCellBeginProgram(moLuaVirtualMachine& vm) {
+
+    lua_State *state = (lua_State *) vm;
+
+    lua_id_cell = (MOint) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellBeginProgram: ") + IntToStr(lua_id_cell) );
+
+    ///put one 0 pixel at id_cell position?
+
+    if (cellcodeArray) {
+        cell_position_j = lua_id_cell / m_cols;
+        cell_position_i = lua_id_cell - cell_position_j*m_cols;
+        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cols;
+        cellcodeArray[cell_position] = 1.0;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+    lua_pushnumber(state, (lua_Number) 1 );
+
+    return 1;
+}
+
+int moEffectParticlesFractal::luaCellAge(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    float delta_age = (float) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellAge: ") + IntToStr(lua_id_cell)+moText(" delta: ")+FloatToStr(delta_age) );
+
+    if (cellcodeArray) {
+        cellcodeArray[cell_position+1] = 0.11;
+        cellcodeArray[cell_position+2] = delta_age;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+
+    return 0;
+}
+
+int moEffectParticlesFractal::luaCellDuplicate(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    float maturity = (float) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellDuplicate: ") + IntToStr(lua_id_cell)
+                       +moText(" maturity: ")+FloatToStr(maturity) );
+
+    if (cellcodeArray) {
+        cellcodeArray[cell_position+3] = 0.12;
+        cellcodeArray[cell_position+4] = maturity;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+    return 0;
+}
+
+int moEffectParticlesFractal::luaCellMutate(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    float mutation_cell = (float) lua_tonumber (state, 1);
+    float mutation_randomness = (float) lua_tonumber (state, 1);
+    MODebug2->Message(  moText("CellMutate: ") + IntToStr(lua_id_cell)
+                        +moText(" mutation id cell: ")+FloatToStr(mutation_cell)
+                        +moText(" mutation randomness: ")+FloatToStr(mutation_randomness) );
+
+    if (cellcodeArray) {
+        cellcodeArray[cell_position+5] = 0.13;
+        cellcodeArray[cell_position+6] = mutation_cell;
+        cellcodeArray[cell_position+7] = mutation_randomness;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+    return 0;
+}
+
+int moEffectParticlesFractal::luaCellCrossover(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    float mutation_cell_one = (float) lua_tonumber (state, 1);
+    float mutation_cell_two = (float) lua_tonumber (state, 1);
+    MODebug2->Message(  moText("CellCrossover: ") + IntToStr(lua_id_cell)
+                        +moText(" crossover id cells: ")+FloatToStr(mutation_cell_one)+moText("x")+FloatToStr(mutation_cell_two) );
+
+    if (cellcodeArray) {
+        cellcodeArray[cell_position+8] = 0.14;
+        cellcodeArray[cell_position+9] = mutation_cell_one;
+        cellcodeArray[cell_position+10] = mutation_cell_two;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+    return 0;
+}
+
+
+int moEffectParticlesFractal::luaCellDie(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    float die_age =  (float) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellDie: ") + IntToStr(lua_id_cell)+moText(" die age: ")+FloatToStr(die_age) );
+    if (cellcodeArray) {
+        cellcodeArray[cell_position+11] = 0.15;
+        cellcodeArray[cell_position+12] = die_age;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+
+    return 0;
+}
+
+int moEffectParticlesFractal::luaCellEndProgram(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    //lua_id_cell = (MOint) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellEndProgram: ") + IntToStr(lua_id_cell) );
+
+    if (cellcodeArray) {
+        long cell_position_end = cell_position + (4*m_cellcode-1) + 4*(m_cellcode-1)*m_cellcode*m_cols ;
+        cellcodeArray[cell_position_end] = -1.0;
+        m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+        m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
+    }
+    return 0;
+}
+
+
+int moEffectParticlesFractal::luaCellDumpProgram(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    lua_id_cell = (MOint) lua_tonumber (state, 1);
+    MODebug2->Message( moText("CellDumpProgram: ") + IntToStr(lua_id_cell) );
+
+    if (cellcodeArray && m_pCellCodeTextureFinal) {
+
+        cell_position_j = lua_id_cell / m_cols;
+        cell_position_i = lua_id_cell - cell_position_j*m_cols;
+        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cols;
+
+        moText fname = m_pResourceManager->GetDataMan()->GetDataPath()+moSlash+"cellcode";
+        m_pCellCodeTextureFinal->CreateThumbnail("PNGA", m_pCellCodeTexture->GetWidth(), m_pCellCodeTexture->GetHeight(), fname);
+
+        glBindTexture( GL_TEXTURE_2D, m_pCellCodeTextureFinal->GetGLId() );
+        glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, cellcodeArray );
+
+        moText fullcode = "";
+        int cchange = 0;
+        moText linechange = "";
+
+        for(int linec = 0; linec<m_cellcode; linec++) {
+
+            fullcode += linechange;
+            long cpos = cell_position+linec*4*m_cellcode*m_cols;
+            moText celdatab = "";
+
+            for(int cc = cpos; cc<(cpos+4*m_cellcode); cc++) {
+                //if ( cchange == m_cellcode*m_cellcode*4 ) { cellchange = "\n\n"; cchange=0; }
+                fullcode += celdatab + FloatToStr( cellcodeArray[cc] );
+                celdatab = "  ";
+                //cchange+= 1;
+            }
+            linechange = "\n";
+        }
+        MODebug2->Message(fullcode);
+    }
+
+    return 0;
+}
+
+
+int moEffectParticlesFractal::luaWriteMemory(moLuaVirtualMachine& vm) {
+
+    lua_State *state = (lua_State *) vm;
+
+    lua_id_cell = (MOint) lua_tonumber (state, 1);
+    long lua_id_cell_mem_pos = (MOint) lua_tonumber (state, 2);
+    float lua_id_cell_mem_val = (MOfloat) lua_tonumber (state, 3);
+    MODebug2->Message( moText("WriteMemory: ") + IntToStr(lua_id_cell)
+                        + moText(" Mem Pos:") + IntToStr(lua_id_cell_mem_pos)
+                        + moText(" Mem Val:") + FloatToStr(lua_id_cell_mem_val) );
+
+    ///put one 0 pixel at id_cell position?
+    if (cellmemoryArray) {
+        cell_position_j = lua_id_cell / m_cols;
+        cell_position_i = lua_id_cell - cell_position_j*m_cols;
+        cell_position = cell_position_i*4*m_cellmem + cell_position_j*4*m_cellmem*m_cols;
+        cellmemoryArray[cell_position+lua_id_cell_mem_pos] = lua_id_cell_mem_val;
+
+        m_pCellMemoryTexture->BuildFromBuffer(m_pCellMemoryTexture->GetWidth(),m_pCellMemoryTexture->GetHeight(), cellmemoryArray, GL_RGBA, GL_FLOAT);
+        m_pCellMemoryTextureSwap->BuildFromBuffer(m_pCellMemoryTextureSwap->GetWidth(),m_pCellMemoryTextureSwap->GetHeight(), cellmemoryArray, GL_RGBA, GL_FLOAT);
+    }
+
+    lua_pushnumber(state, (lua_Number) 1 );
+
+    return 1;
+}
+
+int moEffectParticlesFractal::luaDumpMemory(moLuaVirtualMachine& vm) {
+    lua_State *state = (lua_State *) vm;
+
+    lua_id_cell = (MOint) lua_tonumber (state, 1);
+    MODebug2->Message( moText("DumpMemory: ") + IntToStr(lua_id_cell) );
+
+    if (cellmemoryArray && m_pCellMemoryTextureFinal) {
+
+        moText fname = m_pResourceManager->GetDataMan()->GetDataPath()+moSlash+"cellmem";
+        m_pCellMemoryTextureFinal->CreateThumbnail("PNGA", m_pCellMemoryTexture->GetWidth(), m_pCellMemoryTexture->GetHeight(), fname);
+
+        glBindTexture( GL_TEXTURE_2D, m_pCellMemoryTextureFinal->GetGLId() );
+        glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, cellmemoryArray );
+
+        moText fullcode = "";
+        int cchange = 0;
+        moText linechange = "";
+
+        for(int linec = 0; linec<m_cellmem; linec++) {
+
+            fullcode += linechange;
+            long cpos = cell_position+linec*4*m_cellmem*m_cols;
+            moText celdatab = "";
+
+            for(int cc = cpos; cc<(cpos+4*luaDumpMemory); cc++) {
+                //if ( cchange == m_cellcode*m_cellmem*4 ) { cellchange = "\n\n"; cchange=0; }
+                fullcode += celdatab + FloatToStr( cellmemoryArray[cc] );
+                celdatab = "  ";
+                //cchange+= 1;
+            }
+            linechange = "\n";
+        }
+        MODebug2->Message(fullcode);
+    }
+
+    return 0;
+}
 
 
 int moEffectParticlesFractal::luaDrawPoint(moLuaVirtualMachine& vm)
@@ -3027,3 +3621,9 @@ int moEffectParticlesFractal::luaReInit(moLuaVirtualMachine& vm ) {
 
     return 0;
 }
+
+
+
+
+
+

@@ -268,6 +268,8 @@ enum moParticlesFractalParamIndex {
 
 	PARTICLES_TEXTURE,
 	PARTICLES_FOLDERS,
+	PARTICLES_TEXTURE_CODE,
+	PARTICLES_TEXTURE_MEMORY,
 	PARTICLES_TEXTURE_MEDIUM,
 	PARTICLES_TEXTURE_ALTITUDE,
 	PARTICLES_TEXTURE_VARIABILITY,
@@ -277,6 +279,8 @@ enum moParticlesFractalParamIndex {
 
 	PARTICLES_WIDTH,
 	PARTICLES_HEIGHT,
+	PARTICLES_MEMORY,
+	PARTICLES_CODE,
 	PARTICLES_SIZEX,
 	PARTICLES_SIZEY,
 	PARTICLES_SIZEZ,
@@ -839,6 +843,25 @@ class moEffectParticlesFractal : public moEffect
         int luaDrawPoint(moLuaVirtualMachine& vm);
         int luaGetParticleIntersection(moLuaVirtualMachine& vm);
 
+        int lua_id_cell;
+        int luaCellBeginProgram(moLuaVirtualMachine& vm);
+
+        int luaCellAge(moLuaVirtualMachine& vm);
+        int luaCellDuplicate(moLuaVirtualMachine& vm);
+        int luaCellMutate(moLuaVirtualMachine& vm);
+        int luaCellCrossover(moLuaVirtualMachine& vm);
+        int luaCellDie(moLuaVirtualMachine& vm);
+
+        int luaCmpMemory(moLuaVirtualMachine& vm);
+        int luaReadMemory(moLuaVirtualMachine& vm);
+        int luaWriteMemory(moLuaVirtualMachine& vm);
+        int luaDumpMemory(moLuaVirtualMachine& vm);
+        //int luaCellGrow(moLuaVirtualMachine& vm);
+        //int luaCell(moLuaVirtualMachine& vm);
+
+        int luaCellEndProgram(moLuaVirtualMachine& vm);
+        int luaCellDumpProgram(moLuaVirtualMachine& vm);
+
         ///end script functions
 
         moInlet*                  m_pParticleTime;
@@ -864,6 +887,7 @@ class moEffectParticlesFractal : public moEffect
         void setUpLighting();
 
         int m_rows,m_cols;
+        int m_cellmem,m_cellcode;
         float normalf; ///width of full floor usually 100.0f
 
         long time_tofull_revelation;
@@ -933,8 +957,23 @@ class moEffectParticlesFractal : public moEffect
         double dt;
         long gral_ticks;
 
+        bool  m_bCellCodeTextureSwapOn;
+        moTexture*  m_pCellCodeTextureSwap;
+        moTextureFilter*  m_pTFilter_CellCodeTextureSwap;
+        moStateFilterParams* m_pCellCodeFilterParams;
+        moTexture*  m_pCellCodeTexture;
+        moTextureFilter*  m_pTFilter_CellCodeTexture;
+        moTexture* m_pCellCodeTextureFinal;
 
-bool  m_bMediumTextureSwapOn;
+        bool  m_bCellMemoryTextureSwapOn;
+        moTexture*  m_pCellMemoryTextureSwap;
+        moTextureFilter*  m_pTFilter_CellMemoryTextureSwap;
+        moStateFilterParams* m_pCellMemoryFilterParams;
+        moTexture*  m_pCellMemoryTexture;
+        moTextureFilter*  m_pTFilter_CellMemoryTexture;
+        moTexture*  m_pCellMemoryTextureFinal;
+
+        bool  m_bMediumTextureSwapOn;
         moTexture*  m_pMediumTextureSwap;
         moTextureFilter*  m_pTFilter_MediumTextureSwap;
         moStateFilterParams* m_pMediumFilterParams;
@@ -1073,8 +1112,6 @@ bool  m_bMediumTextureSwapOn;
         moTexture*  m_pForceTextureFinal;
         moTexture*  m_pCreationTextureFinal;
 
-
-
         int numParticles;
         GLfloat *posArray;
         GLfloat *scaleArray;
@@ -1083,6 +1120,16 @@ bool  m_bMediumTextureSwapOn;
         GLfloat *velocityArray;
         GLfloat *colArray;
         GLfloat *geneticArray;
+
+        long    cell_position;
+        long    cell_position_i;
+        long    cell_position_j;
+        GLfloat *cellcodeArray;
+        GLfloat *cellmemoryArray;
+
+        ///calligram
+        moTextureBuffer*    m_pTexBuf;
+        int     m_nImages;
 };
 
 
