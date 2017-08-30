@@ -231,6 +231,8 @@ private:
   float   m_fVolume;
   float   m_fSpeedOfSound;
 
+  int i_PlayedTimes;
+
   MOint Tx, Ty, Tz;
   MOfloat Sx, Sy, Sz;
   MOint Rx, Ry, Rz;

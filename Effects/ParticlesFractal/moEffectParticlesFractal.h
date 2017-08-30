@@ -268,6 +268,8 @@ enum moParticlesFractalParamIndex {
 
 	PARTICLES_TEXTURE,
 	PARTICLES_FOLDERS,
+	PARTICLES_TEXTURE_CODE,
+	PARTICLES_TEXTURE_MEMORY,
 	PARTICLES_TEXTURE_MEDIUM,
 	PARTICLES_TEXTURE_ALTITUDE,
 	PARTICLES_TEXTURE_VARIABILITY,
@@ -277,6 +279,8 @@ enum moParticlesFractalParamIndex {
 
 	PARTICLES_WIDTH,
 	PARTICLES_HEIGHT,
+	PARTICLES_MEMORY,
+	PARTICLES_CODE,
 	PARTICLES_SIZEX,
 	PARTICLES_SIZEY,
 	PARTICLES_SIZEZ,
@@ -809,6 +813,166 @@ class moEffectParticlesFractal : public moEffect
         /// Funciones para la escritura de scripts específicos de particulas
         void RegisterFunctions();
 
+        int luaGetDelta(moLuaVirtualMachine& vm);
+        int luaGetParticleCount(moLuaVirtualMachine& vm);
+        int luaGetParticle(moLuaVirtualMachine& vm);
+        int luaGetParticlePosition(moLuaVirtualMachine& vm);
+        int luaGetParticleSize(moLuaVirtualMachine& vm);
+        int luaGetParticleScale(moLuaVirtualMachine& vm);
+        int luaGetParticleVelocity(moLuaVirtualMachine& vm);
+        int luaGetParticleRotation(moLuaVirtualMachine& vm);
+        int luaGetParticleGraphics(moLuaVirtualMachine& vm);
+        int luaGetParticleOpacity(moLuaVirtualMachine& vm);
+        int luaGetParticleColor(moLuaVirtualMachine& vm);
+
+        int luaUpdateParticle( moLuaVirtualMachine& vm );
+        int luaUpdateParticlePosition( moLuaVirtualMachine& vm );
+        int luaUpdateParticleSize( moLuaVirtualMachine& vm );
+        int luaUpdateParticleScale( moLuaVirtualMachine& vm );
+        int luaUpdateParticleVelocity( moLuaVirtualMachine& vm );
+        int luaUpdateParticleRotation( moLuaVirtualMachine& vm );
+        int luaUpdateParticleGraphics( moLuaVirtualMachine& vm );
+        int luaUpdateParticleOpacity( moLuaVirtualMachine& vm );
+        int luaUpdateParticleColor( moLuaVirtualMachine& vm );
+
+        int luaUpdateForce( moLuaVirtualMachine& vm );
+
+        int luaShot(moLuaVirtualMachine& vm);
+        int luaReInit(moLuaVirtualMachine& vm);
+
+        int luaDrawPoint(moLuaVirtualMachine& vm);
+        int luaGetParticleIntersection(moLuaVirtualMachine& vm);
+
+        int lua_id_cell;
+        int luaCellBeginProgram(moLuaVirtualMachine& vm);
+
+        int luaCellAge(moLuaVirtualMachine& vm);
+        int luaCellDuplicate(moLuaVirtualMachine& vm);
+        int luaCellMutate(moLuaVirtualMachine& vm);
+        int luaCellCrossover(moLuaVirtualMachine& vm);
+        int luaCellDie(moLuaVirtualMachine& vm);
+
+        int luaCmpMemory(moLuaVirtualMachine& vm);
+        int luaReadMemory(moLuaVirtualMachine& vm);
+        int luaWriteMemory(moLuaVirtualMachine& vm);
+        int luaDumpMemory(moLuaVirtualMachine& vm);
+        //int luaCellGrow(moLuaVirtualMachine& vm);
+        //int luaCell(moLuaVirtualMachine& vm);
+
+        int luaCellEndProgram(moLuaVirtualMachine& vm);
+        int luaCellDumpProgram(moLuaVirtualMachine& vm);
+
+        ///end script functions
+
+        moInlet*                  m_pParticleTime;
+        moParticlesFractalArray    m_ParticlesFractalArray;
+        moParticlesFractalArray    m_ParticlesFractalArrayTmp;
+        moParticlesFractalPhysics    m_Physics;
+
+        bool                    m_bTrackerInit;
+
+        moTrackerSystemData*    m_pTrackerData;
+        MOint                   m_InletTrackerSystemIndex;
+
+        #ifdef USE_TUIO
+        moTUIOSystemData*       m_pTUIOData;
+        MOint                   m_InletTuioSystemIndex;
+        #endif
+
+
+
+        moVector2f              m_TrackerBarycenter;
+
+
+        void setUpLighting();
+
+        int m_rows,m_cols;
+        int m_cellmem,m_cellcode;
+        float normalf; ///width of full floor usually 100.0f
+
+        long time_tofull_revelation;
+        long time_tofull_restoration;
+        long time_of_revelation;
+        long time_of_restoration;
+        long drawing_features; /// 0: nothing 1: motion  2: all
+        long texture_mode;
+        float particles_separation;
+        int random_color_function;
+
+
+        bool ortho;
+
+    ///internal
+        moTimer MotionTimer;
+
+        moTimer TimerFullRevelation; ///begins on first motion activity!!!!
+        moTimer TimerFullRestoration;///begins on full revelation finished....
+        moTimer TimerOfRevelation; ///begins on revealing all
+        moTimer TimerOfRestoration;///begins on restoring all
+
+        moTimer FeatureActivity;///start on first feature activity, ends on
+        moTimer MotionActivity;///start on first motion activity, ends on no motion
+        moTimer NoMotionActivity;///start on no motion, ends on first motion activity
+
+        enumRevelationStatus revelation_status; /// 5: full revealed 0: full hidden
+
+        long    m_Rate;
+
+        long    last_tick;
+
+        //special for script
+        moTexture* pTextureDest;
+        moTexture* pSubSample;
+        MObyte* samplebuffer;
+
+        int glidori;
+        int glid;
+        int frame;
+
+        int original_width;
+        int original_height;
+        float original_proportion;
+
+        float emiper;
+        long emiperi;
+
+        ///Medium Texture defined with gl id
+        int glid_medium;
+
+/*
+        float midi_red, midi_green, midi_blue;
+        float midi_maxage; //in millis
+        float midi_emitionperiod;//in millisec
+        float midi_emitionrate; // n per emitionperiod
+        float midi_randomvelocity; //inicial vel
+        float midi_randommotion; //motion dynamic
+*/
+        float tx,ty,tz;
+        float sx,sy,sz;
+        float rx,ry,rz;
+
+        TMapDepthToParticleSimple m_OrderedParticles;
+
+        double dtrel;
+        double dt;
+        long gral_ticks;
+
+        bool  m_bCellCodeTextureSwapOn;
+        moTexture*  m_pCellCodeTextureSwap;
+        moTextureFilter*  m_pTFilter_CellCodeTextureSwap;
+        moStateFilterParams* m_pCellCodeFilterParams;
+        moTexture*  m_pCellCodeTexture;
+        moTextureFilter*  m_pTFilter_CellCodeTexture;
+        moTexture* m_pCellCodeTextureFinal;
+
+        bool  m_bCellMemoryTextureSwapOn;
+        moTexture*  m_pCellMemoryTextureSwap;
+        moTextureFilter*  m_pTFilter_CellMemoryTextureSwap;
+        moStateFilterParams* m_pCellMemoryFilterParams;
+        moTexture*  m_pCellMemoryTexture;
+        moTextureFilter*  m_pTFilter_CellMemoryTexture;
+        moTexture*  m_pCellMemoryTextureFinal;
+
         bool  m_bMediumTextureSwapOn;
         moTexture*  m_pMediumTextureSwap;
         moTextureFilter*  m_pTFilter_MediumTextureSwap;
@@ -854,12 +1018,12 @@ class moEffectParticlesFractal : public moEffect
         moTexture*  m_pStateTexture;
         moTextureFilter*  m_pTFilter_StateTexture;
 
-        bool  m_bGeneticTextureSwapOn;
-        moTexture*  m_pGeneticTextureSwap;
-        moTextureFilter*  m_pTFilter_GeneticTextureSwap;
-        moTexture*  m_pGeneticTexture;
-        moTextureFilter*  m_pTFilter_GeneticTexture;
-        moTexture*  m_pGeneticTextureFinal;
+        bool  m_bColorTextureSwapOn;
+        moTexture*  m_pColorTextureSwap;
+        moTextureFilter*  m_pTFilter_ColorTextureSwap;
+        moTexture*  m_pColorTexture;
+        moTextureFilter*  m_pTFilter_ColorTexture;
+        moTexture*  m_pColorTextureFinal;
 
         bool  m_bPositionTextureSwapOn;
         moTexture*  m_pPositionTextureSwap;
@@ -948,133 +1112,23 @@ class moEffectParticlesFractal : public moEffect
         moTexture*  m_pForceTextureFinal;
         moTexture*  m_pCreationTextureFinal;
 
-        int luaGetDelta(moLuaVirtualMachine& vm);
-        int luaGetParticleCount(moLuaVirtualMachine& vm);
-        int luaGetParticle(moLuaVirtualMachine& vm);
-        int luaGetParticlePosition(moLuaVirtualMachine& vm);
-        int luaGetParticleSize(moLuaVirtualMachine& vm);
-        int luaGetParticleScale(moLuaVirtualMachine& vm);
-        int luaGetParticleVelocity(moLuaVirtualMachine& vm);
-        int luaGetParticleRotation(moLuaVirtualMachine& vm);
-        int luaGetParticleGraphics(moLuaVirtualMachine& vm);
-
-        int luaUpdateParticle( moLuaVirtualMachine& vm );
-        int luaUpdateParticlePosition( moLuaVirtualMachine& vm );
-        int luaUpdateParticleSize( moLuaVirtualMachine& vm );
-        int luaUpdateParticleScale( moLuaVirtualMachine& vm );
-        int luaUpdateParticleVelocity( moLuaVirtualMachine& vm );
-        int luaUpdateParticleRotation( moLuaVirtualMachine& vm );
-        int luaUpdateParticleGraphics( moLuaVirtualMachine& vm );
-
-        int luaUpdateForce( moLuaVirtualMachine& vm );
-
-        int luaShot(moLuaVirtualMachine& vm);
-        int luaReInit(moLuaVirtualMachine& vm);
-
-        int luaDrawPoint(moLuaVirtualMachine& vm);
-        int luaGetParticleIntersection(moLuaVirtualMachine& vm);
-
-        ///end script functions
-
-        moInlet*                  m_pParticleTime;
-        moParticlesFractalArray    m_ParticlesFractalArray;
-        moParticlesFractalArray    m_ParticlesFractalArrayTmp;
-        moParticlesFractalPhysics    m_Physics;
-
-        bool                    m_bTrackerInit;
-
-        moTrackerSystemData*    m_pTrackerData;
-        MOint                   m_InletTrackerSystemIndex;
-
-        #ifdef USE_TUIO
-        moTUIOSystemData*       m_pTUIOData;
-        MOint                   m_InletTuioSystemIndex;
-        #endif
-
-
-
-        moVector2f              m_TrackerBarycenter;
-
-
-        void setUpLighting();
-
-        int m_rows,m_cols;
-        float normalf; ///width of full floor usually 100.0f
-
-        long time_tofull_revelation;
-        long time_tofull_restoration;
-        long time_of_revelation;
-        long time_of_restoration;
-        long drawing_features; /// 0: nothing 1: motion  2: all
-        long texture_mode;
-        float particles_separation;
-        int random_color_function;
-
-
-        bool ortho;
-
-    ///internal
-        moTimer MotionTimer;
-
-        moTimer TimerFullRevelation; ///begins on first motion activity!!!!
-        moTimer TimerFullRestoration;///begins on full revelation finished....
-        moTimer TimerOfRevelation; ///begins on revealing all
-        moTimer TimerOfRestoration;///begins on restoring all
-
-        moTimer FeatureActivity;///start on first feature activity, ends on
-        moTimer MotionActivity;///start on first motion activity, ends on no motion
-        moTimer NoMotionActivity;///start on no motion, ends on first motion activity
-
-        enumRevelationStatus revelation_status; /// 5: full revealed 0: full hidden
-
-        long    m_Rate;
-
-        long    last_tick;
-
-        //special for script
-        moTexture* pTextureDest;
-        moTexture* pSubSample;
-        MObyte* samplebuffer;
-
-        int glidori;
-        int glid;
-        int frame;
-
-        int original_width;
-        int original_height;
-        float original_proportion;
-
-        float emiper;
-        long emiperi;
-
-        ///Medium Texture defined with gl id
-        int glid_medium;
-
-/*
-        float midi_red, midi_green, midi_blue;
-        float midi_maxage; //in millis
-        float midi_emitionperiod;//in millisec
-        float midi_emitionrate; // n per emitionperiod
-        float midi_randomvelocity; //inicial vel
-        float midi_randommotion; //motion dynamic
-*/
-        float tx,ty,tz;
-        float sx,sy,sz;
-        float rx,ry,rz;
-
-        TMapDepthToParticleSimple m_OrderedParticles;
-
-        double dtrel;
-        double dt;
-        long gral_ticks;
-
         int numParticles;
         GLfloat *posArray;
         GLfloat *scaleArray;
+        GLfloat *orientationArray;
         GLfloat *stateArray;
         GLfloat *velocityArray;
-        GLfloat *colArray;
-        GLfloat *geneticArray;
+        GLfloat *colorArray;
+
+        long    cell_position;
+        long    cell_position_i;
+        long    cell_position_j;
+        GLfloat *cellcodeArray;
+        GLfloat *cellmemoryArray;
+
+        ///calligram
+        moTextureBuffer*    m_pTexBuf;
+        int     m_nImages;
 };
 
 

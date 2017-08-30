@@ -669,6 +669,7 @@ MOuint moEffectMovie::MovieGLId() {
               ///Internally if FramePosition doesnt change GetFrame is not called... (for optimization)
               ///glid = m_pAnim->GetGLId( (MOuint)m_FramePosition );
               glid = m_Config.GetGLId( moR(MOVIE_MOVIES), (MOuint)m_FramePosition );
+              //MODebug2->Message("glid VCR:"+IntToStr(glid)+" pos:"+IntToStr(m_FramePosition) );
             }
 
           if (m_pMovie) {
@@ -714,7 +715,7 @@ MOuint moEffectMovie::MovieGLId() {
       //if (m_pAnim) {
         //glid = m_pAnim->GetGLId( &m_EffectState.tempo );
         glid = m_Config.GetGLId( moR(MOVIE_MOVIES), &m_EffectState.tempo );
-        //MODebug2->Push("glid CYCLE:"+IntToStr(glid)+" tempo:"+FloatToStr(m_EffectState.tempo.ang));
+        //MODebug2->Message("glid CYCLE:"+IntToStr(glid)+" tempo:"+FloatToStr(m_EffectState.tempo.ang));
       //}
       break;
 
