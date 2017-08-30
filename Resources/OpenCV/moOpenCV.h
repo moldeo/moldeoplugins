@@ -107,6 +107,10 @@ using namespace cv;
     using namespace cv::face;
 #endif
 
+#ifdef MO_MACOSX
+    using namespace cv::face;
+#endif
+
 #ifndef __MO_OPENCV_H
 #define __MO_OPENCV_H
 

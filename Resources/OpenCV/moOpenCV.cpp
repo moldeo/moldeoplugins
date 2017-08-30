@@ -1906,7 +1906,7 @@ if (m_pSrcTexture==NULL) {
           names.push_back(trainname);
         }
       }
-      m_pFaceRecognizer = createEigenFaceRecognizer();
+      m_pFaceRecognizer = EigenFaceRecognizer::create();
       if (m_pFaceRecognizer && images.size()>0)
         m_pFaceRecognizer->train(images, labels);
       //int predictedLabel = model->predict(testSample);
