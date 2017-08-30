@@ -1018,12 +1018,12 @@ class moEffectParticlesFractal : public moEffect
         moTexture*  m_pStateTexture;
         moTextureFilter*  m_pTFilter_StateTexture;
 
-        bool  m_bGeneticTextureSwapOn;
-        moTexture*  m_pGeneticTextureSwap;
-        moTextureFilter*  m_pTFilter_GeneticTextureSwap;
-        moTexture*  m_pGeneticTexture;
-        moTextureFilter*  m_pTFilter_GeneticTexture;
-        moTexture*  m_pGeneticTextureFinal;
+        bool  m_bColorTextureSwapOn;
+        moTexture*  m_pColorTextureSwap;
+        moTextureFilter*  m_pTFilter_ColorTextureSwap;
+        moTexture*  m_pColorTexture;
+        moTextureFilter*  m_pTFilter_ColorTexture;
+        moTexture*  m_pColorTextureFinal;
 
         bool  m_bPositionTextureSwapOn;
         moTexture*  m_pPositionTextureSwap;
@@ -1118,8 +1118,7 @@ class moEffectParticlesFractal : public moEffect
         GLfloat *orientationArray;
         GLfloat *stateArray;
         GLfloat *velocityArray;
-        GLfloat *colArray;
-        GLfloat *geneticArray;
+        GLfloat *colorArray;
 
         long    cell_position;
         long    cell_position_i;

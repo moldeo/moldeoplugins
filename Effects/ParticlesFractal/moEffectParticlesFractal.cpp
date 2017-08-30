@@ -139,12 +139,12 @@ moEffectParticlesFractal::moEffectParticlesFractal() {
   m_pScaleTextureFinal = NULL;
   m_bScaleTextureSwapOn = false;
 
-  m_pTFilter_GeneticTexture = NULL;
-	m_pGeneticTexture = NULL;
-  m_pTFilter_GeneticTextureSwap = NULL;
-  m_pGeneticTextureSwap = NULL;
-  m_pGeneticTextureFinal = NULL;
-  m_bGeneticTextureSwapOn = false;
+  m_pTFilter_ColorTexture = NULL;
+	m_pColorTexture = NULL;
+  m_pTFilter_ColorTextureSwap = NULL;
+  m_pColorTextureSwap = NULL;
+  m_pColorTextureFinal = NULL;
+  m_bColorTextureSwapOn = false;
 
   m_pTFilter_OrientationTexture = NULL;
 	m_pOrientationTexture = NULL;
@@ -171,8 +171,7 @@ moEffectParticlesFractal::moEffectParticlesFractal() {
   scaleArray = NULL;
   orientationArray = NULL;
   stateArray = NULL;
-  colArray = NULL;
-  geneticArray = NULL;
+  colorArray = NULL;
 
   cellcodeArray = NULL;
   cellmemoryArray = NULL;
@@ -839,16 +838,16 @@ void moEffectParticlesFractal::UpdateParameters() {
     }
 
 
-     if ( m_bGeneticTextureSwapOn && m_pTFilter_GeneticTextureSwap ) {
-        m_bGeneticTextureSwapOn = false;
+     if ( m_bColorTextureSwapOn && m_pTFilter_ColorTextureSwap ) {
+        m_bColorTextureSwapOn = false;
         //m_pTFilter_PositionTextureSwap->Apply( &m_EffectState.tempo );
-        m_pTFilter_GeneticTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
-        m_pGeneticTextureFinal = m_pGeneticTextureSwap;
-    } else if ( m_pTFilter_GeneticTexture ) {
-        m_bGeneticTextureSwapOn = true;
+        m_pTFilter_ColorTextureSwap->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pColorTextureFinal = m_pColorTextureSwap;
+    } else if ( m_pTFilter_ColorTexture ) {
+        m_bColorTextureSwapOn = true;
         //m_pTFilter_PositionTexture->Apply( &m_EffectState.tempo );
-        m_pTFilter_GeneticTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
-        m_pGeneticTextureFinal = m_pGeneticTexture;
+        m_pTFilter_ColorTexture->Apply( (moMoldeoObject*)(this), &m_EffectState.tempo );
+        m_pColorTextureFinal = m_pColorTexture;
     }
 
     if ( m_bVelocityTextureSwapOn && m_pTFilter_VelocityTextureSwap ) {
@@ -953,13 +952,13 @@ void moEffectParticlesFractal::UpdateParameters() {
       glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, scaleArray );
     }
 
-    if (geneticArray==NULL) {
+    if (colorArray==NULL) {
       numParticles = m_rows * m_cols;
-      geneticArray = new GLfloat[4 * numParticles]();
+      colorArray = new GLfloat[4 * numParticles]();
       MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
     }
 
-    if (geneticArray && m_pGeneticTextureFinal) {
+    if (colorArray && m_pColorTextureFinal) {
       //MODebug2->Push("Reading pixels: " +  IntToStr(numParticles) );
       //m_pPositionTextureFinal->GetFBO()->Bind();
 
@@ -967,8 +966,8 @@ void moEffectParticlesFractal::UpdateParameters() {
       //glReadPixels(0, 0, m_rows, m_cols, GL_RGBA, GL_FLOAT, posArray);
       //m_pPositionTextureFinal->GetFBO()->Unbind();
 
-      glBindTexture( GL_TEXTURE_2D, m_pGeneticTextureFinal->GetGLId() );
-      glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, geneticArray );
+      glBindTexture( GL_TEXTURE_2D, m_pColorTextureFinal->GetGLId() );
+      glGetTexImage( GL_TEXTURE_2D, 0, GL_RGBA, GL_FLOAT, colorArray );
     }
 
     if (orientationArray==NULL) {
@@ -1795,71 +1794,72 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
 
 /**
 
-  GENETIC
+  COLOR
 
 */
 
-  tName = "pf_genetic_fx#"+this->GetLabelName()+"_";
+  tName = "pf_color_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
-      m_pGeneticTexture = TextureMan()->GetTexture(Mid);
-      m_pGeneticTexture->BuildEmpty( p_cols, p_rows );
+      m_pColorTexture = TextureMan()->GetTexture(Mid);
+      m_pColorTexture->BuildEmpty( p_cols, p_rows );
       MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
   } else {
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  tName = "pf_genetic_swap_fx#"+this->GetLabelName()+"_";
+  tName = "pf_color_swap_fx#"+this->GetLabelName()+"_";
   Mid = TextureMan()->AddTexture( tName, p_cols, p_rows, tparam );
   if (Mid>0) {
-      m_pGeneticTextureSwap = TextureMan()->GetTexture(Mid);
-      m_pGeneticTextureSwap->BuildEmpty( p_cols, p_rows );
+      m_pColorTextureSwap = TextureMan()->GetTexture(Mid);
+      m_pColorTextureSwap->BuildEmpty( p_cols, p_rows );
       MODebug2->Message("moEffectParticlesFractal::InitParticlesFractal > " + tName + " texture created!! " + strResolution);
   } else {
       MODebug2->Error("moEffectParticlesFractal::InitParticlesFractal > Couldn't create texture: " + tName + " " + strResolution);
   }
 
-  /// CREATE FILTER FOR GENETIC CHANGES (MUTATIONS!) !!!
-  if ( !m_pTFilter_GeneticTexture
-      && m_pGeneticTextureSwap && m_pGeneticTexture && m_pStateTextureSwap ) {
+  /// CREATE FILTER FOR COLOR CHANGES (MUTATIONS!) !!!
+  if ( !m_pTFilter_ColorTexture
+      && m_pColorTextureSwap && m_pColorTexture && m_pStateTextureSwap ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTextureSwap->GetName()
-                      + " " + m_pGeneticTexture->GetName()
+                      + " " + m_pColorTexture->GetName()
                       + " " + m_MediumTextureLoadedName/*Afecta el color de la particula: (r,g,b) || (h,s,v)*/
                       + " " + m_AltitudeTextureLoadedName/*Afecta el brillo de la particula: (r*0.15+g*0.7+b*0.2) */
                       + " " + m_VariabilityTextureLoadedName/*Afecta la variación del color: entre que colores oscila*/
                       + " " + m_ConfidenceTextureLoadedName/*Afecta la confianza del dato: su opacidad: alpha channel (rgb,A)*/
                       + moText(" ")+m_pCellCodeTexture->GetName()
-                      + moText(" ")+this->GetLabelName()+moText("/Genetic.cfg " )
-                      + m_pGeneticTextureSwap->GetName() );
-    MODebug2->Message(     moText("SHADER: GENETIC SWAP ======================"));
+                      + moText(" ")+m_pCellMemoryTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Color.cfg " )
+                      + m_pColorTextureSwap->GetName() );
+    MODebug2->Message(     moText("SHADER: COLOR SWAP ======================"));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
     if (idx>0) {
-        m_pTFilter_GeneticTexture = pTextureFilterIndex->Get(idx-1);
-        MODebug2->Message( moText("filter loaded m_pTFilter_GeneticTexture: ") + m_pTFilter_GeneticTexture->GetTextureFilterLabelName() );
+        m_pTFilter_ColorTexture = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_ColorTexture: ") + m_pTFilter_ColorTexture->GetTextureFilterLabelName() );
         MODebug2->Message( moText("-------------------------------------------"));
     }
   }
 
-  /// CREATE FILTER FOR GENETIC CHANGES (MUTATIONS!) !!!
-  if ( !m_pTFilter_GeneticTextureSwap
-      && m_pGeneticTextureSwap && m_pGeneticTexture && m_pStateTexture ) {
+  /// CREATE FILTER FOR COLOR CHANGES (MUTATIONS!) !!!
+  if ( !m_pTFilter_ColorTextureSwap
+      && m_pColorTextureSwap && m_pColorTexture && m_pStateTexture ) {
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTexture->GetName()
-                      + " " + m_pGeneticTextureSwap->GetName()
-                      //+  moText(" shaders/Birth.cfg res:64x64 " )
+                      + " " + m_pColorTextureSwap->GetName()
                        + " " + m_MediumTextureLoadedName/**/
                       + " " + m_AltitudeTextureLoadedName/**/
                       + " " + m_VariabilityTextureLoadedName/**/
                       + " " + m_ConfidenceTextureLoadedName/**/
                       + moText(" ")+m_pCellCodeTexture->GetName()
-                      + moText(" ")+this->GetLabelName()+moText("/Genetic.cfg " )
-                      + m_pGeneticTexture->GetName() );
-    MODebug2->Message(     moText("SHADER: GENETIC ==========================="));
+                      + moText(" ")+m_pCellMemoryTexture->GetName()
+                      + moText(" ")+this->GetLabelName()+moText("/Color.cfg " )
+                      + m_pColorTexture->GetName() );
+    MODebug2->Message(     moText("SHADER: COLOR ==========================="));
     int idx = pTextureFilterIndex->LoadFilters( &copy_filter_0 );
     if (idx>0) {
-        m_pTFilter_GeneticTextureSwap = pTextureFilterIndex->Get(idx-1);
-        MODebug2->Message( moText("filter loaded m_pTFilter_GeneticTextureSwap: ") + m_pTFilter_GeneticTextureSwap->GetTextureFilterLabelName() );
+        m_pTFilter_ColorTextureSwap = pTextureFilterIndex->Get(idx-1);
+        MODebug2->Message( moText("filter loaded m_pTFilter_ColorTextureSwap: ") + m_pTFilter_ColorTextureSwap->GetTextureFilterLabelName() );
         MODebug2->Message( moText("-------------------------------------------"));
 
     }
@@ -1918,11 +1918,11 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
   /// CREATE FILTER FOR VELOCITY CHANGES (BIRTH AND DEATH) !!!
   if ( !m_pTFilter_VelocityTexture && m_pStateTextureSwap
       && m_pVelocityTexture && m_pVelocityTextureSwap
-      && m_pGeneticTextureSwap && m_pPositionTextureSwap) {
+      && m_pColorTextureSwap && m_pPositionTextureSwap) {
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTextureSwap->GetName()
                       + " "
-                      + m_pGeneticTextureSwap->GetName()
+                      + m_pColorTextureSwap->GetName()
                       + " "
                       + m_pVelocityTexture->GetName()
                       + " " + m_pPositionTextureSwap->GetName()
@@ -1949,7 +1949,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
     moTextArray copy_filter_0;
     copy_filter_0.Add( m_pStateTexture->GetName()
                       + " "
-                      + m_pGeneticTexture->GetName()
+                      + m_pColorTexture->GetName()
                       + " "
                       +  m_pVelocityTextureSwap->GetName()
                       + " " + m_pPositionTexture->GetName()
@@ -1986,7 +1986,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       m_pStateTextureSwap->GetName()
                       + " " + m_pVelocityTextureSwap->GetName()
                       + " " + m_pPositionTexture->GetName()
-                      + " " + m_pGeneticTexture->GetName()
+                      + " " + m_pColorTexture->GetName()
                       + " " + m_MediumTextureLoadedName/*el color se puede interpretar para zonificar las particulas: rojo a la izquierda de la pantalla, azul a la derecha*/
                       + " " + m_AltitudeTextureLoadedName/*la altidud a su vez puede servir para dar una profundidad al valor...*/
                       + " " + m_VariabilityTextureLoadedName/*la variabilidad del dato hace que permita nivelar la posicion con mayor precisión: hacia donde se dirige*/
@@ -2010,7 +2010,7 @@ void moEffectParticlesFractal::InitParticlesFractal( int p_cols, int p_rows, boo
                       m_pStateTexture->GetName()
                       + " " + m_pVelocityTexture->GetName()
                       + " " + m_pPositionTextureSwap->GetName()
-                      + " " + m_pGeneticTexture->GetName()
+                      + " " + m_pColorTexture->GetName()
                       + " " + m_MediumTextureLoadedName
                       + " " + m_AltitudeTextureLoadedName
                       + " " + m_VariabilityTextureLoadedName
@@ -2277,7 +2277,7 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
 
 
 
-  if (posArray && stateArray && geneticArray && orientationArray)
+  if (posArray && stateArray && colorArray && orientationArray)
   for (int i = 0; i < m_cols; i++) {
       ioff = i * 4;
       for (int j = 0; j < m_rows; j++)
@@ -2307,10 +2307,11 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
           float age = stateArray[ijoff+2];
           float origin = stateArray[ijoff+3];
 
-          float r = geneticArray[ijoff]*m_Color.X();
-          float g = geneticArray[ijoff+1]*m_Color.Y();
-          float b = geneticArray[ijoff+2]*m_Color.Z();
-          float al = geneticArray[ijoff+3]*m_Color.W();
+          float r = colorArray[ijoff]*m_Color.X();
+          float g = colorArray[ijoff+1]*m_Color.Y();
+          float b = colorArray[ijoff+2]*m_Color.Z();
+          float al = colorArray[ijoff+3]*m_Color.W();
+          int texture_material = floor( al * 0.00001 ) ;
           glColor4f( r,g,b,m_EffectState.alpha*al*m_Alpha );
 
           moVector3f U,V,W;
@@ -3244,7 +3245,7 @@ int moEffectParticlesFractal::luaDumpMemory(moLuaVirtualMachine& vm) {
             long cpos = cell_position+linec*4*m_cellmem*m_cols;
             moText celdatab = "";
 
-            for(int cc = cpos; cc<(cpos+4*luaDumpMemory); cc++) {
+            for(int cc = cpos; cc<(cpos+4*m_cellmem); cc++) {
                 //if ( cchange == m_cellcode*m_cellmem*4 ) { cellchange = "\n\n"; cchange=0; }
                 fullcode += celdatab + FloatToStr( cellmemoryArray[cc] );
                 celdatab = "  ";

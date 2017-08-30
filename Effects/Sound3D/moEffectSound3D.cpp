@@ -319,7 +319,7 @@ void moSound3DAL::PlaySample( MOint sampleid ) {
 
     Update();//update actual state and sample
 
-	//alSourceStop(m_SourceId);
+	//(m_SourceId);
 	if (m_ActualSample!=sampleid && sampleid!=0 && (State() != MO_STREAMSTATE_PLAYING)  ) {
 		alSourcei(m_SourceId, AL_BYTE_OFFSET, sampleid);
 		alSourcePlay(m_SourceId);
@@ -519,6 +519,7 @@ moEffectSound3D::moEffectSound3D() {
   m_pAudio = NULL;
     m_pALCContext = NULL;
     m_pALCDevice = NULL;
+    i_PlayedTimes = 0;
 
 }
 
@@ -851,7 +852,7 @@ void
 moEffectSound3D::UpdateParameters() {
   UpdateSound( m_Config.Text( moR(SOUND3D_SOUND)) );
 
-  m_bLoop = m_Config.Int( moR( SOUND3D_LOOP ) );
+  m_bLoop = m_Config.Int( moR( SOUND3D_LOOP ) ) == 1;
   m_fPitch = m_Config.Eval( moR( SOUND3D_PITCH ) );
   m_fVolume = m_Config.Eval( moR( SOUND3D_VOLUME ) );
   m_fSpeedOfSound = m_Config.Eval( moR( SOUND3D_SPEEDOFSOUND ) );
@@ -881,6 +882,7 @@ moEffectSound3D::UpdateParameters() {
     m_fSampleVolume = 0.0;
     //m_fSampleVolume = m_pAudio->GetActualSampleVolume();
     //MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
+    //MODebug2->Message("m_bLoop:"+IntToStr( m_bLoop )  );
   }
 
 
@@ -937,20 +939,38 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
       DMessage("Launching sound!" + m_pAudio->GetName());
       //m_bLaunch = m_Config.Int(moR(SOUND3D_LAUNCH));
       m_fLaunch = newflaun;
-        if (m_fLaunch>=1.0 && moIsTimerPlaying()) {
+        if (m_fLaunch>=1.0 && moIsTimerPlaying() && m_EffectState.tempo.Started()) {
           m_pAudio->Play();
         }
     }
 
-
-    if ( ( moIsTimerStopped() || !Activated() ) && m_pAudio ) {
-      if (m_pAudio->IsPlaying())
-        m_pAudio->Stop();
-    }
-    if (m_fLaunch>=1.0 && m_pAudio && Activated() ) {
-      if (!m_pAudio->IsPlaying() && moIsTimerPlaying() ) {
-        m_pAudio->Play();
-      }
+    if (m_bLoop) {
+        if ( ( moIsTimerStopped() || !m_EffectState.tempo.Started()  || !Activated() || !m_EffectState.Activated() ) && m_pAudio ) {
+          if (m_pAudio->IsPlaying())
+            m_pAudio->Stop();
+        }
+        if (m_fLaunch>=1.0 && m_pAudio && Activated() && m_EffectState.Activated() ) {
+          if (!m_pAudio->IsPlaying() && moIsTimerPlaying() && m_EffectState.tempo.Started() ) {
+            m_pAudio->Play();
+          }
+        }
+    } else {
+        int ntimes = 1;
+        if (i_PlayedTimes==0) {
+            if (m_fLaunch>=1.0 && m_pAudio && Activated() && m_EffectState.Activated() ) {
+              if (!m_pAudio->IsPlaying() && moIsTimerPlaying() && m_EffectState.tempo.Started() ) {
+                m_pAudio->Play();
+                i_PlayedTimes = 1;
+              }
+            }
+        } else {
+            if ( ( moIsTimerStopped() || !m_EffectState.tempo.Started()  || !Activated() || !m_EffectState.Activated() ) && m_pAudio ) {
+              if (m_pAudio->IsPlaying()) {
+                m_pAudio->Stop();
+              }
+              i_PlayedTimes = 0;
+            }
+        }
     }
 }
 
