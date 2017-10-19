@@ -319,7 +319,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                 && actual->pointer ) {
 
               /// moldeoapi_data_message
-              if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update > Sending Moldeo API Message!") );
+              if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update "+GetLabelName()+" > Sending Moldeo API Message!") );
               moDataMessage* MoldeoAPIMessage = (moDataMessage*)actual->pointer;
 
               for (i = 0; i < host_name.Count(); i++)
@@ -327,7 +327,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     //res = eventPacket[i]->AddEvent(actual);
                     //if (eventPacket[i]->ReadyToSend())
                     {
-                        if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update > SendDataMessage to host: I:") + (moText)IntToStr( i )+host_name[i] );
+                        if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update "+GetLabelName()+" > SendDataMessage to host: I:") + (moText)IntToStr( i )+host_name[i] );
                         SendDataMessage( i, *MoldeoAPIMessage );
                         //eventPacket[i]->ClearPacket();
                         //if (!res) eventPacket[i]->AddEvent(actual);
@@ -358,7 +358,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
             if (pData) {
               if (pData->Type()==MO_DATA_MESSAGE) {
 
-              if (debug_is_on) MODebug2->Push( moText(" text: ") + pData->ToText());
+              //if (debug_is_on) MODebug2->Message(  + pData->ToText());
 
                 moDataMessage* pMess = pData->Message();
                 if (pMess) {
@@ -404,6 +404,56 @@ void moNetOSCOut::Update(moEventList *Eventos)
           }
       }
     }
+
+    MsgToSend = GetInletIndex("DATAMESSAGES" );
+    if (MsgToSend > -1 && 1==1) {
+      //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > DATAMESSAGES inlet"));
+      moInlet* pInlet = GetInlets()->Get(MsgToSend);
+      if (pInlet ) {
+          //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > pInlet"));
+          if (pInlet->Updated()) {
+            //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > pInlet updated!"));
+            moData* pData = pInlet->GetData();
+            if (pData) {
+              //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > pInlet updated pData:") + pData->TypeToText());
+              if (pData->Type()==MO_DATA_MESSAGES) {
+
+                //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > Receiving DATAMESSAGES: ") + pData->ToText());
+                //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > Receiving DATAMESSAGES: ") );
+
+                moDataMessages* pMessX = pData->Messages();
+
+                if (pMessX) {
+
+
+                  for(int m=0; m<pMessX->Count(); m++ ) {
+
+                    const moDataMessage& pMess(pMessX->Get(m));
+                    moDataMessage data_message;
+                    moData mData;
+
+                    //MODebug2->Push( moText(" text: ") + pData->ToText());
+                    for(int k=0; k<pMess.Count(); k++ ) {
+
+                      mData = pMess.Get(k);
+                      data_message.Add(mData);
+                      if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update "+GetLabelName()+" > Receiving DATAMESSAGES Message") + IntToStr(m)+ moText(" Data: ") +IntToStr(k) + " Val: " + mData.ToText());
+                    }
+
+                    for (i = 0; i < host_name.Count(); i++)
+                    {
+                      {
+                          //if (debug_is_on) MODebug2->Message( moText("moNetOscOut::Update > sending DATAMESSAGE: ") );
+                          SendDataMessage( i, data_message );
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
 
     moTrackerSystemData* m_pTrackerData = NULL;
     //bool m_bTrackerInit = false;
@@ -614,7 +664,7 @@ moText oscpath = "";
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
-          if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::SendDataMessage > data:") + IntToStr(j) );
+          if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::SendDataMessage "+GetLabelName()+" > data:") + IntToStr(j) );
           switch(data.Type()) {
           #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:

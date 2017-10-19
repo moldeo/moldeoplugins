@@ -334,7 +334,9 @@ moOla::Init() {
 	moDefineParamIndex( OLA_BLUE, moText("blue") );
 	moDefineParamIndex( OLA_ALPHA, moText("alpha") );
 	moDefineParamIndex( OLA_STARTUNIVERSE, moText("startuniverse") );
+	moDefineParamIndex( OLA_ENDUNIVERSE, moText("enduniverse") );
 	moDefineParamIndex( OLA_MODE, moText("mode") );
+	moDefineParamIndex( OLA_LEDS, moText("leds") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -528,7 +530,9 @@ moOla::Update(moEventList *Events) {
     double alpha = m_Config.Eval(moR(OLA_ALPHA));
     //int startuniverse = min( 1, max( 1, m_Config.Int(moR(OLA_STARTUNIVERSE)) ) );
     int startuniverse = m_Config.Int(moR(OLA_STARTUNIVERSE));
+    int enduniverse = m_Config.Int(moR(OLA_ENDUNIVERSE));
     int mode = m_Config.Int(moR(OLA_MODE));
+    int leds_per_string = m_Config.Int(moR(OLA_LEDS));
     /**
     red = 0;
     green = 0;
@@ -539,7 +543,8 @@ moOla::Update(moEventList *Events) {
 
     long pindex = 0;
     long pindexrgb = 0;
-    int pixelperstring = 300;
+    //int pixelperstring = 300;
+    int pixelperstring = leds_per_string;
     unsigned int rgbindexmax = 170;///512 / 3 = 170 -> 170*3 = 510
     /// 170 = floor( 512 / 3 )
     /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512(doesnt exist!)
@@ -547,10 +552,14 @@ moOla::Update(moEventList *Events) {
     if (mode==1) {
       int TGLId = m_Config.GetGLId( moR(OLA_TEXTURE), this );
       glBindTexture( GL_TEXTURE_2D, TGLId );
+      #ifndef OPENGLESV2
       glGetTexImage( GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pData );
+      #endif
+      //TODO: USE READ PIXELS
     }
 
-    for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
+    //for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
+    for (unsigned int uni = startuniverse; uni < enduniverse; uni++) {
         for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
 
           int x = (int) ( pindexrgb % pixelperstring );
@@ -645,7 +654,8 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("blue"), MO_PARAM_FUNCTION, OLA_BLUE, moValue("0.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("alpha"), MO_PARAM_FUNCTION, OLA_ALPHA, moValue("1.0","FUNCTION").Ref() );
 	p_configdefinition->Add( moText("startuniverse"), MO_PARAM_NUMERIC, OLA_STARTUNIVERSE, moValue( "1", "NUM").Ref() );
-	p_configdefinition->Add( moText("leds"), MO_PARAM_NUMERIC, OLA_LEDS, moValue( "50", "NUM").Ref() );
+	p_configdefinition->Add( moText("enduniverse"), MO_PARAM_NUMERIC, OLA_ENDUNIVERSE, moValue( "2", "NUM").Ref() );
+	p_configdefinition->Add( moText("leds"), MO_PARAM_NUMERIC, OLA_LEDS, moValue( "300", "NUM").Ref() );
 	p_configdefinition->Add( moText("rgbtype"), MO_PARAM_NUMERIC, OLA_RGBTYPE, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("testmode"), MO_PARAM_NUMERIC, OLA_TESTMODE, moValue( "0", "NUM").Ref(), moText("None,") );
 	p_configdefinition->Add( moText("testoffset"), MO_PARAM_NUMERIC, OLA_TESTOFFSET, moValue( "0", "NUM").Ref() );

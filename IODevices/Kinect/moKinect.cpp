@@ -2484,6 +2484,24 @@ moKinect::Finish() {
 	Codes = NULL;
 	ncodes = 0;
 
+  if (m_Depth.IsValid()) {
+    m_Depth.StopGenerating();
+    m_Depth.Release();
+  }
+
+  if (m_UserGenerator.IsValid()) {
+    m_UserGenerator.StopGenerating();
+    m_UserGenerator.Release();
+  }
+
+  if (m_IRImage.IsValid()) {
+    m_IRImage.StopGenerating();
+    m_IRImage.Release();
+  }
+
+  m_Context.Release();
+  cout << "Kinect Released" << endl;
+
 	return true;
 }
 

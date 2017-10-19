@@ -92,12 +92,16 @@ moMidiData::Copy( const moMidiData& mididata ) {
 }
 
 moMidiDevice::moMidiDevice() {
+  m_Name = "";
 	SysXFlag = 0;
 	m_DeviceId = -1;
 	m_bInit = false;
 	m_bActive = false;
-	m_Notes.Init( 127, moMidiNote() );
+	for(int i=0;i<16;i++) {
+    m_Notes[i].Init( 127, moMidiNote() );
+	}
 	stream = NULL;
+	channel = 0;
 }
 
 
@@ -228,16 +232,19 @@ moMidiDevice::Update(moEventList *Events ) {
 
         for(int cc=0; cc<c;cc++) {
             PmMessage msg = buffer[cc].message;
-            mididata.m_Channel = this->channel;
-
+            //mididata.m_Channel = this->channel;
+            //Pm_Mess
             mididata.m_Status = Pm_MessageStatus(msg);
+            int ch = mididata.m_Status & 0x0000000F;
+            mididata.m_Channel = ch+1;
             int st = mididata.m_Status;
             st = st >> 4;
             mididata.m_Type = (moEncoderType)st;
             mididata.m_CC = Pm_MessageData1(msg);
             mididata.m_Val = Pm_MessageData2(msg);
+            moData oscdata;
 
-            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " status: " + IntToStr(mididata.m_Status) + " type: " + IntToStr(mididata.m_Type) + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
+            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " type: " + moEncoderTypeStr[mididata.m_Type] + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
 
             m_MidiDatas.Add( mididata );
 
@@ -270,10 +277,10 @@ moMidiDevice::Update(moEventList *Events ) {
             if ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val>0 ) {
             //if ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val>0 ) {
 
-              m_Notes[mididata.m_CC].tone = mididata.m_CC;
-              m_Notes[mididata.m_CC].velocity = mididata.m_Val;
-              m_Notes[mididata.m_CC].sustain.Start();
-              m_Notes[mididata.m_CC].release.Stop();
+              m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
+              m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
+              m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Start();
+              m_Notes[mididata.m_Channel][mididata.m_CC].release.Stop();
 
               SUS.Start();
               REL.Stop();
@@ -281,10 +288,10 @@ moMidiDevice::Update(moEventList *Events ) {
             } else if ( mididata.m_Type==MOMIDI_NOTEOFF || ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val==0) )  {
             //} else if ( mididata.m_Type==MOMIDI_NOTEON || ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val==0) )  {
 
-              m_Notes[mididata.m_CC].tone = mididata.m_CC;
-              m_Notes[mididata.m_CC].velocity = mididata.m_Val;
-              m_Notes[mididata.m_CC].sustain.Stop();
-              m_Notes[mididata.m_CC].release.Start();
+              m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
+              m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
+              m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Stop();
+              m_Notes[mididata.m_Channel][mididata.m_CC].release.Start();
 
               SUS.Stop();
               REL.Start();
@@ -329,6 +336,9 @@ moMidiDevice::Update(moEventList *Events ) {
 
 moMidi::moMidi() {
 	SetName("midi");
+	m_pMidiDevice = NULL;
+	m_MidiDeviceChannel = 0;
+	pOutDataMessages = NULL;
 }
 
 moMidi::~moMidi() {
@@ -347,6 +357,15 @@ moMidi::Init() {
     moMoldeoObject::CreateConnectors();
   } else return false;
 
+  moOutlet* pOutlet = NULL;
+  for( int i=0; i<m_Outlets.Count(); i++) {
+    pOutlet = m_Outlets.Get(i);
+    if (pOutlet->GetConnectorLabelName() == moText("DATAMESSAGES")) {
+      pOutDataMessages = pOutlet;
+      MODebug2->Message("moMidi::Init > Added Outlet DATAMESSAGES");
+    }
+  }
+
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
   moDefineParamIndex( MIDI_CHANNEL, moText("midichannel") );
   moDefineParamIndex( MIDI_NOTEFADEOUT, moText("notefadeout"));
@@ -360,6 +379,8 @@ moMidi::Init() {
 
 	InitDevices();
 
+  MODebug2->Message("moMidi::Update > m_Inlets Count: " + IntToStr(m_Inlets.Count()) );
+  MODebug2->Message("moMidi::Update > m_Outlets Count: " + IntToStr(m_Outlets.Count()) );
 
 
 	//levantamos los codes definidos
@@ -414,35 +435,52 @@ try {
         MO_MIDI_SYTEM_LABELNAME	0
         MO_MIDI_SYSTEM_ON 1
 	*/
+
 	for( int i = 0; i < nvalues; i++) {
 
 		m_Config.SetCurrentValueIndex( mididevices, i );
-
+			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
+    int MidiIsOn = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int();
 		moMidiDevicePtr pDevice = NULL;
-		pDevice = new moMidiDevice();
+    for( int d = 0; d < m_MidiDevices.Count() ; d++) {
+      moMidiDevicePtr pdev = m_MidiDevices.Get(d);
+      if (pdev) {
+        MODebug2->Message("Check device:"+pdev->GetName());
+        if (pdev->GetName()==MidiDeviceCode) {
+          pDevice = pdev;
+          MODebug2->Message( moText("moMidi::Init > Midi Device Founded [") + MidiDeviceCode + moText("] >>") );
+        }
+      }
+    }
+    if (pDevice==NULL) {
+      pDevice = new moMidiDevice();
+    } else pDevice = NULL;
+
 
 		if (pDevice!=NULL) {
 			pDevice->MODebug = MODebug;
-			moText MidiDeviceCode = m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYTEM_LABELNAME).Text();
 			if ( pDevice->Init( MidiDeviceCode ) ) {
-				pDevice->SetActive( m_Config.GetParam().GetValue().GetSubValue(MO_MIDI_SYSTEM_ON).Int() );
-				int MidiDeviceChannel = m_Config.Int( moR(MIDI_CHANNEL) );
-				pDevice->channel = MidiDeviceChannel;
+				pDevice->SetActive( MidiIsOn );
+				//pDevice->channel = MidiDeviceChannel;
 				if (pDevice->IsActive()) {
-                    MODebug2->Message( moText("Midi Device ===================") + MidiDeviceCode + moText("========> is ACTIVE !"));
+                    MODebug2->Message( moText("moMidi::Init > Midi Device [") + MidiDeviceCode + moText("] >> is ACTIVE !") );
 				}
+				m_pMidiDevice = pDevice;
+				m_MidiDevices.Add( pDevice );
 			} else {
 				MODebug2->Error( moText("Midi Device not found: ") + (moText)MidiDeviceCode );
 			}
 		}
 
-		m_MidiDevices.Add( pDevice );
+
 
 	}
 }
-catch(...) {
-  MODebug2->Error("InitDevices");
-}
+  catch(...) {
+    MODebug2->Error("InitDevices");
+  }
+
+  MODebug2->Message( moText("moMidi::Init > Midi Device Channel:") + GetLabelName() + " >> " + IntToStr(m_MidiDeviceChannel) );
 
 }
 
@@ -519,6 +557,7 @@ void moMidi::UpdateParameters() {
 
   m_vMidiFadeout = m_Config.Eval( moR(MIDI_NOTEFADEOUT) );
   m_vGateVelocity = m_Config.Eval( moR(MIDI_NOTEGATEVELOCITY) );
+  m_MidiDeviceChannel = m_Config.Int( moR(MIDI_CHANNEL) );
 
   bool reinit = m_Config.Eval( moR(MIDI_REINIT) );
   //reinitialize
@@ -533,10 +572,8 @@ void moMidi::UpdateParameters() {
 
 void
 moMidi::Update(moEventList *Events) {
-	MOuint i;
+	int i;
 	moEvent *actual,*tmp;
-
-
 
 	actual = Events->First;
 	//recorremos todos los events y parseamos el resultado
@@ -554,84 +591,103 @@ moMidi::Update(moEventList *Events) {
   UpdateParameters();
   long release_max = 400; ///100ms
 
+  m_DataMessages.Empty();
+
     ///ACTUALIZAMOS CADA DISPOSITIVO
-	for( i = 0; i < m_MidiDevices.Count(); i++ ) {
+    //MODebug2->Message("moMidi::Update > Update device: " + moMoldeoObject::GetLabelName()+" devices:" + IntToStr(m_MidiDevices.Count()) );
+	for( i = -1; i < (int)m_MidiDevices.Count(); i++ ) {
         //MODebug2->Message("Update devices");
-		moMidiDevicePtr MidiDevPtr;
-		MidiDevPtr = m_MidiDevices.Get(i);
+		moMidiDevicePtr MidiDevPtr = NULL;
+
+    //MODebug2->Message("moMidi::Update > Update device i:" + IntToStr(i));
+
+		if (i==-1) {
+      MidiDevPtr = m_pMidiDevice;
+      //if (m_pMidiDevice)
+        //MODebug2->Message("moMidi::Update > Update device: " + moMoldeoObject::GetLabelName()+" m_pMidiDevice:" + m_pMidiDevice->GetName() );
+    } else {
+      MidiDevPtr = m_MidiDevices.Get(i);
+      if (m_pMidiDevice==MidiDevPtr) MidiDevPtr = NULL;
+    }
+
+
     int idx = -1;
+    moDataMessage m_DataMessage;
 
 		if (MidiDevPtr!=NULL) {
 			if (MidiDevPtr->IsInit()) {
-				MidiDevPtr->Update( Events );
+				if (MidiDevPtr==m_pMidiDevice)
+          m_pMidiDevice->Update( Events );
 
 				moText codetbn = "TIMEBN";
 				moText codesus = "SUSTAIN";
 				moText coderel = "RELEASE";
 				moText codenote = "NOTE";
+
 				const char* outs[] = { "ISON","SUS","REL","VEL" };
 
         //MODebug2->Message("Nnotes:"+IntToStr( MidiDevPtr->m_Notes.Count() ) );
-				for( int iN=0; iN<MidiDevPtr->m_Notes.Count(); iN++ ) {
+        if (m_MidiDeviceChannel>0) {
+          for( int iN=0; iN<MidiDevPtr->m_Notes[m_MidiDeviceChannel].Count(); iN++ ) {
 
-          moMidiNote Note = MidiDevPtr->m_Notes[iN];
+            moMidiNote Note = MidiDevPtr->m_Notes[m_MidiDeviceChannel][iN];
 
-          moOutlet* pOutNote = NULL;
-          moText base_note_txt = codenote + IntToStr( iN );
-          //MODebug2->Message( base_note_txt+ " > " );
-          if (Note.sustain.Duration()>0 || Note.release.Duration()>0 ) {
-            ///SEND "NOTE42ISON" CC=42 > value = 0|1 if on or off
-            ///SEND "NOTE42SUS" value = sustain.duration
-            ///SEND "NOTE42REL" value = release.duration
-            ///SEND "NOTE42VEL" value = velocity
-            double releaseNormal =  ( (double)release_max - (double)Note.release.Duration() ) / (double)release_max;
-            if (releaseNormal<=0.0)  { releaseNormal = 0.0; MidiDevPtr->m_Notes[iN].release.Stop(); }
-            if (releaseNormal>=1.0) releaseNormal = 1.0;
+            moOutlet* pOutNote = NULL;
+            moText base_note_txt = codenote + IntToStr( iN );
+            //MODebug2->Message( base_note_txt+ " > " );
+            if (Note.sustain.Duration()>0 || Note.release.Duration()>0 ) {
+              ///SEND "NOTE42ISON" CC=42 > value = 0|1 if on or off
+              ///SEND "NOTE42SUS" value = sustain.duration
+              ///SEND "NOTE42REL" value = release.duration
+              ///SEND "NOTE42VEL" value = velocity
+              double releaseNormal =  ( (double)release_max - (double)Note.release.Duration() ) / (double)release_max;
+              if (releaseNormal<=0.0)  { releaseNormal = 0.0; Note.release.Stop(); }
+              if (releaseNormal>=1.0) releaseNormal = 1.0;
 
-            /*if (debugison)
-              MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
-                                            + " [SUS] " + IntToStr(Note.sustain.Duration())
-                                            + " [REL] " + FloatToStr(releaseNormal)
-                                            + " [VEL] " + FloatToStr(Note.velocity) );
-              */
-            for( int outi=0; outi<4; outi++) {
-              moText postext = (char*)outs[outi];
-              moText note_txt = base_note_txt + postext;
-              //MODebug2->Message( note_txt+ " > " );
-              idx = GetOutletIndex( note_txt );
-              if( idx>-1) {
+              /*if (debugison)
+                MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
+                                              + " [SUS] " + IntToStr(Note.sustain.Duration())
+                                              + " [REL] " + FloatToStr(releaseNormal)
+                                              + " [VEL] " + FloatToStr(Note.velocity) );
+                */
+              for( int outi=0; outi<4; outi++) {
+                moText postext = (char*)outs[outi];
+                moText note_txt = base_note_txt + postext;
+                //MODebug2->Message( note_txt+ " > " );
+                idx = GetOutletIndex( note_txt );
+                if( idx>-1) {
 
-                  moOutlet* pOutNote = m_Outlets[idx];
+                    moOutlet* pOutNote = m_Outlets[idx];
 
-                  if (pOutNote) {
-                      switch(outi) {
-                        case 0:
-                          pOutNote->GetData()->SetDouble( (double)(Note.sustain.Duration()>0) );
-                          //MODebug2->Message( note_txt+ ": " + IntToStr(Note.sustain.Duration()>0) );
-                          break;
-                        case 1:
-                          pOutNote->GetData()->SetDouble( (double)Note.sustain.Duration() );
-                          //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.sustain.Duration()) );
-                          break;
-                        case 2:
-                          pOutNote->GetData()->SetDouble( (double) releaseNormal );
-                          //MODebug2->Message( note_txt+ ": " + FloatToStr(releaseNormal) );
-                          break;
-                        case 3:
-                          pOutNote->GetData()->SetDouble( (double)Note.velocity );
-                          //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.velocity) );
-                          break;
-                        default:
-                          //pOutNote->GetData()->SetDouble(0);
-                          break;
-                      }
-                      pOutNote->Update();
-                  }
-              }
-            }//en all note[ison,sus,rel,vel]
-          }///end sustain
-				}///end notes
-
+                    if (pOutNote) {
+                        switch(outi) {
+                          case 0:
+                            pOutNote->GetData()->SetDouble( (double)(Note.sustain.Duration()>0) );
+                            //MODebug2->Message( note_txt+ ": " + IntToStr(Note.sustain.Duration()>0) );
+                            break;
+                          case 1:
+                            pOutNote->GetData()->SetDouble( (double)Note.sustain.Duration() );
+                            //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.sustain.Duration()) );
+                            break;
+                          case 2:
+                            pOutNote->GetData()->SetDouble( (double) releaseNormal );
+                            //MODebug2->Message( note_txt+ ": " + FloatToStr(releaseNormal) );
+                            break;
+                          case 3:
+                            pOutNote->GetData()->SetDouble( (double)Note.velocity );
+                            //MODebug2->Message( note_txt+ ": " + FloatToStr(Note.velocity) );
+                            break;
+                          default:
+                            //pOutNote->GetData()->SetDouble(0);
+                            break;
+                        }
+                        pOutNote->Update();
+                    }
+                }
+              }//en all note[ison,sus,rel,vel]
+            }///end sustain
+          }///end notes
+        }
 				//moText tn = "TIMEN";
 				int tbnidx = GetOutletIndex( codetbn );
         if( tbnidx>-1) {
@@ -669,109 +725,146 @@ moMidi::Update(moEventList *Events) {
 
 				const moMidiDatas& mdatas( MidiDevPtr->GetMidiDatas() );
 				for(int md=0; md<mdatas.Count(); md++ ) {
+                    m_DataMessage.Empty();
                     const moMidiData& mdata( mdatas.Get(md) );
                     int ccode = mdata.m_CC;
                     moOutlet* pOutCCode = NULL;
                     moText ccodetxt = "";
                     int idx = -1;
+                    //MODebug2->Message( "moMidi::Update n outlets:" + IntToStr(m_Outlets.Count()) );
+                    if (m_debugison) MODebug2->Message( "moMidi::Update > "+GetLabelName()+" Type: " + IntToStr(mdata.m_Type) + " ccode: " + IntToStr(ccode)+" val: " + IntToStr(mdata.m_Val) );
+                    if (m_MidiDeviceChannel==0 || m_MidiDeviceChannel==mdata.m_Channel) {
+                      switch( mdata.m_Type ) {
 
-                    switch( mdata.m_Type ) {
+                        case MOMIDI_PATCHCHANGE:
+                          {
+                          ccodetxt = moText("PC");/* + IntToStr( ccode, 2);*/
+                          idx = GetOutletIndex( ccodetxt );
 
-                      case MOMIDI_PATCHCHANGE:
+                          if( idx>-1) {
+                              //MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                              pOutCCode = m_Outlets[idx];
+                              int CC = mdata.m_CC;
+                              if (pOutCCode) {
+                                  //MODebug2->Message( "Updating code" );
+                                  /*
+                                  switch( mdata.m_CC ) {
+                                    case MIDIBPM_92:
+                                      CC = 92;
+                                      break;
+                                    case MIDIBPM_96:
+                                      CC = 96;
+                                      break;
+                                    case MIDIBPM_104:
+                                      CC = 104;
+                                      break;
+                                    case MIDIBPM_113:
+                                      CC = 113;
+                                      break;
+                                    default:
+                                      CC = 0;
+                                      break;
+                                  }
+                                  */
+                                  pOutCCode->GetData()->SetDouble( (double)CC );
+                                  pOutCCode->Update();
+                                  moData outletmidi;
+                                  //moData outletchannel;
+                                  moData outletcode;
+                                  moData outletvalue;
+                                  outletmidi.SetText("DATA");
+                                  //outletchannel.SetInt();
+                                  outletcode.SetText(ccodetxt);
+                                  outletvalue.SetDouble( (double)mdata.m_CC );
+
+                                  m_DataMessage.Add(outletmidi);
+                                  m_DataMessage.Add(outletcode);
+                                  m_DataMessage.Add(outletvalue);
+                                  m_DataMessages.Add(m_DataMessage);
+                                  if (m_debugison) MODebug2->Message("moMidi::Update "+GetLabelName()+" > Added data to messages:" + outletcode.ToText()+" Mess. Count:" + IntToStr(m_DataMessages.Count())  );
+
+                              }
+                          }
+                          ccodetxt = moText("PC") + IntToStr( ccode, 2);
+                          }
+                          break;
+
+                        case MOMIDI_CC:
                         {
-                        ccodetxt = moText("PC");/* + IntToStr( ccode, 2);*/
-                        idx = GetOutletIndex( ccodetxt );
-
-                        if( idx>-1) {
-                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
-                            pOutCCode = m_Outlets[idx];
-                            int CC = mdata.m_CC;
-                            if (pOutCCode) {
-                                MODebug2->Message( "Updating code" );
-                                switch( mdata.m_CC ) {
-                                  case MIDIBPM_92:
-                                    CC = 92;
-                                    break;
-                                  case MIDIBPM_96:
-                                    CC = 96;
-                                    break;
-                                  case MIDIBPM_104:
-                                    CC = 104;
-                                    break;
-                                  case MIDIBPM_113:
-                                    CC = 113;
-                                    break;
-                                  default:
-                                    CC = 0;
-                                    break;
-                                }
-                                pOutCCode->GetData()->SetDouble( (double)CC );
-                                pOutCCode->Update();
-                            }
-                        }
-                        ccodetxt = moText("PC") + IntToStr( ccode, 2);
+                        ccodetxt = moText("C") + IntToStr( ccode, 2);
                         }
                         break;
 
-                      case MOMIDI_CC:
-                      {
-                      ccodetxt = moText("C") + IntToStr( ccode, 2);
-                      }
-                      break;
+                        case MOMIDI_NOTEON:
+                        {
+                          ccodetxt = moText("NOTEONFREQ");/* + IntToStr( ccode, 2);*/
+                          idx = GetOutletIndex( ccodetxt );
 
-                      case MOMIDI_NOTEON:
-                      {
-                        ccodetxt = moText("NOTEONFREQ");/* + IntToStr( ccode, 2);*/
-                        idx = GetOutletIndex( ccodetxt );
-
-                        if( idx>-1) {
-                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
-                            pOutCCode = m_Outlets[idx];
-                            if (pOutCCode) {
-                                MODebug2->Message( "Updating code" );
-                                pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
-                                pOutCCode->Update();
-                            }
+                          if( idx>-1) {
+                              //MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                              pOutCCode = m_Outlets[idx];
+                              if (pOutCCode) {
+                                  //MODebug2->Message( "Updating code" );
+                                  pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
+                                  pOutCCode->Update();
+                              }
+                          }
+                          ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);*/
                         }
-                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);*/
-                      }
-                      break;
-
-                      case MOMIDI_NOTEOFF:
-                      {
-                      /*
-                        ccodetxt = moText("NOTEONFREQ");
-                        idx = GetOutletIndex( ccodetxt );
-
-                        if( idx>-1) {
-                            MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
-                            pOutCCode = m_Outlets[idx];
-                            if (pOutCCode) {
-                                MODebug2->Message( "Updating code" );
-                                pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
-                                pOutCCode->Update();
-                            }
-                        }
-                        ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);
-                        */
-                      }
-                      break;
-
-                      default:
-
                         break;
-                    }
 
-                    idx = GetOutletIndex( ccodetxt );
+                        case MOMIDI_NOTEOFF:
+                        {
+                        /*
+                          ccodetxt = moText("NOTEONFREQ");
+                          idx = GetOutletIndex( ccodetxt );
 
-                    if( idx>-1) {
-                        MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
-                        pOutCCode = m_Outlets[idx];
-                        if (pOutCCode) {
-                            MODebug2->Message( "Updating code" );
-                            pOutCCode->GetData()->SetDouble( (double)mdata.m_Val );
-                            pOutCCode->Update();
+                          if( idx>-1) {
+                              MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                              pOutCCode = m_Outlets[idx];
+                              if (pOutCCode) {
+                                  MODebug2->Message( "Updating code" );
+                                  pOutCCode->GetData()->SetDouble( (double)mdata.m_CC );
+                                  pOutCCode->Update();
+                              }
+                          }
+                          ccodetxt = moText("NOTEONVEL");/* + IntToStr( ccode, 2);
+                          */
                         }
+                        break;
+
+                        default:
+
+                          break;
+                      }
+                      idx = GetOutletIndex( ccodetxt  );
+                      //MODebug2->Message( "moMidi::Update > ccodetxt: " + ccodetxt + " val:"+ IntToStr(mdata.m_Val)+" idx:"+IntToStr(idx) );
+
+                      if( idx>-1) {
+                          //MODebug2->Message( ccodetxt+ " founded! Udpating value:" + IntToStr(mdata.m_Val)+ "idx:" + IntToStr(idx)  );
+                          pOutCCode = m_Outlets[idx];
+                          if (pOutCCode) {
+                              //MODebug2->Message( "Updating code" );
+                              pOutCCode->GetData()->SetDouble( (double)mdata.m_Val );
+                              pOutCCode->Update();
+                              moData outletmidi;
+                              //moData outletchannel;
+                              moData outletcode;
+                              moData outletvalue;
+
+                              outletmidi.SetText("DATA");
+                              //outletchannel.SetInt();
+                              outletcode.SetText(ccodetxt);
+                              outletvalue.SetDouble( (double)mdata.m_Val );
+
+                              m_DataMessage.Add(outletmidi);
+                              m_DataMessage.Add(outletcode);
+                              m_DataMessage.Add(outletvalue);
+
+                              m_DataMessages.Add(m_DataMessage);
+                              if (m_debugison) MODebug2->Message("moMidi::Update "+GetLabelName()+" > Added data to messages:" + outletcode.ToText()+" Mess. Count:" + IntToStr(m_DataMessages.Count())  );
+                          }
+                      }
                     }
                 }
             }
@@ -779,6 +872,18 @@ moMidi::Update(moEventList *Events) {
 
 
 	}
+
+
+if (pOutDataMessages) {
+      moDataMessages& msgs( pOutDataMessages->GetMessages() );
+      msgs.Empty();
+      msgs = m_DataMessages;
+      if ( pOutDataMessages->GetType()==MO_DATA_MESSAGES ) {
+        //if (m_debugison) MODebug2->Message("moMidi::Update > Updated Outlet DATAMESSAGES: Count:" + IntToStr(m_DataMessages.Count()) );
+        pOutDataMessages->GetData()->SetMessages( &msgs );
+        pOutDataMessages->Update();
+      }
+    }
 
 	//m_Codes
 

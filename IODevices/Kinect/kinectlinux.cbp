@@ -30,12 +30,15 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-fPIC" />
 			<Add directory="../../../inc" />
 			<Add directory="../../../inc/3ds" />
 			<Add directory="./inc" />
 			<Add directory="/usr/include/freetype2" />
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
+			<Add directory="/usr/include/ni" />
+			<Add directory="/usr/include/libmoldeo" />
 		</Compiler>
 		<Unit filename="moKinect.cpp" />
 		<Unit filename="moKinect.h" />

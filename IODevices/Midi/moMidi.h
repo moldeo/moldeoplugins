@@ -25,7 +25,6 @@
 
   Authors:
   Fabricio Costa
-  Andr� Colubri
 
   Class:
   moMidi
@@ -33,6 +32,8 @@
   Description:
   Motion Analyzer
 
+  Help:
+  http://www.indiana.edu/~emusic/etext/MIDI/chapter3_MIDI4.shtml
 
 *******************************************************************************/
 
@@ -117,6 +118,26 @@ enum moEncoderType {
 	MOMIDI_PITCHBEND=14, /** 0xE0     Pitch bend */
 	MOMIDI_SYSEX=15, /** 0xF0     (non-musical commands) */
 };
+
+char* moEncoderTypeStr[] = {
+"ROTARY",/*0*/
+"PUSHBUTTON",/*1*/
+"FADER",/*2*/
+"3",
+"4",
+"5",
+"6",
+"7",
+"NOTEOFF",/*8*/
+"NOTEON",/*9*/
+"AFTERTOUCH",/*10*/
+"CC",/*11*/
+"PC",/*12*/
+"CP",/*13*/
+"PITCH",/*14*/
+"SYSEX"/*15*/
+};
+
 /** FULL TABLES
 Command   Meaning 	  # parameters 	param 1 	  param 2
 0x80      Note-off 	  2             key         velocity
@@ -282,7 +303,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
   moTimer TBN;/**Time Between Notes*/
   moTimer SUS;/**Note sustain*/
   moTimer REL;/**Release time decay*/
-  moMidiNotes m_Notes;
+  moMidiNotes m_Notes[16];
 
 	protected:
 
@@ -292,6 +313,8 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 		moText			m_Name;
 		MOboolean		m_bActive;
 		MOboolean		m_bInit;
+
+
 
 		moDataMessage   m_DataMessage;
 
@@ -333,6 +356,7 @@ public:
 
 private:
     moConfig config;
+    moMidiDevicePtr m_pMidiDevice;
     double m_vMidiFadeout;
     double m_vGateVelocity;
     bool m_debugison;
@@ -346,7 +370,11 @@ protected:
     MOint midichannels;
     MOint midifadeout;
 
+    int m_MidiDeviceChannel;
+
     moMidiDataCodes m_Codes;
+    moDataMessages   m_DataMessages;
+    moOutlet* pOutDataMessages;
 
 
 };
