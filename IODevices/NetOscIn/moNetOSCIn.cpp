@@ -306,7 +306,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
     }
 
 
-    //MODebug2->Push( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
+    if (debug_is_on) MODebug2->Message( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
 
     for( int j=0; j<Messages.Count();j++) {
 
@@ -533,7 +533,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             DataCode.Text() == moText("MOLDEO") ) {
 
             if (debug_is_on)
-                MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  MOLDEO COMMAND received" ) );
+                MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  MOLDEO COMMAND received Count:" )+IntToStr(message.Count()) );
 
             moData DataCode;
             DataCode = message.Get(1);

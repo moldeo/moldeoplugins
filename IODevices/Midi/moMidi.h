@@ -374,6 +374,7 @@ protected:
 
     moMidiDataCodes m_Codes;
     moDataMessages   m_DataMessages;
+    //moDataMessages   m_MidiMessages;
     moOutlet* pOutDataMessages;
 
 

@@ -682,6 +682,20 @@ moMidi::Update(moEventList *Events) {
                             break;
                         }
                         pOutNote->Update();
+
+                        moData outletmidi;
+                        //moData outletchannel;
+                        moData outletcode;
+                        moData outletvalue;
+                        outletmidi.SetText("DATA");
+                        //outletchannel.SetInt();
+                        outletcode.SetText(note_txt);
+                        outletvalue.SetDouble( (double)pOutNote->GetData()->Double() );
+                        m_DataMessage.Empty();
+                        m_DataMessage.Add(outletmidi);
+                        m_DataMessage.Add(outletcode);
+                        m_DataMessage.Add(outletvalue);
+                        m_DataMessages.Add(m_DataMessage);
                     }
                 }
               }//en all note[ison,sus,rel,vel]
