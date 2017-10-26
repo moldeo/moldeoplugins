@@ -119,7 +119,7 @@ enum moEncoderType {
 	MOMIDI_SYSEX=15, /** 0xF0     (non-musical commands) */
 };
 
-char* moEncoderTypeStr[] = {
+const char* moEncoderTypeStr[] = {
 "ROTARY",/*0*/
 "PUSHBUTTON",/*1*/
 "FADER",/*2*/

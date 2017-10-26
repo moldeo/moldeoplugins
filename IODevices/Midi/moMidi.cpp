@@ -635,21 +635,24 @@ moMidi::Update(moEventList *Events) {
             moOutlet* pOutNote = NULL;
             moText base_note_txt = codenote + IntToStr( iN );
             //MODebug2->Message( base_note_txt+ " > " );
-            if (Note.sustain.Duration()>0 || Note.release.Duration()>0 ) {
+
+            if ( (Note.sustain.Duration()>0) || (Note.release.Duration()>0) ) {
               ///SEND "NOTE42ISON" CC=42 > value = 0|1 if on or off
               ///SEND "NOTE42SUS" value = sustain.duration
               ///SEND "NOTE42REL" value = release.duration
               ///SEND "NOTE42VEL" value = velocity
               double releaseNormal =  ( (double)release_max - (double)Note.release.Duration() ) / (double)release_max;
-              if (releaseNormal<=0.0)  { releaseNormal = 0.0; Note.release.Stop(); }
-              if (releaseNormal>=1.0) releaseNormal = 1.0;
+              if (releaseNormal<=0.0)  { releaseNormal = 0.0; MidiDevPtr->m_Notes[m_MidiDeviceChannel][iN].release.Stop(); }
+              if (releaseNormal>=1.0) { releaseNormal = 1.0; MidiDevPtr->m_Notes[m_MidiDeviceChannel][iN].release.Stop(); }
 
-              /*if (debugison)
-                MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
-                                              + " [SUS] " + IntToStr(Note.sustain.Duration())
+              if (m_debugison)
+              MODebug2->Message( base_note_txt+ "[ISON] " + IntToStr(Note.sustain.Duration()>0)
+                                              + "[ISON]:REL " + IntToStr(Note.release.Duration()>0));
+              if (m_debugison)
+              MODebug2->Message( " [SUS] " + IntToStr(Note.sustain.Duration())
                                               + " [REL] " + FloatToStr(releaseNormal)
                                               + " [VEL] " + FloatToStr(Note.velocity) );
-                */
+
               for( int outi=0; outi<4; outi++) {
                 moText postext = (char*)outs[outi];
                 moText note_txt = base_note_txt + postext;

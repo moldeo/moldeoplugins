@@ -729,13 +729,13 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
 //cout << "receiving" << endl;
 
 moOscPacketListener* self = NULL;
-#ifdef OSCPACK
+  #ifdef OSCPACK
   self = this;
   moText path = moText( m.AddressPattern() );
-#else
+  #else
   if (user_data==NULL) { cout << "no user data" << endl; return -1; }
   self = (moOscPacketListener*) user_data;
-#endif
+  #endif
 
         //cout << "blocking" << endl;
         self->m_Semaphore.Lock();
