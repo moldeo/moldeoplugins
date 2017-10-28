@@ -88,6 +88,7 @@ enum moOlaParamIndex {
   OLA_BLUE,
   OLA_ALPHA,
   OLA_STARTUNIVERSE,
+  OLA_STARTCHANNEL,
   OLA_ENDUNIVERSE,
   OLA_LEDS,
   OLA_RGBTYPE, /** Rgb Type */
