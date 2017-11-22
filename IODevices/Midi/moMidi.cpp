@@ -97,7 +97,7 @@ moMidiDevice::moMidiDevice() {
 	m_DeviceId = -1;
 	m_bInit = false;
 	m_bActive = false;
-	for(int i=0;i<16;i++) {
+	for(int i=0;i<=16;i++) {
     m_Notes[i].Init( 127, moMidiNote() );
 	}
 	stream = NULL;
@@ -276,23 +276,36 @@ moMidiDevice::Update(moEventList *Events ) {
 
             if ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val>0 ) {
             //if ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val>0 ) {
-
-              m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
-              m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
-              m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Start();
-              m_Notes[mididata.m_Channel][mididata.m_CC].release.Stop();
-
+              if (mididata.m_Channel<=16) {
+                m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
+                m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
+                m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Start();
+                m_Notes[mididata.m_Channel][mididata.m_CC].release.Stop();
+              }
               SUS.Start();
               REL.Stop();
 
-            } else if ( mididata.m_Type==MOMIDI_NOTEOFF || ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val==0) )  {
+            } else if ( mididata.m_Type==MOMIDI_NOTEOFF ||
+              ( mididata.m_Type==MOMIDI_NOTEON && mididata.m_Val==0)
+              || (mididata.m_Type==MOMIDI_CC && mididata.m_CC==123 && mididata.m_Val==0) )  {
             //} else if ( mididata.m_Type==MOMIDI_NOTEON || ( mididata.m_Type==MOMIDI_NOTEOFF && mididata.m_Val==0) )  {
+              if (mididata.m_Channel<=16) {
 
-              m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
-              m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
-              m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Stop();
-              m_Notes[mididata.m_Channel][mididata.m_CC].release.Start();
+                if ( mididata.m_Type==MOMIDI_CC && mididata.m_CC==123 ) {
 
+                  for(int n=0; n<m_Notes[mididata.m_Channel].Count(); n++) {
+                    if (m_Notes[mididata.m_Channel][n].sustain.Started()) {
+                      m_Notes[mididata.m_Channel][n].sustain.Stop();
+                      m_Notes[mididata.m_Channel][n].release.Start();
+                    }
+                  }
+                } else {
+                  m_Notes[mididata.m_Channel][mididata.m_CC].tone = mididata.m_CC;
+                  m_Notes[mididata.m_Channel][mididata.m_CC].velocity = mididata.m_Val;
+                  m_Notes[mididata.m_Channel][mididata.m_CC].sustain.Stop();
+                  m_Notes[mididata.m_Channel][mididata.m_CC].release.Start();
+                }
+              }
               SUS.Stop();
               REL.Start();
             }

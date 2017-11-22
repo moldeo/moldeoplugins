@@ -641,14 +641,23 @@ moOla::Update(moEventList *Events) {
       green = m_Config.Eval(moR(OLA_GREEN));
       blue = m_Config.Eval(moR(OLA_BLUE));
       alpha = m_Config.Eval(moR(OLA_ALPHA));
-      startchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
-      buffer.SetChannel( startchannel + 0 , alpha );
-      buffer.SetChannel( startchannel + 1 , red );
-      buffer.SetChannel( startchannel + 2 , green );
-      buffer.SetChannel( startchannel + 3 , blue );
+      float fstartchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
+
+      unsigned char ired = 255*red;
+      unsigned char igreen = 255*green;
+      unsigned char iblue = 255*blue;
+      unsigned char ialpha = 255*alpha;
+      unsigned int schannel = fstartchannel;
+
+      buffer.SetChannel( schannel + 0 , ialpha );
+      buffer.SetChannel( schannel + 1 , ired );
+      buffer.SetChannel( schannel + 2 , igreen );
+      buffer.SetChannel( schannel + 3 , iblue );
+
       if (!ola_client.SendDmx( startuniverse, buffer ) ) {
         //MODebug2->Error("Couldnt send buffer");
       }
+
     }
 
     if (m_pOlaTexture && m_pData) {

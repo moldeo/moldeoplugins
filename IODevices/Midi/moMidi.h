@@ -303,7 +303,7 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
   moTimer TBN;/**Time Between Notes*/
   moTimer SUS;/**Note sustain*/
   moTimer REL;/**Release time decay*/
-  moMidiNotes m_Notes[16];
+  moMidiNotes m_Notes[17];
 
 	protected:
 
