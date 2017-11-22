@@ -1448,15 +1448,15 @@ moOpenFace::visualise_tracking(cv::Mat& captured_image,
 		// A rough heuristic for box around the face width
 		int thickness = (int)std::ceil(2.0* ((double)captured_image.cols) / 640.0);
 
-
-		cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(face_model, fx, fy, cx, cy);
+		///cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(face_model, fx, fy, cx, cy);
+		cv::Vec6d pose_estimate_to_draw = LandmarkDetector::GetPose(face_model, fx, fy, cx, cy);
 
 		// Draw it in reddish if uncertain, blueish if certain
 		LandmarkDetector::DrawBox(captured_image, pose_estimate_to_draw, cv::Scalar((1 - vis_certainty)*255.0, 0, vis_certainty * 255), thickness, fx, fy, cx, cy);
 
 		if (det_parameters.track_gaze && detection_success && face_model.eye_model)
 		{
-			FaceAnalysis::DrawGaze(captured_image, face_model, gazeDirection0, gazeDirection1, fx, fy, cx, cy);
+			GazeAnalysis::DrawGaze(captured_image, face_model, gazeDirection0, gazeDirection1, fx, fy, cx, cy);
 		}
 	}
 
@@ -1533,7 +1533,10 @@ moOpenFace::FaceDetection() {
     cv::Mat_<float> depth_image;
     cv::Vec6d pose_estimate_to_draw;
 
-    bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
+	//cv::Mat_<uchar> grayscale_image;
+
+    //bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
+	bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, *p_clnf_model, det_parameters);
     if (detection_success && p_clnf_model) {
         //MODebug2->Message("Detection Success!");
         // Visualising the results
@@ -1574,15 +1577,16 @@ moOpenFace::FaceDetection() {
 
         if (det_parameters.track_gaze && detection_success && p_clnf_model->eye_model)
         {
-            FaceAnalysis::EstimateGaze(*p_clnf_model, gazeDirection0, fx, fy, cx, cy, true);
-            FaceAnalysis::EstimateGaze(*p_clnf_model, gazeDirection1, fx, fy, cx, cy, false);
+            GazeAnalysis::EstimateGaze(*p_clnf_model, gazeDirection0, fx, fy, cx, cy, true);
+            GazeAnalysis::EstimateGaze(*p_clnf_model, gazeDirection1, fx, fy, cx, cy, false);
         }
 
         cv::Mat_<float> depth_image;
         frame_count++;
         visualise_tracking(frame, depth_image, *p_clnf_model, det_parameters, gazeDirection0, gazeDirection1, frame_count, fx, fy, cx, cy);
 
-        pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(*p_clnf_model, fx, fy, cx, cy);
+        //pose_estimate_to_draw = LandmarkDetector::GetCorrectedPoseWorld(*p_clnf_model, fx, fy, cx, cy);
+		pose_estimate_to_draw = LandmarkDetector::GetPose(*p_clnf_model, fx, fy, cx, cy);
     }
 
 

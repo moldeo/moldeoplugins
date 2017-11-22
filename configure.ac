@@ -97,8 +97,9 @@ AC_CONFIG_SUBDIRS(
 
 AC_CONFIG_SUBDIRS(
 	Resources/TrackerKLT
-	Resources/OpenCV
 )
+#	Resources/OpenCV
+#)
 #	Resources/Tracker
 #	Resources/TrackerGpuKLT
 #	Resources/TrackerGpuKLT2
