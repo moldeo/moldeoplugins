@@ -371,29 +371,39 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
       Texture = GetResourceManager()->GetTextureMan()->GetTexture(tex_moid);
       if (Texture) {
         texId = Texture->GetGLId();
+
+        if ( ((Texture->GetType() == MO_TYPE_TEXTURE_MULTIPLE) ||
+              (Texture->GetType() == MO_TYPE_MOVIE) ||
+              (Texture->GetType() == MO_TYPE_VIDEOBUFFER)))
+        {
+          moTextureAnimated* ptex_anim = (moTextureAnimated*)Texture;
+          texId = ptex_anim ->GetGLId( (moTempo *) &this->m_EffectState.tempo );
+        }
       }
+    } else {
+      //check in texture filters!
     }
 
 		glBindTexture(GL_TEXTURE_2D, texId);
 	}
 
-	set_float4(c, 0.8f, 0.8f, 0.8f, 1.0f);
+	set_float4(c, 0.8f, 0.8f, 0.8f, 1.0f*m_Alpha);
 	if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_DIFFUSE, &diffuse))
 		color4_to_float4(&diffuse, c);
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
 
-	set_float4(c, 0.0f, 0.0f, 0.0f, 1.0f);
+	set_float4(c, 0.0f, 0.0f, 0.0f, 1.0f*m_Alpha);
 	if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_SPECULAR, &specular))
 		color4_to_float4(&specular, c);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
 
-	set_float4(c, 0.2f, 0.2f, 0.2f, 1.0f);
+	set_float4(c, 0.2f, 0.2f, 0.2f, 1.0f*m_Alpha);
 	if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_AMBIENT, &ambient))
 		color4_to_float4(&ambient, c);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
 
-	set_float4(c, 0.0f, 0.0f, 0.0f, 1.0f);
+	set_float4(c, 0.0f, 0.0f, 0.0f, 1.0f*m_Alpha);
 	if(AI_SUCCESS == aiGetMaterialColor(mtl, AI_MATKEY_COLOR_EMISSIVE, &emission))
 		color4_to_float4(&emission, c);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, c);
@@ -477,7 +487,7 @@ void moEffectAssimp::recursive_render (const aiScene *sc, const aiNode* nd, floa
 		{
 			glDisable(GL_COLOR_MATERIAL);
 		}
-
+glEnable(GL_COLOR_MATERIAL);
 
 
 		for (t = 0; t < mesh->mNumFaces; ++t) {
@@ -497,11 +507,18 @@ void moEffectAssimp::recursive_render (const aiScene *sc, const aiNode* nd, floa
 			for(i = 0; i < face->mNumIndices; i++)		// go through all vertices in face
 			{
 				int vertexIndex = face->mIndices[i];	// get group index for current index
-				if(mesh->mColors[0] != NULL)
+				if(mesh->mColors[0] != NULL) {
 					glColor4f( mesh->mColors[0][vertexIndex].r,
 					mesh->mColors[0][vertexIndex].g,
 					mesh->mColors[0][vertexIndex].b,
-					mesh->mColors[0][vertexIndex].a);
+					mesh->mColors[0][vertexIndex].a*m_Alpha);
+        } else {
+        /*MODebug2->Message("Applying base color");
+          glColor4f( 1.0,
+            0.0,
+            0.0,
+            m_Alpha);*/
+					}
 				//if(mesh->mNormals != NULL)
 
 					if(mesh->HasTextureCoords(0))		//HasTextureCoords(texture_coordinates_set)
@@ -751,7 +768,8 @@ void moEffectAssimp::UpdateParameters() {
     }
   }
 
-
+  m_Alpha = m_Config.Eval(moR(ASSIMP_ALPHA))*m_EffectState.alpha;
+  //MODebug2->Message( this->GetLabelName() +  " > m_Alpha:"+FloatToStr(m_Alpha));
 
 }
 
@@ -897,6 +915,7 @@ void moEffectAssimp::Draw( moTempo* tempogral,moEffectState* parentstate)
     glDepthFunc(GL_LEQUAL);			// The Type Of Depth Test To Do
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);	// Really Nice Perspective Calculation
 
+    glClear(GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);    // Uses default lighting parameters

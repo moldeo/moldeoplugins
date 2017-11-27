@@ -31,16 +31,17 @@
 			<Add alias="All" targets="debug;release;" />
 		</VirtualTargets>
 		<Compiler>
+			<Add option="-std=c++11" />
 			<Add option="`pkg-config --cflags libmoldeo`" />
 			<Add option="`pkg-config --cflags opencv`" />
 			<Add option="-fPIC" />
-			<Add option="-std=c++11" />
 			<Add option="-msse" />
 			<Add option="-msse2" />
 			<Add option="-msse3" />
 			<Add directory="OpenFace/lib/local/LandmarkDetector/include" />
 			<Add directory="OpenFace/lib/local/FaceAnalyser/include" />
 			<Add directory="OpenFace/lib/3rdParty/dlib/include" />
+			<Add directory="OpenFace/lib/local/GazeAnalyser/include" />
 		</Compiler>
 		<Linker>
 			<Add option="`pkg-config --libs opencv`" />
