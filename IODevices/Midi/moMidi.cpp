@@ -244,7 +244,7 @@ moMidiDevice::Update(moEventList *Events ) {
             mididata.m_Val = Pm_MessageData2(msg);
             moData oscdata;
 
-            MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " type: " + moEncoderTypeStr[mididata.m_Type] + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
+            //MODebug2->Message("moMidiDevice::Update > Read " + IntToStr(cc)+"/"+IntToStr(c) +" message: channel: " + IntToStr(mididata.m_Channel) + " type: " + moEncoderTypeStr[mididata.m_Type] + " data1(note/cc): "+ IntToStr(Pm_MessageData1(msg))+ " data2(vel): " + IntToStr(Pm_MessageData2(msg)) );
 
             m_MidiDatas.Add( mididata );
 
@@ -959,7 +959,7 @@ moMidi::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("midichannel"), MO_PARAM_NUMERIC, MIDI_CHANNEL, moValue( "0", "NUM"), moText("No channel,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16") );
 	p_configdefinition->Add( moText("notefadeout"), MO_PARAM_FUNCTION, MIDI_NOTEFADEOUT, moValue( "0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("notegatevelocity"), MO_PARAM_FUNCTION, MIDI_NOTEGATEVELOCITY, moValue( "0", "FUNCTION").Ref() );
-	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, MIDI_DEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, MIDI_DEBUG, moValue( "0", "NUM").Ref(), moText("NO,YES") );
 	p_configdefinition->Add( moText("reinit"), MO_PARAM_NUMERIC, MIDI_REINIT, moValue( "0", "NUM").Ref(), moText("NO,YES") );
 	return p_configdefinition;
 }

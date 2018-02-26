@@ -81,6 +81,12 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutOrientationY = NULL;
     pOutOrientationZ = NULL;
 
+    pOutMagnetoX = NULL;
+    pOutMagnetoY = NULL;
+    pOutMagnetoZ = NULL;
+
+    pOutCompass = NULL;
+
 
     pOutBeatFreq = NULL;
     pOutBeatValue = NULL;
@@ -245,6 +251,20 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
                     pOutAndiamoY = pOutlet;
                 }
 
+
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOX")) {
+                    pOutMagnetoX = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOY")) {
+                    pOutMagnetoY = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOZ")) {
+                    pOutMagnetoZ = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("COMPASS")) {
+                    pOutCompass = pOutlet;
+                }
 
             }
 
@@ -492,14 +512,14 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             }
             */
         } else if ( DataCode.Text() == moText("ORIENTATION") ) {
-/*
+
             if (message.Count()>=4 && pOutOrientationX && pOutOrientationY && pOutOrientationZ ) {
 
                 moData OriX = message.Get(1);
                 moData OriY = message.Get(2);
                 moData OriZ = message.Get(3);
 
-                pOutOrientationX->GetData()->SetDouble(  ( 45 - OriX.Double() ) );
+                pOutOrientationX->GetData()->SetDouble(  OriX.Double() );
                 pOutOrientationY->GetData()->SetDouble(  OriY.Double() );
                 pOutOrientationZ->GetData()->SetDouble(  OriZ.Double() );
                 pOutOrientationX->Update();
@@ -510,7 +530,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
                 //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
             }
-            */
+
         } else if ( DataCode.Text() == moText("ACCELERATION") ) {
 
             if (message.Count()>=4 && pOutAccelerationX && pOutAccelerationY && pOutAccelerationZ) {
@@ -527,6 +547,32 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
             }
 
+        } else if ( DataCode.Text() == moText("MAGNETO") ) {
+
+            if (message.Count()>=4 && pOutMagnetoX && pOutMagnetoY && pOutMagnetoZ ) {
+
+                moData MagX = message.Get(1);
+                moData MagY = message.Get(2);
+                moData MagZ = message.Get(3);
+
+                pOutMagnetoX->GetData()->SetDouble(  MagX.Double() );
+                pOutMagnetoY->GetData()->SetDouble(  MagY.Double() );
+                pOutMagnetoZ->GetData()->SetDouble(  MagZ.Double() );
+                pOutMagnetoX->Update();
+                pOutMagnetoY->Update();
+                pOutMagnetoZ->Update();
+
+                //MODebug2->Push(moText("Ori X:") + FloatToStr(pOutOrientationX->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
+            }
+
+        } else if ( DataCode.Text() == moText("COMPASS") ) {
+          if (message.Count()>=2 && pOutCompass ) {
+            moData Compass = message.Get(1);
+            pOutCompass->GetData()->SetDouble(  Compass.Double() );
+            pOutCompass->Update();
+          }
         }
 
         if (
@@ -763,10 +809,21 @@ moOscPacketListener* self = NULL;
 
                 data0 = moData( moText( "POSITION" ) );
                 message.Add( data0 );
-            } else if ( addresspath == moText("/ori") ) {
+            } else if ( addresspath == moText("/gyrosc/comp")) {
+                data0 = moData( moText( "COMPASS" ) );
+                message.Add( data0 );
+            } else if ( addresspath == moText("/mag")
+            || addresspath == moText("/gyrosc/mag")
+            ) {
+              data0 = moData( moText( "MAGNETO" ) );
+              message.Add( data0 );
+            } else if ( addresspath == moText("/ori")
+            || addresspath == moText("/gir")
+            || addresspath == moText("/gyrosc/gyro") ) {
                 data0 = moData( moText( "ORIENTATION" ) );
                 message.Add( data0 );
-            } else if ( addresspath == moText("/acc") ) {
+            } else if ( addresspath == moText("/acc")
+            || addresspath == moText("/gyrosc/accel") ) {
                 data0 = moData( moText( "ACCELERATION" ) );
                 message.Add( data0 );
             } else/*AnalyseSOundMonar*/
@@ -789,37 +846,37 @@ moOscPacketListener* self = NULL;
                 data0 = moData( moText( "OPENCV" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/EXP/BLINK") ) {
-                MODebug2->Message( moText(" ============/EXP/BLINK") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/BLINK") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "BLINK" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/HORIEYE") ) {
-                MODebug2->Message( moText(" ============/EXP/HORIEYE") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/HORIEYE") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "HORIEYE" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/VERTIEYE") ) {
-                MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "VERTIEYE" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/EYEBROW") ) {
-                MODebug2->Message( moText(" ============/EXP/EYEBROW") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/EYEBROW") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "EYEBROW" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/FURROW") ) {
-                MODebug2->Message( moText(" ============/EXP/FURROW") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/FURROW") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "FURROW" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
-                cout << "addresspath MOLDEO:" << endl;
+                //cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
             } else {
