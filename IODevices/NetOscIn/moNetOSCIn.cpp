@@ -812,9 +812,10 @@ moOscPacketListener* self = NULL;
             } else if ( addresspath == moText("/gyrosc/comp")) {
                 data0 = moData( moText( "COMPASS" ) );
                 message.Add( data0 );
-            } else if ( addresspath == moText("/mag")
-            || addresspath == moText("/gyrosc/mag")
-            ) {
+            } else if ( addresspath == moText("/mag")) {
+              data0 = moData( moText( "MAGNETO" ) );
+              message.Add( data0 );
+            } else if ( addresspath == moText("/gyrosc/mag") ) {
               data0 = moData( moText( "MAGNETO" ) );
               message.Add( data0 );
             } else if ( addresspath == moText("/ori")
