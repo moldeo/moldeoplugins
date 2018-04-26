@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([ImageFlow3D], [0.7], [info@moldeointeractive.com.ar], [imageflow3d])
+AC_INIT([ImageFlow3D], [1.1.0.0], [info@moldeointeractive.com.ar], [imageflow3d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

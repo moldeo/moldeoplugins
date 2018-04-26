@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MirrorG], [0.7], [info@moldeointeractive.com.ar], [mirrorg])
+AC_INIT([MirrorG], [1.1.0.0], [info@moldeointeractive.com.ar], [mirrorg])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

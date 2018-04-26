@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([NetTUIOIn], [0.7], [info@moldeointeractive.com.ar], [nettuioin])
+AC_INIT([NetTUIOIn], [1.1.0.0], [info@moldeointeractive.com.ar], [nettuioin])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([OpenCV], [1.0.0.0], [info@moldeointeractive.com.ar], [opencv])
+AC_INIT([OpenCV], [1.1.0.0], [info@moldeointeractive.com.ar], [opencv])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

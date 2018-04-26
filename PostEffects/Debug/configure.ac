@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Debug], [0.7], [info@moldeointeractive.com.ar], [debug])
+AC_INIT([Debug], [1.1.0.0], [info@moldeointeractive.com.ar], [debug])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

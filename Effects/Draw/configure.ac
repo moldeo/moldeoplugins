@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Draw], [0.7], [info@moldeointeractive.com.ar], [draw])
+AC_INIT([Draw], [1.1.0.0], [info@moldeointeractive.com.ar], [draw])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

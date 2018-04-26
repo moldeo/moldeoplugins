@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Icon3D], [0.7], [info@moldeointeractive.com.ar], [icon3d])
+AC_INIT([Icon3D], [1.1.0.0], [info@moldeointeractive.com.ar], [icon3d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

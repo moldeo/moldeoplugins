@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([ParticlesSimple], [0.7], [info@moldeointeractive.com.ar], [particlessimple])
+AC_INIT([ParticlesSimple], [1.1.0.0], [info@moldeointeractive.com.ar], [particlessimple])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -26,7 +26,7 @@ libmoldeo_opencv_la_SOURCES = moOpenCV.cpp moOpenCV.h
 libmoldeo_opencv_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} ${LIBOPENCV_CFLAGS}
 libmoldeo_opencv_la_LDFLAGS = -L/usr/local/share/OpenCV/3rdparty/lib
 libmoldeo_opencv_la_LIBADD = ${LIBOPENCV_LIBS} -ltbb -lippicv
-libmoldeo_opencv_la_LIBS = ${LIBMOLDEO_LIBS} -ltbb -lippicv 
+libmoldeo_opencv_la_LIBS = ${LIBMOLDEO_LIBS} -ltbb -lippicv
 
 libmoldeo_opencv_includedir = $(includedir)/moldeo/${moduletype}/opencv
 libmoldeo_opencv_include_HEADERS = moOpenCV.h

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Tunel], [0.7], [info@moldeointeractive.com.ar], [tunel])
+AC_INIT([Tunel], [1.1.0.0], [info@moldeointeractive.com.ar], [tunel])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

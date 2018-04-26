@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MasterChannel], [0.7], [info@moldeointeractive.com.ar], [masterchannel])
+AC_INIT([MasterChannel], [1.1.0.0], [info@moldeointeractive.com.ar], [masterchannel])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

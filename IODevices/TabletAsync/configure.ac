@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([TabletAsync], [0.7], [info@moldeointeractive.com.ar], [tabletasync])
+AC_INIT([TabletAsync], [1.1.0.0], [info@moldeointeractive.com.ar], [tabletasync])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([PostProcess2d], [0.7], [info@moldeointeractive.com.ar], [postprocess2d])
+AC_INIT([PostProcess2d], [1.1.0.0], [info@moldeointeractive.com.ar], [postprocess2d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([NetOscIn], [1.0.0.160], [info@moldeointeractive.com.ar], [netoscin])
+AC_INIT([NetOscIn], [1.1.0.0], [info@moldeointeractive.com.ar], [netoscin])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
