@@ -1680,7 +1680,7 @@ void moEffectParticlesSimple::Regenerate() {
 
                   /*
                   if ((i+j*m_cols)%1000 == 0) {
-                      MODebug2->Push(moText("partícula en proceso - regenerando GLID ")+IntToStr(pPar->GLId)
+                      MODebug2->Push(moText("partï¿½cula en proceso - regenerando GLID ")+IntToStr(pPar->GLId)
                       + moText(" GLID2: ") + IntToStr(pPar->GLId2) );
                   }*/
 
@@ -2593,7 +2593,8 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                       if ( pPar->MOId==-1 ) {
                         moTextFilterParam DefParam;
                         //glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage*(m_EffectState.tempo.syncro), (float)1.0, &DefParam );
-                        glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage, 1.0, &DefParam );
+                        //glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage, 1.0, &DefParam );
+												glid = m_Config.GetGLId( moR(PARTICLES_TEXTURE), (float)cycleage, 1.0, DefParam );
                         //MODebug2->Message( moText("Unit GLID: ") + IntToStr(glid)
                         //+ moText(" ang: ") + FloatToStr(cycleage)
                         //+ moText(" syncro: ") + FloatToStr(m_EffectState.tempo.syncro) );
@@ -4392,5 +4393,3 @@ int moEffectParticlesSimple::luaReInit(moLuaVirtualMachine& vm ) {
 
     return 0;
 }
-
-
