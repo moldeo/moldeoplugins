@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([CubeMap], [0.7], [info@moldeointeractive.com.ar], [cubemap])
+AC_INIT([CubeMap], [1.1.0.0], [info@moldeointeractive.com.ar], [cubemap])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

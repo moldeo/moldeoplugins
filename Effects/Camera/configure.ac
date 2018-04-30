@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Camera], [1.0.0.0], [info@moldeointeractive.com.ar], [camera])
+AC_INIT([Camera], [1.1.0.0], [info@moldeointeractive.com.ar], [camera])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

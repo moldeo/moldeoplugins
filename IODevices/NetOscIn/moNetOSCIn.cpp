@@ -81,6 +81,12 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutOrientationY = NULL;
     pOutOrientationZ = NULL;
 
+    pOutMagnetoX = NULL;
+    pOutMagnetoY = NULL;
+    pOutMagnetoZ = NULL;
+
+    pOutCompass = NULL;
+
 
     pOutBeatFreq = NULL;
     pOutBeatValue = NULL;
@@ -246,6 +252,20 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
                 }
 
 
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOX")) {
+                    pOutMagnetoX = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOY")) {
+                    pOutMagnetoY = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("MAGNETOZ")) {
+                    pOutMagnetoZ = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("COMPASS")) {
+                    pOutCompass = pOutlet;
+                }
+
             }
 
     }
@@ -306,7 +326,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
     }
 
 
-    //MODebug2->Push( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
+    if (debug_is_on) MODebug2->Message( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
 
     for( int j=0; j<Messages.Count();j++) {
 
@@ -330,7 +350,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                   argumentsText+= moText(" Arg ") + IntToStr(cc) + moText(": ") + message.Get(cc).ToText();
                 }
 
-                MODebug2->Push( moText( "Message:" ) + DataCode.Text() + moText( " Arguments:" ) + IntToStr(message.Count()-1) + moText(" > ") + argumentsText );
+                MODebug2->Push( moText( " > Message:" ) + DataCode.Text() + moText( " Arguments:" ) + IntToStr(message.Count()-1) + moText(" > ") + argumentsText );
 
              }
         }
@@ -349,7 +369,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 pOutBeatValue->GetData()->SetDouble(Value.Double());
                 pOutBeatValue->Update();
             }
-            if (debug_is_on) MODebug2->Push( moText( "Message Beat Freq: " )
+            if (debug_is_on) MODebug2->Push( moText( " > Message Beat Freq: " )
                                             + FloatToStr(Freq.Double())
                                             + moText(" Val:")
                                             + FloatToStr(Value.Double()) );
@@ -369,7 +389,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 pOutBeatHighValue->GetData()->SetDouble(Value.Double());
                 pOutBeatHighValue->Update();
             }
-            if (debug_is_on) MODebug2->Push( moText( "Message Beat High Freq: " )
+            if (debug_is_on) MODebug2->Push( moText( " > Message Beat High Freq: " )
                                             + FloatToStr(Freq.Double())
                                             + moText(" Val:")
                                             + FloatToStr(Value.Double()) );
@@ -389,7 +409,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 pOutBeatMediumValue->GetData()->SetDouble(Value.Double());
                 pOutBeatMediumValue->Update();
             }
-            if (debug_is_on) MODebug2->Push( moText( "Message Beat Medium Freq: " )
+            if (debug_is_on) MODebug2->Push( moText( " > Message Beat Medium Freq: " )
                                             + FloatToStr(Freq.Double())
                                             + moText(" Val:")
                                             + FloatToStr(Value.Double()) );
@@ -409,7 +429,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 pOutBeatLowValue->GetData()->SetDouble(Value.Double());
                 pOutBeatLowValue->Update();
             }
-            if (debug_is_on) MODebug2->Push( moText( "Message Beat Low Freq: " )
+            if (debug_is_on) MODebug2->Push( moText( " > Message Beat Low Freq: " )
                                             + FloatToStr(Freq.Double())
                                             + moText(" Val:")
                                             + FloatToStr(Value.Double()) );
@@ -429,7 +449,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 pOutAndiamoY->GetData()->SetDouble(Cy.Double());
                 pOutAndiamoY->Update();
             }
-            if (debug_is_on) MODebug2->Push( moText( "Message Andiamo X,Y, Cx: " )
+            if (debug_is_on) MODebug2->Push( moText( " > Message Andiamo X,Y, Cx: " )
                                             + FloatToStr(Cx.Double())
                                             + moText(", Cy: ")
                                             + FloatToStr(Cy.Double()) );
@@ -492,14 +512,14 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             }
             */
         } else if ( DataCode.Text() == moText("ORIENTATION") ) {
-/*
+
             if (message.Count()>=4 && pOutOrientationX && pOutOrientationY && pOutOrientationZ ) {
 
                 moData OriX = message.Get(1);
                 moData OriY = message.Get(2);
                 moData OriZ = message.Get(3);
 
-                pOutOrientationX->GetData()->SetDouble(  ( 45 - OriX.Double() ) );
+                pOutOrientationX->GetData()->SetDouble(  OriX.Double() );
                 pOutOrientationY->GetData()->SetDouble(  OriY.Double() );
                 pOutOrientationZ->GetData()->SetDouble(  OriZ.Double() );
                 pOutOrientationX->Update();
@@ -510,7 +530,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
                 //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
             }
-            */
+
         } else if ( DataCode.Text() == moText("ACCELERATION") ) {
 
             if (message.Count()>=4 && pOutAccelerationX && pOutAccelerationY && pOutAccelerationZ) {
@@ -527,14 +547,68 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
             }
 
+        } else if ( DataCode.Text() == moText("MAGNETO") ) {
+
+            if (message.Count()>=4 && pOutMagnetoX && pOutMagnetoY && pOutMagnetoZ ) {
+
+                moData MagX = message.Get(1);
+                moData MagY = message.Get(2);
+                moData MagZ = message.Get(3);
+
+                pOutMagnetoX->GetData()->SetDouble(  MagX.Double() );
+                pOutMagnetoY->GetData()->SetDouble(  MagY.Double() );
+                pOutMagnetoZ->GetData()->SetDouble(  MagZ.Double() );
+                pOutMagnetoX->Update();
+                pOutMagnetoY->Update();
+                pOutMagnetoZ->Update();
+
+                //MODebug2->Push(moText("Ori X:") + FloatToStr(pOutOrientationX->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Y:") + FloatToStr(pOutOrientationY->GetData()->Double()) );
+                //MODebug2->Push(moText("Ori Z:") + FloatToStr(pOutOrientationZ->GetData()->Double()) );
+            }
+
+        } else if ( DataCode.Text() == moText("COMPASS") ) {
+          if (message.Count()>=2 && pOutCompass ) {
+            moData Compass = message.Get(1);
+            pOutCompass->GetData()->SetDouble(  Compass.Double() );
+            pOutCompass->Update();
+          }
         }
 
         if (
             DataCode.Text() == moText("MOLDEO") ) {
 
             if (debug_is_on)
-                MODebug2->Push( moText( "MOLDEO COMMAND received" ) );
+                MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  MOLDEO COMMAND received Count:" )+IntToStr(message.Count()) );
 
+            moData DataCode;
+            DataCode = message.Get(1);
+            //CHECK IF IT IS JUST DATA (MIDI or OSC)
+            if (DataCode.ToText()==moText("DATA")) {
+              //send to oulets every data
+              moData DataLabel;
+              moData DataValue;
+              if (message.Count()>2) DataLabel = message.Get(2);
+              if (message.Count()>3) DataValue = message.Get(3);
+              if (debug_is_on)
+                MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update > " )+ " Label:" + DataLabel.Text() + " Val:" + DataValue.ToText()+" Type:" + DataValue.TypeToText() );
+              if (pOutlets) {
+                int poi = GetOutletIndex( pOutlets, DataLabel.Text()  );
+                if (poi > -1) {
+                  moOutlet* pOutlet = pOutlets->Get(poi);
+                  if (pOutlet) {
+                    if (debug_is_on)
+                      MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update Outlet > " ) + DataLabel.Text() );
+
+                    (*pOutlet->GetData()) = DataValue;
+                      //pOutlet->GetData()SetDouble( DataValue.Double() );
+
+                    pOutlet->Update();
+
+                  }
+                }
+              }
+            } else
             if (p_ProcessMoldeoApi!=0) {
               if (pEvents) {
                   //MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
@@ -599,7 +673,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
 
             }
 
-            if (debug_is_on) MODebug2->Message( moText( "Message EXP Value: " )
+            if (debug_is_on) MODebug2->Message( moText( " > Message EXP Value: " )
                                                 + ApiMessage
                                                 + moText(" Val:")
                                                 + FloatToStr(Value.Double()) );
@@ -612,7 +686,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             ) {
           //MOTION_DETECTION
           if (debug_is_on)
-              MODebug2->Push("NetOscIn > OPENCV Received");
+              MODebug2->Push( " > NetOscIn > OPENCV Received");
 
           if (message.Count()>=3) {
               for(int m=2;m<message.Count()-1;m++) {
@@ -627,7 +701,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                     Data = outletValue;
                     //pOutlet->GetData()->SetInt()
                     pOutlet->Update(true);
-                    if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, outlet for:" + outletName.Text()+" outletValue:" + outletValue.ToText() );
+                    if (debug_is_on) MODebug2->Push("NetOscIn  > OPENCV, outlet for:" + outletName.Text()+" outletValue:" + outletValue.ToText() );
                   }
                 } else {
                  if (debug_is_on) MODebug2->Push("NetOscIn > OPENCV, no outlet for:" + outletName.Text() );
@@ -701,13 +775,13 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
 //cout << "receiving" << endl;
 
 moOscPacketListener* self = NULL;
-#ifdef OSCPACK
+  #ifdef OSCPACK
   self = this;
   moText path = moText( m.AddressPattern() );
-#else
+  #else
   if (user_data==NULL) { cout << "no user data" << endl; return -1; }
   self = (moOscPacketListener*) user_data;
-#endif
+  #endif
 
         //cout << "blocking" << endl;
         self->m_Semaphore.Lock();
@@ -735,10 +809,22 @@ moOscPacketListener* self = NULL;
 
                 data0 = moData( moText( "POSITION" ) );
                 message.Add( data0 );
-            } else if ( addresspath == moText("/ori") ) {
+            } else if ( addresspath == moText("/gyrosc/comp")) {
+                data0 = moData( moText( "COMPASS" ) );
+                message.Add( data0 );
+            } else if ( addresspath == moText("/mag")) {
+              data0 = moData( moText( "MAGNETO" ) );
+              message.Add( data0 );
+            } else if ( addresspath == moText("/gyrosc/mag") ) {
+              data0 = moData( moText( "MAGNETO" ) );
+              message.Add( data0 );
+            } else if ( addresspath == moText("/ori")
+            || addresspath == moText("/gir")
+            || addresspath == moText("/gyrosc/gyro") ) {
                 data0 = moData( moText( "ORIENTATION" ) );
                 message.Add( data0 );
-            } else if ( addresspath == moText("/acc") ) {
+            } else if ( addresspath == moText("/acc")
+            || addresspath == moText("/gyrosc/accel") ) {
                 data0 = moData( moText( "ACCELERATION" ) );
                 message.Add( data0 );
             } else/*AnalyseSOundMonar*/
@@ -761,37 +847,37 @@ moOscPacketListener* self = NULL;
                 data0 = moData( moText( "OPENCV" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/EXP/BLINK") ) {
-                MODebug2->Message( moText(" ============/EXP/BLINK") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/BLINK") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "BLINK" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/HORIEYE") ) {
-                MODebug2->Message( moText(" ============/EXP/HORIEYE") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/HORIEYE") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "HORIEYE" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/VERTIEYE") ) {
-                MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/VERTIEYE") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "VERTIEYE" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/EYEBROW") ) {
-                MODebug2->Message( moText(" ============/EXP/EYEBROW") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/EYEBROW") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "EYEBROW" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath == moText("/EXP/FURROW") ) {
-                MODebug2->Message( moText(" ============/EXP/FURROW") );
+                if (self->debug_is_on) MODebug2->Message( moText(" ============/EXP/FURROW") );
                 data0 = moData( moText( "EXP" ) );
                 data1 =  moData( moText( "FURROW" ) );
                 message.Add( data0 );
                 message.Add( data1 );
             } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
-                cout << "addresspath MOLDEO:" << endl;
+                //cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
             } else {
@@ -915,7 +1001,7 @@ moOscPacketListener* self = NULL;
                   #endif
                 }
                 if (self->debug_is_on)
-                  self->MODebug2->Message( moText(" Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
+                  self->MODebug2->Message( moText(" > Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
                 #ifdef OSCPACK
                 (arg++);
                 #endif

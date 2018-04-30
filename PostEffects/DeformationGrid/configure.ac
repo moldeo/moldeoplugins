@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([DeformationGrid], [0.7], [info@moldeointeractive.com.ar], [deformationgrid])
+AC_INIT([DeformationGrid], [1.1.0.0], [info@moldeointeractive.com.ar], [deformationgrid])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

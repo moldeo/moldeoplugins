@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([LiveDrawing2], [0.7], [info@moldeointeractive.com.ar], [livedrawing2])
+AC_INIT([LiveDrawing2], [1.1.0.0], [info@moldeointeractive.com.ar], [livedrawing2])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

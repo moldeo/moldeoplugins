@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([ColorFilter], [0.7], [info@moldeointeractive.com.ar], [colorfilter])
+AC_INIT([ColorFilter], [1.1.0.0], [info@moldeointeractive.com.ar], [colorfilter])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

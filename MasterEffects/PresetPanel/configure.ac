@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([PresetPanel], [0.7], [info@moldeointeractive.com.ar], [presetpanel])
+AC_INIT([PresetPanel], [1.1.0.0], [info@moldeointeractive.com.ar], [presetpanel])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

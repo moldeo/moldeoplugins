@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Assimp], [0.9], [info@moldeointeractive.com.ar], [assimp])
+AC_INIT([Assimp], [1.1.0.0], [info@moldeointeractive.com.ar], [assimp])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Sound3D], [1.0], [info@moldeointeractive.com.ar], [sound3d])
+AC_INIT([Sound3D], [1.1.0.0], [info@moldeointeractive.com.ar], [sound3d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
@@ -55,7 +55,7 @@ AC_ARG_ENABLE(host,
 	host_cflags="-I/opt/local/include -DMO_FREEALUT"
 	host_ldflags="-L/opt/local/lib"
   else
-	echo 
+	echo
 	echo "Error!"
 	echo "Unknown host name"
 	exit -1

@@ -1715,8 +1715,11 @@ if (update_on>0 && this->Initialized() ) {
                 if (m_LeftHandC) { m_LeftHandC->GetData()->SetFloat( xnlefthand.fConfidence ); m_LeftHandC->Update(true); }
                 if (m_LeftHand) { m_LeftHand->GetData()->SetVector( (moVector4d*)&m_VLeftHand ); m_LeftHand->Update(true); }
 
-                //MODebug2->Message("moKinect::Update > LeftHand: user" + IntToStr(i) + " X:" + FloatToStr(xnlefthand.position.X) + " Y:" + FloatToStr(xnlefthand.position.Y) );
-
+                if (verbose_on) {
+                  MODebug2->Message("moKinect::Update > LeftHand: user" + IntToStr(i)
+                                  + " X:" + FloatToStr(xnlefthand.position.X) + " Y:" + FloatToStr(xnlefthand.position.Y)
+                                  + " Z:" + FloatToStr(xnlefthand.position.Z) );
+                }
 
                 XnSkeletonJointPosition xnhead;
                 m_UserGenerator.GetSkeletonCap().GetSkeletonJointPosition(aUsers[i], XN_SKEL_HEAD, xnhead);
@@ -2483,6 +2486,24 @@ moKinect::Finish() {
 		delete [] Codes;
 	Codes = NULL;
 	ncodes = 0;
+
+  if (m_Depth.IsValid()) {
+    m_Depth.StopGenerating();
+    m_Depth.Release();
+  }
+
+  if (m_UserGenerator.IsValid()) {
+    m_UserGenerator.StopGenerating();
+    m_UserGenerator.Release();
+  }
+
+  if (m_IRImage.IsValid()) {
+    m_IRImage.StopGenerating();
+    m_IRImage.Release();
+  }
+
+  m_Context.Release();
+  cout << "Kinect Released" << endl;
 
 	return true;
 }

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([RegularSolid], [0.7], [info@moldeointeractive.com.ar], [regularsolid])
+AC_INIT([RegularSolid], [1.1.0.0], [info@moldeointeractive.com.ar], [regularsolid])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -973,6 +973,16 @@ class moEffectParticlesFractal : public moEffect
         moTextureFilter*  m_pTFilter_CellMemoryTexture;
         moTexture*  m_pCellMemoryTextureFinal;
 
+        //CONVOLUTION MATRIX
+        bool  m_bCellMemoryTextureSwapOnDX[4];
+        moTexture*  m_pCellMemoryTextureSwapDX[4]; /// CONVOLUTION AVERAGES >> 64 >> 32 >> 16 >> 8 >> 4 >> 2 >> 1
+        moTextureFilter*  m_pTFilter_CellMemoryTextureSwapDX[4];
+        moStateFilterParams* m_pCellMemoryFilterParamsDX[4];
+        moTexture*  m_pCellMemoryTextureDX[4];
+        moTextureFilter*  m_pTFilter_CellMemoryTextureDX[4];
+        moTexture*  m_pCellMemoryTextureFinalDX[4];
+
+
         bool  m_bMediumTextureSwapOn;
         moTexture*  m_pMediumTextureSwap;
         moTextureFilter*  m_pTFilter_MediumTextureSwap;

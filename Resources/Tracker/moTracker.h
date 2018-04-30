@@ -44,6 +44,7 @@
 #include "moVideoGraph.h"
 #include "moArray.h"
 #include "moShaderGLSL.h"
+#include "moFilterManager.h"
 #include "moRenderManager.h"
 
 #ifndef __MO_TRACKER_H
@@ -74,29 +75,29 @@
 #define MO_TRACKER_AREACOEFF    			106
 
 class LIBMOLDEO_API moTrackerSystem : public moAbstract {
-	
-	public:	
+
+	public:
 
 		moTrackerSystem();
 		virtual ~moTrackerSystem();
 
-		void SetName( moText p_name) { 
+		void SetName( moText p_name) {
 			m_Name = p_name;
 		}
-		void SetLive( moText p_livecodestr) { 
+		void SetLive( moText p_livecodestr) {
 			m_Live = p_livecodestr;
 		}
-		void SetActive( MOboolean p_active) { 
+		void SetActive( MOboolean p_active) {
 			m_bActive = p_active;
 		}
-		void SwitchProcessSignal() { 
-			m_bProcessSignal = !m_bProcessSignal;			
+		void SwitchProcessSignal() {
+			m_bProcessSignal = !m_bProcessSignal;
 		}
-		void SwitchSmoothDiff() { 
-			m_bSmoothDiff = !m_bSmoothDiff;			
+		void SwitchSmoothDiff() {
+			m_bSmoothDiff = !m_bSmoothDiff;
 		}
-		void SwitchRemoveNoise() { 
-			m_bRemoveNoise = !m_bRemoveNoise;	
+		void SwitchRemoveNoise() {
+			m_bRemoveNoise = !m_bRemoveNoise;
 		}
 		void SwitchAreaFilter() {
 			m_bAreaFilter = !m_bAreaFilter;
@@ -104,10 +105,10 @@ class LIBMOLDEO_API moTrackerSystem : public moAbstract {
 		void SwitchHeuristicFilter() {
             m_bHeuristicFilter = !m_bHeuristicFilter;
         }
-		void SwitchDiscretize() { 
+		void SwitchDiscretize() {
 			m_bDiscretize = !m_bDiscretize;
 		}
-		void SwitchCalibrate() { 
+		void SwitchCalibrate() {
 			m_bCalibration = !m_bCalibration;
 			if (m_bCalibration==true) m_framecount = 0;
 		}
@@ -126,23 +127,23 @@ class LIBMOLDEO_API moTrackerSystem : public moAbstract {
 					MOfloat p_noise_coeff = 2.0, MOfloat p_area_coeff = 0.0, MOboolean p_m_update_noise = false,
 					MOint p_smooth_iter = 1, MOint p_smooth_length = 5, MOint p_max_curve_diff = 0,
 					MOboolean p_noise_max_threshold = false, MOint p_min_length = 0, MOfloat p_min_height_coeff = 0.0,
-                    MOboolean p_bProcessSignal = false,	MOboolean p_bSmoothDiff = false, 
+                    MOboolean p_bProcessSignal = false,	MOboolean p_bSmoothDiff = false,
 					MOboolean p_bRemoveNoise = false, MOboolean p_bAreaFilter = false,
 					MOboolean p_bHeuristicFilter = false, MOboolean p_bDiscretize = false,
-					moText p_luminance_shader_fn = moText(""), 
-					moText p_update_shader_fn = moText(""), 
+					moText p_luminance_shader_fn = moText(""),
+					moText p_update_shader_fn = moText(""),
 					moText p_diff_shader_fn = moText(""),
 					moRenderManager *m_pRenderManager = NULL);
 		MOboolean Finish();
 		MOboolean	IsInit();
 		void	NewData( moVideoSample* p_pVideoSample );
-		moTrackerSystemData*	GetData();			
+		moTrackerSystemData*	GetData();
 		moText GetName() { return m_Name; }
 		moText GetLive() { return m_Live; }
 		MOboolean IsActive() { return m_bActive; }
 
 
-	protected:		
+	protected:
 		moRenderManager *RenderMan;
 
         // Signal processing parameters.
@@ -183,15 +184,15 @@ class LIBMOLDEO_API moTrackerSystem : public moAbstract {
 		//=================================
 		//Image analysis values
 		//=================================
-		
+
 		//histograms
 		MOfloat		m_Histogram[100];//levels of luminance
 		MOfloat		m_HistogramArray[MO_TRACKER_SAMPLES_ANALYSIS][100];//1 sample for analysis
-		
+
 		//global luminance
 		MOfloat		m_GlobalLuminance;
 		MOfloat		m_GlobalLuminanceArray[MO_TRACKER_SAMPLES_ANALYSIS];//1 sample left for analysis
-		
+
 		//invariant area luminance, for fine adjusting
 		MOfloat		m_InvariantLuminance;
 		MOfloat		m_InvariantLuminanceArray[MO_TRACKER_SAMPLES_ANALYSIS];
@@ -255,8 +256,8 @@ class LIBMOLDEO_API moTrackerSystem : public moAbstract {
 		MOint m_copy_shader_num_out;
 
 		// Functions.
-		void InitGPUcalc(moText p_luminance_shader_fn, 
-			             moText p_update_shader_fn, 
+		void InitGPUcalc(moText p_luminance_shader_fn,
+			             moText p_update_shader_fn,
 			    	 	 moText p_diff_shader_fn);
 		void FreeGPUmem();
 		void SetupInTex();
@@ -284,7 +285,7 @@ class LIBMOLDEO_API moTrackerSystem : public moAbstract {
 };
 
 
-typedef moTrackerSystem* moTrackerSystemPtr; 
+typedef moTrackerSystem* moTrackerSystemPtr;
 
 template class LIBMOLDEO_API moDynamicArray<moTrackerSystemPtr>;
 typedef  moDynamicArray<moTrackerSystemPtr> moTrackerSystems;
@@ -294,7 +295,7 @@ class LIBMOLDEO_API moTracker : public moIODevice
 public:
     moTracker();
     ~moTracker();
-    
+
     void Update(moEventList*);
     MOboolean Init();
     MOswitch GetStatus(MOdevcode);

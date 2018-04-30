@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Webview], [0.7], [info@moldeointeractive.com.ar], [webview])
+AC_INIT([Webview], [1.1.0.0], [info@moldeointeractive.com.ar], [webview])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([IScreens], [0.7], [info@moldeointeractive.com.ar], [iscreens])
+AC_INIT([IScreens], [1.1.0.0], [info@moldeointeractive.com.ar], [iscreens])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

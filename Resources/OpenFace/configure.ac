@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([OpenFace], [1.0.0.0], [info@moldeointeractive.com.ar], [openface])
+AC_INIT([OpenFace], [1.1.0.0], [info@moldeointeractive.com.ar], [openface])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

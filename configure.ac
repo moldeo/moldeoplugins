@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MoldeoPlugins], [1.0.0.160], [info@moldeointeractive.com.ar ], [moldeoplugins])
+AC_INIT([MoldeoPlugins], [1.1.0.0], [info@moldeointeractive.com.ar ], [moldeoplugins])
 
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
@@ -83,27 +83,26 @@ AC_CONFIG_SUBDIRS(
 
 AC_CONFIG_SUBDIRS(
 	IODevices/Keyboard
-	IODevices/Mixer 
-	IODevices/Mouse 
-	IODevices/NetOscIn 
+	IODevices/Mixer
+	IODevices/Mouse
+	IODevices/NetOscIn
 	IODevices/NetOscOut
 	IODevices/Serial
 	IODevices/NetTUIOIn
 	IODevices/Midi
 )
 #	IODevices/Kinect
-#	IODevices/Tablet 
+#	IODevices/Tablet
 #	IODevices/TabletAsync
 
 AC_CONFIG_SUBDIRS(
 	Resources/TrackerKLT
 )
-#	Resources/OpenCV
-#)
-#	Resources/Tracker
+# Resources/Tracker
+# Resources/OpenCV
 #	Resources/TrackerGpuKLT
 #	Resources/TrackerGpuKLT2
-#	
+#
 AC_CONFIG_SUBDIRS(
 	MasterEffects/Channel
 	MasterEffects/Ligia
@@ -120,7 +119,7 @@ AC_CONFIG_SUBDIRS(
 	PostEffects/PostProcess2d
 	)
 #	PostEffects/ColorFilter
-#	
+#
 #	PostEffects/VideoPanel
 
 AC_CONFIG_SUBDIRS(

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Midi], [0.7], [info@moldeointeractive.com.ar], [midi])
+AC_INIT([Midi], [1.1.0.0], [info@moldeointeractive.com.ar], [midi])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

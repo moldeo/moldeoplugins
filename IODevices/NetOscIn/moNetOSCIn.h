@@ -149,6 +149,12 @@ class moOscPacketListener : public moAbstract {
         moOutlet*   pOutOrientationY; //roll
         moOutlet*   pOutOrientationZ; //azimuth
 
+        moOutlet*   pOutMagnetoX; //mag x
+        moOutlet*   pOutMagnetoY; //mag y
+        moOutlet*   pOutMagnetoZ; //mag z
+
+        moOutlet*   pOutCompass;
+
 
         moOutlet* pOutAndiamoX;
         moOutlet* pOutAndiamoY;

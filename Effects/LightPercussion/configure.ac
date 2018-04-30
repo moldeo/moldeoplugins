@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([LightPercussion], [0.7], [info@moldeointeractive.com.ar], [lightpercussion])
+AC_INIT([LightPercussion], [1.1.0.0], [info@moldeointeractive.com.ar], [lightpercussion])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

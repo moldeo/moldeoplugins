@@ -39,7 +39,7 @@ moDefineDynamicArray( moOpenFaceSystems )
 
   NOTAS:
 
-  el tracker podrá funcionar como un thread que vaya calculando en funcion de q va llegando la info,
+  el tracker podrï¿½ funcionar como un thread que vaya calculando en funcion de q va llegando la info,
   o mejor aun, que trate de calcular, y cuando llega a un resultado el efecto en cuestion tome ese valor.
 
   //para que el tracker funcione sin shaders, debemos hacer el calculo antes de que se pase la informacion a la textura,
@@ -288,6 +288,17 @@ MOboolean moOpenFace::Init() {
     m_FacePositionY = NULL;
     m_FaceSizeWidth = NULL;
     m_FaceSizeHeight = NULL;
+
+    m_FaceDetection = NULL;
+    m_FaceDetectionCertainty = NULL;
+
+    m_GazeDirectionL_X = NULL;
+    m_GazeDirectionL_Y = NULL;
+    m_GazeDirectionL_Z = NULL;
+
+    m_GazeDirectionR_X = NULL;
+    m_GazeDirectionR_Y = NULL;
+    m_GazeDirectionR_Z = NULL;
 
     m_FacePositionZ = NULL;
     m_FaceSizeDepth = NULL;
@@ -1034,7 +1045,7 @@ moOpenFace::GpuMotionRecognition() {
                               //int b = pBuf[idx*4+2];
                               //int a = pBuf[idx*4+3];
                               if ( r > 0) {
-                                  //crear el feature aquí....
+                                  //crear el feature aquï¿½....
                                   TF = new moTrackerFeature();
                                   if (TF) {
                                       TF->x = (float) i / (float)m_pTrackerSystemData->GetVideoFormat().m_Width;
@@ -1527,13 +1538,21 @@ moOpenFace::FaceDetection() {
   Mat frame_gray;
   cvtColor(frame, frame_gray, COLOR_BGR2GRAY);
   //equalizeHist(frame_gray, frame_gray);
-
+  bool rotatem;
+  //M = cv2.getRotationMatrix2D((cols/2,rows/2),90,1)
+  //dst = cv2.warpAffine(img,M,(cols,rows))
+  cv::Mat M = cv::getRotationMatrix2D( cv::Point2f( m_reduce_width/2, m_reduce_height/2) , 90, 1 );
+  cv::Mat dst;
+  cv::warpAffine( frame_gray ,dst, M,cv::Point2f(m_reduce_width,m_reduce_height));
+  //cv::warpAffine(
 // The actual facial landmark detection / tracking
 
     cv::Mat_<float> depth_image;
     cv::Vec6d pose_estimate_to_draw;
 
 	//cv::Mat_<uchar> grayscale_image;
+        cv::Point3f gazeDirection0(0, 0, -1);
+        cv::Point3f gazeDirection1(0, 0, -1);
 
     //bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, depth_image, *p_clnf_model, det_parameters);
 	bool detection_success = LandmarkDetector::DetectLandmarksInVideo(frame_gray, *p_clnf_model, det_parameters);
@@ -1572,8 +1591,6 @@ moOpenFace::FaceDetection() {
 
         // Gaze tracking, absolute gaze direction
 
-        cv::Point3f gazeDirection0(0, 0, -1);
-        cv::Point3f gazeDirection1(0, 0, -1);
 
         if (det_parameters.track_gaze && detection_success && p_clnf_model->eye_model)
         {
@@ -1662,6 +1679,59 @@ moOpenFace::FaceDetection() {
 
 
   }*/
+
+
+  if (!m_FaceDetection) {
+      m_FaceDetection = m_Outlets.GetRef( GetOutletIndex( moText("FACE_DETECTION") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    if (p_clnf_model) {
+      m_FaceDetection->GetData()->SetFloat(  p_clnf_model->detection_success );
+      m_FaceDetection->Update(true);
+    }
+  }
+
+    if (!m_FaceDetectionCertainty) {
+      m_FaceDetectionCertainty = m_Outlets.GetRef( GetOutletIndex( moText("FACE_DETECTION_CERTAINTY") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    if (p_clnf_model) {
+      m_FaceDetectionCertainty->GetData()->SetFloat(  p_clnf_model->detection_certainty );
+      m_FaceDetectionCertainty->Update(true);
+    }
+  }
+
+
+  if (!m_GazeDirectionL_X) {
+      m_GazeDirectionL_X = m_Outlets.GetRef( GetOutletIndex( moText("GAZE_DIRECTIONL_X") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    if (p_clnf_model) {
+      m_GazeDirectionL_X->GetData()->SetFloat( gazeDirection0.x );
+      m_GazeDirectionL_X->Update(true);
+    }
+  }
+  if (!m_GazeDirectionL_Y) {
+      m_GazeDirectionL_Y = m_Outlets.GetRef( GetOutletIndex( moText("GAZE_DIRECTIONL_Y") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    if (p_clnf_model) {
+      m_GazeDirectionL_Y->GetData()->SetFloat( gazeDirection0.y );
+      m_GazeDirectionL_Y->Update(true);
+    }
+  }
+  if (!m_GazeDirectionL_Z) {
+      m_GazeDirectionL_Z = m_Outlets.GetRef( GetOutletIndex( moText("GAZE_DIRECTIONL_Z") ) );
+      //MODebug2->Message("moOpenFace::FaceDetection > outlet FACE_POSITION_X: "+IntToStr((int)m_FacePositionX));
+  } else {
+    if (p_clnf_model) {
+      m_GazeDirectionL_Z->GetData()->SetFloat( gazeDirection0.z );
+      m_GazeDirectionL_Z->Update(true);
+    }
+  }
+
+
+
 /**
   rectangle( frame,
            Point( 1,1 ),

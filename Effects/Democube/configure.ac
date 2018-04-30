@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Democube], [0.7], [info@moldeointeractive.com.ar], [democube])
+AC_INIT([Democube], [1.1.0.0], [info@moldeointeractive.com.ar], [democube])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
