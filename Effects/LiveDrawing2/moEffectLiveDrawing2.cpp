@@ -695,20 +695,20 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 	{
 		if (leftClicked)
 		{
-			// Cuando no hay una tableta disponible, la "presión" queda determinada por la velocidad del mouse.
+			// Cuando no hay una tableta disponible, la "presiï¿½n" queda determinada por la velocidad del mouse.
 			float dx = penX - penX0;
 			float dy = penY - penY0;
 			if ((fabs(dx)+fabs(dy))>0.0f)MODebug2->Message("dx:"+FloatToStr(dx)+" dy:"+FloatToStr(dy));
 
 			float diff = sqrt(dx * dx + dy * dy);
 
-			// La presión está definida como la recíproca de la velocidad: cuanto más rápido
-			// se mueva el mouse, más delgada será la línea.
+			// La presiï¿½n estï¿½ definida como la recï¿½proca de la velocidad: cuanto mï¿½s rï¿½pido
+			// se mueva el mouse, mï¿½s delgada serï¿½ la lï¿½nea.
 			float pressure1;
 			if (0 < diff) pressure1 = 1.0 / diff;
 			else pressure1 = 1.0;
 
-			// Utilizando la ecuación de suavizado para que los cambio en presión sean contínuos.
+			// Utilizando la ecuaciï¿½n de suavizado para que los cambio en presiï¿½n sean contï¿½nuos.
 			pressure += 0.1 * (pressure1 - pressure);
 			pressure = momin(pressure, 1.0);
 			pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
@@ -983,7 +983,7 @@ void moEffectLiveDrawing2::setBlendMode()
 			//Difference mode:  f(a,b) = |a - b|
 			//Negation mode:  f(a,b) = 1 - |1 - a - b|
 			//Exclusion mode f(a,b) = a + b - 2ab or f(a,b) = average(difference(a,b),negation(a,b))
-			//Overlay mode f(a,b) =   	2ab(for a < ½) 1 - 2 *(1 - a) *(1 - b)(else)
+			//Overlay mode f(a,b) =   	2ab(for a < ï¿½) 1 - 2 *(1 - a) *(1 - b)(else)
 			//Color dodge mode:  f(a,b) = a /(1 - b)
 			//Color burn mode:  f(a,b) = 1 -(1 - a) / b
 			//Inverse color dodge mode:  f(a,b) = b /(1 - a)
@@ -1347,6 +1347,7 @@ void Gesture::RenderPolygons()
             glEnable(GL_TEXTURE_2D);
             moTextFilterParam DefParam;
             glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, &DefParam ) );
+						//glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, DefParam ) );
             texw = pTexture->GetWidth();
             texh = pTexture->GetHeight();
 	    } else {
@@ -1678,10 +1679,10 @@ void Poly2f::Draw(float tintr, float tintg, float tintb, float alpha, bool stret
 
 		if (inside_screen)
 		{
-			// El shader necesita los vectores que definen el rectángulo que se está dibujando en este
+			// El shader necesita los vectores que definen el rectï¿½ngulo que se estï¿½ dibujando en este
 			// momento: (x0, y0) es el punto medio entre los dos vertices que definen el primer lado
-			// del rectángulo, (x2, y2) es el punto medio del lado opuesto. La distancia l es la mitad
-			// del ancho del rectángulo.
+			// del rectï¿½ngulo, (x2, y2) es el punto medio del lado opuesto. La distancia l es la mitad
+			// del ancho del rectï¿½ngulo.
 			float x0 = 0.5 * (xpoints[0] + xpoints[1]);
 			float y0 = 0.5 * (ypoints[0] + ypoints[1]);
 			float x2 = 0.5 * (xpoints[2] + xpoints[3]);
