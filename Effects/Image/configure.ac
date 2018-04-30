@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Image], [1.0.0.0], [info@moldeointeractive.com.ar], [image])
+AC_INIT([Image], [1.1.0.0], [info@moldeointeractive.com.ar], [image])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

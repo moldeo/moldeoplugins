@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Serial], [0.7], [info@moldeointeractive.com.ar], [serial])
+AC_INIT([Serial], [1.1.0.0], [info@moldeointeractive.com.ar], [serial])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

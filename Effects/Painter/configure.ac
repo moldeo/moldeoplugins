@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Painter], [0.7], [info@moldeointeractive.com.ar], [painter])
+AC_INIT([Painter], [1.1.0.0], [info@moldeointeractive.com.ar], [painter])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

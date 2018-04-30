@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Keyboard], [1.0], [info@moldeointeractive.com.ar], [keyboard])
+AC_INIT([Keyboard], [1.1.0.0], [info@moldeointeractive.com.ar], [keyboard])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

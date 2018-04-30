@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([NetOscOut], [1.0.0.160], [info@moldeointeractive.com.ar], [netoscout])
+AC_INIT([NetOscOut], [1.1.0.0], [info@moldeointeractive.com.ar], [netoscout])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

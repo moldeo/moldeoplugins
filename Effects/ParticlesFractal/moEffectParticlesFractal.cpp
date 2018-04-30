@@ -780,6 +780,19 @@ void moEffectParticlesFractal::UpdateParameters() {
 
     }
 
+
+    if (cellmemoryArray==NULL) {
+        long numCellMemBox = m_rows * m_cols * m_cellmem * m_cellmem;
+        cellmemoryArray = new GLfloat[4 * numCellMemBox]();
+          for(long c=0; c<numCellMemBox; c++) {
+            //cellcodeArray[c*4+3] = 1.0;
+            cellmemoryArray[c*4] = 0.0;
+            cellmemoryArray[c*4+1] = 0.0;
+            cellmemoryArray[c*4+2] = 0.0;
+            cellmemoryArray[c*4+3] = 0.0;
+          }
+    }
+
     /// WE HAVE TO SWAP ON EVERY ITERATION....
     /// BETWEEN m_pTFilter_StateTextureSwap FILTER AND m_pTFilter_StateTexture FILTER
     ///
@@ -2311,7 +2324,23 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
           float g = colorArray[ijoff+1]*m_Color.Y();
           float b = colorArray[ijoff+2]*m_Color.Z();
           float al = colorArray[ijoff+3]*m_Color.W();
-          int texture_material = floor( al * 0.00001 ) ;
+
+          long memcell_ix = 0;
+          float fmaterial = 0;
+          int imaterial = -1;
+          if (cellmemoryArray) {
+            memcell_ix = i * 4 * m_cellmem + j * 4 * m_cellmem * m_cellmem * m_cols;
+            fmaterial = cellmemoryArray[ memcell_ix + 0  ];
+            if (fmaterial>0) {
+                //MODebug2->Message("fmaterial:"+FloatToStr(fmaterial));
+            }
+            if (m_pTexBuf && (fmaterial < m_nImages) ) {
+                //fmaterial = ( fmaterial * m_nImages );
+                imaterial = int(fmaterial);
+                //MODebug2->Message("imaterial:"+IntToStr(imaterial));
+            }
+          }
+
           glColor4f( r,g,b,m_EffectState.alpha*al*m_Alpha );
 
           moVector3f U,V,W;
@@ -2388,7 +2417,7 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
 
             glTranslatef( x, y, z );
 
-            glRotatef(  45, U.X(), U.Y(), U.Z() );
+            glRotatef(  rz, U.X(), U.Y(), U.Z() );
             glRotatef(  rx, V.X(), V.Y(), V.Z() );
             glRotatef(  ry, W.X(), W.Y(), W.Z() );
 
@@ -2397,13 +2426,14 @@ void moEffectParticlesFractal::DrawParticlesFractal( moTempo* tempogral, moEffec
             sz = sz*scalez;
             if (m_pTexBuf) {
                 int irandom = int( float(m_nImages-1) * g );
-
+                if (imaterial>=0) irandom = imaterial;
                 //moTextureFrames& pTextFrames(m_pTexBuf->GetBufferLevels( 255*(r*0.2+g*0.7+b*0.1), 0 ) );
                 //int iTex = pTextFrames.GetRef( 0 );
 
                 int iTex = m_pTexBuf->GetFrame( irandom );
                 glBindTexture( GL_TEXTURE_2D, iTex );
             }
+
             glBegin(GL_QUADS);
               glTexCoord2f( tcoordx, tcoordy );
               glVertex3f( 0-sizex*sx, 0-sizey*sy, z);
@@ -2845,6 +2875,8 @@ void moEffectParticlesFractal::RegisterFunctions()
     RegisterFunction("CellDumpProgram");//32
 
     RegisterFunction("WriteMemory");//33
+    RegisterFunction("ReadMemory");//34
+    RegisterFunction("DumpMemory");//35
 
 /*
     // 05: yellow 01
@@ -3007,6 +3039,12 @@ switch (iFunctionNumber - m_iMethodBase)
         case 33:
             ResetScriptCalling();
             return luaWriteMemory(vm);
+        case 34:
+            ResetScriptCalling();
+            return luaReadMemory(vm);
+        case 35:
+            ResetScriptCalling();
+            return luaDumpMemory(vm);
         /*case 29:
             ResetScriptCalling();
             return luaCellRotate(vm);
@@ -3035,7 +3073,7 @@ int moEffectParticlesFractal::luaCellBeginProgram(moLuaVirtualMachine& vm) {
     if (cellcodeArray) {
         cell_position_j = lua_id_cell / m_cols;
         cell_position_i = lua_id_cell - cell_position_j*m_cols;
-        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cols;
+        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cellcode*m_cols;
         cellcodeArray[cell_position] = 1.0;
         m_pCellCodeTexture->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
         m_pCellCodeTextureSwap->BuildFromBuffer(m_pCellCodeTexture->GetWidth(),m_pCellCodeTexture->GetHeight(), cellcodeArray, GL_RGBA, GL_FLOAT);
@@ -3161,7 +3199,7 @@ int moEffectParticlesFractal::luaCellDumpProgram(moLuaVirtualMachine& vm) {
 
         cell_position_j = lua_id_cell / m_cols;
         cell_position_i = lua_id_cell - cell_position_j*m_cols;
-        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cols;
+        cell_position = cell_position_i*4*m_cellcode + cell_position_j*4*m_cellcode*m_cellcode*m_cols;
 
         moText fname = m_pResourceManager->GetDataMan()->GetDataPath()+moSlash+"cellcode";
         m_pCellCodeTextureFinal->CreateThumbnail("PNGA", m_pCellCodeTexture->GetWidth(), m_pCellCodeTexture->GetHeight(), fname);
@@ -3206,10 +3244,14 @@ int moEffectParticlesFractal::luaWriteMemory(moLuaVirtualMachine& vm) {
                         + moText(" Mem Val:") + FloatToStr(lua_id_cell_mem_val) );
 
     ///put one 0 pixel at id_cell position?
-    if (cellmemoryArray) {
+    if (cellmemoryArray && m_pCellMemoryTexture && m_pCellMemoryTextureSwap) {
+
         cell_position_j = lua_id_cell / m_cols;
         cell_position_i = lua_id_cell - cell_position_j*m_cols;
-        cell_position = cell_position_i*4*m_cellmem + cell_position_j*4*m_cellmem*m_cols;
+        //long memj = lua_id_cell_mem_pos / (4*m_cellmem);
+        //long memi = lua_id_cell_mem_pos - memj* (4*m_cellmem);
+        cell_position = cell_position_i*4*m_cellmem + cell_position_j*4*m_cellmem*m_cellmem*m_cols;
+
         cellmemoryArray[cell_position+lua_id_cell_mem_pos] = lua_id_cell_mem_val;
 
         m_pCellMemoryTexture->BuildFromBuffer(m_pCellMemoryTexture->GetWidth(),m_pCellMemoryTexture->GetHeight(), cellmemoryArray, GL_RGBA, GL_FLOAT);
@@ -3228,6 +3270,10 @@ int moEffectParticlesFractal::luaDumpMemory(moLuaVirtualMachine& vm) {
     MODebug2->Message( moText("DumpMemory: ") + IntToStr(lua_id_cell) );
 
     if (cellmemoryArray && m_pCellMemoryTextureFinal) {
+
+        cell_position_j = lua_id_cell / m_cols;
+        cell_position_i = lua_id_cell - cell_position_j*m_cols;
+        cell_position = cell_position_i*4*m_cellmem + cell_position_j*4*m_cellmem*m_cellmem*m_cols;
 
         moText fname = m_pResourceManager->GetDataMan()->GetDataPath()+moSlash+"cellmem";
         m_pCellMemoryTextureFinal->CreateThumbnail("PNGA", m_pCellMemoryTexture->GetWidth(), m_pCellMemoryTexture->GetHeight(), fname);
@@ -3254,6 +3300,8 @@ int moEffectParticlesFractal::luaDumpMemory(moLuaVirtualMachine& vm) {
             linechange = "\n";
         }
         MODebug2->Message(fullcode);
+    } else {
+        MODebug2->Warning("CellMemory array not ready!");
     }
 
     return 0;

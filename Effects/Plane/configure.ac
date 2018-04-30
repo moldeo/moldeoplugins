@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Plane], [1.0.0.0], [info@moldeointeractive.com.ar], [plane])
+AC_INIT([Plane], [1.1.0.0], [info@moldeointeractive.com.ar], [plane])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

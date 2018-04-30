@@ -348,6 +348,17 @@ private:
     moOutlet* m_MotionDetectionX; //0 o 1
     moOutlet* m_MotionDetectionY;
 
+    moOutlet* m_FaceDetection;
+    moOutlet* m_FaceDetectionCertainty;
+
+    moOutlet* m_GazeDirectionL_X;
+    moOutlet* m_GazeDirectionL_Y;
+    moOutlet* m_GazeDirectionL_Z;
+
+    moOutlet* m_GazeDirectionR_X;
+    moOutlet* m_GazeDirectionR_Y;
+    moOutlet* m_GazeDirectionR_Z;
+
     moOutlet* m_FacePositionX;
     moOutlet* m_FacePositionY;
     moOutlet* m_FaceSizeWidth;

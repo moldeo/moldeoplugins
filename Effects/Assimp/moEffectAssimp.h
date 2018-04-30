@@ -190,6 +190,8 @@ private:
     moVector3dArray  m_Vertices_OpenFace;
     bool m_print_mesh_vertices;
     bool m_b_no_perspective;
+
+    float m_Alpha;
 };
 
 class moEffectAssimpFactory : public moEffectFactory

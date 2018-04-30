@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Ligia], [0.7], [info@moldeointeractive.com.ar], [ligia])
+AC_INIT([Ligia], [1.1.0.0], [info@moldeointeractive.com.ar], [ligia])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Tracker], [1.0.0.0], [info@moldeointeractive.com.ar], [tracker])
+AC_INIT([Tracker], [1.1.0.0], [info@moldeointeractive.com.ar], [tracker])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

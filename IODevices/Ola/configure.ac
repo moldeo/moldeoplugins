@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Ola], [0.1.0.0], [info@moldeointeractive.com.ar], [ola])
+AC_INIT([Ola], [1.1.0.0], [info@moldeointeractive.com.ar], [ola])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

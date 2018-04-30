@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MirrorMorphing], [0.7], [info@moldeointeractive.com.ar], [mirrormorphing])
+AC_INIT([MirrorMorphing], [1.1.0.0], [info@moldeointeractive.com.ar], [mirrormorphing])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

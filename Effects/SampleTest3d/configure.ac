@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([SampleTest3d], [0.7], [info@moldeointeractive.com.ar], [sampletest3d])
+AC_INIT([SampleTest3d], [1.1.0.0], [info@moldeointeractive.com.ar], [sampletest3d])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

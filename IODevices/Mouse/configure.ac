@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Mouse], [0.7], [info@moldeointeractive.com.ar], [mouse])
+AC_INIT([Mouse], [1.1.0.0], [info@moldeointeractive.com.ar], [mouse])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

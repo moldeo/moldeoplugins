@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([CalibrationGrid], [0.7], [info@moldeointeractive.com.ar], [calibrationgrid])
+AC_INIT([CalibrationGrid], [1.1.0.0], [info@moldeointeractive.com.ar], [calibrationgrid])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE

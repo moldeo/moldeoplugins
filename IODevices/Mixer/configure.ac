@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([Mixer], [0.7], [info@moldeointeractive.com.ar], [mixer])
+AC_INIT([Mixer], [1.1.0.0], [info@moldeointeractive.com.ar], [mixer])
 
 AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
