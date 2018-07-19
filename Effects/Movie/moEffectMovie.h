@@ -164,6 +164,9 @@ enum moMovieParamIndex {
 	MOVIE_DISPLAY_Y,
 	MOVIE_DISPLAY_WIDTH,
 	MOVIE_DISPLAY_HEIGHT,
+	MOVIE_NO_AUDIO_OUTPUT,
+	MOVIE_NO_VIDEO_OUTPUT,
+	MOVIE_NO_TEXT_OUTPUT,
 	MOVIE_INLET,
 	MOVIE_OUTLET
 };
@@ -191,6 +194,8 @@ public:
     MOboolean Init();
     void Draw(moTempo*, moEffectState* parentstate = NULL);
     MOboolean Finish();
+    virtual void Activate();
+    virtual void Deactivate();
 	void Interaction( moIODeviceManager * );
 	virtual void Update( moEventList *Events );
 	virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );

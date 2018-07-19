@@ -85,6 +85,7 @@ enum moMidiBpmIndex {
 
 enum moMidiParamIndex {
 
+  MIDI_SCRIPT,
   MIDI_DEVICE,
   MIDI_CHANNEL,
   MIDI_NOTEFADEOUT,
@@ -274,8 +275,8 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
             return m_MidiDatas;
 		}
 		void Update(moEventList *Events );
+    void AllControlsToZero(int p_channel);
 
-	//
 	/*
 	#ifdef WIN32
 	static void CALLBACK midiCallback(HMIDIIN handle, UINT uMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
@@ -304,6 +305,10 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
   moTimer SUS;/**Note sustain*/
   moTimer REL;/**Release time decay*/
   moMidiNotes m_Notes[17];
+  bool m_bAllControlsToZero;
+  bool m_bAllNotesOff;
+  bool m_bDebugIsOn;
+  char m_AllControlsToZeroChannel;
 
 	protected:
 
@@ -313,7 +318,6 @@ class moMidiDevice : /*public moThread,*/ public moAbstract {
 		moText			m_Name;
 		MOboolean		m_bActive;
 		MOboolean		m_bInit;
-
 
 
 		moDataMessage   m_DataMessage;
@@ -353,6 +357,10 @@ public:
 
   void UpdateParameters();
 
+  int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
+  void RegisterFunctions();
+  int luaAllControlsToZero(moLuaVirtualMachine& vm);
+  int luaAllNotesOff(moLuaVirtualMachine& vm);
 
 private:
     moConfig config;
@@ -361,6 +369,9 @@ private:
     double m_vGateVelocity;
     bool m_debugison;
     bool m_reinit;
+
+    bool m_bAllControlsToZero;
+    bool m_bAllNotesOff;
 
     moEventList *events;
 
@@ -376,7 +387,7 @@ protected:
     moDataMessages   m_DataMessages;
     //moDataMessages   m_MidiMessages;
     moOutlet* pOutDataMessages;
-
+    moText mscript;
 
 };
 

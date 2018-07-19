@@ -111,6 +111,9 @@ moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("display_y"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_Y, moValue( "-0.35","FUNCTION").Ref()  );
 	p_configdefinition->Add( moText("display_width"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_WIDTH, moValue( "1.0","FUNCTION").Ref()  );
 	p_configdefinition->Add( moText("display_height"), MO_PARAM_FUNCTION, MOVIE_DISPLAY_HEIGHT, moValue( "0.05","FUNCTION").Ref()  );
+  p_configdefinition->Add( moText("no_audio_output"), MO_PARAM_NUMERIC, MOVIE_NO_AUDIO_OUTPUT, moValue( "0","NUM").Ref() );
+  p_configdefinition->Add( moText("no_video_output"), MO_PARAM_NUMERIC, MOVIE_NO_VIDEO_OUTPUT, moValue( "0","NUM").Ref() );
+  p_configdefinition->Add( moText("no_text_output"), MO_PARAM_NUMERIC, MOVIE_NO_TEXT_OUTPUT, moValue( "0","NUM").Ref() );
 
 	return p_configdefinition;
 }
@@ -160,6 +163,10 @@ moEffectMovie::Init() {
 	moDefineParamIndex( MOVIE_DISPLAY_Y, moText("display_y") );
 	moDefineParamIndex( MOVIE_DISPLAY_WIDTH, moText("display_width") );
 	moDefineParamIndex( MOVIE_DISPLAY_HEIGHT, moText("display_height") );
+
+	moDefineParamIndex( MOVIE_NO_AUDIO_OUTPUT, moText("no_audio_output") );
+	moDefineParamIndex( MOVIE_NO_VIDEO_OUTPUT, moText("no_video_output") );
+	moDefineParamIndex( MOVIE_NO_TEXT_OUTPUT, moText("no_text_output") );
 
 	moDefineParamIndex( MOVIE_INLET, moText("inlet") );
 	moDefineParamIndex( MOVIE_OUTLET, moText("outlet") );
@@ -1211,15 +1218,37 @@ void moEffectMovie::Interaction( moIODeviceManager *IODeviceManager ) {
 
 }
 
+
+void
+moEffectMovie::Activate() {
+  MODebug2->Message("moEffectMovie::Activate");
+
+  moMoldeoObject::Activate();
+
+  if ( Activated() ) {
+      if (m_pMovie && m_pMovie->IsPaused()) {
+          m_pMovie->Play();
+      }
+  }
+
+}
+
+void
+moEffectMovie::Deactivate() {
+  MODebug2->Message("moEffectMovie::Deactivate");
+
+  moMoldeoObject::Deactivate();
+
+  if ( !Activated() ) {
+      if (m_pMovie) {
+          m_pMovie->Pause();
+      }
+  }
+
+}
+
 void
 moEffectMovie::Update( moEventList *Events ) {
-
-
-    if ( !this->Activated() ) {
-        if (m_pMovie) {
-            //m_pMovie->Pause();
-        }
-    }
 
     moEvent *tmp;
     moEvent *actual;

@@ -97,11 +97,15 @@ moMidiDevice::moMidiDevice() {
 	m_DeviceId = -1;
 	m_bInit = false;
 	m_bActive = false;
+	m_bAllControlsToZero = false;
+	m_AllControlsToZeroChannel = 0;
+	m_bAllNotesOff = false;
 	for(int i=0;i<=16;i++) {
     m_Notes[i].Init( 127, moMidiNote() );
 	}
 	stream = NULL;
 	channel = 0;
+	m_bDebugIsOn = false;
 }
 
 
@@ -314,13 +318,38 @@ moMidiDevice::Update(moEventList *Events ) {
 
     }
 
+  if (m_bAllControlsToZero && m_AllControlsToZeroChannel) {
+    for (i=0;i<128;i++) {
+      if (i!=123) {
+        mididata.m_Channel = m_AllControlsToZeroChannel;
+        mididata.m_CC = i;
+        mididata.m_Type = MOMIDI_CC;
+        mididata.m_Val = 0;
+        m_MidiDatas.Add(mididata);
+      }
+    }
+    m_bAllControlsToZero = false;
+  }
 
+  if (m_bAllNotesOff) {
+    if (0<=this->channel && this->channel<=16) {
+      for(int n=0; n<m_Notes[this->channel].Count(); n++) {
+        if (m_Notes[this->channel][n].sustain.Started()) {
+          m_Notes[this->channel][n].sustain.Stop();
+          m_Notes[this->channel][n].release.Start();
+        }
+      }
+    }
+    m_bAllNotesOff = false;
+  }
 
 	for( i=0; i < m_MidiDatas.Count(); i++ ) {
 
 		mididata = m_MidiDatas.Get( i );
 
-		MODebug2->Push(moText("MIDI Data CC:") + IntToStr(mididata.m_CC) + moText(" val:") + IntToStr(mididata.m_Val) );
+		if (m_bDebugIsOn) MODebug2->Push(
+		moText("MIDI Data CC:") + IntToStr(mididata.m_CC)
+		+ moText(" val:") + IntToStr(mididata.m_Val) );
 
 		Events->Add( MO_IODEVICE_MIDI, (MOint)(mididata.m_Type), mididata.m_Channel, mididata.m_CC, mididata.m_Val );
 
@@ -341,6 +370,20 @@ moMidiDevice::Update(moEventList *Events ) {
 
 }
 
+void moMidiDevice::AllControlsToZero( int p_channel ) {
+  int i;
+  moMidiData mididata;
+  for (i=0;i<128;i++) {
+    if (i!=123) {
+      mididata.m_Channel = p_channel;
+      mididata.m_CC = i;
+      mididata.m_Type = MOMIDI_CC;
+      mididata.m_Val = 0;
+      m_MidiDatas.Add(mididata);
+    }
+  }
+}
+
 //=============================================================================
 
 
@@ -351,6 +394,9 @@ moMidi::moMidi() {
 	SetName("midi");
 	m_pMidiDevice = NULL;
 	m_MidiDeviceChannel = 0;
+	m_bAllControlsToZero = false;
+	m_bAllNotesOff = false;
+	mscript = "";
 	pOutDataMessages = NULL;
 }
 
@@ -379,6 +425,7 @@ moMidi::Init() {
     }
   }
 
+	moDefineParamIndex( MIDI_SCRIPT, moText("script") );
 	moDefineParamIndex( MIDI_DEVICE, moText("mididevice") );
   moDefineParamIndex( MIDI_CHANNEL, moText("midichannel") );
   moDefineParamIndex( MIDI_NOTEFADEOUT, moText("notefadeout"));
@@ -583,38 +630,86 @@ void moMidi::UpdateParameters() {
 
 }
 
+void moMidi::RegisterFunctions()
+{
+    moMoldeoObject::RegisterFunctions();
+
+    RegisterBaseFunction("AllControlsToZero"); //0
+    RegisterFunction("AllNotesOff"); //1
+    ResetScriptCalling();
+}
+
+
+int moMidi::ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber)
+{
+    m_iMethodBase = 37;
+    switch (iFunctionNumber - m_iMethodBase)
+    {
+        case 0:
+            ResetScriptCalling();
+            return luaAllControlsToZero(vm);
+        case 1:
+            ResetScriptCalling();
+            return luaAllNotesOff(vm);
+
+        default:
+            NextScriptCalling();
+            return moMoldeoObject::ScriptCalling( vm, iFunctionNumber );
+	}
+}
+
+int moMidi::luaAllControlsToZero(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+    m_bAllControlsToZero = true;
+    MODebug2->Message("luaAllControlsToZero " + this->GetLabelName());
+    return 0;
+}
+
+int moMidi::luaAllNotesOff(moLuaVirtualMachine& vm)
+{
+    lua_State *state = (lua_State *) vm;
+    m_bAllNotesOff = true;
+    return 0;
+}
+
+
 void
 moMidi::Update(moEventList *Events) {
-	int i;
-	moEvent *actual,*tmp;
 
-	actual = Events->First;
-	//recorremos todos los events y parseamos el resultado
-	//borrando aquellos que ya usamos
-	while(actual!=NULL) {
-		//solo nos interesan los del midi q nosotros mismos generamos, para destruirlos
-		if(actual->deviceid == MO_IODEVICE_MIDI) {
-			//ya usado lo borramos de la lista
-			tmp = actual->next;
-			Events->Delete(actual);
-			actual = tmp;
-		} else actual = actual->next;//no es nuestro pasamos al next
-	}
+  moMoldeoObject::ScriptExeRun();
+
+  int i;
+  moEvent *actual,*tmp;
+
+  actual = Events->First;
+  //recorremos todos los events y parseamos el resultado
+  //borrando aquellos que ya usamos
+  while(actual!=NULL) {
+    //solo nos interesan los del midi q nosotros mismos generamos, para destruirlos
+    if(actual->deviceid == MO_IODEVICE_MIDI) {
+      //ya usado lo borramos de la lista
+      tmp = actual->next;
+      Events->Delete(actual);
+      actual = tmp;
+    } else actual = actual->next;//no es nuestro pasamos al next
+  }
 
   UpdateParameters();
   long release_max = 400; ///100ms
 
   m_DataMessages.Empty();
 
+
     ///ACTUALIZAMOS CADA DISPOSITIVO
     //MODebug2->Message("moMidi::Update > Update device: " + moMoldeoObject::GetLabelName()+" devices:" + IntToStr(m_MidiDevices.Count()) );
-	for( i = -1; i < (int)m_MidiDevices.Count(); i++ ) {
+  for( i = -1; i < (int)m_MidiDevices.Count(); i++ ) {
         //MODebug2->Message("Update devices");
-		moMidiDevicePtr MidiDevPtr = NULL;
+    moMidiDevicePtr MidiDevPtr = NULL;
 
     //MODebug2->Message("moMidi::Update > Update device i:" + IntToStr(i));
 
-		if (i==-1) {
+    if (i==-1) {
       MidiDevPtr = m_pMidiDevice;
       //if (m_pMidiDevice)
         //MODebug2->Message("moMidi::Update > Update device: " + moMoldeoObject::GetLabelName()+" m_pMidiDevice:" + m_pMidiDevice->GetName() );
@@ -627,20 +722,27 @@ moMidi::Update(moEventList *Events) {
     int idx = -1;
     moDataMessage m_DataMessage;
 
-		if (MidiDevPtr!=NULL) {
-			if (MidiDevPtr->IsInit()) {
-				if (MidiDevPtr==m_pMidiDevice)
+    if (MidiDevPtr!=NULL) {
+      if (MidiDevPtr->IsInit()) {
+        if (MidiDevPtr==m_pMidiDevice) {
           m_pMidiDevice->Update( Events );
+        }
 
-				moText codetbn = "TIMEBN";
-				moText codesus = "SUSTAIN";
-				moText coderel = "RELEASE";
-				moText codenote = "NOTE";
+        if (m_bAllControlsToZero && m_MidiDeviceChannel) {
+          MidiDevPtr->AllControlsToZero(m_MidiDeviceChannel);
+          m_bAllControlsToZero = false;
+        }
 
-				const char* outs[] = { "ISON","SUS","REL","VEL" };
+        moText codetbn = "TIMEBN";
+        moText codesus = "SUSTAIN";
+        moText coderel = "RELEASE";
+        moText codenote = "NOTE";
+
+        const char* outs[] = { "ISON","SUS","REL","VEL" };
 
         //MODebug2->Message("Nnotes:"+IntToStr( MidiDevPtr->m_Notes.Count() ) );
         if (m_MidiDeviceChannel>0) {
+
           for( int iN=0; iN<MidiDevPtr->m_Notes[m_MidiDeviceChannel].Count(); iN++ ) {
 
             moMidiNote Note = MidiDevPtr->m_Notes[m_MidiDeviceChannel][iN];
@@ -718,8 +820,8 @@ moMidi::Update(moEventList *Events) {
             }///end sustain
           }///end notes
         }
-				//moText tn = "TIMEN";
-				int tbnidx = GetOutletIndex( codetbn );
+        //moText tn = "TIMEN";
+        int tbnidx = GetOutletIndex( codetbn );
         if( tbnidx>-1) {
             int dura = MidiDevPtr->TBN.Duration();
             //MODebug2->Message( codetbn+ " founded! Udpating value:" + IntToStr(dura)  );
@@ -762,7 +864,12 @@ moMidi::Update(moEventList *Events) {
                     moText ccodetxt = "";
                     int idx = -1;
                     //MODebug2->Message( "moMidi::Update n outlets:" + IntToStr(m_Outlets.Count()) );
-                    if (m_debugison) MODebug2->Message( "moMidi::Update > "+GetLabelName()+" Type: " + IntToStr(mdata.m_Type) + " ccode: " + IntToStr(ccode)+" val: " + IntToStr(mdata.m_Val) );
+                    if (m_debugison)
+                      MODebug2->Message( "moMidi::Update > "+GetLabelName()
+                                        +" Channel: " + IntToStr(mdata.m_Channel)
+                                        +" Type: " + IntToStr(mdata.m_Type)
+                                        +" ccode: " + IntToStr(ccode)
+                                        +" val: " + IntToStr(mdata.m_Val) );
                     if (m_MidiDeviceChannel==0 || m_MidiDeviceChannel==mdata.m_Channel) {
                       switch( mdata.m_Type ) {
 
