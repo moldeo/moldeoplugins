@@ -687,7 +687,9 @@ MOuint moEffectMovie::MovieGLId() {
               if (m_pMovie->IsEOS()) {
                 MODebug2->Message( "Reached End");
                 MODebug2->Message( "Reached EOS!! > STOPPING stream (NULL), must reload...");
-                //m_pMovie->Stop();
+                m_pMovie->Stop();
+                m_pMovie->Pause();
+                m_pMovie->Seek( 0 );
 
               } else if (!m_pMovie->IsPaused()) {
                 MODebug2->Message( "Reached End at " + IntToStr(m_FramePosition));
