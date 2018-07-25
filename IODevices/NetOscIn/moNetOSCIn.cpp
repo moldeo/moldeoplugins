@@ -326,7 +326,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
     }
 
 
-    if (debug_is_on) MODebug2->Message( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
+    //if (debug_is_on) MODebug2->Message( moText( "Messages.Count():" ) + IntToStr( Messages.Count() )  ) ;
 
     for( int j=0; j<Messages.Count();j++) {
 
@@ -791,6 +791,9 @@ moOscPacketListener* self = NULL;
         moData  data1;
 
         moText addresspath = path;
+        if (self->debug_is_on) {
+          self->MODebug2->Message(addresspath);
+        }
         //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
          addresspath = moText( m.AddressPattern() );
@@ -824,7 +827,8 @@ moOscPacketListener* self = NULL;
                 data0 = moData( moText( "ORIENTATION" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/acc")
-            || addresspath == moText("/gyrosc/accel") ) {
+            || addresspath == moText("/gyrosc/accel")
+            || addresspath == moText("/accxyz") ) {
                 data0 = moData( moText( "ACCELERATION" ) );
                 message.Add( data0 );
             } else/*AnalyseSOundMonar*/
@@ -1000,8 +1004,9 @@ moOscPacketListener* self = NULL;
 
                   #endif
                 }
-                if (self->debug_is_on)
+                if (self->debug_is_on) {
                   self->MODebug2->Message( moText(" > Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
+                }
                 #ifdef OSCPACK
                 (arg++);
                 #endif
