@@ -113,7 +113,10 @@
 
 //TABLET: setup required here
 //
-#include "wintab.h"
+#ifdef MO_WIN32
+//#include "wintab.h"
+#define EASYTAB_IMPLEMENTATION
+#include "EasyTab/easytab.h"
 //
 //    define what packet data is required here.  A PACKET structure
 //    will be created by pktdef.h  Only the required information
@@ -127,9 +130,21 @@
 //#define PACKETDATA	(PK_Z | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETDATA	(PK_X | PK_Y | PK_Z |PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETMODE      0
-#include "pktdef.h"
+//#include "pktdef.h"
 
 #define FIX_DOUBLE(x)   ((double)(INT(x))+((double)FRAC(x)/65536))	// converts FIX32 to double
+
+#endif // MO_WIN32
+
+#include "SDL2/SDL.h"
+
+#ifdef MO_LINUX
+#define EASYTAB_IMPLEMENTATION
+#include "EasyTab/easytab.h"
+#define UINT unsigned int
+#define ORIENTATION unsigned int
+#define LONG long
+#endif
 
 // Pen
 #define TABLET_PEN_MOTION_X 0
@@ -159,7 +174,7 @@
 
 class moTabletPen
 {
-public:	
+public:
 	MOboolean change;
 	MOint value;
 
@@ -181,7 +196,7 @@ public:
 	}
 };
 
-class moTabletCode 
+class moTabletCode
 {
 public:
 	moText strcod;
@@ -204,7 +219,7 @@ public:
 };
 
 class moTablet : public moIODevice {
-public:	
+public:
     moTablet();
 	~moTablet();
 
@@ -232,15 +247,18 @@ private:
 	//MOuint masterchannelvirtual[5];
 
 	//TABLET: members available throughout class
+
+	#ifdef MO_WIN32
 	LOGCONTEXT      lcMine;           // The context of the tablet
 
 	HCTX t_hTablet;			// Tablet context
+
 	BOOL t_bTiltSupport;	// TRUE if tablet provides tilt and direction information
 	//	current pen statistics
 	UINT            t_prsNew;		// Pressure value
 	UINT            t_curNew;		// Cursor number
 	ORIENTATION     t_ortNew;		// Varios movement values, direction and tilt
-	
+
 	LONG            t_pkXNew;
 	LONG            t_pkYNew;
 	LONG            t_pkZNew;
@@ -248,11 +266,22 @@ private:
 	//	tablet specific functions
 	HCTX InitTablet(HWND hWnd);
 	BOOL IsTabletInstalled();
-	moText GetTabletName();
-
 	UINT            m_cMaxPkts; // maximum number of packets in the queue.
 	PACKET* m_lpPkts;           // packet buffer
+	#endif // MO_WIN32
 
+#ifdef MO_LINUX
+  Display* m_Disp;
+  Window   m_Win;
+
+#endif
+
+	moText GetTabletName();
+
+
+#ifdef MO_LINUX
+
+#endif
 	//	adjustments used in example
 	double t_dblAltAdjust;		// Tablet Altitude zero adjust
 	double t_dblAltFactor;	// Tablet Altitude factor

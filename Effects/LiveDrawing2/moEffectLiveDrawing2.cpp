@@ -208,8 +208,8 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 
     // Draw //
     //float rectif_tx = -1024*(1.15-1.0)*0.5;
-    float sx = 1.14*m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
-    float sy = 1.14*m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    float sx = 1.0*m_Config[moR(LIVEDRAW2_SCALEX)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    float sy = 1.0*m_Config[moR(LIVEDRAW2_SCALEY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
     float rectif_tx = -canvasWidth*(sx-1.0)*0.5;
     float rectif_ty = -canvasHeight*(sy-1.0)*0.5;
@@ -233,7 +233,7 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	updateInteractionParameters();
 
 
-
+//MODebug2->Message("moLiveDrawing2::Draw > pressure:"+FloatToStr(pressure));
 
 	if (icon_mode)
 		sel_tex = m_Config[ moParamReference(LIVEDRAW2_ICO_TEXTURES) ].GetIndexValue();
@@ -244,20 +244,25 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 
 
 
-	if (pressure <= (float)min_pressure / (float)max_pressure) drawing = false;
-	else
+	if ( pressure <= (float)min_pressure / (float)max_pressure ) {
+    drawing = false;
+    //MODebug2->Message("moLiveDrawing2::Draw > drawing FALSE");
+	} else {
 		if (!drawing)
 		{
 			drawing = true;
-	        resumed_drawing = true;
-	        //MODebug2->Push("resumed drawing");
-		}
-		else resumed_drawing = false;
+      resumed_drawing = true;
+      //MODebug2->Message("moLiveDrawing2::Draw > resumed drawing");
+		} else {
+      //MODebug2->Message("moLiveDrawing2::Draw > resumed_drawing FALSE");
+      resumed_drawing = false;
+    }
+  }
 
     if (drawing && (pentip != MO_TABLET_CURSOR_UNDEFINED))
 	{
         if (resumed_drawing) {
-            //MODebug2->Push("resumed > addGesture");
+            //MODebug2->Message("moLiveDrawing2::Draw > drawed gesture!");
             addGesture();
         }
 
@@ -271,7 +276,7 @@ void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 	    {
             lastGesture->AddPoint(penX, penY, pressure, pen_color_rgb);
             lastGesture->compile();
-			//MODebug2->Push( moText("compile last point penX:") + FloatToStr(penX) + moText(" penY:") + FloatToStr(penY)  );
+             //MODebug2->Message( moText("moLiveDrawing2::Draw > compile last point penX:") + FloatToStr(penX) + moText(" penY:") + FloatToStr(penY)  );
         }
 		else
 		{
@@ -379,7 +384,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 						penX = (float) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 						penX = momin(penX, canvasWidth - canvas_margin);
 						penX = momax(penX, canvas_margin);
-						//MODebug2->Push(IntToStr(penX));
+						//MODebug2->Message("MO_DRAW_TRANSLATE_X:"+FloatToStr(penX));
 					}
 					tabletDetected = true;
 				}
@@ -391,23 +396,31 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 						penY = (int) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 						penY = momin(penY, canvasHeight - canvas_margin);
 						penY = momax(penY, canvas_margin);
+						//MODebug2->Message("MO_DRAW_TRANSLATE_Y:"+FloatToStr(penY));
 					}
 					tabletDetected = true;
 				}
 				else if (i == MO_DRAW_PRESSURE)
 				{
+          //MODebug2->Message("MO_DRAW_PRESSURE");
 					if (0 < nval)
 					{
 						pressure = max_pressure;
 						for (int n = 0; n < nval; n++)
 						{
 							valor = (float) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, n);
+							/*MODebug2->Message("MO_DRAW_PRESSURE:"+FloatToStr(valor)
+							+ " min_pressure:" + IntToStr(min_pressure)
+							+ " max_pressure:" + IntToStr(max_pressure) );*/
+							if (valor > max_pressure) valor = max_pressure;
 							if (valor < pressure) pressure = valor;
+							//pressure = momax( max_pressure, valor);
 						}
 
 						pressure /= max_pressure;
 						pressure = momin(pressure, 1.0);
 						pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
+						MODebug2->Message("MO_DRAW_PRESSURE:"+FloatToStr(pressure));
 					}
 					tabletDetected = true;
 				}
@@ -692,6 +705,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 
 	//hay que comentar esto para q ande el tracker para el laser....
 	//if (!tabletDetected)
+	if (1==2)
 	{
 		if (leftClicked)
 		{
@@ -821,8 +835,8 @@ void moEffectLiveDrawing2::initShaders()
     moText shader_fn = m_Config[moR(LIVEDRAW2_SHADERS)].GetData()->Text();
 	if (shader_fn != moText(""))
 	{
-		MODebug2->Push("Loading livedrawing shader...");
-		/*
+		//MODebug2->Message("Loading livedrawing shader...");
+/*
 		moShaderGLSL* pglsl;
 		line_shader = m_pResourceManager->GetShaderMan()->AddShader(shader_fn);
 		pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(line_shader);
@@ -836,7 +850,7 @@ void moEffectLiveDrawing2::initShaders()
 		line_shader_point2 = pglsl->GetAttribID("point2");
 		line_shader_quad_width = pglsl->GetAttribID("quad_width");
 		line_shader_pressure = pglsl->GetAttribID("pressure");
-		*/
+*/
 	}
 	else
 	{
