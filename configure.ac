@@ -7,7 +7,7 @@
 # make
 # make install
 #
-AC_INIT([MoldeoPlugins], [1.1.0.0], [info@moldeointeractive.com.ar ], [moldeoplugins])
+AC_INIT([MoldeoPlugins], [1.1.0.1], [info@moldeointeractive.com.ar ], [moldeoplugins])
 
 AC_CANONICAL_HOST
 AC_CANONICAL_BUILD
@@ -90,9 +90,9 @@ AC_CONFIG_SUBDIRS(
 	IODevices/Serial
 	IODevices/NetTUIOIn
 	IODevices/Midi
+  IODevices/Tablet
 )
 #	IODevices/Kinect
-#	IODevices/Tablet
 #	IODevices/TabletAsync
 
 AC_CONFIG_SUBDIRS(
