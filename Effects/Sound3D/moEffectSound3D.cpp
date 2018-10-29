@@ -883,6 +883,7 @@ moEffectSound3D::UpdateParameters() {
     //m_fSampleVolume = m_pAudio->GetActualSampleVolume();
     //MODebug2->Message("m_fSampleVolume:"+FloatToStr( m_fSampleVolume )  );
     //MODebug2->Message("m_bLoop:"+IntToStr( m_bLoop )  );
+
   }
 
 
@@ -945,10 +946,17 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
     }
 
     if (m_bLoop) {
-        if ( ( moIsTimerStopped() || !m_EffectState.tempo.Started()  || !Activated() || !m_EffectState.Activated() ) && m_pAudio ) {
+        if (  ( moIsTimerStopped()
+              || !m_EffectState.tempo.Started()
+              || !Activated()
+              || !m_EffectState.Activated() )
+          && m_pAudio ) {
+
           if (m_pAudio->IsPlaying())
             m_pAudio->Stop();
+
         }
+
         if (m_fLaunch>=1.0 && m_pAudio && Activated() && m_EffectState.Activated() ) {
           if (!m_pAudio->IsPlaying() && moIsTimerPlaying() && m_EffectState.tempo.Started() ) {
             m_pAudio->Play();

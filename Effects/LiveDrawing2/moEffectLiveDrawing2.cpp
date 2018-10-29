@@ -66,6 +66,8 @@ moEffectLiveDrawing2::moEffectLiveDrawing2() {
 	nGestures = 0;
 	m_pDrawCursorX = NULL;
 	m_pDrawCursorY = NULL;
+	niterations = 0;
+	npressures = 0;
 }
 
 moEffectLiveDrawing2::~moEffectLiveDrawing2() {
@@ -363,6 +365,9 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 	inInteractionMode = true;
 	leftClicked = false;
 
+	niterations++;
+	//MODebug2->Message("START INTERACTION ("+IntToStr(niterations)+") pressure:"+FloatToStr(pressure));
+
 	if (devicecode!=NULL)
 	for(int i=0; i<ncodes; i++) {
 
@@ -402,25 +407,30 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 				}
 				else if (i == MO_DRAW_PRESSURE)
 				{
-          //MODebug2->Message("MO_DRAW_PRESSURE");
+          MODebug2->Message("MO_DRAW_PRESSURE");
+          npressures++;
 					if (0 < nval)
 					{
 						pressure = max_pressure;
 						for (int n = 0; n < nval; n++)
 						{
 							valor = (float) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, n);
-							/*MODebug2->Message("MO_DRAW_PRESSURE:"+FloatToStr(valor)
+							/*MODebug2->Message("valor:"+FloatToStr(valor)
 							+ " min_pressure:" + IntToStr(min_pressure)
 							+ " max_pressure:" + IntToStr(max_pressure) );*/
 							if (valor > max_pressure) valor = max_pressure;
 							if (valor < pressure) pressure = valor;
+							if (valor < min_pressure) pressure = 0;
 							//pressure = momax( max_pressure, valor);
 						}
 
 						pressure /= max_pressure;
 						pressure = momin(pressure, 1.0);
 						pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
-						MODebug2->Message("MO_DRAW_PRESSURE:"+FloatToStr(pressure));
+						MODebug2->Message("MO_DRAW_PRESSURE:"+FloatToStr(pressure)
+						+ IntToStr(valor)
+						+ " ["+ IntToStr(min_pressure)
+						+ ", "+ IntToStr(max_pressure) + "]");
 					}
 					tabletDetected = true;
 				}
@@ -438,7 +448,7 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 				}
 				else if (i == MO_DRAW_CURSOR)
 				{
-					if (0 < nval) pentip = (int) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
+					//if (0 < nval) pentip = (int) IODeviceManager->IODevices().GetRef(did)->GetValue(cid, nval - 1);
 					tabletDetected = true;
 				}
 				else if (i == MO_DRAW_BUTTON)
@@ -746,6 +756,20 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 		RunSelectedFunction();
 	}
 	*/
+	//si no hubo eventos de presion, entonces fijamos el valor en 0...
+	/*if (niterations>12) {
+    if (npressures==0) {
+      //MODebug2->Message("NO PRESSURES IN " + IntToStr(niterations) +" > PEN NOT DRAWING");
+      niterations = 0;
+      pressure = 0;
+    } else {
+      npressures=0;
+      niterations=0;
+    }
+
+	}*/
+
+		//MODebug2->Message("STOP INTERACTION pressure:"+FloatToStr(pressure));
 }
 
 moConfigDefinition *
@@ -811,10 +835,16 @@ void moEffectLiveDrawing2::updateParameters()
 void moEffectLiveDrawing2::updateInteractionParameters()
 {
 	//for (int i = MO_RED; i <= MO_ALPHA; i++)
-    pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_red;
-    pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_green;
-    pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_blue;
-    pen_color_rgb[3] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][3].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+    moVector4d p = m_Config.EvalColor( moR(LIVEDRAW2_PEN_COLOR)  );
+    pen_color = moVector4f( p.X(), p.Y(), p.Z(), p.W() );
+    pen_color_rgb[0] = pen_color.X();
+    pen_color_rgb[1] = pen_color.Y();
+    pen_color_rgb[2] = pen_color.Z();
+    pen_color_rgb[3] = pen_color.W();
+    //pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_red;
+    //pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_green;
+    //pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_blue;
+    //pen_color_rgb[3] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][3].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
 
 	ConvertRGBtoHSL();
 	rotosketch_duration = m_Config[moR(LIVEDRAW2_ROTOSKETCH_DURATION)].GetData()->Int();
@@ -1020,10 +1050,10 @@ void moEffectLiveDrawing2::drawPen()
 	float l = 1.0;
 
     glBegin(GL_QUADS);
-	    glVertex2f(penX - 0.5, penY - 0.5);
-	    glVertex2f(penX - 0.5, penY + 0.5);
-	    glVertex2f(penX + 0.5, penY + 0.5);
-	    glVertex2f(penX + 0.5, penY - 0.5);
+	    glVertex2f(penX - 1.5, penY - 1.5);
+	    glVertex2f(penX - 1.5, penY + 1.5);
+	    glVertex2f(penX + 1.5, penY + 1.5);
+	    glVertex2f(penX + 1.5, penY - 1.5);
     glEnd();
 }
 
@@ -2004,14 +2034,31 @@ void moEffectLiveDrawing2::Update(moEventList *Events)
 
     moMoldeoObject::Update(Events);
 
-
-
     moEvent* actual = Events->First;
 	//recorremos todos los events y parseamos el resultado
 	//borrando aquellos que ya usamos
 	MOint tempval;
 	while(actual!=NULL) {
 		//solo nos interesan los del midi q nosotros mismos generamos, para destruirlos
+ /*moDebugManager::Message("LVEvent: did: " + IntToStr(actual->deviceid)
+                                  + " dcode:" + IntToStr(actual->devicecode)
+                                + " v0:" + IntToStr(actual->reservedvalue0)
+                              + " v1:" + IntToStr(actual->reservedvalue1)
+                            + " v3:" + IntToStr(actual->reservedvalue2) );*/
+    if (actual->deviceid == MO_IODEVICE_TABLET) {
+      penX = actual->reservedvalue0;
+      penX = momin(penX, canvasWidth - canvas_margin);
+      penX = momax(penX, canvas_margin);
+      penY = actual->reservedvalue1;
+      penY = momin(penY, canvasHeight - canvas_margin);
+      penY = momax(penY, canvas_margin);
+      pressure = actual->reservedvalue2;
+      pressure /= max_pressure;
+      pressure = momin(pressure, 1.0);
+      pressure = momax(pressure, (float)min_pressure / (float)max_pressure);
+      tabletDetected = true;
+
+    }
 		if(actual->deviceid == MO_IODEVICE_MIDI) {
 
 		    ///actual->reservedvalue1 corresponds to CC midi code : it works as a n index in m_Codes (has to be defined in param "code" in the config file...

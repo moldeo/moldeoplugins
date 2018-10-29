@@ -310,6 +310,7 @@ protected:
     float flow_velocity0, flow_velocity, flow_velocity_bak;
 	int flow_period;
 	float pen_color_rgb[4];
+	moColorRGBA pen_color;
 	float pen_color_hsl[3];
 	float max_line_length;
 	float min_line_length;
@@ -405,6 +406,9 @@ protected:
 
     moInlet* m_pDrawCursorX;
     moInlet* m_pDrawCursorY;
+
+    int niterations;
+    int npressures;
 };
 
 class moEffectLiveDrawing2Factory : public moEffectFactory
