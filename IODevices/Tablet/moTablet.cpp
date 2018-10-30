@@ -128,6 +128,22 @@ MOboolean moTablet::Init()
 		}
 	}
 
+//#ifdef MO_LINUX
+moGUIManager* GUIMAN = m_pResourceManager->GetGuiMan();
+if (GUIMAN) {
+  m_Disp = (Display*)GUIMAN->GetDisplay();
+  m_Win = GUIMAN->GetOpWindowHandle();
+  if (EasyTab_Load(m_Disp, m_Win) != EASYTAB_OK)                   // Load
+  {
+      MODebug2->Error("moTablet::Init > Tablet init failed. \n");
+  } else {
+    MODebug2->Message("moTablet::Init > Tablet init OK! \n");
+  }
+}
+
+  for( i = 0; i < ncodes; i++) Codes[i].CreateValuesArray(100);
+
+#ifdef MO_WIN32
 	//TABLET: Graphics Tablet
 	t_hTablet = NULL;		// Tablet context handle, required.
 	t_prsNew = 0;
@@ -179,24 +195,26 @@ MOboolean moTablet::Init()
 		MODebug2->Error("Tablet not detected.");
 		return false;
 	}
+#endif // MO_WIN32
 
 	return true;
 }
 
 MOboolean moTablet::Finish()
 {
-	if (Codes!=NULL)
-	{
-        for(int i = 0; i < ncodes; i++) Codes[i].DeleteValuesArray();
-		delete[] Codes;
-	    Codes = NULL;
+	if (Codes!=NULL) {
+
+    for(int i = 0; i < ncodes; i++) Codes[i].DeleteValuesArray();
+    delete[] Codes;
+    Codes = NULL;
 	}
 	ncodes = 0;
-
+#ifdef MO_WIN32
 	if (t_hTablet)
 	{
 	    WTClose(t_hTablet);
 	}
+	#endif
 	return true;
 }
 
@@ -277,9 +295,88 @@ MOint moTablet::getTabletCod(moText s)
 
 void moTablet::Update(moEventList *Events)
 {
+    MOuint i;
+    moEvent *actual,*tmp;
+    int n, tabletcode;
+
+    for(n = 0; n < ncodes; n++) Codes[n].Cleanup();
+
+//#ifdef MO_LINUX
+/**
+        while (XPending(m_Disp)) // Event loop
+            {
+                XEvent Event;
+                XNextEvent(m_Disp, &Event);
+
+                if (EasyTab_HandleEvent(&Event) == EASYTAB_OK)          // Event
+                {
+                    MODebug2->Message("Tablet Event EASYTAB_OK");
+                    MODebug2->Message("Pos X:"+IntToStr(EasyTab->PosX)
+                    +" Pos Y:"+ IntToStr(EasyTab->PosY)
+                    +" Pressure"+ FloatToStr(EasyTab->Pressure) );
+                    continue; // Tablet event handled
+                }
+
+                switch (Event.type)
+                {
+
+                }
+
+                MODebug2->Message("Tablet Event:");
+            }*/
+
+          if (Events==NULL) return;
+
+          actual = Events->First;
+          //recorremos todos los events y parseamos el resultado
+          //borrando aquellos que ya usamos
+          while(actual!=NULL) {
+            //solo nos interesan los del mouse
+            if(actual->deviceid == MO_IODEVICE_TABLET) {
+              /*MODebug2->Message("tablet: MO_IODEVICE_TABLET event! code:"+IntToStr(actual->devicecode)
+              +" devcode:" + IntToStr(SDL_MOUSEMOTION));*/
+
+              switch(actual->devicecode) {
+                case SDL_MOUSEMOTION:
+                  {
+                    //MODebug2->Message("tablet: motion");
+                    tabletcode = TABLET_PEN_MOTION_X;
+                    Pen[tabletcode].Change(actual->reservedvalue0);
+                    Codes[tabletcode].state = true;
+                    Codes[tabletcode].AddValueToArray(Pen[tabletcode].value);
+
+                    tabletcode = TABLET_PEN_MOTION_Y;
+                    Pen[tabletcode].Change(actual->reservedvalue1);
+                    Codes[tabletcode].state = true;
+                    Codes[tabletcode].AddValueToArray(Pen[tabletcode].value);
+
+                    tabletcode = TABLET_PEN_PRESSURE;
+                    Pen[tabletcode].Change(actual->reservedvalue2);
+                    Codes[tabletcode].state = true;
+                    Codes[tabletcode].AddValueToArray(Pen[tabletcode].value);
+                  }
+                  break;
+
+                default:
+                  break;
+              }
+
+              tmp = actual->next;
+              //Events->Delete(actual);
+              actual = tmp;
+            } else {
+              actual = actual->next;
+            }
+          }
+
+
+//#endif
+
+
+#ifdef MO_WIN32
 	if (!t_hTablet) return;
 
-    int i, n, tabletcode;
+
 
 	UINT nTabPressure = 0;	// 0 = nothing 255 = hardest
 	int nTabAlt = 0;	    // Which way up for Wacom pens, negative = eraser, positive = normal tip
@@ -297,10 +394,11 @@ void moTablet::Update(moEventList *Events)
 	LONG         pkZOld;
 
 	PACKET* pkt;     // the current packet
-
+#endif
 	// Update codes.
-	for(n = 0; n < ncodes; n++) Codes[n].Cleanup();
 
+
+#ifdef MO_WIN32
     // Polling the packets in the queue with
 	// int WTPacketsGet(hCtx, cMaxPkts, lpPkts), where
 	// Parameter	Type/Description
@@ -397,7 +495,7 @@ void moTablet::Update(moEventList *Events)
 			Codes[tabletcode].AddValueToArray(Pen[tabletcode].value);
 			//MODebug->Push(moText("Pressure: ") + IntToStr(t_prsNew));
 			#ifdef _DEBUG
-			MODebug2->Push( moText(" pressure: ") + IntToStr(Pen[tabletcode].value) );
+			MODebug2->Message( moText(" pressure: ") + IntToStr(Pen[tabletcode].value) );
 			#endif
 		}
 
@@ -452,8 +550,10 @@ void moTablet::Update(moEventList *Events)
 			Codes[tabletcode].AddValueToArray(t_buttonNew);
 		}
 	}
+	#endif
 }
 
+#ifdef MO_WIN32
 HCTX moTablet::InitTablet(HWND hWnd)
 {
 	//TABLET: get current settings as a starting point for this context of the tablet.
@@ -514,11 +614,15 @@ BOOL moTablet::IsTabletInstalled()
 	}	//end does tablet exists
 	return bReturn;
 }
+#endif // MO_WIN32
 
 moText moTablet::GetTabletName()
 {
+
 	char	chrWName[50];			// String to hold window name
+#ifdef MO_WIN32
 	WTInfo(WTI_DEVICES, DVC_NAME, chrWName);
+#endif
 	moText strName = chrWName;
 	return strName;
 }

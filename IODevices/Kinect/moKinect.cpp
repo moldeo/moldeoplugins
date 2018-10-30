@@ -2253,8 +2253,8 @@ if (update_on>0 && this->Initialized() ) {
 
                             //grey values:
 
-                            pFData[i*4+1+j*m_OutputMode.nXRes*4] = pFData[i*4+j*m_OutputMode.nXRes*4];
-                            pFData[i*4+2+j*m_OutputMode.nXRes*4] = pFData[i*4+j*m_OutputMode.nXRes*4];
+                            pFData[i*4+1+j*m_OutputMode.nXRes*4] = ( z - (int)m_Offset.X() ) / disoff;/*pFData[i*4+j*m_OutputMode.nXRes*4];*/
+                            pFData[i*4+2+j*m_OutputMode.nXRes*4] = ( z - (int)m_Offset.X() ) / disoff;
                             pFData[i*4+3+j*m_OutputMode.nXRes*4] = 1.0f;
 
 
