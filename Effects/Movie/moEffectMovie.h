@@ -79,7 +79,7 @@
 #define MO_ALPHA    3
 #endif
 
-#define MO_MOVIE_EOF_TOLERANCE 0
+#define MO_MOVIE_EOF_TOLERANCE 25
 
 
 enum moEffectMovieLaunch {
