@@ -1,82 +1,37 @@
-#
-# autoheader
-# libtoolize
-# automake –add-missing –foreign
-# autoconf
-# ./configure
-# make
-# make install
-#
-AC_INIT([OpenFace], [1.1.0.0], [info@moldeointeractive.com.ar], [openface])
+ACLOCAL_AMFLAGS=-I m4
 
-AM_INIT_AUTOMAKE
-AM_MAINTAINER_MODE
-AC_CONFIG_MACRO_DIR([m4])
-AM_CONFIG_HEADER(config.h)
+if DEBUG
+DFLAGS = -g3 -O0 -fpermissive -std=c++11 -msse -msse2 -msse3
+else
+DFLAGS = -O2 -fpermissive -std=c++11 -msse -msse2 -msse3
+endif
 
-AC_LIBTOOL_CONFIG
+moduletype = resources
+datadir = ${prefix}/share/moldeo/data
+modulesdir = ${exec_prefix}/lib/moldeo
+libdir = ${modulesdir}/${moduletype}
+docdir = ${prefix}/share/doc/moldeo
 
-AC_PROG_CC
-AC_PROG_CC_STDC
-AC_C_CONST
-AC_PROG_LIBTOOL
-AM_PROG_LIBTOOL
+classifiersdir = ${datadir}/openface/classifiers
+modeldir = ${datadir}/openface/model
+AU_predictorsdir = ${datadir}/openface/AU_predictors
 
+AM_CPPFLAGS = ${DFLAGS} ${HOSTCFLAGS} $(all_includes) -DDATADIR=\"$(datadir)\" -DMODULESDIR=\"$(modulesdir)\" -I/usr/include/opencv2 -I./OpenFace/lib/local/LandmarkDetector/include -I./OpenFace/lib/3rdParty/dlib/include -I./OpenFace/lib/local/FaceAnalyser/include -I./OpenFace/lib/local/GazeAnalyser/include
+AM_CXXFLAGS = ${AM_CPPFLAGS}
+AM_LDFLAGS = -ldl ${HOSTLDFLAGS}
 
-AC_PROG_CXX
-AC_PROG_CXXCPP
-AC_PROG_CXX_C_O
+lib_LTLIBRARIES = libmoldeo_openface.la
+libmoldeo_openface_la_SOURCES = moOpenFace.cpp moOpenFace.h
+libmoldeo_openface_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS} ${LIBOPENCV_CFLAGS}
+libmoldeo_openface_la_LDFLAGS = -L./OpenFace/build/lib/3rdParty/dlib -L./OpenFace/build/lib/local/LandmarkDetector -L./OpenFace/build/lib/local/FaceAnalyser -L./OpenFace/build/lib/local/GazeAnalyser
+libmoldeo_openface_la_LIBADD = -lLandmarkDetector -lFaceAnalyser -lGazeAnalyser -ldlib ${LIBOPENCV_LIBS} -ltbb -latomic -lippicv -lopenblas
+libmoldeo_openface_la_LIBS = ${LIBMOLDEO_LIBS}  -lLandmarkDetector -lFaceAnalyser -lGazeAnalyser -ldlib ${LIBOPENCV_LIBS} -ltbb -latomic -lippicv -lopenblas
 
-PKG_CHECK_MODULES([LIBMOLDEO], [libmoldeo] ,has_libmoldeo=yes)
-#PKG_CHECK_MODULES([LIBOPENCV], [opencv] ,has_opencv=yes)
-LIBOPENCV_CFLAGS="-I./opencv-3.1.0/include/opencv -I./opencv-3.1.0/modules/highgui/include -I./opencv-3.1.0/modules/imgproc/include"
-LIBOPENCV_LIBS="-L./opencv-3.1.0/3rdparty/ippicv/unpack/ippicv_lnx/lib/intel64 -L./opencv-3.1.0/build/lib -lopencv_shape -lopencv_stitching -lopencv_objdetect -lopencv_superres -lopencv_videostab -lopencv_calib3d -lopencv_features2d -lopencv_highgui -lopencv_videoio -lopencv_imgcodecs -lopencv_video -lopencv_photo -lopencv_ml -lopencv_imgproc -lopencv_flann -lopencv_core"
+libmoldeo_openface_includedir = $(includedir)/moldeo/${moduletype}/openface
+libmoldeo_openface_include_HEADERS = moOpenFace.h
 
-AC_SUBST(LIBOPENCV_CFLAGS)
-AC_SUBST(LIBOPENCV_LIBS)
+dist_classifiers_DATA = ./OpenFace/build/bin/classifiers/*.*
+dist_model_DATA = ./OpenFace/build/bin/model/*.*
+dist_AU_predictors_DATA = ./OpenFace/build/bin/AU_predictors/*.*
 
-dnl autoscan results
-AC_CHECK_FUNCS([floor])
-AC_CHECK_FUNCS([getcwd])
-AC_CHECK_FUNCS([memmove])
-AC_CHECK_FUNCS([memset])
-AC_CHECK_FUNCS([pow])
-AC_CHECK_FUNCS([rint])
-AC_CHECK_FUNCS([sqrt])
-AC_CHECK_FUNCS([strchr])
-AC_CHECK_FUNCS([strstr])
-AC_CHECK_HEADERS([fcntl.h])
-AC_CHECK_HEADERS([float.h])
-AC_CHECK_HEADERS([limits.h])
-AC_CHECK_HEADERS([stddef.h])
-AC_CHECK_HEADERS([stdlib.h])
-AC_CHECK_HEADERS([string.h])
-AC_CHECK_TYPES([ptrdiff_t])
-AC_C_INLINE
-AC_FUNC_MALLOC
-AC_FUNC_MEMCMP
-AC_FUNC_VPRINTF
-AC_HEADER_STDBOOL
-AC_HEADER_STDC
-AC_PREREQ
-AC_PROG_CPP
-AC_PROG_CXX
-AC_PROG_INSTALL
-AC_PROG_LN_S
-AC_PROG_MAKE_SET
-LT_INIT
-AC_STRUCT_TM
-AC_TYPE_SIZE_T
-
-AC_ARG_ENABLE(debug,
-AS_HELP_STRING([--enable-debug],
-               [enable debugging, default: no]),
-[case "${enableval}" in
-             yes) debug=true ;;
-             no)  debug=false ;;
-             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
-esac],
-[debug=false])
-AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
-
-AC_OUTPUT(Makefile)
+METASOURCES = AUTO

@@ -79,6 +79,8 @@ moEffectLiveDrawing2::Init() {
 
     if (!PreInit()) return false;
 
+moDefineParamIndex( LIVEDRAW2_ALPHA, moText("alpha") );
+moDefineParamIndex( LIVEDRAW2_COLOR, moText("color") );
 	moDefineParamIndex( LIVEDRAW2_BACK_TEXTURES, moText("back_textures") );
 	moDefineParamIndex( LIVEDRAW2_ICO_TEXTURES, moText("ico_textures") );
 	moDefineParamIndex( LIVEDRAW2_SHADERS, moText("shaders") );
@@ -109,6 +111,7 @@ moEffectLiveDrawing2::Init() {
 	moDefineParamIndex( LIVEDRAW2_SCALEY, moText("scaley") );
 	moDefineParamIndex( LIVEDRAW2_SCALEZ, moText("scalez") );
 	moDefineParamIndex( LIVEDRAW2_PERSPECTIVE, moText("perspective") );
+	moDefineParamIndex( LIVEDRAW2_RESET, moText("reset") );
 
 	//backTextures.MODebug = MODebug;
 	//backTextures.Init(GetConfig(), moParamReference(LIVEDRAW2_BACK_TEXTURES), m_pResourceManager->GetTextureMan() );
@@ -148,6 +151,7 @@ moEffectLiveDrawing2::Init() {
 
 	tex_tab = 0;
 	perspective = 0;
+	reset = 0;
 
     canvasWidth = m_pResourceManager->GetRenderMan()->ScreenWidth();
     canvasHeight = m_pResourceManager->GetRenderMan()->ScreenHeight();
@@ -187,7 +191,7 @@ moEffectLiveDrawing2::Init() {
 void moEffectLiveDrawing2::Draw( moTempo* tempogral,moEffectState* parentstate)
 {
     PreDraw(tempogral, parentstate);
-
+    if (reset==1) clearGestures();
     /*
     // Rehacer --
 
@@ -814,33 +818,41 @@ moEffectLiveDrawing2::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("scalez"), MO_PARAM_SCALEZ, LIVEDRAW2_SCALEZ );
 	p_configdefinition->Add( moText("perspective"), MO_PARAM_NUMERIC, LIVEDRAW2_PERSPECTIVE, moValue("0","INT") );
 
-	return p_configdefinition;
+	p_configdefinition->Add( moText("reset"), MO_PARAM_NUMERIC, LIVEDRAW2_RESET, moValue( "0","NUM").Ref(), moText("OFF,ON") );
+
+  return p_configdefinition;
 }
 
 void moEffectLiveDrawing2::updateParameters()
 {
-	canvas_margin = m_Config[moR(LIVEDRAW2_CANVAS_MARGIN)].GetData()->Int();
-	min_pressure = m_Config[moR(LIVEDRAW2_MIN_PRESSURE)].GetData()->Int();
-	max_pressure = m_Config[moR(LIVEDRAW2_MAX_PRESSURE)].GetData()->Int();
-	max_thickness = m_Config[moR(LIVEDRAW2_MAX_THICKNESS)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_line_width;
-	max_line_length = m_Config[moR(LIVEDRAW2_MAX_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
-	min_line_length = m_Config[moR(LIVEDRAW2_MIN_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
-	flow_velocity0 = m_Config[moR(LIVEDRAW2_FLOW_VELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
-	flow_period = m_Config[moR(LIVEDRAW2_FLOW_PERIOD)].GetData()->Int();
-	color_sens = m_Config[moR(LIVEDRAW2_COLOR_SENSIBILITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
-	blending = m_Config[moR(LIVEDRAW2_BLENDING)].GetData()->Int();
-	perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
+  canvas_margin = m_Config[moR(LIVEDRAW2_CANVAS_MARGIN)].GetData()->Int();
+  min_pressure = m_Config[moR(LIVEDRAW2_MIN_PRESSURE)].GetData()->Int();
+  max_pressure = m_Config[moR(LIVEDRAW2_MAX_PRESSURE)].GetData()->Int();
+  max_thickness = m_Config[moR(LIVEDRAW2_MAX_THICKNESS)].GetData()->Fun()->Eval(m_EffectState.tempo.ang) * midi_line_width;
+  max_line_length = m_Config[moR(LIVEDRAW2_MAX_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+  min_line_length = m_Config[moR(LIVEDRAW2_MIN_LINE_LENGTH)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+  flow_velocity0 = m_Config[moR(LIVEDRAW2_FLOW_VELOCITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+  flow_period = m_Config[moR(LIVEDRAW2_FLOW_PERIOD)].GetData()->Int();
+  color_sens = m_Config[moR(LIVEDRAW2_COLOR_SENSIBILITY)].GetData()->Fun()->Eval(m_EffectState.tempo.ang);
+  blending = m_Config[moR(LIVEDRAW2_BLENDING)].GetData()->Int();
+  perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
+  reset = m_Config.Int(moR(LIVEDRAW2_RESET));
 }
 
 void moEffectLiveDrawing2::updateInteractionParameters()
 {
 	//for (int i = MO_RED; i <= MO_ALPHA; i++)
-    moVector4d p = m_Config.EvalColor( moR(LIVEDRAW2_PEN_COLOR)  );
+    //moVector4d p = m_Config.EvalColor( moR(LIVEDRAW2_PEN_COLOR)  );
+    moVector4d p = m_Config.EvalColor( moR(LIVEDRAW2_COLOR)  );
     pen_color = moVector4f( p.X(), p.Y(), p.Z(), p.W() );
     pen_color_rgb[0] = pen_color.X();
     pen_color_rgb[1] = pen_color.Y();
     pen_color_rgb[2] = pen_color.Z();
     pen_color_rgb[3] = pen_color.W();
+    MODebug2->Message( "pen_color_rgb[0]" + FloatToStr(pen_color_rgb[0]) );
+    MODebug2->Message( "pen_color_rgb[1]" + FloatToStr(pen_color_rgb[1]) );
+    MODebug2->Message( "pen_color_rgb[2]" + FloatToStr(pen_color_rgb[2]) );
+    MODebug2->Message( "pen_color_rgb[3]" + FloatToStr(pen_color_rgb[3]) );
     //pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_red;
     //pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_green;
     //pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_blue;
@@ -1200,64 +1212,64 @@ void moEffectLiveDrawing2::delLastGesture()
 
 void moEffectLiveDrawing2::clearGestures()
 {
-	Gesture* p = gestures;
-	Gesture* temp;
-	while (p != NULL)
-	{
-		temp = p;
-		p = p->next;
-		delete temp;
-	}
-	gestures = lastGesture = NULL;
-}
+  Gesture* p = gestures;
+  Gesture* temp;
+  while (p != NULL)
+  {
+    temp = p;
+    p = p->next;
+    delete temp;
+  }
+  gestures = lastGesture = NULL;
+  }
 
-void moEffectLiveDrawing2::addGesture()
-{
-	moShaderGLSL* pglsl;
-	moData* pDataIconTexture = m_Config[moR(LIVEDRAW2_ICO_TEXTURES)].GetData();
-	moData* pDataBackTexture = m_Config[moR(LIVEDRAW2_BACK_TEXTURES)].GetData();
-
-
-	if (icon_mode || (line_shader == -1) || !shaded) pglsl = NULL;
-	else pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(line_shader);
+  void moEffectLiveDrawing2::addGesture()
+  {
+  moShaderGLSL* pglsl;
+  moData* pDataIconTexture = m_Config[moR(LIVEDRAW2_ICO_TEXTURES)].GetData();
+  moData* pDataBackTexture = m_Config[moR(LIVEDRAW2_BACK_TEXTURES)].GetData();
 
 
-	if (lastGesture == NULL)
-	{
-		if (icon_mode)
-			gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-									stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
-									rotosketch_duration, rotosketch_start,
-									dissolve_time, dissolve_start,
-									pglsl, -1, -1, -1, -1, -1, -1, -1, -1);
-		else
-			gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-									stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
-									rotosketch_duration, rotosketch_start,
-									dissolve_time, dissolve_start,
-									pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,
-									line_shader_point0, line_shader_point1, line_shader_point2,
-									line_shader_quad_width, line_shader_pressure);
-		lastGesture = gestures;
-	}
-	else
-	{
-		if (icon_mode)
-			lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-											stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
-											rotosketch_duration, rotosketch_start,
-											dissolve_time, dissolve_start,
-											NULL, -1, -1, -1, -1, -1, -1, -1, -1);
-		else
-			lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
-											stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
-											rotosketch_duration, rotosketch_start,
-											dissolve_time, dissolve_start,
-											pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,
-											line_shader_point0, line_shader_point1, line_shader_point2,
-											line_shader_quad_width, line_shader_pressure);
-		lastGesture = lastGesture->next;
-	}
+  if (icon_mode || (line_shader == -1) || !shaded) pglsl = NULL;
+  else pglsl = (moShaderGLSL*)m_pResourceManager->GetShaderMan()->GetShader(line_shader);
+
+
+  if (lastGesture == NULL)
+  {
+    if (icon_mode)
+      gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
+                  stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
+                  rotosketch_duration, rotosketch_start,
+                  dissolve_time, dissolve_start,
+                  pglsl, -1, -1, -1, -1, -1, -1, -1, -1);
+    else
+      gestures = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
+                  stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
+                  rotosketch_duration, rotosketch_start,
+                  dissolve_time, dissolve_start,
+                  pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,
+                  line_shader_point0, line_shader_point1, line_shader_point2,
+                  line_shader_quad_width, line_shader_pressure);
+    lastGesture = gestures;
+  }
+  else
+  {
+    if (icon_mode)
+      lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
+                      stretch_tex, repeat_icon, pDataIconTexture, sel_tex, &m_EffectState,
+                      rotosketch_duration, rotosketch_start,
+                      dissolve_time, dissolve_start,
+                      NULL, -1, -1, -1, -1, -1, -1, -1, -1);
+    else
+      lastGesture->next = new Gesture(canvasWidth, canvasHeight, max_thickness, icon_mode,
+                      stretch_tex, repeat_icon, pDataBackTexture, sel_tex, &m_EffectState,
+                      rotosketch_duration, rotosketch_start,
+                      dissolve_time, dissolve_start,
+                      pglsl, line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle,
+                      line_shader_point0, line_shader_point1, line_shader_point2,
+                      line_shader_quad_width, line_shader_pressure);
+    lastGesture = lastGesture->next;
+  }
 
 
 
@@ -1380,90 +1392,90 @@ void Gesture::AddPoly()
 
 void Gesture::RenderPolygons()
 {
-	Poly2f* p = polygons;
-	int texw = 1;
-	int texh = 1;
+  Poly2f* p = polygons;
+  int texw = 1;
+  int texh = 1;
 
-	if (datatexture!=NULL) {
+  if (datatexture!=NULL) {
 
-	    moTexture* pTexture = (moTexture*) datatexture->Pointer();
-	    if (pTexture!=NULL) {
-            glEnable(GL_TEXTURE_2D);
-            moTextFilterParam DefParam;
-            //glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, &DefParam ) );
-						glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, DefParam ) );
-            texw = pTexture->GetWidth();
-            texh = pTexture->GetHeight();
-	    } else {
-            glDisable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, 0 );
-        }
-	} else {
-	    glDisable(GL_TEXTURE_2D);
+    moTexture* pTexture = (moTexture*) datatexture->Pointer();
+    if (pTexture!=NULL) {
+        glEnable(GL_TEXTURE_2D);
+        moTextFilterParam DefParam;
+        //glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, &DefParam ) );
+        glBindTexture(GL_TEXTURE_2D, datatexture->GetGLId( &(state->tempo), 1.0, DefParam ) );
+        texw = pTexture->GetWidth();
+        texh = pTexture->GetHeight();
+    } else {
+        glDisable(GL_TEXTURE_2D);
         glBindTexture(GL_TEXTURE_2D, 0 );
     }
+  } else {
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, 0 );
+  }
 
-    float icof = 0.0;
+  float icof = 0.0;
 
-	if (line_shader != NULL)
-	{
-		line_shader->StartShader();
-		glUniform1iARB(line_shader_tex_unit, 0);
-		if (-1 < line_shader_tex_offset)
-		{
-			glUniform2fARB(line_shader_tex_offset, 1.0 / float(texw), 1.0 / float(texh));
-		}
-		if (-1 < line_shader_tempo_angle)
-		{
-			float a = state->tempo.ang;
-			float f = fmod(float(a), float(2.0 * moMathf::PI)) / (2.0 * moMathf::PI);
-			glUniform2fARB(line_shader_tempo_angle, a, f);
-		}
-	}
+  if (line_shader != NULL)
+  {
+    line_shader->StartShader();
+    glUniform1iARB(line_shader_tex_unit, 0);
+    if (-1 < line_shader_tex_offset)
+    {
+      glUniform2fARB(line_shader_tex_offset, 1.0 / float(texw), 1.0 / float(texh));
+    }
+    if (-1 < line_shader_tempo_angle)
+    {
+      float a = state->tempo.ang;
+      float f = fmod(float(a), float(2.0 * moMathf::PI)) / (2.0 * moMathf::PI);
+      glUniform2fARB(line_shader_tempo_angle, a, f);
+    }
+  }
 
-	int t0 = moGetTicks();
-	float f = 1.0;
+  int t0 = moGetTicks();
+  float f = 1.0;
     int t = t0 - compileTime;
-	if ((0 < dissolve_start) && (0 < dissolve_time) && (-1 < compileTime) && (t > dissolve_start))
-		f = min(1.0, 1.0 - float(t - dissolve_start) / dissolve_time);
+  if ((0 < dissolve_start) && (0 < dissolve_time) && (-1 < compileTime) && (t > dissolve_start))
+    f = min(1.0, 1.0 - float(t - dissolve_start) / dissolve_time);
 
-	if (0 < f)
-	{
-		int i = 0;
-		while (p != NULL)
-		{
-			if (icon_mode)
-			{
-				if (i == 0) icof += p->press;
+  if (0 < f)
+  {
+    int i = 0;
+    while (p != NULL)
+    {
+      if (icon_mode)
+      {
+        if (i == 0) icof += p->press;
 
-				if (repeat_icon || (p->next == NULL))
-				{
-					p->DrawIcon(state->tintr, state->tintg, state->tintb, state->alpha * f, texw, texh, icof);
-				}
-			}
-			else
-			{
-				if ((rotsketchIndex == i) && (t0 - lastRotosketchUpdateTime < rotosketch_duration))
-				{
-					float fr = min(1.0, 1.0 - float(t0 - lastRotosketchUpdateTime) / rotosketch_duration);
-					p->Draw(state->tintr, state->tintg, state->tintb, state->alpha * f * fr, stretch_tex,
-						line_shader_point0, line_shader_point1, line_shader_point2,
-						line_shader_quad_width, line_shader_pressure);
-				}
-				else if (rotsketchIndex < i)
-					p->Draw(state->tintr, state->tintg, state->tintb, state->alpha * f, stretch_tex,
-						line_shader_point0, line_shader_point1, line_shader_point2,
-						line_shader_quad_width, line_shader_pressure);
-			}
+        if (repeat_icon || (p->next == NULL))
+        {
+          p->DrawIcon(state->tintr, state->tintg, state->tintb, state->alpha * f, texw, texh, icof);
+        }
+      }
+      else
+      {
+        if ((rotsketchIndex == i) && (t0 - lastRotosketchUpdateTime < rotosketch_duration))
+        {
+          float fr = min(1.0, 1.0 - float(t0 - lastRotosketchUpdateTime) / rotosketch_duration);
+          p->Draw(state->tintr, state->tintg, state->tintb, state->alpha * f * fr, stretch_tex,
+            line_shader_point0, line_shader_point1, line_shader_point2,
+            line_shader_quad_width, line_shader_pressure);
+        }
+        else if (rotsketchIndex < i)
+          p->Draw(state->tintr, state->tintg, state->tintb, state->alpha * f, stretch_tex,
+            line_shader_point0, line_shader_point1, line_shader_point2,
+            line_shader_quad_width, line_shader_pressure);
+      }
 
-			p = p->next;
+      p = p->next;
 
-			i++;
-		}
-	}
+      i++;
+    }
+  }
 
-	if (line_shader != NULL) line_shader->StopShader();
-	glBindTexture(GL_TEXTURE_2D, 0);
+  if (line_shader != NULL) line_shader->StopShader();
+  glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Gesture::RotosketchUpdate()
@@ -1712,81 +1724,85 @@ void Poly2f::DrawIcon(float tintr, float tintg, float tintb, float alpha, int ic
 }
 
 void Poly2f::Draw(float tintr, float tintg, float tintb, float alpha, bool stretch,
-				  int line_shader_point0, int line_shader_point1, int line_shader_point2,
-				  int line_shader_quad_width, int line_shader_pressure)
+        int line_shader_point0, int line_shader_point1, int line_shader_point2,
+        int line_shader_quad_width, int line_shader_pressure)
 {
 
 	bool inside_screen = ((0 <= xpoints[0]) && (xpoints[0] <= w) || (0 <= ypoints[0]) && (ypoints[0] <= h)) ||
-						 ((0 <= xpoints[1]) && (xpoints[1] <= w) || (0 <= ypoints[1]) && (ypoints[1] <= h)) ||
-						 ((0 <= xpoints[2]) && (xpoints[2] <= w) || (0 <= ypoints[2]) && (ypoints[2] <= h)) ||
-						 ((0 <= xpoints[3]) && (xpoints[3] <= w) || (0 <= ypoints[3]) && (ypoints[3] <= h));
+           ((0 <= xpoints[1]) && (xpoints[1] <= w) || (0 <= ypoints[1]) && (ypoints[1] <= h)) ||
+           ((0 <= xpoints[2]) && (xpoints[2] <= w) || (0 <= ypoints[2]) && (ypoints[2] <= h)) ||
+           ((0 <= xpoints[3]) && (xpoints[3] <= w) || (0 <= ypoints[3]) && (ypoints[3] <= h));
 
-		if (inside_screen)
-		{
-			// El shader necesita los vectores que definen el rect�ngulo que se est� dibujando en este
-			// momento: (x0, y0) es el punto medio entre los dos vertices que definen el primer lado
-			// del rect�ngulo, (x2, y2) es el punto medio del lado opuesto. La distancia l es la mitad
-			// del ancho del rect�ngulo.
-			float x0 = 0.5 * (xpoints[0] + xpoints[1]);
-			float y0 = 0.5 * (ypoints[0] + ypoints[1]);
-			float x2 = 0.5 * (xpoints[2] + xpoints[3]);
-			float y2 = 0.5 * (ypoints[2] + ypoints[3]);
-			float l;
-			if (-1 < line_shader_quad_width)
-				l = sqrt((x0 - xpoints[1]) * (x0 - xpoints[1]) + (y0 - ypoints[1]) * (y0 - ypoints[1]));
-			else l = 0.0;
+    if (inside_screen)
+    {
+      // El shader necesita los vectores que definen el rect�ngulo que se est� dibujando en este
+      // momento: (x0, y0) es el punto medio entre los dos vertices que definen el primer lado
+      // del rect�ngulo, (x2, y2) es el punto medio del lado opuesto. La distancia l es la mitad
+      // del ancho del rect�ngulo.
+      float x0 = 0.5 * (xpoints[0] + xpoints[1]);
+      float y0 = 0.5 * (ypoints[0] + ypoints[1]);
+      float x2 = 0.5 * (xpoints[2] + xpoints[3]);
+      float y2 = 0.5 * (ypoints[2] + ypoints[3]);
+      float l;
+      if (-1 < line_shader_quad_width)
+        l = sqrt((x0 - xpoints[1]) * (x0 - xpoints[1]) + (y0 - ypoints[1]) * (y0 - ypoints[1]));
+      else l = 0.0;
 
-			float s0, t0, s1, t1, s2, t2, s3, t3;
-			if (stretch)
-			{
-				s0 = 0.0; t0 = 0.0;
-				s1 = 0.0; t1 = 1.0;
-				s2 = 1.0; t2 = 1.0;
-				s3 = 1.0; t3 = 0.0;
-			}
-			else
-			{
-				s0 = (float)xpoints[0] / (float)w; t0 = (float)ypoints[0] / (float)h;
-				s1 = (float)xpoints[1] / (float)w; t1 = (float)ypoints[1] / (float)h;
-				s2 = (float)xpoints[2] / (float)w; t2 = (float)ypoints[2] / (float)h;
-				s3 = (float)xpoints[3] / (float)w; t3 = (float)ypoints[3] / (float)h;
-			}
+      float s0, t0, s1, t1, s2, t2, s3, t3;
+      if (stretch)
+      {
+        s0 = 0.0; t0 = 0.0;
+        s1 = 0.0; t1 = 1.0;
+        s2 = 1.0; t2 = 1.0;
+        s3 = 1.0; t3 = 0.0;
+      }
+      else
+      {
+        s0 = (float)xpoints[0] / (float)w; t0 = (float)ypoints[0] / (float)h;
+        s1 = (float)xpoints[1] / (float)w; t1 = (float)ypoints[1] / (float)h;
+        s2 = (float)xpoints[2] / (float)w; t2 = (float)ypoints[2] / (float)h;
+        s3 = (float)xpoints[3] / (float)w; t3 = (float)ypoints[3] / (float)h;
+      }
 
-			glBegin(GL_QUADS);
-			/*
-				SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
-								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
-								line_shader_point0, line_shader_point1, line_shader_point2,
-								line_shader_quad_width, line_shader_pressure);
-				*/
-				glTexCoord2f(s0, t0);
-				glVertex2f(xpoints[0], ypoints[0]);
-
-				/*SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
-								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
-								line_shader_point0, line_shader_point1, line_shader_point2,
-								line_shader_quad_width, line_shader_pressure);
-				*/
-				glTexCoord2f(s1, t1);
-				glVertex2f(xpoints[1], ypoints[1]);
+      glBegin(GL_QUADS);
 /*
-				SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
-								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
-								line_shader_point0, line_shader_point1, line_shader_point2,
-								line_shader_quad_width, line_shader_pressure);
-	*/
-				glTexCoord2f(s2, t2);
-				glVertex2f(xpoints[2], ypoints[2]);
-/*
-				SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
-								x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
-								line_shader_point0, line_shader_point1, line_shader_point2,
-								line_shader_quad_width, line_shader_pressure);
+        SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
+                x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
+                line_shader_point0, line_shader_point1, line_shader_point2,
+                line_shader_quad_width, line_shader_pressure);
 */
-				glTexCoord2f(s3, t3);
-				glVertex2f(xpoints[3], ypoints[3]);
-			glEnd();
-		}
+        glColor4f(red0, green0, blue0, alpha0*alpha);
+        glTexCoord2f(s0, t0);
+        glVertex2f(xpoints[0], ypoints[0]);
+/*
+        SetVertexAttrib(red0 * tintr, green0 * tintg, blue0 * tintb, alpha0 * alpha,
+                x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
+                line_shader_point0, line_shader_point1, line_shader_point2,
+                line_shader_quad_width, line_shader_pressure);
+*/
+        glColor4f(red0, green0, blue0, alpha0*alpha);
+        glTexCoord2f(s1, t1);
+        glVertex2f(xpoints[1], ypoints[1]);
+/*
+        SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
+                x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
+                line_shader_point0, line_shader_point1, line_shader_point2,
+                line_shader_quad_width, line_shader_pressure);
+*/
+        glColor4f(red1, green1, blue1, alpha1*alpha);
+        glTexCoord2f(s2, t2);
+        glVertex2f(xpoints[2], ypoints[2]);
+/*
+        SetVertexAttrib(red1 * tintr, green1 * tintg, blue1 * tintb, alpha1 * alpha,
+                x0, y0, xpoints[1], ypoints[1], x2, y2, l, press,
+                line_shader_point0, line_shader_point1, line_shader_point2,
+                line_shader_quad_width, line_shader_pressure);
+*/
+        glColor4f(red1, green1, blue1, alpha1*alpha);
+        glTexCoord2f(s3, t3);
+        glVertex2f(xpoints[3], ypoints[3]);
+      glEnd();
+    }
 }
 
 
@@ -1839,47 +1855,47 @@ void Poly2f::Displace(float vel, int period)
 
 void Poly2f::SetColor0(float r, float g, float b, float a)
 {
-	red0 = r;
-	green0 = g;
-	blue0 = b;
-	alpha0 = a;
+  red0 = r;
+  green0 = g;
+  blue0 = b;
+  alpha0 = a;
 }
 
 void Poly2f::SetColor0(float r, float g, float b)
 {
-	red0 = r;
-	green0 = g;
-	blue0 = b;
+  red0 = r;
+  green0 = g;
+  blue0 = b;
 }
 
 void Poly2f::SetAlpha0(float a)
 {
-	alpha0 = a;
+  alpha0 = a;
 }
 
 void Poly2f::SetColor1(float r, float g, float b, float a)
 {
-	red1 = r;
-	green1 = g;
-	blue1 = b;
-	alpha1 = a;
+  red1 = r;
+  green1 = g;
+  blue1 = b;
+  alpha1 = a;
 }
 
 void Poly2f::SetColor1(float r, float g, float b)
 {
-	red1 = r;
-	green1 = g;
-	blue1 = b;
+  red1 = r;
+  green1 = g;
+  blue1 = b;
 }
 
 void Poly2f::SetAlpha1(float a)
 {
-	alpha1 = a;
+  alpha1 = a;
 }
 
 void Poly2f::SetPressure(float p)
 {
-	press = p;
+  press = p;
 }
 
 void moEffectLiveDrawing2::DrawCalibrationGrid() {

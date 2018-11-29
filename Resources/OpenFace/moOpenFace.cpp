@@ -1543,7 +1543,7 @@ moOpenFace::FaceDetection() {
   //dst = cv2.warpAffine(img,M,(cols,rows))
   cv::Mat M = cv::getRotationMatrix2D( cv::Point2f( m_reduce_width/2, m_reduce_height/2) , 90, 1 );
   cv::Mat dst;
-  cv::warpAffine( frame_gray ,dst, M,cv::Point2f(m_reduce_width,m_reduce_height));
+  cv::warpAffine( frame_gray ,dst, M,cv::Size(m_reduce_width,m_reduce_height));
   //cv::warpAffine(
 // The actual facial landmark detection / tracking
 

@@ -39,6 +39,8 @@
 #define __MO_EFFECT_LIVE_DRAWING_H__
 
 enum moLiveDraw2ParamIndex {
+	LIVEDRAW2_ALPHA,
+	LIVEDRAW2_COLOR,
 	LIVEDRAW2_BACK_TEXTURES,
 	LIVEDRAW2_ICO_TEXTURES,
 	LIVEDRAW2_SHADERS,
@@ -67,7 +69,8 @@ enum moLiveDraw2ParamIndex {
 	LIVEDRAW2_SCALEX,
 	LIVEDRAW2_SCALEY,
 	LIVEDRAW2_SCALEZ,
-	LIVEDRAW2_PERSPECTIVE
+	LIVEDRAW2_PERSPECTIVE,
+	LIVEDRAW2_RESET
 };
 
 #define MO_DRAW_TRANSLATE_X		0
@@ -132,152 +135,152 @@ enum moLiveDraw2ParamIndex {
 class Vec3f
 {
 public:
-	Vec3f() { set(0,0,0); next = NULL; }
-	Vec3f(float ix, float iy, float ip) { set(ix, iy, ip); next = NULL; }
-	void set(float ix, float iy, float ip) { x = ix; y = iy; p = ip; }
-	void set(float ir, float ig, float ib, float ia) { r = ir; g = ig; b = ib; a = ia; }
+  Vec3f() { set(0,0,0); next = NULL; }
+  Vec3f(float ix, float iy, float ip) { set(ix, iy, ip); next = NULL; }
+  void set(float ix, float iy, float ip) { x = ix; y = iy; p = ip; }
+  void set(float ir, float ig, float ib, float ia) { r = ir; g = ig; b = ib; a = ia; }
 
-	float x;
-	float y;
-	float p; // pressure
-	float r; // red
-	float g; // green
-	float b; // blue
-	float a; // alpha
+  float x;
+  float y;
+  float p; // pressure
+  float r; // red
+  float g; // green
+  float b; // blue
+  float a; // alpha
 
 
-	Vec3f* next;
+  Vec3f* next;
 };
 
 class Poly2f
 {
 public:
-	Poly2f(int iw, int ih)
-	{
-		red0 = green0 = blue0 = 1.0;
-		red1 = green1 = blue1 = 1.0;
-		alpha0 = alpha1 = 1.0;
-		press = 0.0;
-		next = NULL;
-		w = iw;
-		h = ih;
-	}
+  Poly2f(int iw, int ih)
+  {
+    red0 = green0 = blue0 = 1.0;
+    red1 = green1 = blue1 = 1.0;
+    alpha0 = alpha1 = 1.0;
+    press = 0.0;
+    next = NULL;
+    w = iw;
+    h = ih;
+  }
 
-	int w;
-	int h;
-	float alpha0, alpha1, press;
-	float red0, green0, blue0;
-	float red1, green1, blue1;
-	float xpoints[4];
-	float ypoints[4];
+  int w;
+  int h;
+  float alpha0, alpha1, press;
+  float red0, green0, blue0;
+  float red1, green1, blue1;
+  float xpoints[4];
+  float ypoints[4];
 
-	Poly2f* next;
+  Poly2f* next;
 
-	void SetColor0(float r, float g, float b, float a);
-	void SetColor0(float r, float g, float b);
-	void SetAlpha0(float a);
-	void SetPressure(float p);
+  void SetColor0(float r, float g, float b, float a);
+  void SetColor0(float r, float g, float b);
+  void SetAlpha0(float a);
+  void SetPressure(float p);
 
-	void SetColor1(float r, float g, float b, float a);
-	void SetColor1(float r, float g, float b);
-	void SetAlpha1(float a);
+  void SetColor1(float r, float g, float b, float a);
+  void SetColor1(float r, float g, float b);
+  void SetAlpha1(float a);
 
-	void DrawIcon(float tintr, float tintg, float tintb, float alpha, int icow, int icoh, float icof);
-	void Draw(float tintr, float tintg, float tintb, float alpha, bool stretch,
-				int line_shader_point0, int line_shader_point1, int line_shader_point2,
-				int line_shader_quad_width, int line_shader_pressure);
-	void SetVertexAttrib(float r, float g, float b, float a,
-						 float x0, float y0, float x1, float y1, float x2, float y2,
-						 float l, float p,
-						 int line_shader_point0, int line_shader_point1, int line_shader_point2,
-						 int line_shader_quad_width, int line_shader_pressure);
-	void Displace(float vel, int period);
+  void DrawIcon(float tintr, float tintg, float tintb, float alpha, int icow, int icoh, float icof);
+  void Draw(float tintr, float tintg, float tintb, float alpha, bool stretch,
+        int line_shader_point0, int line_shader_point1, int line_shader_point2,
+        int line_shader_quad_width, int line_shader_pressure);
+  void SetVertexAttrib(float r, float g, float b, float a,
+             float x0, float y0, float x1, float y1, float x2, float y2,
+             float l, float p,
+             int line_shader_point0, int line_shader_point1, int line_shader_point2,
+             int line_shader_quad_width, int line_shader_pressure);
+  void Displace(float vel, int period);
 };
 
 class Gesture : public moAbstract
 {
 public:
-	 Gesture(int iw, int ih, int it, bool imod, bool stex, bool rico, moData *pdatatexture, int t, moEffectState* s,
-				int rduration, int rstart, int dtime, int dstart,
-				moShaderGLSL* shader,
-				int shader_tex_unit, int shader_tex_offset, int shader_tempo_angle,
-				int shader_point0, int shader_point1, int shader_point2,
-				int shader_quad_width, int shader_pressure)
-	 {
-		 nPoints = nPolys = 0; w = iw; h = ih; thickness = it;
-		 lastPoint = points = NULL;
-		 polygons = lastPoly = NULL;
-		 next = NULL;
-		 compileTime = -1;
-		 rotsketchIndex = -1;
-		 dissolve_start = 1000;
-		 dissolve_time = 5000;
-		 icon_mode = imod;
-		 stretch_tex = stex;
-		 repeat_icon = rico;
-		 datatexture = pdatatexture;
-		 tex = t;
-		 state = s;
-		 rotosketch_duration = rduration;
-		 rotosketch_start = rstart;
-		 dissolve_time = dtime;
-		 dissolve_start = dstart;
+   Gesture(int iw, int ih, int it, bool imod, bool stex, bool rico, moData *pdatatexture, int t, moEffectState* s,
+        int rduration, int rstart, int dtime, int dstart,
+        moShaderGLSL* shader,
+        int shader_tex_unit, int shader_tex_offset, int shader_tempo_angle,
+        int shader_point0, int shader_point1, int shader_point2,
+        int shader_quad_width, int shader_pressure)
+   {
+     nPoints = nPolys = 0; w = iw; h = ih; thickness = it;
+     lastPoint = points = NULL;
+     polygons = lastPoly = NULL;
+     next = NULL;
+     compileTime = -1;
+     rotsketchIndex = -1;
+     dissolve_start = 1000;
+     dissolve_time = 5000;
+     icon_mode = imod;
+     stretch_tex = stex;
+     repeat_icon = rico;
+     datatexture = pdatatexture;
+     tex = t;
+     state = s;
+     rotosketch_duration = rduration;
+     rotosketch_start = rstart;
+     dissolve_time = dtime;
+     dissolve_start = dstart;
 
-		 line_shader = shader;
-		 line_shader_tex_unit = shader_tex_unit;
-		 line_shader_tex_offset = shader_tex_offset;
-		 line_shader_tempo_angle = shader_tempo_angle;
+     line_shader = shader;
+     line_shader_tex_unit = shader_tex_unit;
+     line_shader_tex_offset = shader_tex_offset;
+     line_shader_tempo_angle = shader_tempo_angle;
 
-		 line_shader_point0 = shader_point0;
-		 line_shader_point1 = shader_point1;
-		 line_shader_point2 = shader_point2;
-		 line_shader_quad_width = shader_quad_width;
-		 line_shader_pressure = shader_pressure;
-	 }
-	 ~Gesture() { clearPoints(); clearPolys(); }
+     line_shader_point0 = shader_point0;
+     line_shader_point1 = shader_point1;
+     line_shader_point2 = shader_point2;
+     line_shader_quad_width = shader_quad_width;
+     line_shader_pressure = shader_pressure;
+   }
+   ~Gesture() { clearPoints(); clearPolys(); }
 
-	Vec3f* points;
-	Vec3f* lastPoint;
-	Poly2f* polygons;
-	Poly2f* lastPoly;
+  Vec3f* points;
+  Vec3f* lastPoint;
+  Poly2f* polygons;
+  Poly2f* lastPoly;
 
-	Gesture* next;
+  Gesture* next;
 
-	int rotsketchIndex;
-	int lastRotosketchUpdateTime;
-	int compileTime;
-	bool icon_mode;
-	bool stretch_tex;
-	bool repeat_icon;
-	int tex;
-	moData* datatexture;
-	moEffectState* state;
-	int rotosketch_duration, rotosketch_start;
-	int dissolve_time, dissolve_start;
+  int rotsketchIndex;
+  int lastRotosketchUpdateTime;
+  int compileTime;
+  bool icon_mode;
+  bool stretch_tex;
+  bool repeat_icon;
+  int tex;
+  moData* datatexture;
+  moEffectState* state;
+  int rotosketch_duration, rotosketch_start;
+  int dissolve_time, dissolve_start;
 
-	moShaderGLSL* line_shader;
-	int line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle;
-	int line_shader_point0, line_shader_point1, line_shader_point2;
-	int line_shader_quad_width, line_shader_pressure;
+  moShaderGLSL* line_shader;
+  int line_shader_tex_unit, line_shader_tex_offset, line_shader_tempo_angle;
+  int line_shader_point0, line_shader_point1, line_shader_point2;
+  int line_shader_quad_width, line_shader_pressure;
 
-	int w;
-	int h;
-	float thickness;
+  int w;
+  int h;
+  float thickness;
 
-	int nPoints;
-	int nPolys;
+  int nPoints;
+  int nPolys;
 
-	void AddPoint(float x, float y, float p, float* color);
-	void AddPoly();
-	void displacePolygons(float vel, int period);
-	void RenderPolygons();
-	void RotosketchUpdate();
+  void AddPoint(float x, float y, float p, float* color);
+  void AddPoly();
+  void displacePolygons(float vel, int period);
+  void RenderPolygons();
+  void RotosketchUpdate();
 
-	void clearPoints();
-	void clearPolys();
-	void compile();
-	float distToLast(float ix, float iy);
-	void smooth();
+  void clearPoints();
+  void clearPolys();
+  void compile();
+  float distToLast(float ix, float iy);
+  void smooth();
 };
 
 class moEffectLiveDrawing2 : public moEffect
@@ -325,6 +328,7 @@ protected:
 	MOint tex_tab;
 
 	MOint perspective;
+	MOint reset;
 
 	MOint line_shader;
 	MOint line_shader_tex_unit;
