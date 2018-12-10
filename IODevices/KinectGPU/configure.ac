@@ -9,7 +9,7 @@
 #
 AC_INIT([KinectGPU], [0.7], [info@moldeointeractive.com.ar], [kinectgpu])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)

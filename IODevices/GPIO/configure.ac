@@ -9,7 +9,7 @@
 #
 AC_INIT([GPIO], [1.0.0.0], [info@moldeointeractive.com.ar], [gpio])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)
