@@ -243,6 +243,13 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
   MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > ...GetCaptureDevices(true) ");
   CapDevs = VMan->GetCaptureDevices(true);
   MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > CapDevs:"+IntToStr(CapDevs.Count()));
+  for(int cc=0;cc<CapDevs.Count();cc++) {
+    moCaptureDevice cd = CapDevs.Get(cc);
+    MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > :"+IntToStr(cc)
+    +" "+cd.GetName()
+    +" "+cd.GetPath()
+    +" "+cd.GetLabelName() );
+  }
   moCamera* Camera = NULL;
   bool founded = false;
   if (VMan->GetCameraCount()>0) {
@@ -253,7 +260,9 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
       if (Camera) {
         if (Camera->GetCaptureDevice().GetName()==camera
             ||
-            Camera->GetCaptureDevice().GetLabelName()==camera ) {
+            Camera->GetCaptureDevice().GetLabelName()==camera
+            ||
+            Camera->GetCaptureDevice().GetPath()==camera ) {
           founded = true;
         }
         else {
@@ -271,14 +280,37 @@ moEffectCamera::CheckIfDeviceNameExists( const moText& camera ) {
 
   }
 
-  if (camera=="default" && CapDevs.Count()>0 ) {
+  if (CapDevs.Count()>0 ) {
     moCaptureDevice Cap = CapDevs.Get(0);
-    if (Cap.IsPresent()) {
-      MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, at least one camera device is available. Cap. Label Name: "
-                    +Cap.GetLabelName()+" WxH:" + IntToStr(Cap.GetSourceWidth())+"x"+ IntToStr(Cap.GetSourceHeight()) );
+    if (camera=="default") {
+      if (Cap.IsPresent()) {
+        MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, at least one camera device is available. Cap. Label Name: "
+                      +Cap.GetLabelName()+" WxH:" + IntToStr(Cap.GetSourceWidth())+"x"+ IntToStr(Cap.GetSourceHeight()) );
+      } else {
+        MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, available but not present?");
+      }
+      return true;
     } else {
-      MODebug2->Message("moEffectCamera::CheckIfDeviceNameExists > default selected, available but not present?");
+      for(int ic=0;ic<CapDevs.Count();ic++) {
+        Cap = CapDevs.Get(ic);
+        if (Cap.IsPresent()) {
+          if (camera==Cap.GetPath() || camera==Cap.GetName() || camera==Cap.GetLabelName()) {
+//            m_CaptureDevice.m_Path = Cap.GetPath();
+//            m_CaptureDevice.m_Name = Cap.GetName();
+//            m_CaptureDevice.m_LabelName = Cap.GetLabelName();
+            return true;
+          }
+        }
+      }
     }
+  }
+
+  string streamingcam = (char*)camera;
+  //CHECK FOR STREAMING CAMERA DYNAMICALLY
+  if ( streamingcam.find("rtsp")==0 || streamingcam.find("RTSP")==0
+      || streamingcam.find("http")==0 || streamingcam.find("HTTP")==0
+      || streamingcam.find("https")==0 || streamingcam.find("HTTPS")==0
+      || streamingcam.find("/dev/video")==0 || streamingcam.find("/dev/")==0 ) {
     return true;
   }
 
@@ -327,6 +359,8 @@ void moEffectCamera::UpdateCamera() {
   moCaptureDevice CD( "custom", moText(""), moText(""), 0, srcw, srch, srcbpp, flH, flV );
 
   CD.SetLabelName( camera_v );
+  //CD.SetName( camera_v );
+  //CD.m_Path = camera_v;
 
   VF.m_Width = m_Config.Int( moR( CAMERA_SCALE_WIDTH ) );
   VF.m_Height = m_Config.Int( moR( CAMERA_SCALE_HEIGHT ) );
@@ -358,6 +392,7 @@ void moEffectCamera::UpdateCamera() {
   chequeamos si hubo un cambio de camara:
 
   */
+  //MODebug2->Message("moEffectCamera::UpdateCamera > Reload Camera with custom settings: m_DeviceName: "+m_DeviceName+" camera:"+camera_v );
   if ( m_DeviceName == camera_v ) {
     ///just check the device is on and transmitting
   } else {

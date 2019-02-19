@@ -174,18 +174,19 @@ void moEffectAssimp::recursiveTextureLoad(const aiScene *sc, const aiNode* nd)
 
       moText texture_name = moText( str->C_Str() );
       texture_name = AssetFile.GetPath() + texture_name;
-      MODebug2->Message("moEffectAssimp::recursiveTextureLoad > texture_name "  + texture_name );
+      MODebug2->Message("moEffectAssimp::recursiveTextureLoad > texture_name: "  + texture_name );
 
-      int idx = m_pResourceManager->GetTextureMan()->GetTextureMOId( texture_name, true /*create if not exists*/);
-      /*if (idx==-1) {
-        texture_name = texture_name + moText(".png");
+      int idx = m_pResourceManager->GetTextureMan()->GetTextureMOId( texture_name, false /*create if not exists*/);
+      if (idx==-1) {
+        //texture_name = texture_name + moText(".png");
+        MODebug2->Message("moEffectAssimp::recursiveTextureLoad > creating" );
         idx = m_pResourceManager->GetTextureMan()->GetTextureMOId( texture_name, true );
-      }*/
+      }
 
       if (idx>-1) {
         moTexture * pText = m_pResourceManager->GetTextureMan()->GetTexture(idx);
         if (pText) {
-          MODebug2->Message( "moEffectAssimp::recursiveTextureLoad > Texture loaded : " + texture_name + " width:" + IntToStr( pText->GetWidth() ) );
+          MODebug2->Message( "moEffectAssimp::recursiveTextureLoad > Texture loaded : " + texture_name + " width:" + IntToStr( pText->GetWidth() )+ " height:" + IntToStr( pText->GetHeight() ) );
         } else {
           MODebug2->Error( "moEffectAssimp::recursiveTextureLoad > Texture not loaded...." );
         }
@@ -377,7 +378,8 @@ void moEffectAssimp::apply_material(const aiMaterial *mtl)
               (Texture->GetType() == MO_TYPE_VIDEOBUFFER)))
         {
           moTextureAnimated* ptex_anim = (moTextureAnimated*)Texture;
-          texId = ptex_anim ->GetGLId( (moTempo *) &this->m_EffectState.tempo );
+          texId = ptex_anim->GetGLId( (moTempo *) &this->m_EffectState.tempo );
+          //MODebug2->Message("moEffectAssimp::apply_material > animated texture glid: " + IntToStr(texId) );
         }
       }
     } else {
@@ -756,7 +758,7 @@ void moEffectAssimp::UpdateParameters() {
     AssetFile.SetCompletePath( testasset );
 
     MODebug2->Message( "moEffectAssimp::UpdateParameters > Loading Asset File, complete path is: "
-                      + m_pResourceManager->GetDataMan()->GetDataPath() + AssetFile.GetCompletePath() );
+                      + m_pResourceManager->GetDataMan()->GetDataPath() + moSlash+ AssetFile.GetCompletePath() );
 
     scene_list = 0;
     loadedAsset = loadasset( m_pResourceManager->GetDataMan()->GetDataPath() + moSlash + AssetFile.GetCompletePath() );

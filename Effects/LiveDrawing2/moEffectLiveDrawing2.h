@@ -70,7 +70,8 @@ enum moLiveDraw2ParamIndex {
 	LIVEDRAW2_SCALEY,
 	LIVEDRAW2_SCALEZ,
 	LIVEDRAW2_PERSPECTIVE,
-	LIVEDRAW2_RESET
+	LIVEDRAW2_RESET,
+	LIVEDRAW2_DEVICENUMBER
 };
 
 #define MO_DRAW_TRANSLATE_X		0
@@ -329,6 +330,7 @@ protected:
 
 	MOint perspective;
 	MOint reset;
+	MOint device_number;
 
 	MOint line_shader;
 	MOint line_shader_tex_unit;

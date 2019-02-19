@@ -112,6 +112,7 @@ moDefineParamIndex( LIVEDRAW2_COLOR, moText("color") );
 	moDefineParamIndex( LIVEDRAW2_SCALEZ, moText("scalez") );
 	moDefineParamIndex( LIVEDRAW2_PERSPECTIVE, moText("perspective") );
 	moDefineParamIndex( LIVEDRAW2_RESET, moText("reset") );
+	moDefineParamIndex( LIVEDRAW2_DEVICENUMBER, moText("device_number") );
 
 	//backTextures.MODebug = MODebug;
 	//backTextures.Init(GetConfig(), moParamReference(LIVEDRAW2_BACK_TEXTURES), m_pResourceManager->GetTextureMan() );
@@ -152,6 +153,7 @@ moDefineParamIndex( LIVEDRAW2_COLOR, moText("color") );
 	tex_tab = 0;
 	perspective = 0;
 	reset = 0;
+	device_number = 0;
 
     canvasWidth = m_pResourceManager->GetRenderMan()->ScreenWidth();
     canvasHeight = m_pResourceManager->GetRenderMan()->ScreenHeight();
@@ -819,6 +821,7 @@ moEffectLiveDrawing2::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("perspective"), MO_PARAM_NUMERIC, LIVEDRAW2_PERSPECTIVE, moValue("0","INT") );
 
 	p_configdefinition->Add( moText("reset"), MO_PARAM_NUMERIC, LIVEDRAW2_RESET, moValue( "0","NUM").Ref(), moText("OFF,ON") );
+  p_configdefinition->Add( moText("device_number"), MO_PARAM_NUMERIC, LIVEDRAW2_DEVICENUMBER );
 
   return p_configdefinition;
 }
@@ -837,6 +840,7 @@ void moEffectLiveDrawing2::updateParameters()
   blending = m_Config[moR(LIVEDRAW2_BLENDING)].GetData()->Int();
   perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
   reset = m_Config.Int(moR(LIVEDRAW2_RESET));
+  device_number = m_Config.Int(moR(LIVEDRAW2_DEVICENUMBER));
 }
 
 void moEffectLiveDrawing2::updateInteractionParameters()
@@ -849,10 +853,10 @@ void moEffectLiveDrawing2::updateInteractionParameters()
     pen_color_rgb[1] = pen_color.Y();
     pen_color_rgb[2] = pen_color.Z();
     pen_color_rgb[3] = pen_color.W();
-    MODebug2->Message( "pen_color_rgb[0]" + FloatToStr(pen_color_rgb[0]) );
+   /* MODebug2->Message( "pen_color_rgb[0]" + FloatToStr(pen_color_rgb[0]) );
     MODebug2->Message( "pen_color_rgb[1]" + FloatToStr(pen_color_rgb[1]) );
     MODebug2->Message( "pen_color_rgb[2]" + FloatToStr(pen_color_rgb[2]) );
-    MODebug2->Message( "pen_color_rgb[3]" + FloatToStr(pen_color_rgb[3]) );
+    MODebug2->Message( "pen_color_rgb[3]" + FloatToStr(pen_color_rgb[3]) );*/
     //pen_color_rgb[0] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][0].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_red;
     //pen_color_rgb[1] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][1].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_green;
     //pen_color_rgb[2] = m_Config[moR(LIVEDRAW2_PEN_COLOR)][MO_SELECTED][2].GetData()->Fun()->Eval(m_EffectState.tempo.ang)*midi_blue;
@@ -1214,12 +1218,13 @@ void moEffectLiveDrawing2::clearGestures()
 {
   Gesture* p = gestures;
   Gesture* temp;
+  /**
   while (p != NULL)
   {
     temp = p;
     p = p->next;
     delete temp;
-  }
+  }*/
   gestures = lastGesture = NULL;
   }
 
@@ -2061,7 +2066,9 @@ void moEffectLiveDrawing2::Update(moEventList *Events)
                                 + " v0:" + IntToStr(actual->reservedvalue0)
                               + " v1:" + IntToStr(actual->reservedvalue1)
                             + " v3:" + IntToStr(actual->reservedvalue2) );*/
-    if (actual->deviceid == MO_IODEVICE_TABLET) {
+    if (
+      actual->deviceid == ( (int)(MO_IODEVICE_TABLET)*(device_number+1) )
+      ) {
       penX = actual->reservedvalue0;
       penX = momin(penX, canvasWidth - canvas_margin);
       penX = momax(penX, canvas_margin);
