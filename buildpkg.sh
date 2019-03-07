@@ -69,14 +69,18 @@ sed -i -e 's/Section: unknown/Section: graphics/g' debian/control
 sed -i -e 's/Maintainer: fabricio /Maintainer: Moldeo Interactive /g' debian/control
 sed -i -e 's/<insert the upstream URL, if relevant>/http:\\\\www.moldeo.org/g' debian/control
 sed -i -e 's/moldeopluginsBROKEN/moldeoplugins/g' debian/control
-sed -i -e 's/,autotools-dev/, autotools-dev, libmoldeo-dev, libopencv-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
+#with opencv
+#sed -i -e 's/,autotools-dev/, autotools-dev, libmoldeo-dev, libopencv-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
+sed -i -e 's/,autotools-dev/, autotools-dev, libmoldeo-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
 
 #development
 sed -i -e '0,/, ${misc:Depends}/{s/, ${misc:Depends}/,${misc:Depends}, libmoldeo-dev, libopencv-dev, libportmidi-dev, libsndfile1-dev/g}' debian/control
 sed -i -e '0,/<insert up to 60 chars description>/{s/<insert up to 60 chars description>/Moldeo Plugins, Dev Package/}'  debian/control
 
 #binary
-sed -i -e 's/, ${misc:Depends}/,${misc:Depends},  libmoldeo-dev, libopencv-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
+#with OpenCV
+#sed -i -e 's/, ${misc:Depends}/,${misc:Depends},  libmoldeo-dev, libopencv-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
+sed -i -e 's/, ${misc:Depends}/,${misc:Depends},  libmoldeo-dev, libportmidi-dev, libsndfile1-dev/g' debian/control
 sed -i -e 's/<insert up to 60 chars description>/Moldeo Plugins/'  debian/control
 sed -i -e 's/<insert long description, indented with spaces>/Moldeo Player for Moldeo Software Platform/g'  debian/control
 

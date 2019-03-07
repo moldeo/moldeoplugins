@@ -1,5 +1,5 @@
 lib_LTLIBRARIES = libmoldeo_tablet.la
-libmoldeo_tablet_la_SOURCES = moTablet.cpp moTablet.h
+libmoldeo_tablet_la_SOURCES = moTablet.cpp moTablet.h EasyTab/easytab.h
 libmoldeo_tablet_la_CPPFLAGS = ${LIBMOLDEO_CFLAGS}
 libmoldeo_tablet_la_LDFLAGS = -lXi
 libmoldeo_tablet_la_LIBADD = -lXi

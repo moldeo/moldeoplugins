@@ -109,6 +109,9 @@ void moNetOSCInFactory::Destroy(moIODevice* fx) {
     pOutAndiamoX = NULL;
     pOutAndiamoY = NULL;
 
+    for(int c=0;c<4;c++) {
+      pOutEmgCh[c] = NULL;
+    }
 
     debug_is_on = false;
 }
@@ -264,6 +267,19 @@ moOscPacketListener::Init( moOutlets* pOutlets ) {
 
                 if (pOutlet->GetConnectorLabelName() == moText("COMPASS")) {
                     pOutCompass = pOutlet;
+                }
+
+                if (pOutlet->GetConnectorLabelName() == moText("EMGCH1")) {
+                    pOutEmgCh[0] = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("EMGCH2")) {
+                    pOutEmgCh[1] = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("EMGCH3")) {
+                    pOutEmgCh[2] = pOutlet;
+                }
+                if (pOutlet->GetConnectorLabelName() == moText("EMGCH4")) {
+                    pOutEmgCh[3] = pOutlet;
                 }
 
             }
@@ -726,6 +742,58 @@ moOscPacketListener::Update( moOutlets* pOutlets,
         }
 
 
+        if (
+            DataCode.Text() == moText("EMGCH1")
+            && message.Count()>=2
+            ) {
+            moData Value = message.Get(1);
+            if (pOutEmgCh[0]) {
+                pOutEmgCh[0]->GetData()->SetDouble(Value.Double());
+                pOutEmgCh[0]->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( " > Message Emg Ch1: " )
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+        if (
+            DataCode.Text() == moText("EMGCH2")
+            && message.Count()>=2
+            ) {
+            moData Value = message.Get(1);
+            if (pOutEmgCh[1]) {
+                pOutEmgCh[1]->GetData()->SetDouble(Value.Double());
+                pOutEmgCh[1]->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( " > Message Emg Ch2: " )
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+        if (
+            DataCode.Text() == moText("EMGCH3")
+            && message.Count()>=2
+            ) {
+            moData Value = message.Get(1);
+            if (pOutEmgCh[2]) {
+                pOutEmgCh[2]->GetData()->SetDouble(Value.Double());
+                pOutEmgCh[2]->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( " > Message Emg Ch3: " )
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
+        if (
+            DataCode.Text() == moText("EMGCH4")
+            && message.Count()>=2
+            ) {
+            moData Value = message.Get(1);
+            if (pOutEmgCh[3]) {
+                pOutEmgCh[3]->GetData()->SetDouble(Value.Double());
+                pOutEmgCh[3]->Update();
+            }
+            if (debug_is_on) MODebug2->Push( moText( " > Message Emg Ch4: " )
+                                            + moText(" Val:")
+                                            + FloatToStr(Value.Double()) );
+        }
 
         if (poutlet) {
 
@@ -749,6 +817,12 @@ moOscPacketListener::Update( moOutlets* pOutlets,
       moDataMessages& msgs( pOutDataMessages->GetMessages() );
       msgs.Empty();
       msgs = Messages;
+      //MODebug2->Message("NetOscIN Messages: " + IntToStr(msgs.Count()));
+      /*for(int c=0;c<msgs.Count();c++) {
+        MODebug2->Message("NetOscIN Message n°" + IntToStr(c)
+        + moText(" ") + msgs.Get(c).Get(0).ToText()
+        + moText(" #") +IntToStr(msgs.Get(c).Count()-1));
+      }*/
       if ( pOutDataMessages->GetType()==MO_DATA_MESSAGES ) {
         pOutDataMessages->GetData()->SetMessages( &msgs );
         pOutDataMessages->Update();
@@ -791,6 +865,8 @@ moOscPacketListener* self = NULL;
         moData  data1;
 
         moText addresspath = path;
+        moText moldeopath = path;
+        moldeopath.SubText(0,6);
         if (self->debug_is_on) {
           self->MODebug2->Message(addresspath);
         }
@@ -811,6 +887,30 @@ moOscPacketListener* self = NULL;
                 ) {
 
                 data0 = moData( moText( "POSITION" ) );
+                message.Add( data0 );
+            } else if (
+                    addresspath == moText("/emg/emg/ch1") //LEICI
+            ) {
+                data0 = moData( moText( "EMGCH1" ) );
+                message.Add( data0 );
+            } else if (
+                    addresspath == moText("/emg/emg/ch2") //LEICI
+            ) {
+                data0 = moData( moText( "EMGCH2" ) );
+                message.Add( data0 );
+            } else if (
+                    addresspath == moText("/emg/emg/ch3") //LEICI
+            ) {
+                data0 = moData( moText( "EMGCH3" ) );
+                message.Add( data0 );
+            } else if (
+                    addresspath == moText("/emg/emg/ch4") //LEICI
+            ) {
+                data0 = moData( moText( "EMGCH4" ) );
+                message.Add( data0 );
+            } else if (
+                    addresspath == moText("/spec") ) {
+                data0 = moData( moText( "SPEC" ) );
                 message.Add( data0 );
             } else if ( addresspath == moText("/gyrosc/comp")) {
                 data0 = moData( moText( "COMPASS" ) );
@@ -880,7 +980,7 @@ moOscPacketListener* self = NULL;
                 data1 =  moData( moText( "FURROW" ) );
                 message.Add( data0 );
                 message.Add( data1 );
-            } else if ( addresspath.SubText(0,6) == moText("/moldeo") ) {
+            } else if ( moldeopath == moText("/moldeo") ) {
                 //cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );

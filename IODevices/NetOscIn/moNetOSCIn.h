@@ -29,8 +29,8 @@
 
 *******************************************************************************/
 
-#ifndef __MO_NET_OSC_OUT_H__
-#define __MO_NET_OSC_OUT_H__
+#ifndef __MO_NET_OSC_IN_H__
+#define __MO_NET_OSC_IN_H__
 
 #include "moConfig.h"
 #include "moActions.h"
@@ -158,6 +158,8 @@ class moOscPacketListener : public moAbstract {
 
         moOutlet* pOutAndiamoX;
         moOutlet* pOutAndiamoY;
+
+        moOutlet* pOutEmgCh[4];
 };
 
 moDeclareDynamicArray( moOscPacketListener*, moOscPacketListeners )

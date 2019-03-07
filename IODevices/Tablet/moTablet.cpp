@@ -21,11 +21,11 @@
   *                                                                          *
   ****************************************************************************
 
-  Copyright(C) 2007 Andrés Colubri
+  Copyright(C) 2007 Andrï¿½s Colubri
 
   Authors:
   Fabricio Costa
-  Andrés Colubri
+  Andrï¿½s Colubri
 
 *******************************************************************************/
 
@@ -113,14 +113,14 @@ MOboolean moTablet::Init()
                         text = "ERROR(tablet):\n no se encuentra el code: ";
                         text +=  Codes[i].strcod;
                         text += moText( "\n");
-			printf(text);
+			cout  << text << endl;
 			exit(0);
 		} else {
 #ifdef MO_DEBUG
                         text = "strcod: ";
                         text += Codes[i].strcod;
                         text += moText(" ");
-			printf(text);
+			cout  << text << endl;
 			printf("cod: %i ",Codes[i].code);
 			printf("type: %i ",Codes[i].type);
 			printf("cod interno: %i\n",Codes[i].tabletcod);
@@ -332,6 +332,12 @@ void moTablet::Update(moEventList *Events)
           //borrando aquellos que ya usamos
           while(actual!=NULL) {
             //solo nos interesan los del mouse
+						/*moDebugManager::Message("TBLevent: did: " + IntToStr(actual->deviceid)
+                                  + " dcode:" + IntToStr(actual->devicecode)
+                                + " v0:" + IntToStr(actual->reservedvalue0)
+                              + " v1:" + IntToStr(actual->reservedvalue1)
+                            + " v2:" + IntToStr(actual->reservedvalue2)
+													+ "MO_IODEVICE_TABLET:"+IntToStr(MO_IODEVICE_TABLET) );*/
             if(actual->deviceid == MO_IODEVICE_TABLET) {
               /*MODebug2->Message("tablet: MO_IODEVICE_TABLET event! code:"+IntToStr(actual->devicecode)
               +" devcode:" + IntToStr(SDL_MOUSEMOTION));*/

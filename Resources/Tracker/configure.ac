@@ -9,7 +9,7 @@
 #
 AC_INIT([Tracker], [1.1.0.0], [info@moldeointeractive.com.ar], [tracker])
 
-AM_INIT_AUTOMAKE
+AM_INIT_AUTOMAKE([foreign])
 AM_MAINTAINER_MODE
 AC_CONFIG_MACRO_DIR([m4])
 AM_CONFIG_HEADER(config.h)
