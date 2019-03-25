@@ -68,6 +68,12 @@ moEffectLiveDrawing2::moEffectLiveDrawing2() {
 	m_pDrawCursorY = NULL;
 	niterations = 0;
 	npressures = 0;
+	m_pOutCursorX = NULL;
+	m_pOutCursorY = NULL;
+	m_pOutCursorVX = NULL;
+	m_pOutCursorVY = NULL;
+	m_pOutCursorV = NULL;
+	m_pOutCursorPressure = NULL;
 }
 
 moEffectLiveDrawing2::~moEffectLiveDrawing2() {
@@ -186,6 +192,30 @@ moDefineParamIndex( LIVEDRAW2_COLOR, moText("color") );
     }
 
 	}
+
+
+
+  if (!m_pOutCursorX) {
+    m_pOutCursorX = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_X") ) );
+  }
+  if (!m_pOutCursorY) {
+    m_pOutCursorY = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_Y") ) );
+  }
+
+  if (!m_pOutCursorVX) {
+    m_pOutCursorVX = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_VX") ) );
+  }
+  if (!m_pOutCursorVY) {
+    m_pOutCursorVY = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_VY") ) );
+  }
+  if (!m_pOutCursorV) {
+    m_pOutCursorV = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_V") ) );
+  }
+
+
+  if (!m_pOutCursorPressure) {
+    m_pOutCursorPressure = m_Outlets.GetRef( this->GetOutletIndex( moText("OUTCURSOR_PRESSURE") ) );
+  }
 
 	return true;
 }
@@ -841,6 +871,30 @@ void moEffectLiveDrawing2::updateParameters()
   perspective = m_Config[moR(LIVEDRAW2_PERSPECTIVE)].GetData()->Int();
   reset = m_Config.Int(moR(LIVEDRAW2_RESET));
   device_number = m_Config.Int(moR(LIVEDRAW2_DEVICENUMBER));
+
+  if (m_pOutCursorX) {
+    m_pOutCursorX->GetData()->SetFloat(penX);
+    m_pOutCursorX->Update(true);
+  }
+  if (m_pOutCursorY) {
+    m_pOutCursorY->GetData()->SetFloat(penY);
+    m_pOutCursorY->Update(true);
+    //MODebug2->Message("PenY:"+FloatToStr(penY));
+  }
+  if (m_pOutCursorVX) {
+    //m_pOutCursorVX->GetData()->SetFloat(penX);
+  }
+  if (m_pOutCursorVY) {
+    //m_pOutCursorVY->GetData()->SetFloat(penY);
+  }
+  if (m_pOutCursorV) {
+    //m_pOutCursorV->GetData()->SetFloat(pen);
+  }
+  if (m_pOutCursorPressure) {
+    m_pOutCursorPressure->GetData()->SetFloat(pressure);
+    //MODebug2->Message("Pressure:"+FloatToStr(pressure));
+    m_pOutCursorPressure->Update(true);
+  }
 }
 
 void moEffectLiveDrawing2::updateInteractionParameters()

@@ -413,6 +413,14 @@ protected:
     moInlet* m_pDrawCursorX;
     moInlet* m_pDrawCursorY;
 
+
+    moOutlet* m_pOutCursorX;
+    moOutlet* m_pOutCursorY;
+    moOutlet* m_pOutCursorVX;
+    moOutlet* m_pOutCursorVY;
+    moOutlet* m_pOutCursorV;
+    moOutlet* m_pOutCursorPressure;
+
     int niterations;
     int npressures;
 };
