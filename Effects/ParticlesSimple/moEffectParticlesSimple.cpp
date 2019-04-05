@@ -186,7 +186,11 @@ moEffectParticlesSimple::GetDefinition( moConfigDefinition *p_configdefinition )
 	p_configdefinition->Add( moText("lightx"), MO_PARAM_FUNCTION, PARTICLES_LIGHTX, moValue( "0.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("lighty"), MO_PARAM_FUNCTION, PARTICLES_LIGHTY, moValue( "4.0", "FUNCTION").Ref() );
 	p_configdefinition->Add( moText("lightz"), MO_PARAM_FUNCTION, PARTICLES_LIGHTZ, moValue( "0.0", "FUNCTION").Ref() );
-	return p_configdefinition;
+
+	p_configdefinition->Add( moText("deltax_particle"), MO_PARAM_TRANSLATEX, PARTICLES_DELTAX_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("deltay_particle"), MO_PARAM_TRANSLATEY, PARTICLES_DELTAY_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
+	p_configdefinition->Add( moText("deltaz_particle"), MO_PARAM_TRANSLATEZ, PARTICLES_DELTAZ_PARTICLE, moValue( "0.0", "FUNCTION").Ref() );
+return p_configdefinition;
 }
 
 MOboolean
@@ -208,6 +212,19 @@ moEffectParticlesSimple::Init()
     m_Inlets.Add(m_pParticleIndex);
   }
 
+  m_pParticleIndexCol = new moInlet();
+
+  if (m_pParticleIndexCol) {
+    ((moConnector*)m_pParticleIndexCol)->Init( moText("particlei"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pParticleIndexCol);
+  }
+
+  m_pParticleIndexRow = new moInlet();
+
+  if (m_pParticleIndexRow) {
+    ((moConnector*)m_pParticleIndexRow)->Init( moText("particlej"), m_Inlets.Count(), MO_DATA_NUMBER_LONG );
+    m_Inlets.Add(m_pParticleIndexRow);
+  }
 
   if (!PreInit()) return false;
 
@@ -324,6 +341,10 @@ moEffectParticlesSimple::Init()
 	moDefineParamIndex( PARTICLES_LIGHTX, moText("lightx") );
 	moDefineParamIndex( PARTICLES_LIGHTY, moText("lighty") );
 	moDefineParamIndex( PARTICLES_LIGHTZ, moText("lightz") );
+
+	moDefineParamIndex( PARTICLES_DELTAX_PARTICLE, moText("deltax_particle") );
+	moDefineParamIndex( PARTICLES_DELTAY_PARTICLE, moText("deltay_particle") );
+	moDefineParamIndex( PARTICLES_DELTAZ_PARTICLE, moText("deltaz_particle") );
 
     m_Physics.m_ParticleScript = moText("");
 
@@ -2516,6 +2537,20 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                     }
                   }
 
+                  if (m_pParticleIndexCol) {
+                    if (m_pParticleIndexCol->GetData()) {
+                        m_pParticleIndexCol->GetData()->SetLong( (long)pPar->Pos.X() );
+                        m_pParticleIndexCol->Update(true);
+                    }
+                  }
+
+                  if (m_pParticleIndexRow) {
+                    if (m_pParticleIndexRow->GetData()) {
+                        m_pParticleIndexRow->GetData()->SetLong( (long)pPar->Pos.Y() );
+                        m_pParticleIndexRow->Update(true);
+                    }
+                  }
+
                   glPushMatrix();
 
                   moVector3f CO(m_Physics.m_EyeVector - pPar->Pos3d);
@@ -2636,7 +2671,9 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                       glBindTexture( GL_TEXTURE_2D , glid );
                   }
 
-                  glTranslatef( pPar->Pos3d.X(), pPar->Pos3d.Y(),  pPar->Pos3d.Z() );
+                  glTranslatef( pPar->Pos3d.X()+m_Config.Eval( moR(PARTICLES_DELTAX_PARTICLE) ),
+                                pPar->Pos3d.Y()+m_Config.Eval( moR(PARTICLES_DELTAY_PARTICLE) ),
+                                pPar->Pos3d.Z()+m_Config.Eval( moR(PARTICLES_DELTAZ_PARTICLE) ));
 
                   glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEZ_PARTICLE) ) + pPar->Rotation.Z(), U.X(), U.Y(), U.Z() );
                   glRotatef(  m_Config.Eval( moR(PARTICLES_ROTATEY_PARTICLE) ) + pPar->Rotation.Y(), W.X(), W.Y(), W.Z() );
@@ -3389,6 +3426,8 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
         pFont->Draw( 0.0, 0.0, infod );
     }
 
+    EndDraw();
+
 #ifndef OPENGLESV2
   //glDisable(GL_DEPTH_TEST);
 	glMatrixMode(GL_MODELVIEW);							// Select The Modelview Matrix
@@ -3396,8 +3435,6 @@ void moEffectParticlesSimple::Draw( moTempo* tempogral, moEffectState* parentsta
 	glMatrixMode(GL_PROJECTION);						// Select The Projection Matrix
 	glPopMatrix();										// Restore The Old Projection Matrix
 #endif
-
-    EndDraw();
 
 }
 

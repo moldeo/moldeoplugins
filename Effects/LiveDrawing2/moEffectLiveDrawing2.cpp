@@ -882,10 +882,12 @@ void moEffectLiveDrawing2::updateParameters()
     //MODebug2->Message("PenY:"+FloatToStr(penY));
   }
   if (m_pOutCursorVX) {
-    //m_pOutCursorVX->GetData()->SetFloat(penX);
+    m_pOutCursorVX->GetData()->SetFloat(penXaux-penX);
+    m_pOutCursorVX->Update(true);
   }
   if (m_pOutCursorVY) {
-    //m_pOutCursorVY->GetData()->SetFloat(penY);
+    m_pOutCursorVY->GetData()->SetFloat(penYaux-penY);
+    m_pOutCursorVY->Update(true);
   }
   if (m_pOutCursorV) {
     //m_pOutCursorV->GetData()->SetFloat(pen);
@@ -2123,6 +2125,8 @@ void moEffectLiveDrawing2::Update(moEventList *Events)
     if (
       actual->deviceid == ( (int)(MO_IODEVICE_TABLET)*(device_number+1) )
       ) {
+      penXaux = penX;
+      penYaux = penY;
       penX = actual->reservedvalue0;
       penX = momin(penX, canvasWidth - canvas_margin);
       penX = momax(penX, canvas_margin);

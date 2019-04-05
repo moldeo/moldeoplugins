@@ -346,7 +346,7 @@ protected:
 	MOboolean leftClicked;
 	MOboolean tabletDetected;
 
-	float penX, penY, penX0, penY0;
+	float penX, penY, penX0, penY0, penXaux,penYaux;
 	float pressure;
 	bool drawing, resumed_drawing;
 	int pentip;

@@ -464,7 +464,10 @@ enum moParticlesSimpleParamIndex {
   PARTICLES_LIGHTMODE,
   PARTICLES_LIGHTX,
   PARTICLES_LIGHTY,
-  PARTICLES_LIGHTZ
+  PARTICLES_LIGHTZ,
+  PARTICLES_DELTAX_PARTICLE,
+	PARTICLES_DELTAY_PARTICLE,
+	PARTICLES_DELTAZ_PARTICLE
 };
 
 
@@ -924,6 +927,8 @@ class moEffectParticlesSimple : public moEffect
 
         moInlet*                  m_pParticleTime;
         moInlet*                  m_pParticleIndex;
+        moInlet*                  m_pParticleIndexCol;
+        moInlet*                  m_pParticleIndexRow;
 
         moParticlesSimpleArray    m_ParticlesSimpleArrayOrdered;
         std::vector < moParticlesSimple* >  m_ParticlesSimpleVector;
