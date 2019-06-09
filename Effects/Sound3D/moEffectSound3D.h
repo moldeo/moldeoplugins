@@ -241,6 +241,9 @@ private:
   moVector3f m_vDirection;
   moVector3f m_vSpeed;
 
+  int         m_FramePosition;
+  float     m_UserPosition;
+
   static bool m_bAlutInit;
 
 };

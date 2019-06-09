@@ -101,6 +101,12 @@ enum moOlaParamIndex {
 
 };
 
+enum moOlaMode {
+  MOOLA_MODE_RGBA=0,
+  MOOLA_MODE_TEXTURE=1,
+  MOOLA_MODE_WRGBA=2
+};
+
 enum moEncoderType {
 	MOOLA_ROTARY=0,
 	MOOLA_PUSHBUTTON=1,

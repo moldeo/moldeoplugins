@@ -330,9 +330,18 @@ moEffectCamera::InitDevice( moText camera ) {
     /** now check if we can get the Camera... */
     m_pCamera = VMan->GetCameraByName( m_DeviceName, (bool)true /*CREATE!!!*/, m_CaptureDevice );
     if (m_pCamera) {
+      if (1==1) {
+        //m_pCameraGraph
+        //m_pCamera
+        m_pCamera->Finish();
+        m_pCamera->SetCaptureDevice(m_CaptureDevice);
+        m_pCamera->Init();
+      }
       m_pCameraTexture = m_pCamera->GetTexture();
       m_pCameraGraph = m_pCamera->GetVideoGraph();
       MODebug2->Message("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
+      MODebug2->Message( "flipH: "+IntToStr(m_pCamera->GetCaptureDevice().GetSourceFlipH()));
+      MODebug2->Message( "flipV: "+IntToStr(m_pCamera->GetCaptureDevice().GetSourceFlipV()));
 
     } else {
         MODebug2->Error("moEffectCamera::InitDevice > Camera: " + m_pCamera->GetDeviceName() );
@@ -369,7 +378,7 @@ void moEffectCamera::UpdateCamera() {
   VF.m_ColorMode = (moColorMode) m_Config.Int( moR( CAMERA_COLOR_FORMAT ) );
 
   CD.SetVideoFormat( VF );
-  m_CaptureDevice = CD;
+  //m_CaptureDevice = CD;
 
   if ( m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
       ||
@@ -380,6 +389,10 @@ void moEffectCamera::UpdateCamera() {
       m_CaptureDevice.GetSourceWidth()!=CD.GetSourceWidth()
       ||
       m_CaptureDevice.GetSourceHeight()!=CD.GetSourceHeight()
+      ||
+      m_CaptureDevice.GetSourceFlipH()!=CD.GetSourceFlipH()
+      ||
+      m_CaptureDevice.GetSourceFlipV()!=CD.GetSourceFlipV()
       ) {
     //RELOAD CAMERA
     MODebug2->Message("moEffectCamera::UpdateCamera > Reload Camera with custom settings" );
@@ -396,6 +409,7 @@ void moEffectCamera::UpdateCamera() {
   if ( m_DeviceName == camera_v ) {
     ///just check the device is on and transmitting
   } else {
+    MODebug2->Message("Reinit device");
     if ( InitDevice( camera_v ) ) {
 
     }

@@ -337,6 +337,7 @@ moOla::Init() {
 	moDefineParamIndex( OLA_ENDUNIVERSE, moText("enduniverse") );
 	moDefineParamIndex( OLA_MODE, moText("mode") );
 	moDefineParamIndex( OLA_LEDS, moText("leds") );
+	moDefineParamIndex( OLA_DEBUG, moText("debug") );
 
 	oladevices = m_Config.GetParamIndex("oladevice");
 
@@ -531,9 +532,10 @@ moOla::Update(moEventList *Events) {
     //int startuniverse = min( 1, max( 1, m_Config.Int(moR(OLA_STARTUNIVERSE)) ) );
     int startuniverse = m_Config.Int(moR(OLA_STARTUNIVERSE));
     int enduniverse = m_Config.Int(moR(OLA_ENDUNIVERSE));
-    int mode = m_Config.Int(moR(OLA_MODE));
+    moOlaMode mode = (moOlaMode)m_Config.Int(moR(OLA_MODE));
     int leds_per_string = m_Config.Int(moR(OLA_LEDS));
     int startchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
+    int debug_mode = m_Config.Eval(moR(OLA_DEBUG));
     /**
     red = 0;
     green = 0;
@@ -550,7 +552,7 @@ moOla::Update(moEventList *Events) {
     /// 170 = floor( 512 / 3 )
     /// last possible channel is: 169*3 = 507,508,509 (cos 510,511,512(doesnt exist!)
 
-    if (mode==1) {
+    if (mode==MOOLA_MODE_TEXTURE/*1*/) {
       int TGLId = m_Config.GetGLId( moR(OLA_TEXTURE), this );
       glBindTexture( GL_TEXTURE_2D, TGLId );
       #ifndef OPENGLESV2
@@ -560,7 +562,8 @@ moOla::Update(moEventList *Events) {
     }
 
     //for (unsigned int uni = startuniverse; uni < startuniverse+8; uni++) {
-    if (mode==0) {
+    if (mode==MOOLA_MODE_RGBA || mode==MOOLA_MODE_TEXTURE) {
+      float fstartchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
       for (unsigned int uni = startuniverse; uni < enduniverse; uni++) {
           for (unsigned int cha = 0; cha < rgbindexmax; cha++) {
 
@@ -568,7 +571,7 @@ moOla::Update(moEventList *Events) {
             int y = (int) ( pindexrgb / pixelperstring );
             int rgbiidx = (y*pixelperstring+x)*3;
 
-            if (mode==0) {
+            if (mode==MOOLA_MODE_RGBA) {
 
               if (m_pPixelIndex) {
                 m_pPixelIndex->GetData()->SetLong(pindexrgb);
@@ -614,7 +617,7 @@ moOla::Update(moEventList *Events) {
                 buffer.SetChannel( cha*3+2, (unsigned char) m_pData[rgbiidx+2] );
 
               }
-            } else if (mode==1) {
+            } else if (mode==MOOLA_MODE_TEXTURE) {
               if (m_pData) {
                 buffer.SetChannel( cha*3, (unsigned char) m_pData[rgbiidx] );
                 buffer.SetChannel( cha*3+1, (unsigned char) m_pData[rgbiidx+1] );
@@ -635,27 +638,60 @@ moOla::Update(moEventList *Events) {
       }
     }
 
-    if (mode==2) {
+    if (mode==MOOLA_MODE_WRGBA) {
       //wrgba
-      red = m_Config.Eval(moR(OLA_RED));
-      green = m_Config.Eval(moR(OLA_GREEN));
-      blue = m_Config.Eval(moR(OLA_BLUE));
-      alpha = m_Config.Eval(moR(OLA_ALPHA));
-      float fstartchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
+      for(int pix=0;pix<6;pix++) {
 
-      unsigned char ired = 255*red;
-      unsigned char igreen = 255*green;
-      unsigned char iblue = 255*blue;
-      unsigned char ialpha = 255*alpha;
-      unsigned int schannel = fstartchannel;
+        if (m_pPixelIndex) {
+          m_pPixelIndex->GetData()->SetLong(pix);
+          m_pPixelIndex->Update(true);
+        }
+        if (m_pPixelIndexX) {
+          m_pPixelIndexX->GetData()->SetDouble(pix);
+          m_pPixelIndexX->Update(true);
+        }
+        if (m_pPixelIndexY) {
+          m_pPixelIndexY->GetData()->SetDouble(0);
+          m_pPixelIndexY->Update(true);
+        }
 
-      buffer.SetChannel( schannel + 0 , ialpha );
-      buffer.SetChannel( schannel + 1 , ired );
-      buffer.SetChannel( schannel + 2 , igreen );
-      buffer.SetChannel( schannel + 3 , iblue );
+        red = m_Config.Eval(moR(OLA_RED));
+        green = m_Config.Eval(moR(OLA_GREEN));
+        blue = m_Config.Eval(moR(OLA_BLUE));
+        alpha = m_Config.Eval(moR(OLA_ALPHA));
+        float fstartchannel = m_Config.Eval(moR(OLA_STARTCHANNEL));
 
-      if (!ola_client.SendDmx( startuniverse, buffer ) ) {
-        //MODebug2->Error("Couldnt send buffer");
+        unsigned char ired = 255*red*alpha;
+        unsigned char igreen = 255*green*alpha;
+        unsigned char iblue = 255*blue*alpha;
+        unsigned int schannel = fstartchannel;
+        schannel = 0;
+
+        //buffer.SetChannel( schannel + 0 , ialpha );
+        //buffer.SetChannel( schannel + 1 , ired );
+        //buffer.SetChannel( schannel + 2 , igreen );
+        //buffer.SetChannel( schannel + 3 , iblue );
+        // cha 1-->INTENSITY,2-->RED,3-->GREEN,4-->BLUE,5-->EFFECTS,6-->STROBO_SPEED
+        //ired (cha:0):
+        buffer.SetChannel( schannel + 0 + pix*3, ired );
+        //igreen (cha:1):
+        buffer.SetChannel( schannel + 1 + pix*3, igreen );
+        //iblue (cha:1):
+        buffer.SetChannel( schannel + 2 + pix*3, iblue );
+      }
+
+      bool ressdmx = ola_client.SendDmx( startuniverse, buffer );
+      if (!ressdmx ) {
+        MODebug2->Error("MOOLA_MODE_WRGBA Couldnt send buffer");
+      } else {
+        if (debug_mode>0) {
+          MODebug2->Message("MOOLA_MODE_WRGBA sent buffer OK! ");
+        /**
+                          + moText("startuniverse: ") + IntToStr(startuniverse)
+                          + moText("ired (cha:0): ") + IntToStr(ired)
+                          + moText("igreen (cha:1): ") + IntToStr(igreen)
+                          + moText("iblue (cha:2): ") + IntToStr(iblue));*/
+        }
       }
 
     }
@@ -688,7 +724,7 @@ moOla::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("testmode"), MO_PARAM_NUMERIC, OLA_TESTMODE, moValue( "0", "NUM").Ref(), moText("None,") );
 	p_configdefinition->Add( moText("testoffset"), MO_PARAM_NUMERIC, OLA_TESTOFFSET, moValue( "0", "NUM").Ref() );
 	p_configdefinition->Add( moText("checkserver"), MO_PARAM_NUMERIC, OLA_CHECKSERVER, moValue( "0", "NUM").Ref() );
-	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, OLA_MDEBUG, moValue( "0", "NUM").Ref(), moText("YES,NO") );
+	p_configdefinition->Add( moText("debug"), MO_PARAM_NUMERIC, OLA_MDEBUG, moValue( "0", "NUM").Ref(), moText("NO,YES,FULL") );
 	p_configdefinition->Add( moText("mode"), MO_PARAM_NUMERIC, OLA_MODE, moValue( "0", "NUM").Ref(), moText("RGBA,TEXTURE,WRGBA") );
 
 	return p_configdefinition;

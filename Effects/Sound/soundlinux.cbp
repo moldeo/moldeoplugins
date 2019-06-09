@@ -39,8 +39,8 @@
 			<Add directory="/usr/include/lua5.1/" />
 			<Add directory="/usr/include/muParser/" />
 		</Compiler>
-		<Unit filename="inc/moEffectSound.h" />
-		<Unit filename="src/moEffectSound.cpp" />
+		<Unit filename="moEffectSound.cpp" />
+		<Unit filename="moEffectSound.h" />
 		<Extensions>
 			<envvars />
 			<code_completion />

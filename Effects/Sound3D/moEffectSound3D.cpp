@@ -706,6 +706,7 @@ MOboolean moEffectSound3D::Init() {
   UpdateParameters();
 
   last_ticks = 0;
+  m_UserPosition = 0;
 
   return true;
 }
@@ -932,6 +933,18 @@ moEffectSound3D::UpdateSound( const moText& p_newfilename ) {
 
         }
 
+    }
+
+    double mUserPosition = m_Config.Eval(moR(SOUND3D_SEEKPOSITION));
+
+    if (mUserPosition!=m_UserPosition) {
+      //MODebug2->Push(" mUserPosition:" + FloatToStr(mUserPosition) + "/" + FloatToStr(m_UserPosition) );
+      //Sound->Seek( (MOulong)mUserPosition, 1.0 );
+      if (m_pAudio) {
+        //TODO: seek position in frame al sound buffer
+        //m_pAudio->
+      }
+      m_UserPosition = mUserPosition;
     }
 
     double newflaun = m_Config.Eval(moR(SOUND3D_LAUNCH));
@@ -1267,8 +1280,7 @@ moEffectSound3D::Update( moEventList *Events ) {
 
     UpdateParameters();
 
-	//get the pointer from the Moldeo Object sending it...
-	moMoldeoObject::Update(Events);
-
+    //get the pointer from the Moldeo Object sending it...
+    moMoldeoObject::Update(Events);
 
 }
