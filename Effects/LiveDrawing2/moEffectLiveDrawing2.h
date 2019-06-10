@@ -346,7 +346,7 @@ protected:
 	MOboolean leftClicked;
 	MOboolean tabletDetected;
 
-	float penX, penY, penX0, penY0;
+	float penX, penY, penX0, penY0, penXaux,penYaux;
 	float pressure;
 	bool drawing, resumed_drawing;
 	int pentip;
@@ -412,6 +412,14 @@ protected:
 
     moInlet* m_pDrawCursorX;
     moInlet* m_pDrawCursorY;
+
+
+    moOutlet* m_pOutCursorX;
+    moOutlet* m_pOutCursorY;
+    moOutlet* m_pOutCursorVX;
+    moOutlet* m_pOutCursorVY;
+    moOutlet* m_pOutCursorV;
+    moOutlet* m_pOutCursorPressure;
 
     int niterations;
     int npressures;

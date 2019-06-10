@@ -1,5 +1,5 @@
 #!/bin/sh
-
+distro=$1
 DIE=0
 
 echo "deb directory..."
@@ -85,6 +85,7 @@ sed -i -e 's/<insert up to 60 chars description>/Moldeo Plugins/'  debian/contro
 sed -i -e 's/<insert long description, indented with spaces>/Moldeo Player for Moldeo Software Platform/g'  debian/control
 
 sed -i -e 's/unstable/experimental/g' debian/changelog
+sed -i -e 's/\-1/\-1'${distro}'/g' debian/changelog
 sed -i -e 's/fabricio/Moldeo Interactive/g' debian/changelog
 sed -i -e 's/Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>/Initial release/g' debian/changelog
 #sed -i -e 's///g'  debian/control
