@@ -598,14 +598,27 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                 MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  MOLDEO COMMAND received Count:" )+IntToStr(message.Count()) );
 
             moData DataCode;
-            DataCode = message.Get(1);
+            int moldeoc = 0;
+            moldeoc++;
+            DataCode = message.Get(moldeoc);
+            if (debug_is_on)
+                MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  MOLDEO COMMAND next code is:" )+DataCode.Text() );
+
+            if (DataCode.Text()=="MOLDEO") {
+                moldeoc++;
+                DataCode = message.Get(moldeoc);
+            }
             //CHECK IF IT IS JUST DATA (MIDI or OSC)
             if (DataCode.ToText()==moText("DATA")) {
+                if (debug_is_on)
+                    MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update >  its DATA, checking outlets for next text (label)" ));
               //send to oulets every data
               moData DataLabel;
               moData DataValue;
-              if (message.Count()>2) DataLabel = message.Get(2);
-              if (message.Count()>3) DataValue = message.Get(3);
+              moldeoc++;
+              if (moldeoc<message.Count()) DataLabel = message.Get(moldeoc);
+              moldeoc++;
+              if (moldeoc<message.Count()) DataValue = message.Get(moldeoc);
               if (debug_is_on)
                 MODebug2->Message( moText( "moNetOscIn::moOscPacketListener::Update > " )+ " Label:" + DataLabel.Text() + " Val:" + DataValue.ToText()+" Type:" + DataValue.TypeToText() );
               if (pOutlets) {
@@ -619,9 +632,12 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                     (*pOutlet->GetData()) = DataValue;
                       //pOutlet->GetData()SetDouble( DataValue.Double() );
 
-                    pOutlet->Update();
+                    pOutlet->Update(true);
 
                   }
+                } else {
+                    if (debug_is_on)
+                        MODebug2->Error( moText( "moNetOscIn::moOscPacketListener::Update Outlet > Label Not Found. " ) + DataLabel.Text() );
                 }
               }
             } else
