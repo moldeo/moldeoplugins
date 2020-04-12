@@ -133,17 +133,22 @@
 //#include "pktdef.h"
 
 #define FIX_DOUBLE(x)   ((double)(INT(x))+((double)FRAC(x)/65536))	// converts FIX32 to double
-
+#include "SDL2/SDL.h"
 #endif // MO_WIN32
 
-#include "SDL2/SDL.h"
+
 
 #ifdef MO_LINUX
+#include "SDL2/SDL.h"
 #define EASYTAB_IMPLEMENTATION
 #include "EasyTab/easytab.h"
 #define UINT unsigned int
 #define ORIENTATION unsigned int
 #define LONG long
+#endif
+
+#ifdef MO_MACOSX
+
 #endif
 
 // Pen

@@ -128,7 +128,7 @@ MOboolean moTablet::Init()
 		}
 	}
 
-//#ifdef MO_LINUX
+#ifndef MO_MACOSX
 moGUIManager* GUIMAN = m_pResourceManager->GetGuiMan();
 if (GUIMAN) {
   m_Disp = (Display*)GUIMAN->GetDisplay();
@@ -140,7 +140,7 @@ if (GUIMAN) {
     MODebug2->Message("moTablet::Init > Tablet init OK! \n");
   }
 }
-
+#endif
   for( i = 0; i < ncodes; i++) Codes[i].CreateValuesArray(100);
 
 #ifdef MO_WIN32
