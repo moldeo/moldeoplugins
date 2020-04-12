@@ -379,8 +379,9 @@ void moEffectCamera::UpdateCamera() {
 
   CD.SetVideoFormat( VF );
   //m_CaptureDevice = CD;
-
-  if ( m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
+#ifndef MO_WIN32
+  if (
+      m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
       ||
       m_CaptureDevice.GetVideoFormat().m_Width!=CD.GetVideoFormat().m_Width
       ||
@@ -399,7 +400,12 @@ void moEffectCamera::UpdateCamera() {
     m_CaptureDevice = CD;
     m_DeviceName = "";
   }
-
+#else
+  if (m_DeviceName!=camera_v) {
+    CD.SetName("default");
+    m_CaptureDevice = CD;
+  }
+#endif
 
   /**
   chequeamos si hubo un cambio de camara:
@@ -409,7 +415,7 @@ void moEffectCamera::UpdateCamera() {
   if ( m_DeviceName == camera_v ) {
     ///just check the device is on and transmitting
   } else {
-    MODebug2->Message("Reinit device");
+    MODebug2->Message("moEffectCamera::UpdateCamera > Reinit device");
     if ( InitDevice( camera_v ) ) {
 
     }
