@@ -330,9 +330,12 @@ moEffectCamera::InitDevice( moText camera ) {
     /** now check if we can get the Camera... */
     m_pCamera = VMan->GetCameraByName( m_DeviceName, (bool)true /*CREATE!!!*/, m_CaptureDevice );
     if (m_pCamera) {
-      if (1==1) {
+      if (1==2) {
         //m_pCameraGraph
         //m_pCamera
+        MODebug2->Message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        MODebug2->Message("WARNING!!! ENDING PREVIOUS GRAPH");
+        MODebug2->Message("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         m_pCamera->Finish();
         m_pCamera->SetCaptureDevice(m_CaptureDevice);
         m_pCamera->Init();
@@ -379,9 +382,9 @@ void moEffectCamera::UpdateCamera() {
 
   CD.SetVideoFormat( VF );
   //m_CaptureDevice = CD;
-#ifndef MO_WIN32
-  if (
-      m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
+  //MODebug2->Message();
+
+  if ( m_CaptureDevice.GetVideoFormat().m_ColorMode!=CD.GetVideoFormat().m_ColorMode
       ||
       m_CaptureDevice.GetVideoFormat().m_Width!=CD.GetVideoFormat().m_Width
       ||
@@ -400,12 +403,7 @@ void moEffectCamera::UpdateCamera() {
     m_CaptureDevice = CD;
     m_DeviceName = "";
   }
-#else
-  if (m_DeviceName!=camera_v) {
-    CD.SetName("default");
-    m_CaptureDevice = CD;
-  }
-#endif
+
 
   /**
   chequeamos si hubo un cambio de camara:
@@ -415,9 +413,9 @@ void moEffectCamera::UpdateCamera() {
   if ( m_DeviceName == camera_v ) {
     ///just check the device is on and transmitting
   } else {
-    MODebug2->Message("moEffectCamera::UpdateCamera > Reinit device");
+    MODebug2->Message("Reinit device");
     if ( InitDevice( camera_v ) ) {
-
+      MODebug2->Message("Initialized device");
     }
   }
 

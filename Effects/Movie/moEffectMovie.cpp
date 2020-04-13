@@ -2029,4 +2029,3 @@ int moEffectMovie::DrawLine(moLuaVirtualMachine& vm)
 
     return 0;
 }
-

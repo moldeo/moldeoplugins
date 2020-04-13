@@ -128,7 +128,7 @@ MOboolean moTablet::Init()
 		}
 	}
 
-#ifdef MO_LINUX
+#ifndef MO_MACOSX
 moGUIManager* GUIMAN = m_pResourceManager->GetGuiMan();
 if (GUIMAN) {
   m_Disp = (Display*)GUIMAN->GetDisplay();
