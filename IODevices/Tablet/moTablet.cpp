@@ -175,7 +175,7 @@ if (GUIMAN) {
 			exit(0);
 			return false;
 		}
-		MODebug2->Push( moText("Tablet installed with name = ") + GetTabletName() );
+		MODebug2->Message( moText("moTablet::Init > Tablet installed with name = ") + GetTabletName() );
 
         // Checking the queue size with
 		// int WTQueueSizeGet(hCtx), where
@@ -184,7 +184,7 @@ if (GUIMAN) {
 	    // hCtx	HCTX  Identifies the context whose queue size is being returned.
 	    //WTQueueSizeSet( t_hTablet, 200 );
 	    m_cMaxPkts = WTQueueSizeGet(t_hTablet);
-		MODebug2->Push( moText("Tablet queue size = ") + IntToStr( m_cMaxPkts ) );
+		MODebug2->Message( moText("moTablet::Init > Tablet queue size = ") + IntToStr( m_cMaxPkts ) );
 
 		// Creating packet buffer.
     	m_lpPkts = new PACKET[m_cMaxPkts];
@@ -192,7 +192,7 @@ if (GUIMAN) {
 	}
 	else
 	{
-		MODebug2->Error("Tablet not detected.");
+		MODebug2->Error("moTablet::Init > Tablet not detected.");
 		return false;
 	}
 #endif // MO_WIN32
@@ -500,9 +500,9 @@ void moTablet::Update(moEventList *Events)
 			Codes[tabletcode].state = true;
 			Codes[tabletcode].AddValueToArray(Pen[tabletcode].value);
 			//MODebug->Push(moText("Pressure: ") + IntToStr(t_prsNew));
-			#ifdef _DEBUG
-			MODebug2->Message( moText(" pressure: ") + IntToStr(Pen[tabletcode].value) );
-			#endif
+			//#ifdef _DEBUG
+			MODebug2->Message( moText("moTablet::Update > pressure: ") + IntToStr(Pen[tabletcode].value) );
+			//#endif
 		}
 
 		if (t_ortNew.orAzimuth != ortOld.orAzimuth)

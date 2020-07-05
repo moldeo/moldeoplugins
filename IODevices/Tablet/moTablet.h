@@ -114,9 +114,11 @@
 //TABLET: setup required here
 //
 #ifdef MO_WIN32
-//#include "wintab.h"
-#define EASYTAB_IMPLEMENTATION
-#include "EasyTab/easytab.h"
+#include "SDL.h"
+
+#include "wintab.h"
+//#define EASYTAB_IMPLEMENTATION
+//#include "EasyTab/easytab.h"
 //
 //    define what packet data is required here.  A PACKET structure
 //    will be created by pktdef.h  Only the required information
@@ -130,7 +132,7 @@
 //#define PACKETDATA	(PK_Z | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETDATA	(PK_X | PK_Y | PK_Z |PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
 #define PACKETMODE      0
-//#include "pktdef.h"
+#include "pktdef.h"
 
 #define FIX_DOUBLE(x)   ((double)(INT(x))+((double)FRAC(x)/65536))	// converts FIX32 to double
 #include "SDL2/SDL.h"
@@ -273,6 +275,8 @@ private:
 	BOOL IsTabletInstalled();
 	UINT            m_cMaxPkts; // maximum number of packets in the queue.
 	PACKET* m_lpPkts;           // packet buffer
+	//Display* m_Disp;
+    //Window   m_Win;
 	#endif // MO_WIN32
 
 #ifdef MO_LINUX
