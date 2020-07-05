@@ -851,7 +851,7 @@ moEffectLiveDrawing2::GetDefinition( moConfigDefinition *p_configdefinition ) {
 	p_configdefinition->Add( moText("perspective"), MO_PARAM_NUMERIC, LIVEDRAW2_PERSPECTIVE, moValue("0","INT") );
 
 	p_configdefinition->Add( moText("reset"), MO_PARAM_NUMERIC, LIVEDRAW2_RESET, moValue( "0","NUM").Ref(), moText("OFF,ON") );
-  p_configdefinition->Add( moText("device_number"), MO_PARAM_NUMERIC, LIVEDRAW2_DEVICENUMBER );
+  p_configdefinition->Add( moText("device_number"), MO_PARAM_NUMERIC, LIVEDRAW2_DEVICENUMBER, moValue("0","NUM").Ref() );
 
   return p_configdefinition;
 }
@@ -2117,14 +2117,17 @@ void moEffectLiveDrawing2::Update(moEventList *Events)
 	MOint tempval;
 	while(actual!=NULL) {
 		//solo nos interesan los del midi q nosotros mismos generamos, para destruirlos
- /*moDebugManager::Message("LVEvent: did: " + IntToStr(actual->deviceid)
+    /*moDebugManager::Message("LVEvent: did: " + IntToStr(actual->deviceid)
                                   + " dcode:" + IntToStr(actual->devicecode)
                                 + " v0:" + IntToStr(actual->reservedvalue0)
                               + " v1:" + IntToStr(actual->reservedvalue1)
-                            + " v3:" + IntToStr(actual->reservedvalue2) );*/
+                            + " v3:" + IntToStr(actual->reservedvalue2)
+                          + " v4:" + IntToStr(actual->reservedvalue3)
+                        + " device_number:" + IntToStr(device_number) );*/
     if (
       actual->deviceid == ( (int)(MO_IODEVICE_TABLET)*(device_number+1) )
       ) {
+      //MODebug2->Message("Using pen");
       penXaux = penX;
       penYaux = penY;
       penX = actual->reservedvalue0;

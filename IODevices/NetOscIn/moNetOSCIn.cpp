@@ -305,7 +305,8 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                             bool p_debug_is_on,
                             moEventList* pEvents,
                             int p_ProcessMoldeoApi,
-                            int p_MoldeoId  ) {
+                            int p_MoldeoId,
+                            bool receive_events  ) {
     //block message
     m_Semaphore.Lock();
 
@@ -471,12 +472,41 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                                             + FloatToStr(Cy.Double()) );
         }
 
-        if ( DataCode.Text() == moText("EVENT") ) {
-            /*
-            poutlet = pOutEvents;
-            poutlet->GetMessages().Add( message );
-            */
-            //MODebug2->Push( moText("receiving event:") +  message.Get(1).ToText() );
+        if ( DataCode.Text() == moText("MOLDEO") && message.Count()>=8 && receive_events  ) {
+          ///atencion el primer dato es "EVENT"
+          moText DataEvent = message.Get(1).ToText();
+          if (DataEvent==moText("EVENT")) {
+            DataCode = message.Get(1);
+            int did = message.Get(2).Int();
+            int cid = message.Get(3).Int();
+            int val0 = message.Get(4).Int();
+            int val1 = message.Get(5).Int();
+            int val2 = message.Get(6).Int();
+            int val3 = message.Get(7).Int();
+
+
+            if (debug_is_on) MODebug2->Message( moText("Receiving events: ")
+                            + moText(" did:")
+                            + IntToStr(did)
+                            + moText(" cid:")
+                            + IntToStr(cid)
+                            + moText(" val0:")
+                            + IntToStr(val0)
+                            + moText(" val1:")
+                            + IntToStr(val1)
+                            + moText(" val2:")
+                            + IntToStr(val2)
+                            + moText(" val3:")
+                            + IntToStr(val3)
+                          );
+
+            if (pEvents) pEvents->Add( did, cid, val0, val1, val2, val3 );
+          }
+          /*
+          poutlet = pOutEvents;
+          poutlet->GetMessages().Add( message );
+          */
+          //MODebug2->Push( moText("receiving event:") +  message.Get(1).ToText() );
         } else if ( DataCode.Text() == moText("TRACKERSYSTEM") ) {
             /*
             poutlet = pOutTracker;
@@ -1448,7 +1478,8 @@ void moNetOSCIn::Update(moEventList *Events) {
                                         debug_is_on,
                                         Events,
                                         m_ProcessMoldeoApi,
-                                        GetMobDefinition().GetMoldeoId()  );
+                                        GetMobDefinition().GetMoldeoId(),
+                                        m_ReceiveEvents  );
             //if (nnn>0 && debug_is_on) MODebug2->Push( moText("Updating outlets with messages: ") + IntToStr(nnn) );
         }
 
@@ -1461,34 +1492,7 @@ void moNetOSCIn::Update(moEventList *Events) {
 /*
             for(int i = 0; i<m_pEvents->GetMessages().Count();  i++) {
 
-                moDataMessage& mess( m_pEvents->GetMessages().GetRef(i) );
-
-                moData data;
-                ///atencion el primer dato es "EVENT"
-                int did = mess[1].Int();
-                int cid = mess[2].Int();
-                int val0 = mess[3].Int();
-                int val1 = mess[4].Int();
-                int val2 = mess[5].Int();
-                int val3 = mess[6].Int();
-
-
-                MODebug2->Push( moText("Receiving events: ")
-                                + moText(" did:")
-                                + IntToStr(did)
-                                + moText(" cid:")
-                                + IntToStr(cid)
-                                + moText(" val0:")
-                                + IntToStr(val0)
-                                + moText(" val1:")
-                                + IntToStr(val1)
-                                + moText(" val2:")
-                                + IntToStr(val2)
-                                + moText(" val3:")
-                                + IntToStr(val3)
-                );
-
-                Events->Add( did, cid, val0, val1, val2, val3 );
+                
 
             }
             */

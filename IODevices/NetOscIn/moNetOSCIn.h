@@ -91,7 +91,8 @@ class moOscPacketListener : public moAbstract {
                    bool p_debug_is_on,
                    moEventList* pEvents,
                    int p_ProcessMoldeoApi = false,
-                   int p_MoldeoId = -1 );
+                   int p_MoldeoId = -1,
+                   bool receive_events = false );
 
         moDataMessages        Messages;
 

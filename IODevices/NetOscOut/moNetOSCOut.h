@@ -73,9 +73,11 @@ enum moNetOSCOutParamIndex {
     NETOSCOUT_DEBUG
 };
 
+#include <map>
+#include <string>
+using namespace std;
 
 // moNetOSCOut class **************************************************
-
 
 class moNetOSCOut : public moIODevice
 {
@@ -111,12 +113,15 @@ private:
   int m_sendMoldeoApi;
 	int m_SendEvents;
     int m_Port;
+    moText m_SendDevices;
+    moTextArray m_SendDevicesArray;
 
     // Parameters.
     moTextArray host_name;
     moIntArray host_port;
 
-    bool recog_devices[MO_IODEVICE_TABLET + 1];
+    bool recog_devices[MO_IODEVICE_CONSOLE + 1];
+    map<string, int> map_devices;
     bool delete_events;
 
 	float sendInterval;

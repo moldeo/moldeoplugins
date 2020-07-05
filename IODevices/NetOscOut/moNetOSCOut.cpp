@@ -74,9 +74,24 @@ moNetOSCOut::moNetOSCOut()
 
     m_Port = 7400;
     m_SendEvents = 0;
+    m_SendDevices = moText("");
+    for(int dev = 0; dev <= MO_IODEVICE_CONSOLE; dev++) recog_devices[dev] = false;
+    map_devices["keyboard"] = MO_IODEVICE_KEYBOARD;
+    map_devices["mouse"] = MO_IODEVICE_MOUSE;
+    map_devices["midi"] = MO_IODEVICE_MIDI;
+    map_devices["mixer"] = MO_IODEVICE_MIXER;
+    map_devices["joystick"] = MO_IODEVICE_JOYSTICK;
+    map_devices["net_tcp_in"] = MO_IODEVICE_NET_TCP_IN;
+    map_devices["net_tcp_out"] = MO_IODEVICE_NET_TCP_OUT;
+    map_devices["net_udp_in"] = MO_IODEVICE_NET_UDP_IN;
+    map_devices["net_udp_out"] = MO_IODEVICE_NET_UDP_OUT;
+    map_devices["live"] = MO_IODEVICE_LIVE;
+    map_devices["tracker"] = MO_IODEVICE_TRACKER;
+    map_devices["tablet"] = MO_IODEVICE_TABLET;
+    map_devices["touch"] = MO_IODEVICE_TOUCH;
+    map_devices["console"] = MO_IODEVICE_CONSOLE;
     sendInterval = 100;
     debug_is_on = false;
-
 }
 
 moNetOSCOut::~moNetOSCOut()
@@ -105,30 +120,7 @@ MOboolean moNetOSCOut::Init()
     moDefineParamIndex( NETOSCOUT_DELETEEVENTS, moText("delete_events") );
     moDefineParamIndex( NETOSCOUT_SENDMOLDEOAPI, moText("send_moldeo_api") );
     moDefineParamIndex( NETOSCOUT_DEBUG, moText("debug") );
-
-
-    // Reading list of devices which will be used as source of events to send over the network.
-    /*
-    for(dev = MO_IODEVICE_KEYBOARD; dev <= MO_IODEVICE_TABLET; dev++) recog_devices[dev] = false;
-    n = m_Config.GetParamIndex("devices");
-    n_dev = m_Config.GetValuesCount(n);
-    for(i = 0; i < n_dev; i++)
-    {
-		dev_name = m_Config.GetParam(n).GetValue(i).GetSubValue(0).Text();
-
-        dev = -1;
-        if(!stricmp(dev_name, "keyboard")) dev = MO_IODEVICE_KEYBOARD;
-        if(!stricmp(dev_name, "mouse")) dev = MO_IODEVICE_MOUSE;
-        if(!stricmp(dev_name, "midi")) dev = MO_IODEVICE_MIDI;
-        if(!stricmp(dev_name, "mixer")) dev = MO_IODEVICE_MIXER;
-        if(!stricmp(dev_name, "joystick")) dev = MO_IODEVICE_JOYSTICK;
-		if(!stricmp(dev_name, "tablet")) dev = MO_IODEVICE_TABLET;
-		if(!stricmp(dev_name, "tracker")) dev = MO_IODEVICE_TRACKER;
-
-        if(-1 < dev) recog_devices[dev] = true;
-    }
-    */
-
+    
     // Reading hosts names and ports.
     n = m_Config.GetParamIndex("hosts");
 	n_hosts = m_Config.GetValuesCount(n);
@@ -183,11 +175,28 @@ MOboolean moNetOSCOut::Init()
 
 void
 moNetOSCOut::UpdateParameters() {
-
+    
     sendInterval = m_Config.Double( moR( NETOSCOUT_LATENCY ) );
     m_Port = m_Config.Int( moR( NETOSCOUT_PORT ) );
     maxEventNum = m_Config.Int( moR( NETOSCOUT_MAXEVENTS ) );
     m_SendEvents  = m_Config.Int( moR( NETOSCOUT_SENDEVENTS ) );
+    moText send_devices = m_Config.Text( moR ( NETOSCOUT_DEVICES) );
+    if ( send_devices.Length()>0 && m_SendDevices!=send_devices) {
+      m_SendDevices = send_devices;
+      m_SendDevicesArray = m_SendDevices.Explode( moText(",") );
+      for(int dev = 0; dev <= MO_IODEVICE_CONSOLE; dev++) recog_devices[dev] = false;
+      for( int d=0; d<m_SendDevicesArray.Count(); d++) {
+          string devname = (char*) m_SendDevicesArray[d];
+          int devid = -1;
+          try {
+            devid = map_devices[ devname ];
+            if (devid>-1) recog_devices[ devid ] = true;
+            MODebug2->Message(m_SendDevicesArray[d]);          
+          } catch(...) {
+            MODebug2->Error("Bad device name: "+m_SendDevicesArray[d]);
+          }
+      }
+    }
     delete_events = m_Config.Int( moR( NETOSCOUT_DELETEEVENTS ) );
     m_sendMoldeoApi = m_Config.Int( moR( NETOSCOUT_SENDMOLDEOAPI )  );
     debug_is_on = ( 0 != m_Config.Int( moR(NETOSCOUT_DEBUG) ) );
@@ -252,9 +261,8 @@ void moNetOSCOut::Update(moEventList *Eventos)
         actual = Eventos->First;
         while(actual != NULL)
         {
-            if ( actual->deviceid==MO_IODEVICE_KEYBOARD ) {
-
-            //if(recog_devices[actual->deviceid])
+            if ( actual->deviceid<=MO_IODEVICE_CONSOLE &&
+                 recog_devices[actual->deviceid] ) {
 
    			    moDataMessage event_data_message;
 			    moData pData;
@@ -295,7 +303,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     }
             }
 
-
+            
             if (delete_events)
             {
                 tmp = actual->next;
@@ -664,7 +672,9 @@ moText oscpath = "";
     try {
       for(int j=0; j< datamessage.Count(); j++) {
           data = datamessage[j];
-          if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::SendDataMessage "+GetLabelName()+" > data:") + IntToStr(j) );
+          if (debug_is_on) {
+            MODebug2->Message( moText("moNetOSCOut::SendDataMessage "+GetLabelName()+" > data:") + IntToStr(j) + moText(":") + data.ToText() );
+          }
           switch(data.Type()) {
           #ifdef OSCPACK
               case MO_DATA_NUMBER_FLOAT:
