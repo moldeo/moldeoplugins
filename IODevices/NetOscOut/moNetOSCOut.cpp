@@ -120,7 +120,7 @@ MOboolean moNetOSCOut::Init()
     moDefineParamIndex( NETOSCOUT_DELETEEVENTS, moText("delete_events") );
     moDefineParamIndex( NETOSCOUT_SENDMOLDEOAPI, moText("send_moldeo_api") );
     moDefineParamIndex( NETOSCOUT_DEBUG, moText("debug") );
-    
+
     // Reading hosts names and ports.
     n = m_Config.GetParamIndex("hosts");
 	n_hosts = m_Config.GetValuesCount(n);
@@ -175,7 +175,7 @@ MOboolean moNetOSCOut::Init()
 
 void
 moNetOSCOut::UpdateParameters() {
-    
+
     sendInterval = m_Config.Double( moR( NETOSCOUT_LATENCY ) );
     m_Port = m_Config.Int( moR( NETOSCOUT_PORT ) );
     maxEventNum = m_Config.Int( moR( NETOSCOUT_MAXEVENTS ) );
@@ -191,7 +191,7 @@ moNetOSCOut::UpdateParameters() {
           try {
             devid = map_devices[ devname ];
             if (devid>-1) recog_devices[ devid ] = true;
-            MODebug2->Message(m_SendDevicesArray[d]);          
+            MODebug2->Message(m_SendDevicesArray[d]);
           } catch(...) {
             MODebug2->Error("Bad device name: "+m_SendDevicesArray[d]);
           }
@@ -303,7 +303,7 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     }
             }
 
-            
+
             if (delete_events)
             {
                 tmp = actual->next;
@@ -655,9 +655,9 @@ void moNetOSCOut::SendDataMessage( int i, moDataMessage &datamessage ) {
 	//cout << "moNetOSCOut::SendDataMessage > Clear() ok." << endl;
 
     (*packetStream) << osc::BeginBundleImmediate;
-    //cout << "moNetOSCOut::SendDataMessage > BeginBundleImmediate ok." << endl;
+    cout << "moNetOSCOut::SendDataMessage > BeginBundleImmediate ok." << endl;
 
-    (*packetStream) << osc::BeginMessage( moText("")+ IntToStr(datamessage.Count()) );
+    (*packetStream) << osc::BeginMessage("/moldeo");
     //cout << "moNetOSCOut::SendDataMessage > data in messages:" << datamessage.Count() << endl;
 #else
 lo_timetag timetag;

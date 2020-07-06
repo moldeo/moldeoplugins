@@ -129,6 +129,7 @@ MOboolean moTablet::Init()
 	}
 
 #ifndef MO_MACOSX
+#ifdef MO_LINUX
 moGUIManager* GUIMAN = m_pResourceManager->GetGuiMan();
 if (GUIMAN) {
   m_Disp = (Display*)GUIMAN->GetDisplay();
@@ -140,6 +141,7 @@ if (GUIMAN) {
     MODebug2->Message("moTablet::Init > Tablet init OK! \n");
   }
 }
+#endif
 #endif
   for( i = 0; i < ncodes; i++) Codes[i].CreateValuesArray(100);
 
@@ -460,6 +462,9 @@ void moTablet::Update(moEventList *Events)
 		nTabCursor = t_curNew;	            //1=normal 2=eraser.
 
 		tabletcode = -1;
+
+		if (Events)
+            Events->Add( MO_IODEVICE_TABLET, SDL_MOUSEMOTION, t_pkXNew, t_pkYNew, t_prsNew, 0 );
 
 		if (t_pkXNew != pkXOld)
 		{

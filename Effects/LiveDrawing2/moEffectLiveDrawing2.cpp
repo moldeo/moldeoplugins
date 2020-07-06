@@ -443,8 +443,8 @@ void moEffectLiveDrawing2::Interaction( moIODeviceManager *IODeviceManager ) {
 				}
 				else if (i == MO_DRAW_PRESSURE)
 				{
-          MODebug2->Message("MO_DRAW_PRESSURE");
-          npressures++;
+                    MODebug2->Message("MO_DRAW_PRESSURE");
+                    npressures++;
 					if (0 < nval)
 					{
 						pressure = max_pressure;

@@ -135,7 +135,7 @@
 #include "pktdef.h"
 
 #define FIX_DOUBLE(x)   ((double)(INT(x))+((double)FRAC(x)/65536))	// converts FIX32 to double
-#include "SDL2/SDL.h"
+//#include "SDL2/SDL.h"
 #endif // MO_WIN32
 
 
