@@ -68,6 +68,9 @@ void moEffectMovieFactory::Destroy(moEffect* fx) {
 moEffectMovie::moEffectMovie() {
 	SetName("movie");
 	movielaunched = false;
+
+  m_pOutletFramePosition = NULL;
+  m_pInletFramePosition = NULL;
 }
 
 moEffectMovie::~moEffectMovie() {
@@ -122,155 +125,147 @@ moEffectMovie::GetDefinition( moConfigDefinition *p_configdefinition ) {
 MOboolean
 moEffectMovie::Init() {
 
-    if (!PreInit()) return false;
+  if (!m_pInletFramePosition) m_pInletFramePosition = new moInlet();
 
-    // Hacer la inicializacion de este efecto en particular.
-	moDefineParamIndex( MOVIE_ALPHA, moText("alpha") );
-	moDefineParamIndex( MOVIE_COLOR, moText("color") );
-	moDefineParamIndex( MOVIE_SYNC, moText("syncro") );
-	//moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
-	moDefineParamIndex( MOVIE_MOVIES, moText("movies") );
-	moDefineParamIndex( MOVIE_SOUNDS, moText("sounds") );
-	moDefineParamIndex( MOVIE_MODE, moText("moviemode") );
-	moDefineParamIndex( MOVIE_LAUNCH, moText("movielaunch") );
-	moDefineParamIndex( MOVIE_BLENDING, moText("blending") );
-	moDefineParamIndex( MOVIE_STARTPLAYING, moText("startplaying") );
-	moDefineParamIndex( MOVIE_LOOP, moText("loop") );
+  if (m_pInletFramePosition) {
+    MODebug2->Message("Inlet Frame Position Initializing");
+    ((moConnector*)m_pInletFramePosition)->Init( moText("FRAMEPOSITION"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
+    m_Inlets.Add(m_pInletFramePosition);
+  }
 
-	moDefineParamIndex( MOVIE_POSITION, moText("position") );
-	moDefineParamIndex( MOVIE_SPEED, moText("speed") );
-	moDefineParamIndex( MOVIE_VOLUME, moText("volume") );
-	moDefineParamIndex( MOVIE_BALANCE, moText("balance") );
-	moDefineParamIndex( MOVIE_BRIGHTNESS, moText("brightness") );
-	moDefineParamIndex( MOVIE_CONTRAST, moText("contrast") );
-	moDefineParamIndex( MOVIE_SATURATION, moText("saturation") );
-	moDefineParamIndex( MOVIE_HUE, moText("hue") );
+  if (!PreInit()) return false;
+
+  // Hacer la inicializacion de este efecto en particular.
+  moDefineParamIndex( MOVIE_ALPHA, moText("alpha") );
+  moDefineParamIndex( MOVIE_COLOR, moText("color") );
+  moDefineParamIndex( MOVIE_SYNC, moText("syncro") );
+  //moDefineParamIndex( MOVIE_SCRIPT, moText("script") );
+  moDefineParamIndex( MOVIE_MOVIES, moText("movies") );
+  moDefineParamIndex( MOVIE_SOUNDS, moText("sounds") );
+  moDefineParamIndex( MOVIE_MODE, moText("moviemode") );
+  moDefineParamIndex( MOVIE_LAUNCH, moText("movielaunch") );
+  moDefineParamIndex( MOVIE_BLENDING, moText("blending") );
+  moDefineParamIndex( MOVIE_STARTPLAYING, moText("startplaying") );
+  moDefineParamIndex( MOVIE_LOOP, moText("loop") );
+
+  moDefineParamIndex( MOVIE_POSITION, moText("position") );
+  moDefineParamIndex( MOVIE_SPEED, moText("speed") );
+  moDefineParamIndex( MOVIE_VOLUME, moText("volume") );
+  moDefineParamIndex( MOVIE_BALANCE, moText("balance") );
+  moDefineParamIndex( MOVIE_BRIGHTNESS, moText("brightness") );
+  moDefineParamIndex( MOVIE_CONTRAST, moText("contrast") );
+  moDefineParamIndex( MOVIE_SATURATION, moText("saturation") );
+  moDefineParamIndex( MOVIE_HUE, moText("hue") );
 
 
-	moDefineParamIndex( MOVIE_SHOWMOVIEDATA, moText("showmoviedata") );
-	moDefineParamIndex( MOVIE_INTERPOLATION, moText("interpolation") );
-	moDefineParamIndex( MOVIE_POSTEXX, moText("pos_text_x") );
-	moDefineParamIndex( MOVIE_POSTEXY, moText("pos_text_y") );
-	moDefineParamIndex( MOVIE_ANCTEXX, moText("anc_text_x") );
-	moDefineParamIndex( MOVIE_ALTTEXY, moText("alt_text_y") );
-	moDefineParamIndex( MOVIE_POSCUADX, moText("pos_cuad_x") );
-	moDefineParamIndex( MOVIE_POSCUADY, moText("pos_cuad_y") );
-	moDefineParamIndex( MOVIE_ANCCUADX, moText("anc_cuad_x") );
-	moDefineParamIndex( MOVIE_ALTCUADY, moText("alt_cuad_y") );
+  moDefineParamIndex( MOVIE_SHOWMOVIEDATA, moText("showmoviedata") );
+  moDefineParamIndex( MOVIE_INTERPOLATION, moText("interpolation") );
+  moDefineParamIndex( MOVIE_POSTEXX, moText("pos_text_x") );
+  moDefineParamIndex( MOVIE_POSTEXY, moText("pos_text_y") );
+  moDefineParamIndex( MOVIE_ANCTEXX, moText("anc_text_x") );
+  moDefineParamIndex( MOVIE_ALTTEXY, moText("alt_text_y") );
+  moDefineParamIndex( MOVIE_POSCUADX, moText("pos_cuad_x") );
+  moDefineParamIndex( MOVIE_POSCUADY, moText("pos_cuad_y") );
+  moDefineParamIndex( MOVIE_ANCCUADX, moText("anc_cuad_x") );
+  moDefineParamIndex( MOVIE_ALTCUADY, moText("alt_cuad_y") );
 
-	moDefineParamIndex( MOVIE_SHOWTRACKDATA, moText("showtrackdata") );
-	moDefineParamIndex( MOVIE_DISPLAY_X, moText("display_x") );
-	moDefineParamIndex( MOVIE_DISPLAY_Y, moText("display_y") );
-	moDefineParamIndex( MOVIE_DISPLAY_WIDTH, moText("display_width") );
-	moDefineParamIndex( MOVIE_DISPLAY_HEIGHT, moText("display_height") );
+  moDefineParamIndex( MOVIE_SHOWTRACKDATA, moText("showtrackdata") );
+  moDefineParamIndex( MOVIE_DISPLAY_X, moText("display_x") );
+  moDefineParamIndex( MOVIE_DISPLAY_Y, moText("display_y") );
+  moDefineParamIndex( MOVIE_DISPLAY_WIDTH, moText("display_width") );
+  moDefineParamIndex( MOVIE_DISPLAY_HEIGHT, moText("display_height") );
 
-	moDefineParamIndex( MOVIE_NO_AUDIO_OUTPUT, moText("no_audio_output") );
-	moDefineParamIndex( MOVIE_NO_VIDEO_OUTPUT, moText("no_video_output") );
-	moDefineParamIndex( MOVIE_NO_TEXT_OUTPUT, moText("no_text_output") );
+  moDefineParamIndex( MOVIE_NO_AUDIO_OUTPUT, moText("no_audio_output") );
+  moDefineParamIndex( MOVIE_NO_VIDEO_OUTPUT, moText("no_video_output") );
+  moDefineParamIndex( MOVIE_NO_TEXT_OUTPUT, moText("no_text_output") );
 
-	moDefineParamIndex( MOVIE_INLET, moText("inlet") );
-	moDefineParamIndex( MOVIE_OUTLET, moText("outlet") );
+  moDefineParamIndex( MOVIE_INLET, moText("inlet") );
+  moDefineParamIndex( MOVIE_OUTLET, moText("outlet") );
 
-	m_PlaySpeed = 0.0;
-	m_PlayState = MO_MOVIE_PLAYSTATE_STOPPED;//speed 0 0.0
-	m_SeekState = MO_MOVIE_SEEKSTATE_REACHED;//frame 0
+  m_PlaySpeed = 0.0;
+  m_PlayState = MO_MOVIE_PLAYSTATE_STOPPED;//speed 0 0.0
+  m_SeekState = MO_MOVIE_SEEKSTATE_REACHED;//frame 0
 
-	m_bDisplayOn = false;
-	m_bPlayingSound = false;
+  m_bDisplayOn = false;
+  m_bPlayingSound = false;
 
-	m_FramesLength = 0;
-	m_FramePosition = 0;
-	m_FramePositionAux = 0;
-	m_FramePositionF = 0.0;
-	m_FramePositionFAux = 0.0;
-	m_DiffFrame = 0.0;
-	m_FramePositionInc = 0.0;
+  m_FramesLength = 0;
+  m_FramePosition = 0;
+  m_FramePositionAux = 0;
+  m_FramePositionF = 0.0;
+  m_FramePositionFAux = 0.0;
+  m_DiffFrame = 0.0;
+  m_FramePositionInc = 0.0;
 
-	m_pAnim = NULL;
-	m_pMovie = NULL;
-	m_pTexture = NULL;
+  m_pAnim = NULL;
+  m_pMovie = NULL;
+  m_pTexture = NULL;
   m_pSound = NULL;
 
-	m_pNextMovie = NULL;
-	m_pNextTexture = NULL;
+  m_pNextMovie = NULL;
+  m_pNextTexture = NULL;
 
-	showmoviedata = true;/** Start timer to shut down display info*/
-	movielaunchon = MO_MOVIE_LAUNCH_OFF;
+  showmoviedata = true;/** Start timer to shut down display info*/
+  movielaunchon = MO_MOVIE_LAUNCH_OFF;
 
-/*
-	m_pSound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
-	if (m_pSound) {
-		m_pSound->SetPosition( m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][1].Float(),
-							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][2].Float(),
-							m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][3].Float());
-	}
+  /*
+  m_pSound = m_pResourceManager->GetSoundMan()->GetSound(m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text());
+  if (m_pSound) {
+  m_pSound->SetPosition( m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][1].Float(),
+  		m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][2].Float(),
+  		m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][3].Float());
+  }
 
-	 {
-      moText wavfilename = m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text();
-      wavfilename = (moText)m_pResourceManager->GetDataMan()->GetDataPath() + (moText)moSlash + (moText)wavfilename;
+  {
+  moText wavfilename = m_Config[moParamReference(MOVIE_SOUNDS)][MO_SELECTED][0].Text();
+  wavfilename = (moText)m_pResourceManager->GetDataMan()->GetDataPath() + (moText)moSlash + (moText)wavfilename;
 
-      //m_SoundSystem.InitGraph();
+  //m_SoundSystem.InitGraph();
 
 
-      //if (m_SoundSystem.BuildLiveSound( wavfilename )) {
+  //if (m_SoundSystem.BuildLiveSound( wavfilename )) {
 
-      //}
+  //}
 
-    }
-*/
-/*
-	m_MovieScriptFN = m_Config[moParamReference(MOVIE_SCRIPT)][MO_SELECTED][0].Text();
-	if ((moText)m_MovieScriptFN!=moText("")) {
+  }
+  */
+  /*
+  m_MovieScriptFN = m_Config[moParamReference(MOVIE_SCRIPT)][MO_SELECTED][0].Text();
+  if ((moText)m_MovieScriptFN!=moText("")) {
 
-	    moScript::InitScript();
-        RegisterFunctions();
+  moScript::InitScript();
+  RegisterFunctions();
 
-        m_MovieScriptFN = m_pResourceManager->GetDataMan()->GetDataPath()+ moText("/") + (moText)m_MovieScriptFN;
+  m_MovieScriptFN = m_pResourceManager->GetDataMan()->GetDataPath()+ moText("/") + (moText)m_MovieScriptFN;
 
-        if ( CompileFile(m_MovieScriptFN) ) {
+  if ( CompileFile(m_MovieScriptFN) ) {
 
-            SelectScriptFunction( "Init" );
-            AddFunctionParam( m_FramesPerSecond );
-            AddFunctionParam( (int)m_FramesLength );
-            AddFunctionParam( m_pResourceManager->GetRenderMan()->RenderWidth() );
-            AddFunctionParam( m_pResourceManager->GetRenderMan()->RenderHeight() );
-            RunSelectedFunction();
+    SelectScriptFunction( "Init" );
+    AddFunctionParam( m_FramesPerSecond );
+    AddFunctionParam( (int)m_FramesLength );
+    AddFunctionParam( m_pResourceManager->GetRenderMan()->RenderWidth() );
+    AddFunctionParam( m_pResourceManager->GetRenderMan()->RenderHeight() );
+    RunSelectedFunction();
 
-        } else {
-            MODebug2->Error("couldnt compile script");
-        }
-	}
-*/
-	m_bTrackerInit = false;
-	m_pTrackerData = NULL;
-	//m_pTrackerGpuData = NULL;
+  } else {
+    MODebug2->Error("couldnt compile script");
+  }
+  }
+  */
+  m_bTrackerInit = false;
+  m_pTrackerData = NULL;
+  //m_pTrackerGpuData = NULL;
 
-	m_TicksAux = m_EffectState.tempo.ticks;
-	m_Ticks = m_TicksAux;
+  m_TicksAux = m_EffectState.tempo.ticks;
+  m_Ticks = m_TicksAux;
 
-	return true;
+  return true;
 }
 
 void moEffectMovie::UpdateParameters() {
 
-  float Volume,Balance,Brightness,Contrast,Saturation,Hue;
-  long  UserPosition;
   moTexture *pTexture;
   bool bReBalance = false;
-
-  ///user position, convert from function to long...
-  UserPosition = (long)m_Config.Eval(moR(MOVIE_POSITION));
-
-  ///sound balance
-  Volume = m_Config.Eval(moR(MOVIE_VOLUME));
-  Balance = m_Config.Eval(moR(MOVIE_BALANCE));
-
-  ///video balance
-  Brightness = m_Config.Eval(moR(MOVIE_BRIGHTNESS));
-  Contrast = m_Config.Eval(moR(MOVIE_CONTRAST));
-  Saturation = m_Config.Eval(moR(MOVIE_SATURATION));
-  Hue = m_Config.Eval(moR(MOVIE_HUE));
-
 
   m_bStartPlayingOn = m_Config.Int(moR(MOVIE_STARTPLAYING));
 	m_bLoop = m_Config.Int(moR(MOVIE_LOOP));
@@ -283,248 +278,311 @@ void moEffectMovie::UpdateParameters() {
 	pTexture = m_Config[moR(MOVIE_MOVIES)][MO_SELECTED][0].Texture();
 	m_pSound = m_Config[moR(MOVIE_SOUNDS)][MO_SELECTED][0].Sound();
 
+  /** TRATAMIENTO DE LOS CUADROS DE LA TEXTURA
+  * TODO:
+  *
+  */
+  bReBalance = UpdateMovieTexture( pTexture );
+  UpdateMoviePosition();
+  UpdateFilterParameters(bReBalance);
+  UpdateInlets();
+  UpdateOutlets();
+}
+
+MOboolean moEffectMovie::UpdateMovieTexture(moTexture* p_Texture) {
+
+  MOboolean bReBalance = false;
+
   /**
   *    ASIGNACION DE OBJETOS
   */
-  if (pTexture) {
+  if (!p_Texture) return bReBalance;
 
-    /// CAMBIO O SALTO DE PELICULA....
-    if (m_pTexture)
-      if (pTexture->GetName()!=m_pTexture->GetName()) {
+  /// CAMBIO O SALTO DE PELICULA....
+  if (m_pTexture) {
+    if (p_Texture->GetName()!=m_pTexture->GetName()) {
 
-        ///si se cambió de película
-        if (m_pMovie) {
-          ///parar o pausar...
-          ///TODO: faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
-          m_pMovie->Pause();
+      ///si se cambió de película
+      if (m_pMovie) {
+        ///parar o pausar...
+        ///TODO: faltaria un parametro: STOP on CHANGE, o PAUSE ON CHANGE
+        m_pMovie->Pause();
+        //m_pMovie->Stop();
+        if (m_pMovie->IsPaused()) {
+          m_pMovie->Seek(0);
+        }
+        //bReBalance = true;
+        bReBalance = false;
+
+        if (m_pMovie->IsEOS()) {
           //m_pMovie->Stop();
-          if (m_pMovie->IsPaused()) {
-            m_pMovie->Seek(0);
-          }
-          //bReBalance = true;
-          bReBalance = false;
-
-          if (m_pMovie->IsEOS()) {
-            //m_pMovie->Stop();
-          }
         }
       }
+    }
+  }
 
-    ///Asignamos la textura nueva...
-    m_pTexture = pTexture;
+  ///Asignamos la textura nueva...
+  m_pTexture = p_Texture;
 
-    if(m_pTexture)
-      switch(m_pTexture->GetType()) {
-        case MO_TYPE_MOVIE:
-          ///REASIGNAMOS
-          m_pMovie = dynamic_cast<moMovie*>(m_pTexture);
-          m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
-          break;
+  if (!m_pTexture) return bReBalance;
 
-        case MO_TYPE_CIRCULARVIDEOBUFFER:
-        case MO_TYPE_VIDEOBUFFER:
-        case MO_TYPE_TEXTURE_MULTIPLE:
-        case MO_TYPE_TEXTUREBUFFER:
-          m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
-          break;
-        default:
-          break;
-      }
+  switch(m_pTexture->GetType()) {
+    case MO_TYPE_MOVIE:
+      ///REASIGNAMOS
+      m_pMovie = dynamic_cast<moMovie*>(m_pTexture);
+      m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
+      break;
 
-  } ///fin asignacion de Objetos....
+    case MO_TYPE_CIRCULARVIDEOBUFFER:
+    case MO_TYPE_VIDEOBUFFER:
+    case MO_TYPE_TEXTURE_MULTIPLE:
+    case MO_TYPE_TEXTUREBUFFER:
+      m_pAnim = dynamic_cast<moTextureAnimated*>(m_pTexture);
+      break;
+    default:
+      break;
+  }
 
-  /**
-  *
-  *   TRATAMIENTO DE LOS CUADROS DE LA TEXTURA
-  *
-  */
-  if (m_pTexture)
-    if (m_pTexture->GetType()!=MO_TYPE_TEXTURE && m_pTexture->GetType()!=MO_TYPE_TEXTUREMEMORY ) {
+  return bReBalance;
 
-      if (UserPosition!=m_UserPosition) {
-        m_UserPosition=UserPosition;
-        //MODebug2->Push("changed user position:" + IntToStr(UserPosition) );
-        if (m_pAnim) {
-          m_FramePosition = m_UserPosition;
-          ///MovieGLID() se ocupa del resto
-          //m_pAnim->GetGLId( (MOuint) m_UserPosition );
-        }
-        if (m_pMovie) {
+}
 
-          //if (m_pMovie->IsPaused()) {
-          //  m_pMovie->Seek( m_UserPosition );
-          //}
-          m_pMovie->Seek( m_UserPosition );
-        }
-      }
+void moEffectMovie::UpdateMoviePosition() {
+  long  UserPosition;
 
-    /**
-    *     SI DERIVA DE moTextureAnimated
-    */
+  ///user position, convert from function to long...
+  UserPosition = (long)m_Config.Eval(moR(MOVIE_POSITION));
+
+  if (!m_pTexture) return;
+
+  MOboolean is_texture_animated = m_pTexture->GetType()!=MO_TYPE_TEXTURE && m_pTexture->GetType()!=MO_TYPE_TEXTUREMEMORY;
+
+  if (!is_texture_animated) return;
+
+  if (UserPosition!=m_UserPosition) {
+    m_UserPosition=UserPosition;
+    //MODebug2->Push("changed user position:" + IntToStr(UserPosition) );
     if (m_pAnim) {
-      m_FramesLength = m_pAnim->GetFrameCount();
-      m_FramesPerSecond = m_pAnim->GetFramesPerSecond();
-      //m_FramePosition = m_pAnim->GetFrame();
-      //m_FramePositionF = (double)m_FramePosition;
+      m_FramePosition = m_UserPosition;
+      ///MovieGLID() se ocupa del resto
+      //m_pAnim->GetGLId( (MOuint) m_UserPosition );
     }
-
-    /**
-    *   TRATAMIENTO DE VIDEOBUFFER
-    */
-    if ( m_pAnim->GetType()==MO_TYPE_VIDEOBUFFER ) {
-
-        //m_FramePosition = m_pAnim->GetPosition();
-        //m_FramePositionF = (double)m_FramePosition;
-
-    }
-
-    /**
-    *     PELICULA (tratamiento)
-    *     2 modos:
-    *             MO_PLAYMODE_TIMEBASE
-    *             MO_PLAYMODE_FRAMEBASE
-    */
     if (m_pMovie) {
 
-      ///TODO: calculo de frame (solo si esta en modo VCR y en MO_PLAYMODE_TIMEBASE??)
-      if (m_pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
-
-        //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE start check."));
-
-        m_FramePosition = m_pMovie->GetPosition();
-        m_FramePositionF = (double)m_FramePosition;
-
-        ///estamos en syncro de todas maneras con el clock de la Consola...
-        if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
-          /// caso por Timer PAUSADO
-
-          if ( ( moIsTimerPaused() || m_EffectState.tempo.Paused()) && m_pMovie->IsPlaying() ) {
-            MODebug2->Message(moText("Timer is paused, should pause movie!!"));
-            m_pMovie->Pause();
-          }
-
-          /// caso por Timer PARADO (NOT STARTED)
-          if (moIsTimerStopped()  || m_EffectState.tempo.State()==MO_TIMERSTATE_STOPPED ) {
-            //MODebug2->Message(moText("Timer is stopped, stop movie!!"));
-
-            if (m_pMovie->IsPaused()) {
-              m_pMovie->Seek(0);
-            }
-
-            if (m_pMovie->IsPlaying() || m_pMovie->IsEOS()) {
-              MODebug2->Message(moText("Timer is stopped, should stop movie!!"));
-              if ( m_pMovie->IsPlaying() ) {
-                  MODebug2->Message(moText("Timer is stopped, pausing and seek to 0"));
-                  m_pMovie->Pause();
-                  m_pMovie->Seek(0);
-              }
-              if (m_pMovie->IsEOS()) {
-                MODebug2->Message(moText("DANGER. Timer is stopped and EOS reached. Do nothing!"));
-                /*m_pMovie->Stop();*/
-              }
-
-              //m_pMovie->Stop();
-            }
-          }
-        } else {
-          ///TIMER CORRIENDO
-          if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
-              /// PELI NO CORRE
-
-             if (m_pMovie->IsEOS() /*|| (m_FramePosition+5) >= m_FramesLength*/ ) {
-                 //MODebug2->Message(moText("Timer is playing, movie ended!!, do nothing...."));
-                 //m_pMovie->Play();
-                 //this->Disable();
-                 //this->TurnOff();
-             } else if ( m_FramePosition>=0 && (m_FramePosition+MO_MOVIE_EOF_TOLERANCE)<=m_FramesLength ) {
-                 //MODebug2->Message(moText("Timer is playing, movie is not, try to play movie!!"));
-                 if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
-                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
-                      MODebug2->Message(moText("Launch ON"));
-                      m_pMovie->Play();
-                    }
-                 } else if (moviemode==MO_MOVIE_MODE_LAUNCH_NEXT_AND_WAIT ) {
-                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
-                      MODebug2->Message(moText("Launch ON"));
-                      m_pMovie->Play();
-                    }
-                 } else m_pMovie->Play();
-                 //MODebug2->Message(moText("Timer is started, movie not: Play() was called..."));
-             }
-
-
-          } else if(m_pMovie->IsPlaying() && (moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING  ) ) {
-
-              /// PELI SI CORRE
-             //MODebug2->Message(moText("Timer is playing, movie is playing too, if position is 0, then play!!"));
-
-              if (m_pMovie->GetPosition()==0) {
-                  //MODebug2->Message(moText("position is 0, Play()!!"));
-                  if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
-                    if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
-                        MODebug2->Message(moText("Movie Running (but at position 0). Launch ON"));
-                        m_pMovie->Play();
-                    }
-                  }
-              }
-          }
-          //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE end check."));
-        }
-
-/*
-        MODebug2->Push(moText("TIMEBASE:") + IntToStr(m_Ticks-m_TicksAux)
-                       + moText(" IsPlaying:")
-                       + IntToStr(m_pMovie->IsPlaying())
-                       + moText(" MoldeoTimerStarted:")
-                       + IntToStr( moTimeManager::MoldeoTimer->Started() )
-                       + moText(" Position:")
-                       + IntToStr( m_pMovie->GetPosition() )
-                       );*/
-
-      }
-
-    } ///fin PELICULA (tratamiento)
+      //if (m_pMovie->IsPaused()) {
+      //  m_pMovie->Seek( m_UserPosition );
+      //}
+      m_pMovie->Seek( m_UserPosition );
+    }
   }
 
   /**
+  *     SI DERIVA DE moTextureAnimated
+  */
+  if (m_pAnim) {
+    m_FramesLength = m_pAnim->GetFrameCount();
+    m_Config[moR(MOVIE_POSITION)][MO_SELECTED][0].SetRange( 0, m_FramesLength);
+    m_FramesPerSecond = m_pAnim->GetFramesPerSecond();
+    //m_FramePosition = m_pAnim->GetFrame();
+    //m_FramePositionF = (double)m_FramePosition;
+  }
+
+  /**
+  *   TRATAMIENTO DE VIDEOBUFFER
+  */
+  if ( m_pAnim->GetType()==MO_TYPE_VIDEOBUFFER ) {
+
+    //m_FramePosition = m_pAnim->GetPosition();
+    //m_FramePositionF = (double)m_FramePosition;
+
+  }
+
+  /**
+  *     PELICULA (tratamiento)
+  *     salto de posicion por el usuario
+  *     2 modos:
+  *             MO_PLAYMODE_TIMEBASE
+  *             MO_PLAYMODE_FRAMEBASE
+  */
+  if (!m_pMovie) return;
+
+  ///TODO: calculo de frame (solo si esta en modo VCR y en MO_PLAYMODE_TIMEBASE??)
+  if (m_pMovie->GetPlayMode()==moMovie::MO_PLAYMODE_TIMEBASE) {
+
+    //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE start check."));
+
+    m_FramePosition = m_pMovie->GetPosition();
+    m_FramePositionF = (double)m_FramePosition;
+
+    ///estamos en syncro de todas maneras con el clock de la Consola...
+    if ( (m_Ticks-m_TicksAux)<=0 ) { ///no esta avanzando el clock
+      /// caso por Timer PAUSADO
+
+      if ( ( moIsTimerPaused() || m_EffectState.tempo.Paused()) && m_pMovie->IsPlaying() ) {
+        MODebug2->Message(moText("Timer is paused, should pause movie!!"));
+        m_pMovie->Pause();
+      }
+
+      /// caso por Timer PARADO (NOT STARTED)
+      if (moIsTimerStopped()  || m_EffectState.tempo.State()==MO_TIMERSTATE_STOPPED ) {
+        //MODebug2->Message(moText("Timer is stopped, stop movie!!"));
+
+        if (m_pMovie->IsPaused()) {
+          m_pMovie->Seek(0);
+        }
+
+        if (m_pMovie->IsPlaying() || m_pMovie->IsEOS()) {
+          MODebug2->Message(moText("Timer is stopped, should stop movie!!"));
+          if ( m_pMovie->IsPlaying() ) {
+            MODebug2->Message(moText("Timer is stopped, pausing and seek to 0"));
+            m_pMovie->Pause();
+            m_pMovie->Seek(0);
+          }
+          if (m_pMovie->IsEOS()) {
+            MODebug2->Message(moText("DANGER. Timer is stopped and EOS reached. Do nothing!"));
+            /*m_pMovie->Stop();*/
+          }
+
+          //m_pMovie->Stop();
+        }
+      }
+    } else {
+      ///TIMER CORRIENDO
+      if (!m_pMovie->IsPlaying() && ( moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING ) ) {
+        /// PELI NO CORRE
+
+        if (m_pMovie->IsEOS() /*|| (m_FramePosition+5) >= m_FramesLength*/ ) {
+          //MODebug2->Message(moText("Timer is playing, movie ended!!, do nothing...."));
+          //m_pMovie->Play();
+          //this->Disable();
+          //this->TurnOff();
+        } else if ( m_FramePosition>=0 && (m_FramePosition+MO_MOVIE_EOF_TOLERANCE)<=m_FramesLength ) {
+        //MODebug2->Message(moText("Timer is playing, movie is not, try to play movie!!"));
+        if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
+          if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+            MODebug2->Message(moText("Launch ON"));
+            m_pMovie->Play();
+          }
+        } else if (moviemode==MO_MOVIE_MODE_LAUNCH_NEXT_AND_WAIT ) {
+          if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+            MODebug2->Message(moText("Launch ON"));
+            m_pMovie->Play();
+          }
+        } else m_pMovie->Play();
+        //MODebug2->Message(moText("Timer is started, movie not: Play() was called..."));
+        }
+
+
+      } else if(m_pMovie->IsPlaying() && (moIsTimerPlaying() && m_EffectState.tempo.State()==MO_TIMERSTATE_PLAYING  ) ) {
+
+        /// PELI SI CORRE
+        //MODebug2->Message(moText("Timer is playing, movie is playing too, if position is 0, then play!!"));
+
+        if (m_pMovie->GetPosition()==0) {
+          //MODebug2->Message(moText("position is 0, Play()!!"));
+          if (moviemode==MO_MOVIE_MODE_LAUNCH_AND_WAIT ) {
+            if (movielaunchon == MO_MOVIE_LAUNCH_ON) {
+                MODebug2->Message(moText("Movie Running (but at position 0). Launch ON"));
+                m_pMovie->Play();
+            }
+          }
+        }
+      }
+      //MODebug2->Message(moText("moMovie::Update > MO_PLAYMODE_TIMEBASE end check."));
+    }
+
+    /*
+    MODebug2->Push(moText("TIMEBASE:") + IntToStr(m_Ticks-m_TicksAux)
+         + moText(" IsPlaying:")
+         + IntToStr(m_pMovie->IsPlaying())
+         + moText(" MoldeoTimerStarted:")
+         + IntToStr( moTimeManager::MoldeoTimer->Started() )
+         + moText(" Position:")
+         + IntToStr( m_pMovie->GetPosition() )
+         );*/
+
+  }
+
+  ///fin PELICULA (tratamiento)
+}
+
+void moEffectMovie::UpdateFilterParameters(MOboolean p_ReBalance) {
+
+  float Volume,Balance,Brightness,Contrast,Saturation,Hue;
+
+  ///sound balance
+  Volume = m_Config.Eval(moR(MOVIE_VOLUME));
+  Balance = m_Config.Eval(moR(MOVIE_BALANCE));
+
+  ///video balance
+  Brightness = m_Config.Eval(moR(MOVIE_BRIGHTNESS));
+  Contrast = m_Config.Eval(moR(MOVIE_CONTRAST));
+  Saturation = m_Config.Eval(moR(MOVIE_SATURATION));
+  Hue = m_Config.Eval(moR(MOVIE_HUE));
+
+  /**
   *
   *
-  *     BALANCES DE VOLUMEN Y CONTRASTE
-  *       salto de posicion por el usuario
+  *     BALANCES DE VOLUMEN, VOLUMEN, SATURACION, CONTRASTE, LUMINOSIDAD
   *
   */
   if (m_pMovie) {
 
-      if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pMovie->SetVolume(m_Volume); }
-      if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pMovie->SetBalance(m_Balance);}
+    if (Volume!=m_Volume || p_ReBalance) { m_Volume=Volume; m_pMovie->SetVolume(m_Volume); }
+    if (Balance!=m_Balance || p_ReBalance) { m_Balance=Balance; m_pMovie->SetBalance(m_Balance);}
 
-      if (Brightness!=m_Brightness || bReBalance) { m_Brightness=Brightness; m_pMovie->SetBrightness(m_Brightness);}
-      if (Contrast!=m_Contrast || bReBalance) { m_Contrast=Contrast; m_pMovie->SetContrast(m_Contrast);}
-      if (Saturation!=m_Saturation || bReBalance) { m_Saturation=Saturation; m_pMovie->SetSaturation(m_Saturation);}
-      if (Hue!=m_Hue || bReBalance) { m_Hue=Hue; m_pMovie->SetHue(m_Hue);}
-      bReBalance = false;
+    if (Brightness!=m_Brightness || p_ReBalance) { m_Brightness=Brightness; m_pMovie->SetBrightness(m_Brightness);}
+    if (Contrast!=m_Contrast || p_ReBalance) { m_Contrast=Contrast; m_pMovie->SetContrast(m_Contrast);}
+    if (Saturation!=m_Saturation || p_ReBalance) { m_Saturation=Saturation; m_pMovie->SetSaturation(m_Saturation);}
+    if (Hue!=m_Hue || p_ReBalance) { m_Hue=Hue; m_pMovie->SetHue(m_Hue);}
+    p_ReBalance = false;
   }
 
-if (m_pSound) {
-    if (Volume!=m_Volume || bReBalance) { m_Volume=Volume; m_pSound->SetVolume(m_Volume); }
-    if (Balance!=m_Balance || bReBalance) { m_Balance=Balance; m_pSound->SetBalance(m_Balance);}
+  if (m_pSound) {
+    if (Volume!=m_Volume || p_ReBalance) { m_Volume=Volume; m_pSound->SetVolume(m_Volume); }
+    if (Balance!=m_Balance || p_ReBalance) { m_Balance=Balance; m_pSound->SetBalance(m_Balance);}
 
     m_pSound->SetVolume(m_Volume);
     m_pSound->SetBalance(m_Balance);
+  }
+
 }
 
+void moEffectMovie::UpdateInlets() {
 
-  for(int i=0; i<m_Inlets.Count(); i++) {
-      moInlet* pInlet = m_Inlets[i];
+  if (m_pInletFramePosition) {
+    if (m_pInletFramePosition->GetData()) {
+        m_pInletFramePosition->GetData()->SetDouble( m_FramePositionF );
+        m_pInletFramePosition->Update(true);
+    }
+  }
 
-      if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKERKLT")) {
+  for( int i=0; i<m_Inlets.Count(); i++ ) {
+    moInlet* pInlet = m_Inlets[i];
 
-        m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
-        if (m_pTrackerData && !m_bTrackerInit) {
-          m_bTrackerInit = true;
-        }
+    if (pInlet->Updated() && pInlet->GetConnectorLabelName()==moText("TRACKERKLT")) {
+
+      m_pTrackerData = (moTrackerSystemData *)pInlet->GetData()->Pointer();
+      if (m_pTrackerData && !m_bTrackerInit) {
+        m_bTrackerInit = true;
       }
     }
+  }
+
+}
+
+void moEffectMovie::UpdateOutlets() {
+
+  if (!m_pOutletFramePosition) {
+    m_pOutletFramePosition = m_Outlets.GetRef( this->GetOutletIndex( moText("FRAMEPOSITION") ) );
+  }
+
+  if (m_pOutletFramePosition) {
+    m_pOutletFramePosition->GetData()->SetFloat( m_FramePositionF );
+    m_pOutletFramePosition->Update(true);
+    //MODebug2->Message(FloatToStr(m_FramePositionF));
+  }
+
 }
 
 void moEffectMovie::Draw( moTempo* tempogral, moEffectState* parentstate )
@@ -797,8 +855,6 @@ MOuint moEffectMovie::MovieGLId() {
   }
   return glid;
 }
-
-
 
 void
 moEffectMovie::DrawDisplayInfo( MOfloat x, MOfloat y ) {

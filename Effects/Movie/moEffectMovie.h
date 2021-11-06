@@ -79,7 +79,7 @@
 #define MO_ALPHA    3
 #endif
 
-#define MO_MOVIE_EOF_TOLERANCE 25
+#define MO_MOVIE_EOF_TOLERANCE 7
 
 
 enum moEffectMovieLaunch {
@@ -170,6 +170,7 @@ enum moMovieParamIndex {
 	MOVIE_INLET,
 	MOVIE_OUTLET
 };
+
 /*
 #define MO_TRACKER_PROCESSSIGNAL			94
 #define MO_TRACKER_SMOOTHDIFF   			95
@@ -187,7 +188,9 @@ enum moMovieParamIndex {
 */
 class moEffectMovie : public moEffect
 {
-public:
+
+  public:
+
     moEffectMovie();
     virtual ~moEffectMovie();
 
@@ -196,157 +199,168 @@ public:
     MOboolean Finish();
     virtual void Activate();
     virtual void Deactivate();
-	void Interaction( moIODeviceManager * );
-	virtual void Update( moEventList *Events );
-	virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
+    void Interaction( moIODeviceManager * );
+    virtual void Update( moEventList *Events );
+    virtual moConfigDefinition * GetDefinition( moConfigDefinition *p_configdefinition );
 
     // Public script functions.
-	virtual int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
-	void HandleReturns(moLuaVirtualMachine& vm, const char *strFunc);
-  virtual void ScriptExeRun();
-  virtual void ScriptExeInit();
-  virtual void ScriptExeDraw();
-  virtual void ScriptExeUpdate();
+    virtual int ScriptCalling(moLuaVirtualMachine& vm, int iFunctionNumber);
+    void HandleReturns(moLuaVirtualMachine& vm, const char *strFunc);
+    virtual void ScriptExeRun();
+    virtual void ScriptExeInit();
+    virtual void ScriptExeDraw();
+    virtual void ScriptExeUpdate();
 
-	void DrawDisplayInfo( MOfloat x, MOfloat y);
+    void DrawDisplayInfo( MOfloat x, MOfloat y);
 
-protected:
+  protected:
 
-	moTextHeap	m_tScriptDebug;
+    moTextHeap	m_tScriptDebug;
 
-  //movies
-  moTexture* m_pTexture;
-  moMovie*   m_pMovie;
-	moTextureAnimated* m_pAnim;
-	moSound*	m_pSound;
+    //movies
+    moTexture* m_pTexture;
+    moMovie*   m_pMovie;
+    moTextureAnimated* m_pAnim;
+    moSound*	m_pSound;
 
-  moTexture* m_pNextTexture;
-  moMovie*   m_pNextMovie;
+    moTexture* m_pNextTexture;
+    moMovie*   m_pNextMovie;
 
 
-	MOint startplaying;
-	MOint loop;
-	moEffectMovieMode moviemode;
-	moEffectMovieLaunch movielaunchon;
-	bool movielaunched;
+    MOint startplaying;
+    MOint loop;
+    moEffectMovieMode moviemode;
+    moEffectMovieLaunch movielaunchon;
+    bool movielaunched;
 
-	MOboolean m_bPlayingSound;
+    MOboolean m_bPlayingSound;
 
     moGsGraph m_SoundSystem;
 
-	//movie
-	long            m_UserPosition;
+    //movie
+    long            m_UserPosition;
 
-	MOboolean				m_bDisplayOn;
-	MOboolean				m_bStartPlayingOn;
-	MOboolean				m_bLoop;//true: loop false: no loop
-	MOfloat					m_PlaySpeed;//1X = 1.0   2X = 2.0
+    MOboolean				m_bDisplayOn;
+    MOboolean				m_bStartPlayingOn;
+    MOboolean				m_bLoop;//true: loop false: no loop
+    MOfloat					m_PlaySpeed;//1X = 1.0   2X = 2.0
 
-	MOfloat         m_Volume;
-	MOfloat         m_Balance;
-	MOfloat         m_Brightness;
-	MOfloat         m_Contrast;
-	MOfloat         m_Hue;
-	MOfloat         m_Saturation;
+    MOfloat         m_Volume;
+    MOfloat         m_Balance;
+    MOfloat         m_Brightness;
+    MOfloat         m_Contrast;
+    MOfloat         m_Hue;
+    MOfloat         m_Saturation;
 
-	MOfloat					m_FramesPerSecond;//NTSC 29.97 fps PAL 25 fps
-	moEffectMoviePlayState	m_PlayState;
-	moEffectMovieSeekState	m_SeekState;
+    MOfloat					m_FramesPerSecond;//NTSC 29.97 fps PAL 25 fps
+    moEffectMoviePlayState	m_PlayState;
+    moEffectMovieSeekState	m_SeekState;
 
-	float         m_DisplayX;
-	float         m_DisplayY;
-	float         m_DisplayW;
-	float         m_DisplayH;
+    float         m_DisplayX;
+    float         m_DisplayY;
+    float         m_DisplayW;
+    float         m_DisplayH;
 
-	long					m_FramesLength;
-	long					m_FramePosition;
-	long					m_FramePositionAux;
-	double					m_FramePositionF;
-	double					m_FramePositionFAux;
+    long					m_FramesLength;
+    long					m_FramePosition;
+    long					m_FramePositionAux;
+    double					m_FramePositionF;
+    double					m_FramePositionFAux;
 
-	double                  m_FramePositionInc;
+    moOutlet*     m_pOutletFramePosition;
+    moInlet*     m_pInletFramePosition;
 
-	long                    m_Ticks;
-	long					m_TicksAux;
+    double                  m_FramePositionInc;
 
-	double					m_DiffFrame;
-	bool					m_bInterpolation;
+    long                    m_Ticks;
+    long					m_TicksAux;
+
+    double					m_DiffFrame;
+    bool					m_bInterpolation;
 
     int                     m_CursorX,m_CursorY;
     bool                    showmoviedata;
-	//additional fields
+    //additional fields
 
     // CUSTOM 1
-	moText m_MovieScriptFN;
+    moText m_MovieScriptFN;
     //TRACKER
-	MOboolean				m_bTrackerInit;
-	int tracker_width,tw;
-	int tracker_height,th;
+    MOboolean				m_bTrackerInit;
+    int tracker_width,tw;
+    int tracker_height,th;
 
-	MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
-  MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
-  MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
-  MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
-	/*
-	moTrackerKLTSystemData*	m_pTrackerData;
-	moTrackerGpuKLTSystemData*	m_pTrackerGpuData;
+    MOdouble PosTextX,  AncTextX,  PosTextY,  AltTextY;
+    MOdouble PosTextX0, PosTextX1, PosTextY0, PosTextY1;
+    MOdouble PosCuadX,  AncCuadX,  PosCuadY,  AltCuadY;
+    MOdouble PosCuadX0, PosCuadX1, PosCuadY0, PosCuadY1;
+    /*
+    moTrackerKLTSystemData*	m_pTrackerData;
+    moTrackerGpuKLTSystemData*	m_pTrackerGpuData;
     */
-	moTrackerSystemData*	m_pTrackerData;
+    moTrackerSystemData*	m_pTrackerData;
 
-	// For indexing scripted methods.
-	int m_iMethodBase;
+    // For indexing scripted methods.
+    int m_iMethodBase;
 
-	void DrawTrackerFeatures();
+    void DrawTrackerFeatures();
 
-	//CUSTOM FUNCTIONS
-	MOuint MovieGLId();
+    //CUSTOM FUNCTIONS
+    MOuint MovieGLId();
 
-  void UpdateParameters();
+    /** Assign Movie or Animation texture object
+    * Updating Movie/Video/Circular/Texture Buffers
+    * @param p_Texture base texture from config
+    */
+    MOboolean UpdateMovieTexture(moTexture* p_Texture);
+    void UpdateParameters();
+    void UpdateMoviePosition();
+    void UpdateFilterParameters(MOboolean p_ReBalance);
+    void UpdateInlets();
+    void UpdateOutlets();
 
-	void SpeedRegulation( MOfloat p_fMinSpeed, MOfloat p_fMaxSpeed );
-	void VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValue=0, MOfloat p_fValue = 0.0 );
-	void VCRPlaySpeed();
+    void SpeedRegulation( MOfloat p_fMinSpeed, MOfloat p_fMaxSpeed );
+    void VCRCommand( moEffectMovieVCRCommand p_Command, MOint p_iValue=0, MOfloat p_fValue = 0.0 );
+    void VCRPlaySpeed();
 
-  moEffectMoviePlayState VCRState();
+    moEffectMoviePlayState VCRState();
 
-private:
+  private:
     // Script functions.
-	void RegisterFunctions();
-	int GetFeature(moLuaVirtualMachine& vm);
-	int SpeedRegulation(moLuaVirtualMachine& vm);
-	int VCRStop(moLuaVirtualMachine& vm);
-	int VCRPlay(moLuaVirtualMachine& vm);
-	int VCRPause(moLuaVirtualMachine& vm);
-	int VCRReverse(moLuaVirtualMachine& vm);
-	int VCRForward(moLuaVirtualMachine& vm);
-	int VCRRewind(moLuaVirtualMachine& vm);
-	int VCRFForward(moLuaVirtualMachine& vm);
-	int VCRFRewind(moLuaVirtualMachine& vm);
-	int VCRSeek(moLuaVirtualMachine& vm);
-	int VCRSpeed(moLuaVirtualMachine& vm);
-	int VCRPrevFrame(moLuaVirtualMachine& vm);
-	int VCRNextFrame(moLuaVirtualMachine& vm);
-	int VCRLoop(moLuaVirtualMachine& vm);
-	int VCRPlaySpeed(moLuaVirtualMachine& vm);
-	int GetFramePosition(moLuaVirtualMachine& vm);
-	int GetFramePositionF(moLuaVirtualMachine& vm);
-	int GetPlaySpeed(moLuaVirtualMachine& vm);
-	int SetFramePosition(moLuaVirtualMachine& vm);
-	int SetFramePositionF(moLuaVirtualMachine& vm);
-	int SetPlaySpeed(moLuaVirtualMachine& vm);
-	int GetTicks(moLuaVirtualMachine& vm);
+    void RegisterFunctions();
+    int GetFeature(moLuaVirtualMachine& vm);
+    int SpeedRegulation(moLuaVirtualMachine& vm);
+    int VCRStop(moLuaVirtualMachine& vm);
+    int VCRPlay(moLuaVirtualMachine& vm);
+    int VCRPause(moLuaVirtualMachine& vm);
+    int VCRReverse(moLuaVirtualMachine& vm);
+    int VCRForward(moLuaVirtualMachine& vm);
+    int VCRRewind(moLuaVirtualMachine& vm);
+    int VCRFForward(moLuaVirtualMachine& vm);
+    int VCRFRewind(moLuaVirtualMachine& vm);
+    int VCRSeek(moLuaVirtualMachine& vm);
+    int VCRSpeed(moLuaVirtualMachine& vm);
+    int VCRPrevFrame(moLuaVirtualMachine& vm);
+    int VCRNextFrame(moLuaVirtualMachine& vm);
+    int VCRLoop(moLuaVirtualMachine& vm);
+    int VCRPlaySpeed(moLuaVirtualMachine& vm);
+    int GetFramePosition(moLuaVirtualMachine& vm);
+    int GetFramePositionF(moLuaVirtualMachine& vm);
+    int GetPlaySpeed(moLuaVirtualMachine& vm);
+    int SetFramePosition(moLuaVirtualMachine& vm);
+    int SetFramePositionF(moLuaVirtualMachine& vm);
+    int SetPlaySpeed(moLuaVirtualMachine& vm);
+    int GetTicks(moLuaVirtualMachine& vm);
     int DrawLine(moLuaVirtualMachine& vm);
-	int PushDebugString(moLuaVirtualMachine& vm);
+    int PushDebugString(moLuaVirtualMachine& vm);
 };
 
 class moEffectMovieFactory : public moEffectFactory
 {
-public:
+  public:
     moEffectMovieFactory() {}
     virtual ~moEffectMovieFactory() {}
     moEffect* Create();
     void Destroy(moEffect* fx);
-
 
 };
 
