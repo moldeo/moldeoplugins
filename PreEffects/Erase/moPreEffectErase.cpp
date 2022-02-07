@@ -75,6 +75,7 @@ MOboolean moPreEffectErase::Init()
 
     moDefineParamIndex( ERASE_ALPHA, moText("alpha") );
     moDefineParamIndex( ERASE_COLOR, moText("color") );
+		//moDefineParamIndex( ERASE_MODE, moText("mode") );
 
 	return true;
 }
@@ -85,11 +86,12 @@ void moPreEffectErase::Draw( moTempo* tempogral, moEffectState* parentstate )
 	BeginDraw(tempogral, parentstate);
 
 	moVector4d color4D = m_Config.EvalColor( moR(ERASE_COLOR) );
-	glClearColor(  color4D.X() * m_EffectState.tintr,
-                color4D.Y() * m_EffectState.tintg,
-                color4D.Z() * m_EffectState.tintb,
-                color4D.W() *
-                m_Config.Eval( moR( ERASE_ALPHA)) * m_EffectState.alpha);
+	float premultiplyalpha = color4D.W() * m_Config.Eval( moR( ERASE_ALPHA)) * m_EffectState.alpha;
+	glClearColor(  color4D.X() * m_EffectState.tintr * premultiplyalpha,
+                color4D.Y() * m_EffectState.tintg * premultiplyalpha,
+                color4D.Z() * m_EffectState.tintb * premultiplyalpha,
+                premultiplyalpha
+                );
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	EndDraw();

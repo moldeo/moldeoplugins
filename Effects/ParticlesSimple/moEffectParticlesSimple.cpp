@@ -212,6 +212,13 @@ moEffectParticlesSimple::Init()
     m_Inlets.Add(m_pParticleIndex);
   }
 
+	m_pParticleIndexNormal = new moInlet();
+
+  if (m_pParticleIndexNormal) {
+    ((moConnector*)m_pParticleIndexNormal)->Init( moText("particleindexnormal"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
+    m_Inlets.Add(m_pParticleIndexNormal);
+  }
+
   m_pParticleIndexCol = new moInlet();
 
   if (m_pParticleIndexCol) {
@@ -995,6 +1002,36 @@ void moEffectParticlesSimple::UpdateParameters() {
                                           */
 }
 
+void moEffectParticlesSimple::SetInletParticles( moParticlesSimple* pParticle ) {
+	if (m_pParticleIndex) {
+		if (m_pParticleIndex->GetData()) {
+				m_pParticleIndex->GetData()->SetLong( ((long)pParticle->Pos.X()) + ((long)pParticle->Pos.Y())*m_cols );
+				m_pParticleIndex->Update(true);
+		}
+	}
+
+	if (m_pParticleIndexNormal) {
+		if (m_pParticleIndexNormal->GetData()) {
+				m_pParticleIndexNormal->GetData()->SetDouble( ( pParticle->Pos.X() + pParticle->Pos.Y()*(double)m_cols ) / (double)m_total );
+				m_pParticleIndexNormal->Update(true);
+		}
+	}
+
+	if (m_pParticleIndexCol) {
+		if (m_pParticleIndexCol->GetData()) {
+				m_pParticleIndexCol->GetData()->SetLong( (long)pParticle->Pos.X() );
+				m_pParticleIndexCol->Update(true);
+		}
+	}
+
+	if (m_pParticleIndexRow) {
+		if (m_pParticleIndexRow->GetData()) {
+				m_pParticleIndexRow->GetData()->SetLong( (long)pParticle->Pos.Y() );
+				m_pParticleIndexRow->Update(true);
+		}
+	}
+}
+
 void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle ) {
 
     float left =  - (m_Physics.m_EmitterSize.X()) / 2.0;
@@ -1014,6 +1051,15 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
 
     double len=0,index=0,index_normal=0;
 
+		index = pParticle->Pos.X() + pParticle->Pos.Y()*(double)m_cols;
+		index_normal = 0.0; ///si no hay particulas siempre en 0
+		if (m_total>0) {
+				index_normal = index / (double)(m_total);
+		}
+		pParticle->ParticleIndex = index;
+		pParticle->ParticleIndexNormal = index_normal;
+		SetInletParticles(pParticle);
+
     randomposx = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.X() : m_Physics.m_PositionVector.X();
     randomposy = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Y() : m_Physics.m_PositionVector.Y();
     randomposz = ( fabs(m_Physics.m_RandomPosition) >0.0)? (0.5-moMathf::UnitRandom())*m_Physics.m_RandomPosition*m_Physics.m_PositionVector.Z() : m_Physics.m_PositionVector.Z();
@@ -1031,6 +1077,7 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
 
     pParticle->Mass = 10.0f;
     pParticle->Fixed = false;
+
 
     pParticle->U = moVector3f( 1.0, 0.0, 0.0 );
     pParticle->V = moVector3f( 0.0, 1.0, 0.0 );
@@ -1177,12 +1224,6 @@ void moEffectParticlesSimple::SetParticlePosition( moParticlesSimple* pParticle 
 
                     //z = m_Physics.m_EmitterSize.Z() * moMathf::UnitRandom();
                     len = m_Physics.m_EmitterVector.Length();
-                    index = pParticle->Pos.X()+pParticle->Pos.Y()*(double)m_cols;
-                    index_normal = 0.0; ///si no hay particulas siempre en 0
-
-                    if (m_cols*m_rows) {
-                        index_normal = index / (double)(m_cols*m_rows);
-                    }
                     z = index_normal;
 
                     pParticle->Pos3d = moVector3f(  m_Physics.m_EmitterVector.X()*( z + randomposx ),
@@ -1562,6 +1603,7 @@ void moEffectParticlesSimple::InitParticlesSimple( int p_cols, int p_rows, bool 
 
     m_rows = p_rows;
     m_cols = p_cols;
+		m_total = m_cols*m_rows;
 
 }
 
@@ -2530,26 +2572,7 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                     }
                   }
 
-                  if (m_pParticleIndex) {
-                    if (m_pParticleIndex->GetData()) {
-                        m_pParticleIndex->GetData()->SetLong( ((long)pPar->Pos.X()) + ((long)pPar->Pos.Y())*m_cols );
-                        m_pParticleIndex->Update(true);
-                    }
-                  }
-
-                  if (m_pParticleIndexCol) {
-                    if (m_pParticleIndexCol->GetData()) {
-                        m_pParticleIndexCol->GetData()->SetLong( (long)pPar->Pos.X() );
-                        m_pParticleIndexCol->Update(true);
-                    }
-                  }
-
-                  if (m_pParticleIndexRow) {
-                    if (m_pParticleIndexRow->GetData()) {
-                        m_pParticleIndexRow->GetData()->SetLong( (long)pPar->Pos.Y() );
-                        m_pParticleIndexRow->Update(true);
-                    }
-                  }
+									SetInletParticles(pPar);
 
                   glPushMatrix();
 
@@ -2605,6 +2628,60 @@ void moEffectParticlesSimple::DrawParticlesSimple( moTempo* tempogral, moEffectS
                               CPW = CPU * -U.Z();
                               W+= CPW;
                               break;
+
+													case PARTICLES_ORIENTATIONMODE_NORMAL:
+															switch(m_Physics.m_EmitterType) {
+																case PARTICLES_EMITTERTYPE_GRID:
+																case PARTICLES_EMITTERTYPE_POINT:
+																case PARTICLES_EMITTERTYPE_JET:
+																	U = moVector3f( 0.0f, 0.0f, 1.0f );
+		                              V = moVector3f( 1.0f, 0.0f, 0.0f );
+		                              W = moVector3f( 0.0f, 1.0f, 0.0f );
+																	break;
+
+																case PARTICLES_EMITTERTYPE_SPIRAL:
+																case PARTICLES_EMITTERTYPE_TUBE:
+																  //no Z Coordinates
+																	U = moVector3f( pPar->Pos3d.X(), pPar->Pos3d.Y(), 0.0 );
+																	U.Normalize();
+																	if (U.Length() < 0.5) {
+																			U = moVector3f( 0.0, 0.0, 1.0 );
+																			U.Normalize();
+																	}
+																	V = moVector3f( -U.Y(), U.X(), 0.0f );
+																	V.Normalize();
+																	CPU = moVector3f( U.X(), U.Y(), 0.0f );
+																	W = moVector3f( 0.0f, 0.0f, CPU.Length() );
+																	CPU.Normalize();
+																	CPW = CPU * -U.Z();
+																	W+= CPW;
+																	break;
+
+																case PARTICLES_EMITTERTYPE_SPHERE:
+																  //All Coordinates
+																	U = moVector3f( pPar->Pos3d.X(), pPar->Pos3d.Y(), pPar->Pos3d.Z());
+																	U.Normalize();
+																	if (U.Length() < 0.5) {
+																			U = moVector3f( 0.0, 0.0, 1.0 );
+																			U.Normalize();
+																	}
+																	V = moVector3f( -U.Y(), U.X(), 0.0f );
+																	V.Normalize();
+																	CPU = moVector3f( U.X(), U.Y(), 0.0f );
+																	W = moVector3f( 0.0f, 0.0f, CPU.Length() );
+																	CPU.Normalize();
+																	CPW = CPU * -U.Z();
+																	W+= CPW;
+																	break;
+
+																default:
+																	U = moVector3f( 0.0f, 0.0f, 1.0f );
+																	V = moVector3f( 1.0f, 0.0f, 0.0f );
+																	W = moVector3f( 0.0f, 1.0f, 0.0f );
+																	break;
+
+															}
+															break;
                   }
 
                   A = V * -sizexd2 + W * sizeyd2;

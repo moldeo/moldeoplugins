@@ -502,6 +502,8 @@ class moParticlesSimple : public moAbstract {
       Scale = 1.0;
       ImageProportion = 1.0;
       ImageIndex = 0;
+      ParticleIndex = 0;
+      ParticleIndexNormal = 0;
 
       Fixed = false;
       Visible = false;
@@ -614,6 +616,9 @@ class moParticlesSimple : public moAbstract {
     ///Texture image proportion Width / Height ....
     float       ImageProportion;
     long        ImageIndex;
+
+    long        ParticleIndex;
+    double        ParticleIndexNormal;
 
     moVector3f  Color;
 
@@ -882,6 +887,8 @@ class moEffectParticlesSimple : public moEffect
         ///Fija la posicion de la particula que se genera
         void SetParticlePosition( moParticlesSimple* pParticle );
 
+        void SetInletParticles( moParticlesSimple* pParticle );
+
 
         void ParticlesSimpleInfluence( float posx, float posy, float velx, float vely, float veln );
         void ParticlesSimpleAnimation( moTempo* tempogral, moEffectState* parentstate );
@@ -927,6 +934,7 @@ class moEffectParticlesSimple : public moEffect
 
         moInlet*                  m_pParticleTime;
         moInlet*                  m_pParticleIndex;
+        moInlet*                  m_pParticleIndexNormal;
         moInlet*                  m_pParticleIndexCol;
         moInlet*                  m_pParticleIndexRow;
 
@@ -953,7 +961,7 @@ class moEffectParticlesSimple : public moEffect
 
         void setUpLighting();
 
-        int m_rows,m_cols;
+        int m_rows,m_cols,m_total;
         float normalf; ///width of full floor usually 100.0f
 
         long time_tofull_revelation;

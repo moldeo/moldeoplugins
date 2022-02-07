@@ -36,7 +36,8 @@
 
 enum moEraseIndex {
     ERASE_ALPHA,
-    ERASE_COLOR
+    ERASE_COLOR,
+    ERASE_MODE
 };
 
 class moPreEffectErase : public moPreEffect
