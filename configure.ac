@@ -57,7 +57,15 @@ case "$host" in
                 with_boost_libdir="/usr/lib/x86_64-linux-gnu"
                 libdir=$prefix"/lib"
                 ;;
-	armv7l-*)
+        aarch64-*-darwin*)
+                AC_DEFINE(OS_DARWIN, 1, [Darwin backend])
+                AC_SUBST(OS_DARWIN)
+                ARCH_SPECIFIC_CFLAGS=""
+                ARCH_STRING="arm64"
+                libdir=$prefix"/lib"
+                corefoundation='/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/System/Library/Frameworks/CoreFoundation.framework/Versions/A/Headers'
+                ;;
+	      armv7l-*)
                 AC_DEFINE(ARCH_X86_64, 1, [Architecture is armv7l x86-64])
                 ARCH_SPECIFIC_CFLAGS="-DUSE_ADDR64"
                 ARCH_STRING="X86-64"

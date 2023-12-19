@@ -233,6 +233,20 @@ moEffectParticlesSimple::Init()
     m_Inlets.Add(m_pParticleIndexRow);
   }
 
+	m_pParticleIndexX = new moInlet();
+
+  if (m_pParticleIndexX) {
+    ((moConnector*)m_pParticleIndexX)->Init( moText("particlex"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
+    m_Inlets.Add(m_pParticleIndexX);
+  }
+
+  m_pParticleIndexY = new moInlet();
+
+  if (m_pParticleIndexY) {
+    ((moConnector*)m_pParticleIndexY)->Init( moText("particley"), m_Inlets.Count(), MO_DATA_NUMBER_DOUBLE );
+    m_Inlets.Add(m_pParticleIndexY);
+  }
+
   if (!PreInit()) return false;
 
   if (glActiveTextureARB) {
@@ -1028,6 +1042,20 @@ void moEffectParticlesSimple::SetInletParticles( moParticlesSimple* pParticle ) 
 		if (m_pParticleIndexRow->GetData()) {
 				m_pParticleIndexRow->GetData()->SetLong( (long)pParticle->Pos.Y() );
 				m_pParticleIndexRow->Update(true);
+		}
+	}
+
+	if (m_pParticleIndexX) {
+		if (m_pParticleIndexX->GetData()) {
+				m_pParticleIndexX->GetData()->SetDouble( (double)pParticle->Pos3d.X() );
+				m_pParticleIndexX->Update(true);
+		}
+	}
+
+	if (m_pParticleIndexY) {
+		if (m_pParticleIndexY->GetData()) {
+				m_pParticleIndexY->GetData()->SetDouble( (long)pParticle->Pos3d.Y() );
+				m_pParticleIndexY->Update(true);
 		}
 	}
 }

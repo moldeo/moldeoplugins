@@ -937,6 +937,8 @@ class moEffectParticlesSimple : public moEffect
         moInlet*                  m_pParticleIndexNormal;
         moInlet*                  m_pParticleIndexCol;
         moInlet*                  m_pParticleIndexRow;
+        moInlet*                  m_pParticleIndexX;
+        moInlet*                  m_pParticleIndexY;
 
         moParticlesSimpleArray    m_ParticlesSimpleArrayOrdered;
         std::vector < moParticlesSimple* >  m_ParticlesSimpleVector;

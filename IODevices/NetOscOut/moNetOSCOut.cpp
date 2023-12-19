@@ -157,7 +157,7 @@ MOboolean moNetOSCOut::Init()
 #endif
 
 		if (transmitSockets[i]) {
-        MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created at")+host_name[i]+":"+ IntToStr(host_port[i]) );
+        MODebug2->Message(moText("NetOSCOut UdptransmitSocket Created at address ")+host_name[i]+":"+ IntToStr(host_port[i]) );
     }
 
 
@@ -335,7 +335,8 @@ void moNetOSCOut::Update(moEventList *Eventos)
                     //res = eventPacket[i]->AddEvent(actual);
                     //if (eventPacket[i]->ReadyToSend())
                     {
-                        if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update "+GetLabelName()+" > SendDataMessage to host: I:") + (moText)IntToStr( i )+host_name[i] );
+                        if (debug_is_on) MODebug2->Message( moText("moNetOSCOut::Update "+GetLabelName()+" > SendDataMessage to host: I:") + (moText)IntToStr( i )
+																														+moText(" ")+host_name[i]+moText(" Port:")+IntToStr(host_port[i]) );
                         SendDataMessage( i, *MoldeoAPIMessage );
                         //eventPacket[i]->ClearPacket();
                         //if (!res) eventPacket[i]->AddEvent(actual);
@@ -810,4 +811,3 @@ moText oscpath = "";
     //MODebug2->Push(moText("sending"));
 
 }
-
