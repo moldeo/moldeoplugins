@@ -101,7 +101,7 @@ class moOscPacketListener : public moAbstract {
 				const IpEndpointName& remoteEndpoint );
 #else
         static int ProcessMessage(const char *path, const char *types, lo_arg ** argv,
-                    int argc, void *data, void *user_data);
+                    int argc, lo_message data, void *user_data);
 #endif
         bool debug_is_on;
     protected:
