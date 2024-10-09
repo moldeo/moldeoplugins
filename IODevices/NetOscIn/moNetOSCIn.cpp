@@ -1088,11 +1088,11 @@ moOscPacketListener* self = NULL;
                     if (types[0]==LO_STRING) {
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING");
                     }
-                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ " types[0]:" + types[0] );
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ " types[0]:" + (const char)types[0] );
                 }
                 if (argc>1) {
                     moText argv_value = "argv[1]";
-                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value + " types[1]:" + types[1] );
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value + " types[1]:" + (const char)types[1] );
                 }
             }
 
