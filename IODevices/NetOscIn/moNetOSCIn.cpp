@@ -911,12 +911,16 @@ moOscPacketListener* self = NULL;
   
   if (self == NULL) {
     return 0;
-  }
+  }  
 
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
-  if (self->m_Semaphore) {
-    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage m_Semaphore: "+IntToStr((long)self->m_Semaphore));
-  }
+
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Lock");
+  self->m_Semaphore.Lock();
+
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Unlock");
+  self->m_Semaphore.Unlock();
+
   return 0;
 
   #endif
