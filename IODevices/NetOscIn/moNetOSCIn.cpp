@@ -893,17 +893,20 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
 #endif
 
 //cout << "moNetOSCIn >> moOscPacketListener::ProcessMessage receiving" << endl;
-    self = this;
-    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
-    return 0;
 
 moOscPacketListener* self = NULL;
   #ifdef OSCPACK
+
   self = this;
   moText path = moText( m.AddressPattern() );
+
   #else
+    
   if (user_data==NULL) { cout << "no user data" << endl; return -1; }
   self = (moOscPacketListener*) user_data;
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
+  return 0;
+
   #endif
 
         //cout << "blocking" << endl;
