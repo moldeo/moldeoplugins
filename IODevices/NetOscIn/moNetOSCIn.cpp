@@ -921,8 +921,6 @@ moOscPacketListener* self = NULL;
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Unlock");
   self->m_Semaphore.Unlock();
 
-  return 0;
-
   #endif
 
         //cout << "blocking" << endl;
@@ -938,6 +936,9 @@ moOscPacketListener* self = NULL;
         if (self->debug_is_on) {
           self->MODebug2->Message(addresspath);
         }
+
+        self->m_Semaphore.Unlock();
+
         //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
          addresspath = moText( m.AddressPattern() );
