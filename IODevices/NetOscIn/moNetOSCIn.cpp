@@ -1056,7 +1056,6 @@ moOscPacketListener* self = NULL;
 
                 //TODO: return before hang
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage data0:" + data0.ToText() );
-                self->m_Semaphore.Unlock(); return 0;
 
             } else {
                 data0 = moData( addresspath );
@@ -1073,9 +1072,14 @@ moOscPacketListener* self = NULL;
 
 						/**/
             int i = 0;
-						int imax = 0;
-						imax = argc;
-            cout << "check argc:" << argc << " imax: " << imax << endl;
+            int imax = 0;
+            imax = argc;
+            //cout << "check argc:" << argc << " imax: " << imax << endl;
+
+
+            self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argc:" + IntToStr(argc) );
+            self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv );
+            self->m_Semaphore.Unlock(); return 0;
 
             for ( i = 0; i < imax; i++) {
             	cout << "arg i:" << i << " imax: " << imax << " type: " << types[i] << " /argc:" << argc << endl;
