@@ -902,9 +902,19 @@ moOscPacketListener* self = NULL;
 
   #else
     
-  if (user_data==NULL) { cout << "no user data" << endl; return -1; }
+  if (user_data==NULL) { 
+    cout << "no user data" << endl; 
+    return -1;
+  }
+  
   self = (moOscPacketListener*) user_data;
+  
+  if (self == NULL) return 0
+
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
+  if (self->m_Semaphore) {
+    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage m_Semaphore: "+IntToStr((long)self->m_Semaphore));
+  }
   return 0;
 
   #endif
