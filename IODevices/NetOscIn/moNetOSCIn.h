@@ -100,8 +100,8 @@ class moOscPacketListener : public moAbstract {
         virtual void ProcessMessage( const osc::ReceivedMessage& m,
 				const IpEndpointName& remoteEndpoint );
 #else
-        static int ProcessMessage(const char *path, const char *types, lo_arg ** argv,
-                    int argc, void *data, void *user_data);
+        static int ProcessMessage(const char *path, const char *types, lo_arg ** argv=NULL,
+                    int argc=0, void *data=NULL, void *user_data=NULL);
 #endif
         bool debug_is_on;
     protected:
