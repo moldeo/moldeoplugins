@@ -33,6 +33,8 @@
 #include "moArray.h"
 moDefineDynamicArray( moOscPacketListeners )
 
+moText lo_types_mo[1000];
+
 //========================
 //  Factory
 //========================
@@ -1081,17 +1083,14 @@ moOscPacketListener* self = NULL;
             self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argc:" + IntToStr(argc) );
             if (argv!=NULL) {
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv ) );
-                if (argc>0) {  
+                if (argc>0) {
                     moText argv_value = "argv[0]"; //moText(argv[0])
-                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ " types[0]:" + IntToStr(types[0]) );                    
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ " types[0]:" + moText(types[0]) );
                 }
-                if (argc>1) {  
+                if (argc>1) {
                     moText argv_value = "argv[0]";
-                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value + " types[1]:" + IntToStr(types[1]) );                    
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value + " types[1]:" + moText(types[1]) );
                 }
-            }
-            if (types!=NULL) {
-                self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage types[0]:" + moText(types[0]) );
             }
 
             self->Messages.Add(message);
