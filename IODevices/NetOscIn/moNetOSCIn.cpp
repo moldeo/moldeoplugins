@@ -909,7 +909,9 @@ moOscPacketListener* self = NULL;
   
   self = (moOscPacketListener*) user_data;
   
-  if (self == NULL) return 0
+  if (self == NULL) {
+    return 0;
+  }
 
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
   if (self->m_Semaphore) {
