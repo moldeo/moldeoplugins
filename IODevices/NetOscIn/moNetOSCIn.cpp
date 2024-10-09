@@ -913,6 +913,7 @@ moOscPacketListener* self = NULL;
     return 0;
   }
 
+  self->MODebug2->Message("moNetOSCIn <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
 
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Lock");
@@ -1084,6 +1085,9 @@ moOscPacketListener* self = NULL;
             if (types!=NULL) {
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage types[0]:" + moText(types[0]) );
             }
+
+            self->Messages.Add(message);
+            self->MODebug2->Message("moNetOSCIn >>");
             self->m_Semaphore.Unlock(); return 0;
 
             for ( i = 0; i < imax; i++) {
