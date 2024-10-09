@@ -937,7 +937,9 @@ moOscPacketListener* self = NULL;
           self->MODebug2->Message(addresspath);
         }
 
-        self->m_Semaphore.Unlock();
+        //TODO: return before hang
+        self->m_Semaphore.Unlock(); return 0;
+        
 
         //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
