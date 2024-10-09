@@ -892,7 +892,7 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
                     int argc, void *data, void *user_data) {
 #endif
 
-//cout << "receiving" << endl;
+cout << "moNetOSCIn >> moOscPacketListener::ProcessMessage receiving" << endl;
 return 0;
 
 moOscPacketListener* self = NULL;
