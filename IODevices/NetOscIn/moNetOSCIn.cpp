@@ -901,17 +901,17 @@ moOscPacketListener* self = NULL;
   moText path = moText( m.AddressPattern() );
 
   #else
-    
-  if (user_data==NULL) { 
-    cout << "no user data" << endl; 
+
+  if (user_data==NULL) {
+    cout << "no user data" << endl;
     return -1;
   }
-  
+
   self = (moOscPacketListener*) user_data;
-  
+
   if (self == NULL) {
     return 0;
-  }  
+  }
 
   self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
 
@@ -937,7 +937,7 @@ moOscPacketListener* self = NULL;
           self->MODebug2->Message(addresspath);
         }
 
-       
+
 
         //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
@@ -1055,6 +1055,7 @@ moOscPacketListener* self = NULL;
                 message.Add( data0 );
 
                 //TODO: return before hang
+                self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage data0:" + data0.ToText() );
                 self->m_Semaphore.Unlock(); return 0;
 
             } else {
