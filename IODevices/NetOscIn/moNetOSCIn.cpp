@@ -1078,7 +1078,7 @@ moOscPacketListener* self = NULL;
 
 
             self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argc:" + IntToStr(argc) );
-            self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv );
+            self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv ) );
             self->m_Semaphore.Unlock(); return 0;
 
             for ( i = 0; i < imax; i++) {
