@@ -937,9 +937,7 @@ moOscPacketListener* self = NULL;
           self->MODebug2->Message(addresspath);
         }
 
-        //TODO: return before hang
-        self->m_Semaphore.Unlock(); return 0;
-        
+       
 
         //cout << "addresspath:" << "[" << addresspath << "]" << endl;
 #ifdef OSCPACK
@@ -1055,6 +1053,10 @@ moOscPacketListener* self = NULL;
                 //cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
+
+                //TODO: return before hang
+                self->m_Semaphore.Unlock(); return 0;
+
             } else {
                 data0 = moData( addresspath );
                 message.Add( data0 );
