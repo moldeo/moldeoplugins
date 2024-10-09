@@ -893,8 +893,9 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
 #endif
 
 //cout << "moNetOSCIn >> moOscPacketListener::ProcessMessage receiving" << endl;
-self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
-return 0;
+    self = this;
+    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
+    return 0;
 
 moOscPacketListener* self = NULL;
   #ifdef OSCPACK
