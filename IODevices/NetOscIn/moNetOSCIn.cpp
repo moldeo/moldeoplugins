@@ -1089,16 +1089,25 @@ moOscPacketListener* self = NULL;
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv ) );
                 if (argc>0) {
                     moText argv_value = "argv[0]"; //moText(argv[0])
-                    if (types[0]==LO_STRING) {
-                        self->MODebug2->Message("moNetOSCIn >> LO_STRING");
-                    }
                     tbuf[0] = types[0];
                     self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ moText(" types[0]:") + moText((const char*)&tbuf) );
+
+                    if (tbuf[0] = 's') {
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING");
+                        //data = moData( moText((char*)&argv[i]->s) );
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[0]->s));
+                    }
                 }
                 if (argc>1) {
                     tbuf[0] = types[1];
                     moText argv_value = "argv[1]";
                     self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value +  moText(" types[1]:") + moText((const char*)&tbuf) );
+
+                    if (tbuf[0] = 's') {
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING");
+                        //data = moData( moText((char*)&argv[i]->s) );
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[1]->s));
+                    }
                 }
             }
 
