@@ -1124,13 +1124,13 @@ moOscPacketListener* self = NULL;
                     if (tbuf[0] = 's') {
                         moData data = moData( moText((char*)&argv[1]->s) );
                         message.Add( data );
-                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[i]->s));
+                        self->MODebug2->Message("moNetOSCIn >> LO_INT32: " + moText((char*)&argv[i]->s));
 
                     }
                     if (tbuf[0] = 'f') {
                         moData data =  moData( (float)argv[i]->f );
                         message.Add( data );
-                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + FloatToStr(argv[i]->f));
+                        self->MODebug2->Message("moNetOSCIn >> LO_FLOAT: " + FloatToStr(argv[i]->f));
 
                     }
                     if (tbuf[0] = 'i') {
