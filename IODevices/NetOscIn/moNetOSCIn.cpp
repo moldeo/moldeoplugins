@@ -1077,15 +1077,20 @@ moOscPacketListener* self = NULL;
             int i = 0;
             int imax = 0;
             imax = argc;
+            char tbuf[1];
+
             //cout << "check argc:" << argc << " imax: " << imax << endl;
 
 
             self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argc:" + IntToStr(argc) );
-            char tbuf[1];
+            
             if (types!=NULL) {
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage types:" + moText(types)  );
             }
             if (argv!=NULL) {
+
+
+                /*
                 self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv ) );
                 if (argc>0) {
                     moText argv_value = "argv[0]"; //moText(argv[0])
@@ -1112,6 +1117,23 @@ moOscPacketListener* self = NULL;
                         message.Add( data );
                     }
                 }
+                */
+
+               for ( i = 0; i < imax; i++) {
+                    tbuf[0] = types[i];
+                    if (tbuf[0] = 's') {
+                        moData  data = moData( moText((char*)&argv[1]->s) );
+                        message.Add( data );
+
+                    }
+                    if (tbuf[0] = 'f') {
+
+                    }
+                    if (tbuf[0] = 'i') {
+
+                    }
+
+               }
             }
 
             self->Messages.Add(message);
