@@ -14,7 +14,9 @@ if [ $? -eq 0 ]; then
 	echo "####################"
 	echo "--------------------"
 
-	moldeoplayersdl2 -mol ~/moldeo/moldeoinstaller/moldeosamples/basic/00_Image/00_Image.mol
+	#moldeoplayersdl2 -mol ~/moldeo/moldeoinstaller/moldeosamples/basic/00_Image/00_Image.mol
+	moldeoplayersdl2 -mol ~/moldeo/moldeoinstaller/moldeosamples/basic/08_Camera/08_Camera.mol
+
 else
 	echo "!!!!!!!!!!!!!!!!!!!!"
 	echo "XXXXXXXXXXXXXXXXXXXX"
