@@ -1097,7 +1097,7 @@ moOscPacketListener* self = NULL;
                     tbuf[0] = types[0];
                     self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ moText(" types[0]:") + moText((const char*)&tbuf) );
 
-                    if (tbuf[0] = 's') {
+                    if (tbuf[0] == 's') {
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING");
                         //data = moData( moText((char*)&argv[i]->s) );
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[0]->s));
@@ -1110,7 +1110,7 @@ moOscPacketListener* self = NULL;
                     moText argv_value = "argv[1]";
                     self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value +  moText(" types[1]:") + moText((const char*)&tbuf) );
 
-                    if (tbuf[0] = 's') {
+                    if (tbuf[0] == 's') {
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING");
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[1]->s));
                         moData  data = moData( moText((char*)&argv[1]->s) );
@@ -1121,19 +1121,19 @@ moOscPacketListener* self = NULL;
 
                for ( i = 0; i < imax; i++) {
                     tbuf[0] = types[i];
-                    if (tbuf[0] = 's') {
+                    if (tbuf[0] == 's') {
                         moData data = moData( moText((char*)&argv[1]->s) );
                         message.Add( data );
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[i]->s));
 
                     }
-                    if (tbuf[0] = 'f') {
+                    if (tbuf[0] == 'f') {
                         moData data =  moData( (float)argv[i]->f );
                         message.Add( data );
                         self->MODebug2->Message("moNetOSCIn >> LO_FLOAT: " + FloatToStr(argv[i]->f));
 
                     }
-                    if (tbuf[0] = 'i') {
+                    if (tbuf[0] == 'i') {
                         moData data =  moData( (int)argv[i]->i32 );
                         message.Add( data );
                         self->MODebug2->Message("moNetOSCIn >> LO_INT32: " + FloatToStr(argv[i]->i32));
