@@ -1096,6 +1096,8 @@ moOscPacketListener* self = NULL;
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING");
                         //data = moData( moText((char*)&argv[i]->s) );
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[0]->s));
+                        moData  data = moData( moText((char*)&argv[0]->s) );
+                        message.Add( data );
                     }
                 }
                 if (argc>1) {
@@ -1105,8 +1107,9 @@ moOscPacketListener* self = NULL;
 
                     if (tbuf[0] = 's') {
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING");
-                        //data = moData( moText((char*)&argv[i]->s) );
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[1]->s));
+                        moData  data = moData( moText((char*)&argv[1]->s) );
+                        message.Add( data );
                     }
                 }
             }
