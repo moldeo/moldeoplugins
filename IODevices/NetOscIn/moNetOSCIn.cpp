@@ -673,11 +673,16 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             } else
             if (p_ProcessMoldeoApi!=0) {
               if (pEvents) {
-                  //MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
+                  MODebug2->Message( moText( "Processing Moldeo API COMMAND" ) );
                   moText ApiMessage = message.Get(1).ToText();
                   moDataMessage* sendMessage = new moDataMessage();
                   sendMessage->Copy( message, 1, message.Count()-1);
                   //sendMessage->Add( moData( ApiMessage ) );
+                  //MODebug2->Message("ApiMessage "+ApiMessage);
+                  for( int nn = 0; nn < message.Count(); nn++) {
+                    moText ApiMessageData = sendMessage->Get(nn).ToText();
+                    MODebug2->Message("ApiMessageData "+ApiMessageData);
+                  }
                   /*process messages....*/
                   pEvents->Add( MO_IODEVICE_CONSOLE,
                                 MO_ACTION_MOLDEOAPI_EVENT_RECEIVE,
@@ -892,15 +897,36 @@ moOscPacketListener::ProcessMessage(const char *path, const char *types, lo_arg 
                     int argc, lo_message lodata, void *user_data) {
 #endif
 
-//cout << "receiving" << endl;
+//cout << "moNetOSCIn >> moOscPacketListener::ProcessMessage receiving" << endl;
 
 moOscPacketListener* self = NULL;
   #ifdef OSCPACK
+
   self = this;
   moText path = moText( m.AddressPattern() );
+
   #else
-  if (user_data==NULL) { cout << "no user data" << endl; return -1; }
+
+  if (user_data==NULL) {
+    cout << "no user data" << endl;
+    return -1;
+  }
+
   self = (moOscPacketListener*) user_data;
+
+  if (self == NULL) {
+    return 0;
+  }
+
+  self->MODebug2->Message("moNetOSCIn <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage receiving");
+
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Lock");
+  self->m_Semaphore.Lock();
+
+  self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage Unlock");
+  self->m_Semaphore.Unlock();
+
   #endif
 
         //cout << "blocking" << endl;
@@ -1030,6 +1056,10 @@ moOscPacketListener* self = NULL;
                 //cout << "addresspath MOLDEO:" << endl;
                 data0 = moData( moText( "MOLDEO" ) );
                 message.Add( data0 );
+
+                //TODO: return before hang
+                self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage data0:" + data0.ToText() );
+
             } else {
                 data0 = moData( addresspath );
                 message.Add( data0 );
@@ -1042,25 +1072,96 @@ moOscPacketListener* self = NULL;
                 const osc::ReceivedMessageArgument& rec((*arg));
                 char tt = rec.TypeTag();
 #else
+
+						/**/
             int i = 0;
-            cout << "check argc:" << argc << endl;
-						fflush(stdout);
-            for (i = 0; i < argc; i++) {
-            cout << "arg i:" << i << " type: " << types[i] << lodata << endl;
-            lo_arg_pp((lo_type)types[i], argv[i]);
-						fflush(stdout);
-            cout << endl;
+            int imax = 0;
+            imax = argc;
+            char tbuf[1];
+
+            //cout << "check argc:" << argc << " imax: " << imax << endl;
+
+
+            self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argc:" + IntToStr(argc) );
+            
+            if (types!=NULL) {
+                self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage types:" + moText(types)  );
+            }
+            if (argv!=NULL) {
+
+
+                /*
+                self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:" + IntToStr((long)argv ) );
+                if (argc>0) {
+                    moText argv_value = "argv[0]"; //moText(argv[0])
+                    tbuf[0] = types[0];
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv[0]:" + argv_value+ moText(" types[0]:") + moText((const char*)&tbuf) );
+
+                    if (tbuf[0] == 's') {
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING");
+                        //data = moData( moText((char*)&argv[i]->s) );
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[0]->s));
+                        moData  data = moData( moText((char*)&argv[0]->s) );
+                        message.Add( data );
+                    }
+                }
+                if (argc>1) {
+                    tbuf[0] = types[1];
+                    moText argv_value = "argv[1]";
+                    self->MODebug2->Message("moNetOSCIn >> moOscPacketListener::ProcessMessage argv:[1]" + argv_value +  moText(" types[1]:") + moText((const char*)&tbuf) );
+
+                    if (tbuf[0] == 's') {
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING");
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[1]->s));
+                        moData  data = moData( moText((char*)&argv[1]->s) );
+                        message.Add( data );
+                    }
+                }
+                */
+
+               for ( i = 0; i < imax; i++) {
+                    tbuf[0] = types[i];
+                    if (tbuf[0] == 's') {
+                        moData data = moData( moText((char*)&argv[i]->s) );
+                        message.Add( data );
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[i]->s));
+
+                    }
+                    if (tbuf[0] == 'f') {
+                        moData data =  moData( (float)argv[i]->f );
+                        message.Add( data );
+                        self->MODebug2->Message("moNetOSCIn >> LO_FLOAT: " + FloatToStr(argv[i]->f));
+
+                    }
+                    if (tbuf[0] == 'i') {
+                        moData data =  moData( (int)argv[i]->i32 );
+                        message.Add( data );
+                        self->MODebug2->Message("moNetOSCIn >> LO_INT32: " + IntToStr(argv[i]->i32));
+
+                    }
+
+               }
+            }
+
+            self->Messages.Add(message);
+            self->MODebug2->Message("moNetOSCIn >>");
+            self->m_Semaphore.Unlock(); return 0;
+
+            for ( i = 0; i < imax; i++) {
+            	cout << "arg i:" << i << " imax: " << imax << " type: " << types[i] << " /argc:" << argc << endl;
+							if (i>=imax) {
+								cout << "continue i: " << i << " superior o igual a [imax]:" << imax << endl;
+								continue;
+							}
+            //lo_arg_pp((lo_type)types[i], argv[i]);
+            //cout << endl;
               lo_type tt = (lo_type)types[i];
-						//	cout << "argv:" << argv[i] << endl;
               //cout << "check lo_type tt:" << tt << endl;
 
             //cout << endl;
 
 #endif
                 moData  data;
-								if (argv[i]!=NULL && i<argc) {
-
-
                 switch(tt) {
                 #ifdef OSCPACK
                 //base.Copy( moData( (int)rec.AsBool() ) );
@@ -1134,44 +1235,29 @@ moOscPacketListener* self = NULL;
                   #else
                    case LO_FALSE:
                    case LO_TRUE:
-                      if (argv[i]) {
-												data = moData( (int)argv[i]->i );
-											}
+                      data = moData( (int)argv[i]->i );
                       break;
                    case LO_INT32:
-									 		if (argv[i]) {
-                      	data = moData( (int)argv[i]->i32 );
-											}
+                      data = moData( (int)argv[i]->i32 );
                       break;
 
                    case LO_INT64:
-									 		if (argv[i]) {
-                      	data = moData( (int)argv[i]->i64 );
-											}
+                      data = moData( (int)argv[i]->i64 );
                       break;
 
                    case LO_DOUBLE:
-									 		if (argv[i]) {
-                      	data = moData( (double)argv[i]->d );
-											}
+                      data = moData( (double)argv[i]->d );
                       break;
                    case LO_FLOAT:
-									 		if (argv[i]) {
-                      	data = moData( (float)argv[i]->f );
-											}
+                      data = moData( (float)argv[i]->f );
                       break;
                     case LO_STRING:
-											if (argv[i]) {
-                    		data = moData( moText((char*)&argv[i]->s) );
-											}
+                      data = moData( moText((char*)&argv[i]->s) );
                       break;
 
                   #endif
                 }
-
-
-								}
-								if (self->debug_is_on) {
+                if (self->debug_is_on) {
                   self->MODebug2->Message( moText(" > Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
                 }
                 #ifdef OSCPACK
@@ -1518,7 +1604,7 @@ void moNetOSCIn::Update(moEventList *Events) {
 /*
             for(int i = 0; i<m_pEvents->GetMessages().Count();  i++) {
 
-
+                
 
             }
             */
