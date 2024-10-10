@@ -675,7 +675,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
             } else
             if (p_ProcessMoldeoApi!=0) {
               if (pEvents) {
-                  //MODebug2->Push( moText( "Processing Moldeo API COMMAND" ) );
+                  MODebug2->Message( moText( "Processing Moldeo API COMMAND" ) );
                   moText ApiMessage = message.Get(1).ToText();
                   moDataMessage* sendMessage = new moDataMessage();
                   sendMessage->Copy( message, 1, message.Count()-1);
