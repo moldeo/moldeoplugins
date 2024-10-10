@@ -682,7 +682,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                   //sendMessage->Add( moData( ApiMessage ) );
                   //MODebug2->Message("ApiMessage "+ApiMessage);
                   for( int nn = 0; nn < message.Count(); nn++) {
-                    moText ApiMessageData = message.Get(nn).ToText();
+                    moText ApiMessageData = sendMessage->Get(nn).ToText();
                     MODebug2->Message("ApiMessageData "+ApiMessageData);
                   }
                   /*process messages....*/
