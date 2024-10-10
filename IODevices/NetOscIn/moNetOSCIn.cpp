@@ -680,7 +680,7 @@ moOscPacketListener::Update( moOutlets* pOutlets,
                   moDataMessage* sendMessage = new moDataMessage();
                   sendMessage->Copy( message, 1, message.Count()-1);
                   //sendMessage->Add( moData( ApiMessage ) );
-                  MODebug2->Message("ApiMessage "+ApiMessage)
+                  MODebug2->Message("ApiMessage "+ApiMessage);
                   /*process messages....*/
                   pEvents->Add( MO_IODEVICE_CONSOLE,
                                 MO_ACTION_MOLDEOAPI_EVENT_RECEIVE,
