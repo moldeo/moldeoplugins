@@ -1127,7 +1127,7 @@ moOscPacketListener* self = NULL;
                for ( i = 0; i < imax; i++) {
                     tbuf[0] = types[i];
                     if (tbuf[0] == 's') {
-                        moData data = moData( moText((char*)&argv[1]->s) );
+                        moData data = moData( moText((char*)&argv[i]->s) );
                         message.Add( data );
                         self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[i]->s));
 
@@ -1141,7 +1141,7 @@ moOscPacketListener* self = NULL;
                     if (tbuf[0] == 'i') {
                         moData data =  moData( (int)argv[i]->i32 );
                         message.Add( data );
-                        self->MODebug2->Message("moNetOSCIn >> LO_INT32: " + FloatToStr(argv[i]->i32));
+                        self->MODebug2->Message("moNetOSCIn >> LO_INT32: " + IntToStr(argv[i]->i32));
 
                     }
 
