@@ -1124,6 +1124,7 @@ moOscPacketListener* self = NULL;
                     if (tbuf[0] = 's') {
                         moData  data = moData( moText((char*)&argv[1]->s) );
                         message.Add( data );
+                        self->MODebug2->Message("moNetOSCIn >> LO_STRING: " + moText((char*)&argv[i]->s));
 
                     }
                     if (tbuf[0] = 'f') {
