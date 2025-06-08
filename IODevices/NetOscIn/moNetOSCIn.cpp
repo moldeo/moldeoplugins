@@ -1145,7 +1145,11 @@ moOscPacketListener* self = NULL;
 
             self->Messages.Add(message);
             self->MODebug2->Message("moNetOSCIn >>");
-            self->m_Semaphore.Unlock(); return 0;
+            self->m_Semaphore.Unlock(); 
+            
+            return 0;
+
+            ///END REWRITE!!!
 
             for ( i = 0; i < imax; i++) {
             	cout << "arg i:" << i << " imax: " << imax << " type: " << types[i] << " /argc:" << argc << endl;
@@ -1163,7 +1167,7 @@ moOscPacketListener* self = NULL;
 #endif
                 moData  data;
                 switch(tt) {
-                #ifdef OSCPACK
+#ifdef OSCPACK
                 //base.Copy( moData( (int)rec.AsBool() ) );
                     case osc::TRUE_TYPE_TAG:
                     case osc::FALSE_TYPE_TAG:
@@ -1232,7 +1236,9 @@ moOscPacketListener* self = NULL;
                       data = moData( pointer, size, dtype );
                     }
                       break;
-                  #else
+
+#else
+
                    case LO_FALSE:
                    case LO_TRUE:
                       data = moData( (int)argv[i]->i );
@@ -1260,21 +1266,21 @@ moOscPacketListener* self = NULL;
                 if (self->debug_is_on) {
                   self->MODebug2->Message( moText(" > Data type:") + data.TypeToText()+ moText(": ") + data.ToText() );
                 }
-                #ifdef OSCPACK
+#ifdef OSCPACK
                 (arg++);
-                #endif
+#endif
 
                 message.Add( data );
 
             }
         }
-        #ifdef OSCPACK
+#ifdef OSCPACK
         catch( osc::Exception& e ){
         std::cout << "error while parsing message: "
                 << addresspath << ": " << e.what() << "\n";
-        #else
+#else
         catch(...) {
-        #endif
+#endif
             // any parsing errors such as unexpected argument types, or
             // missing arguments get thrown as exceptions.
 
@@ -1284,10 +1290,10 @@ moOscPacketListener* self = NULL;
         self->Messages.Add(message);
         self->m_Semaphore.Unlock();
 
-				#ifdef OSCPACK
-				#else
+#ifdef OSCPACK
+#else
 				return 1;
-				#endif
+#endif
 
 }
 

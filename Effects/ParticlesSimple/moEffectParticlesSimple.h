@@ -310,7 +310,12 @@ enum moParticlesCreationMethod {
     ///  2: \if spanish Volumétrico. Los lugares de nacimientos están diseminados dentro del volumen del emisor aleatoriamente.  \else Volumetric. Particles birth position are into the volume of the emitter. \endif
     PARTICLES_CREATIONMETHOD_VOLUMETRIC=2,
     /// 3: \if spanish Central. Los lugares de nacimiento están colapsados en el centro del emisor. \else Central. Particles birth position are collapsed into the emitter center position. \endif
-    PARTICLES_CREATIONMETHOD_CENTER=3
+    PARTICLES_CREATIONMETHOD_CENTER=3,
+    /// 4: \if spanish Superficial. Los lugares de nacimientos están diseminados sobre la superficie del emisor aleatoriamente pero coinciden con los vertices del emisor.  \else Surface. Particles birth position follow randomly the surface of the emitter but snapping to the emitter vertex grid. \endif
+    PARTICLES_CREATIONMETHOD_PLANAR_SNAP=4,
+    /// 5: \if spanish Volumétrico. Los lugares de nacimientos están diseminados dentro del volumen del emisor aleatoriamente.  \else Volumetric. Particles birth position are into the volume of the emitter. \endif
+    PARTICLES_CREATIONMETHOD_VOLUMETRIC_SNAP=5
+
 };
 
 ///Random Method
