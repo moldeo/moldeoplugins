@@ -36,15 +36,16 @@ sudo apt-get install -y doxygen
 # INSTALL THE LIBRARY (YOU CAN CHANGE '3.2.0' FOR THE LAST STABLE VERSION)
 
 sudo apt-get install -y unzip wget
-wget https://github.com/opencv/opencv/archive/3.2.0.zip
-unzip 3.2.0.zip
-rm 3.2.0.zip
-mv opencv-3.2.0 OpenCV
-cd OpenCV
+#wget https://github.com/opencv/opencv/archive/3.2.0.zip
+wget https://github.com/opencv/opencv/archive/4.11.0.zip -O OpenCV.zip
+unzip OpenCV.zip -d OpenCV
+rm OpenCV.zip
+cd OpenCV/opencv*
 mkdir build
 cd build
-cmake -DWITH_QT=ON -DWITH_OPENGL=ON -DFORCE_VTK=ON -DWITH_TBB=ON -DWITH_GDAL=ON -DWITH_XINE=ON -DBUILD_EXAMPLES=ON ..
-make -j4
+#cmake -DWITH_QT=ON -DWITH_OPENGL=ON -DFORCE_VTK=ON -DWITH_TBB=ON -DWITH_GDAL=ON -DWITH_XINE=ON -DBUILD_EXAMPLES=ON ..
+cmake ..
+make -j16
 sudo make install
 sudo ldconfig
 

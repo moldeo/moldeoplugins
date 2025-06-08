@@ -40,7 +40,7 @@ sudo sh install.sh
 #tar xvjf NITE-Bin-Linux-x64-v1.5.2.21.tar.bz2
 #mv NITE-Bin-Linux-x64-v1.5.2.21 nite
 cd ~/kinect
-wget http://www.moldeo.org/archivos/binario/nite-bin-linux-x64-v1.5.2.21.tar.bz2
+wget https://www.moldeo.org/archivos/binario/nite-bin-linux-x64-v1.5.2.21.tar.bz2
 tar -xvf nite-bin-linux-x64-v1.5.2.21.tar.bz2
 mv NITE-Bin-Dev-Linux-x64-v1.5.2.21 nite
 cd ~/kinect/nite/
